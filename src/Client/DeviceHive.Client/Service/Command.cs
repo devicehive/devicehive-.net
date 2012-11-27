@@ -29,7 +29,7 @@ namespace DeviceHive.Client
         /// <summary>
         /// Gets or sets command parameters.
         /// </summary>
-        public Dictionary<string, string> Parameters { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
 
         /// <summary>
         /// Gets or sets command execution status.
@@ -66,7 +66,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="name">Command name.</param>
         /// <param name="parameters">Command parameters.</param>
-        public Command(string name, Dictionary<string, string> parameters)
+        public Command(string name, Dictionary<string, object> parameters)
             : this(name)
         {
             Parameters = parameters;
@@ -80,13 +80,13 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="name">Parameter name.</param>
         /// <param name="value">Parameter value to set.</param>
-        public void Parameter(string name, string value)
+        public void Parameter(string name, object value)
         {
             if (name == null)
                 throw new ArgumentNullException("name");
 
             if (Parameters == null)
-                Parameters = new Dictionary<string, string>();
+                Parameters = new Dictionary<string, object>();
 
             Parameters[name] = value;
         }
@@ -99,19 +99,7 @@ namespace DeviceHive.Client
         /// <param name="value">Parameter value to set.</param>
         public void Parameter<TValue>(string name, TValue value)
         {
-            string stringValue = null;
-            if (value != null)
-            {
-                if (typeof(TValue) == typeof(byte[]))
-                {
-                    stringValue = Convert.ToBase64String(value as byte[]);
-                }
-                else
-                {
-                    stringValue = value.ToString();
-                }
-            }
-            Parameter(name, stringValue);
+            Parameter(name, TypeConverter.ToObject(value));
         }
 
         /// <summary>
@@ -119,7 +107,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="name">Parameter name.</param>
         /// <returns>Parameter value.</returns>
-        public string GetParameter(string name)
+        public object GetParameter(string name)
         {
             if (name == null)
                 throw new ArgumentNullException("name");
@@ -127,7 +115,7 @@ namespace DeviceHive.Client
             if (Parameters == null)
                 return null;
 
-            string value = null;
+            object value = null;
             Parameters.TryGetValue(name, out value);
             return value;
         }
@@ -140,16 +128,7 @@ namespace DeviceHive.Client
         /// <returns>Parameter value.</returns>
         public TValue GetParameter<TValue>(string name)
         {
-            string stringValue = GetParameter(name);
-            if (stringValue == null)
-            {
-                return default(TValue);
-            }
-            if (typeof(TValue) == typeof(byte[]))
-            {
-                return (TValue)(object)Convert.FromBase64String(stringValue);
-            }
-            return TypeConverter.Parse<TValue>(stringValue);
+            return TypeConverter.FromObject<TValue>(GetParameter(name));
         }
         #endregion
     }

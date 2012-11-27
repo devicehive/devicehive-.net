@@ -37,7 +37,7 @@ namespace VirtualLedClient
                 var ledEquipmentState = equipmentState.FirstOrDefault(e => e.Id == LED_CODE);
                 if (ledEquipmentState != null)
                 {
-                    Console.WriteLine("Current state of the VirtualLed: " + ledEquipmentState.GetParameter("state"));
+                    Console.WriteLine("Current state of the VirtualLed: " + ledEquipmentState.GetParameter<int>("state"));
                 }
 
                 // start the device notification handling task
@@ -89,10 +89,10 @@ namespace VirtualLedClient
 
                     // display information about received notification
                     foreach (var notification in notifications.Where(n =>
-                        n.Name == "equipment" && n.GetParameter("equipment") == LED_CODE))
+                        n.Name == "equipment" && n.GetParameter<string>("equipment") == LED_CODE))
                     {
                         var message = "Device sent LED state change notification, new state: {0}";
-                        Console.WriteLine(string.Format(message, notification.GetParameter("state")));
+                        Console.WriteLine(string.Format(message, notification.GetParameter<int>("state")));
                     }
 
                     // update last received notification timestamp

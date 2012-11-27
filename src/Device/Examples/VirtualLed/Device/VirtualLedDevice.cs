@@ -25,7 +25,7 @@ namespace VirtualLed
         public override void Main(CancellationToken token)
         {
             // send the notification about initial LED state
-            ServiceChannel.SendNotification(new LedNotification(LED_CODE, _ledState));
+            ServiceChannel.SendEquipmentNotification(LED_CODE, new LedNotification(_ledState));
             
             // do nothing in the main thread
         }
@@ -53,7 +53,7 @@ namespace VirtualLed
             _ledState = command.State.Value;
 
             // send the notification about LED state update
-            ServiceChannel.SendNotification(new LedNotification(command.Equipment, command.State.Value));
+            ServiceChannel.SendEquipmentNotification(command.Equipment, new LedNotification(command.State.Value));
 
             // return the Completed status
             return new DeviceCommandResult("Completed");

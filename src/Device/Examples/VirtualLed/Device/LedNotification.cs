@@ -6,18 +6,16 @@ namespace VirtualLed
     /// <summary>
     /// Represents notification about LED state change
     /// </summary>
-    public class LedNotification : DeviceEquipmentNotification
+    public class LedNotification
     {
         #region Public Properties
 
         /// <summary>
-        /// Gets or sets new LED state.
+        /// Gets new LED state.
         /// </summary>
-        public int State
-        {
-            get { return GetParameter<int>("state"); }
-            set { Parameter("state", value); }
-        }
+        [Parameter("state")]
+        public int State { get; private set; }
+
         #endregion
 
         #region Constructor
@@ -25,10 +23,8 @@ namespace VirtualLed
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="equipmentCode">LED equipment code.</param>
         /// <param name="state">New LED state.</param>
-        public LedNotification(string equipmentCode, int state)
-            : base(equipmentCode)
+        public LedNotification(int state)
         {
             State = state;
         }

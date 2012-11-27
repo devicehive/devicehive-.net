@@ -29,7 +29,7 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets or sets command parameters.
         /// </summary>
-        public Dictionary<string, string> Parameters { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
 
         /// <summary>
         /// Gets or sets command execution status.
@@ -57,7 +57,7 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="name">Command name.</param>
         /// <param name="parameters">Command parameters.</param>
-        public Command(string name, Dictionary<string, string> parameters)
+        public Command(string name, Dictionary<string, object> parameters)
         {
             Name = name;
             Parameters = parameters;
@@ -70,52 +70,11 @@ namespace DeviceHive.Device
         /// <param name="parameters">Command parameters.</param>
         /// <param name="status">Command status.</param>
         /// <param name="result">Command result.</param>
-        public Command(string name, Dictionary<string, string> parameters, string status, string result)
+        public Command(string name, Dictionary<string, object> parameters, string status, string result)
             : this(name, parameters)
         {
             Status = status;
             Result = result;
-        }
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Gets a value of command parameter with specified name.
-        /// </summary>
-        /// <param name="name">Parameter name.</param>
-        /// <returns>Parameter value.</returns>
-        public string GetParameter(string name)
-        {
-            if (name == null)
-                throw new ArgumentNullException("name");
-
-            if (Parameters == null)
-                return null;
-
-            string value = null;
-            Parameters.TryGetValue(name, out value);
-            return value;
-        }
-
-        /// <summary>
-        /// Gets a value of command parameter with specified name.
-        /// </summary>
-        /// <typeparam name="TValue">Type of the value.</typeparam>
-        /// <param name="name">Parameter name.</param>
-        /// <returns>Parameter value.</returns>
-        public TValue GetParameter<TValue>(string name)
-        {
-            string stringValue = GetParameter(name);
-            if (stringValue == null)
-            {
-                return default(TValue);
-            }
-            if (typeof(TValue) == typeof(byte[]))
-            {
-                return (TValue)(object)Convert.FromBase64String(stringValue);
-            }
-            return TypeConverter.Parse<TValue>(stringValue);
         }
         #endregion
     }

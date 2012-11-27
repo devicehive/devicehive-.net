@@ -14,7 +14,7 @@ namespace DeviceHive.Device
     /// The class is capable of hosting one or several devices, which could be added via <see cref="AddDevice"/> method.
     /// When started, the host runs all devices and performs the following two actions:
     /// 1. Routes incomings DeviceHive commands to the corresponding devices.
-    /// 2. Allows devices to dispatch notifications using <see cref="IDeviceServiceChannel.SendNotification"/> method.
+    /// 2. Allows devices to dispatch notifications using <see cref="SendNotification"/> method.
     /// </remarks>
     public class DeviceHost
     {
@@ -159,7 +159,7 @@ namespace DeviceHive.Device
 
             try
             {
-                var cNotification = new Notification(notification.Name, new Dictionary<string, string>(notification.Parameters));
+                var cNotification = new Notification(notification.Name.Trim(), new Dictionary<string, object>(notification.Parameters));
                 DeviceClient.SendNotification(sender.ID, sender.Key, cNotification);
             }
             catch (Exception ex)
@@ -253,7 +253,7 @@ namespace DeviceHive.Device
             DeviceCommandResult result;
             try
             {
-                var command = new DeviceCommand(cCommand.Name, cCommand.Parameters == null ? null : new Dictionary<string, string>(cCommand.Parameters));
+                var command = new DeviceCommand(cCommand.Name.Trim(), cCommand.Parameters == null ? null : new Dictionary<string, object>(cCommand.Parameters));
                 result = device.HandleCommand(command, _cancellationSource.Token);
             }
             catch (OperationCanceledException)
@@ -323,6 +323,25 @@ namespace DeviceHive.Device
                     throw new ArgumentNullException("notification");
 
                 _host.SendNotification(_device, notification);
+            }
+
+            public void SendNotification(string notification, object parameters)
+            {
+                if (string.IsNullOrEmpty(notification))
+                    throw new ArgumentException("Notification is null or empty!", "notification");
+
+                var notificationParameters = ParameterMapper.Map(parameters);
+                SendNotification(new DeviceNotification(notification, notificationParameters));
+            }
+
+            public void SendEquipmentNotification(string equipment, object parameters)
+            {
+                if (string.IsNullOrEmpty(equipment))
+                    throw new ArgumentException("Equipment is null or empty!", "equipment");
+
+                var notificationParameters = ParameterMapper.Map(parameters);
+                notificationParameters["equipment"] = equipment;
+                SendNotification(new DeviceNotification("equipment", notificationParameters));
             }
             #endregion
         }

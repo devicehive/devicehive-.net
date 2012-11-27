@@ -131,11 +131,7 @@ namespace DeviceHive.Device
             foreach (var method in GetType().PublicGetMethods().Where(p => p.IsDefined(typeof(DeviceCommandAttribute), true)))
             {
                 if (method.GetParameters().Length != 2)
-                    throw new InvalidOperationException(string.Format("The action method '{0}' must include two parameters: DeviceCommand, CancellationToken", method.Name));
-                if (!typeof(DeviceCommand).IsAssignableFrom(method.GetParameters()[0].ParameterType))
-                    throw new InvalidOperationException(string.Format("The first parameter of action method '{0}' must be of DeviceCommand type", method.Name));
-                if (method.GetParameters()[0].ParameterType.GetConstructor(new[] { typeof(string), typeof(Dictionary<string, string>) }) == null)
-                    throw new InvalidOperationException(string.Format("The command type '{0}' must include constructor with name and parameters dictionary", method.GetParameters()[0].ParameterType));
+                    throw new InvalidOperationException(string.Format("The action method '{0}' must include two parameters: DeviceCommand (or any custom strongly-typed object with ParameterAttribute attributes) and CancellationToken", method.Name));
                 if (method.GetParameters()[1].ParameterType != typeof(CancellationToken))
                     throw new InvalidOperationException(string.Format("The second parameter of action method '{0}' must be of CancellationToken type", method.Name));
                 if (!typeof(DeviceCommandResult).IsAssignableFrom(method.ReturnType))
@@ -184,8 +180,8 @@ namespace DeviceHive.Device
             if (_deviceCommands.TryGetValue(command.Name, out method))
             {
                 var commandType = method.GetParameters()[0].ParameterType;
-                var translatedCommand = (DeviceCommand)Activator.CreateInstance(commandType, command.Name, command.Parameters);
-                return (DeviceCommandResult)method.Invoke(this, new object[] { translatedCommand, token });
+                var parameters = commandType == typeof(DeviceCommand) ? command : ParameterMapper.Map(command.Parameters, commandType);
+                return (DeviceCommandResult)method.Invoke(this, new object[] { parameters, token });
             }
 
             return OnHandleUnknownCommand(command, token);
