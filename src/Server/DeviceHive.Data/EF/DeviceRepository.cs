@@ -64,7 +64,10 @@ namespace DeviceHive.Data.EF
 
             using (var context = new DeviceHiveContext())
             {
-                context.Networks.Attach(device.Network);
+                if (device.Network != null)
+                {
+                    context.Networks.Attach(device.Network);
+                }
                 context.DeviceClasses.Attach(device.DeviceClass);
                 context.Devices.Add(device);
                 if (device.ID > 0)

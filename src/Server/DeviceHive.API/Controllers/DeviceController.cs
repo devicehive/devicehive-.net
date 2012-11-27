@@ -43,7 +43,7 @@ namespace DeviceHive.API.Controllers
 
         public HttpResponseMessage Post(JObject json)
         {
-            return HttpResponse(HttpStatusCode.MethodNotAllowed, "The method is not allowed, please use POST /device/{id} to register a device");
+            return HttpResponse(HttpStatusCode.MethodNotAllowed, "The method is not allowed, please use PUT /device/{id} to register a device");
         }
 
         /// <name>register</name>
@@ -57,8 +57,8 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="network" mode="remove" />
         ///     <parameter name="deviceClass" mode="remove" />
-        ///     <parameter name="network" type="integer, string, or object" required="true">
-        ///         <para>Network identifier, network key or <see cref="Network"/> object.</para>
+        ///     <parameter name="network" type="integer or object" required="false">
+        ///         <para>Network identifier or <see cref="Network"/> object.</para>
         ///         <para>If object is passed, the target network will be searched by name and automatically created if not found.</para>
         ///         <para>In case when existing network is protected with the key, the key value must be included.</para>
         ///     </parameter>
@@ -91,7 +91,7 @@ namespace DeviceHive.API.Controllers
             }
 
             // map and save the device object
-            ResolveNetwork(json, device.ID == 0);
+            ResolveNetwork(json);
             ResolveDeviceClass(json, device.ID == 0);
 
             Mapper.Apply(device, json);
@@ -139,13 +139,10 @@ namespace DeviceHive.API.Controllers
             get { return GetMapper<Device>(); }
         }
 
-        private void ResolveNetwork(JObject json, bool isRequired)
+        private void ResolveNetwork(JObject json)
         {
-            var jNetwork = json.Property("network");
-            if (isRequired && jNetwork == null)
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Required 'network' property was not specified!");
-
             Network network = null;
+            var jNetwork = json.Property("network");
             var verifyNetworkKey = RequestContext.CurrentUser == null;
             if (jNetwork != null && jNetwork.Value is JValue)
             {
@@ -156,14 +153,6 @@ namespace DeviceHive.API.Controllers
                     network = DataContext.Network.Get((int)jNetworkValue);
                     if (verifyNetworkKey && network != null && network.Key != null)
                         ThrowHttpResponse(HttpStatusCode.Forbidden, "Could not register a device because target network is protected with a key!");
-                }
-                else if (jNetworkValue.Value is string)
-                {
-                    // search network by key
-                    network = DataContext.Network.GetByKey((string)jNetworkValue);
-                    if (network == null)
-                        ThrowHttpResponse(HttpStatusCode.BadRequest, "Network with specified key was not found!");
-                    jNetwork.Value = (long)network.ID;
                 }
             }
             else if (jNetwork != null && jNetwork.Value is JObject)

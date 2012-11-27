@@ -47,8 +47,6 @@ namespace DeviceHive.Data.Model
                 throw new ArgumentException("Key is null or empty!", "key");
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Name is null or empty!", "name");
-            if (network == null)
-                throw new ArgumentNullException("network");
             if (deviceClass == null)
                 throw new ArgumentNullException("deviceClass");
 
@@ -100,12 +98,11 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// Associated network identifier.
         /// </summary>
-        public int NetworkID { get; set; }
+        public int? NetworkID { get; set; }
 
         /// <summary>
         /// Associated network object.
         /// </summary>
-        [Required]
         public Network Network { get; set; }
 
         /// <summary>

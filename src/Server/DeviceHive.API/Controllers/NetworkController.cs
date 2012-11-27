@@ -70,8 +70,6 @@ namespace DeviceHive.API.Controllers
             
             if (DataContext.Network.Get(network.Name) != null)
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "Network with such name already exists!");
-            if (network.Key != null && DataContext.Network.GetByKey(network.Key) != null)
-                ThrowHttpResponse(HttpStatusCode.Forbidden, "Network with such key already exists!");
             
             DataContext.Network.Save(network);
             return Mapper.Map(network);
@@ -100,13 +98,6 @@ namespace DeviceHive.API.Controllers
             var existing = DataContext.Network.Get(network.Name);
             if (existing != null && existing.ID != network.ID)
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "Network with such name already exists!");
-
-            if (network.Key != null)
-            {
-                existing = DataContext.Network.GetByKey(network.Key);
-                if (existing != null && existing.ID != network.ID)
-                    ThrowHttpResponse(HttpStatusCode.Forbidden, "Network with such key already exists!");
-            }
 
             DataContext.Network.Save(network);
             return Mapper.Map(network);

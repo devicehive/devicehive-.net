@@ -114,10 +114,6 @@ namespace DeviceHive.Test
             var network2 = NetworkRepository.Get("Test");
             Assert.IsNotNull(network2);
 
-            // test GetByKey(key)
-            var network3 = NetworkRepository.GetByKey("Key");
-            Assert.IsNotNull(network3);
-
             // test Save
             network.Name = "Test2";
             network.Description = "Desc";
@@ -253,10 +249,14 @@ namespace DeviceHive.Test
             // test Save
             device.Name = "Test2";
             device.Status = "Status";
+            device.Network = null;
+            device.NetworkID = null;
             DeviceRepository.Save(device);
             var device3 = DeviceRepository.Get(device.ID);
             Assert.AreEqual("Test2", device3.Name);
             Assert.AreEqual("Status", device3.Status);
+            Assert.IsNull(device3.Network);
+            Assert.IsNull(device3.NetworkID);
 
             // test update relationship
             var deviceClass2 = new DeviceClass("D2", "V2");

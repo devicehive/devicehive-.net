@@ -261,7 +261,16 @@ namespace DeviceHive.API.Mapping
 
                 TRef refValue = default(TRef);
                 var jValue = jProperty.Value as JValue;
-                if (jValue != null && (jValue.Value is long))
+                if (jValue != null && jValue.Type == JTokenType.Null)
+                {
+                    // null is passed - have to reset the foreign key property as well
+                    var fkProperty = typeof(T).GetProperty(entityProperty.Name + "ID");
+                    if (fkProperty != null)
+                    {
+                        fkProperty.SetValue(entity2, null, null);
+                    }
+                }
+                else if (jValue != null && (jValue.Value is long))
                 {
                     // search object by ID
                     refValue = repository.Get((int)jValue);
@@ -270,7 +279,6 @@ namespace DeviceHive.API.Mapping
                         throw new JsonMapperException(string.Format("ID of the reference property is not found! " +
                             "Property: {0}, ID: {1}", jsonProperty, jValue));
                     }
-                    entityProperty.SetValue(entity2, refValue, null);
                 }
                 else
                 {

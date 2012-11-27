@@ -50,13 +50,16 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
         }
 
-        protected bool IsNetworkAccessible(int networkId)
+        protected bool IsNetworkAccessible(int? networkId)
         {
             if (RequestContext.CurrentUser == null)
                 return true;
 
             if (RequestContext.CurrentUser.Role == (int)UserRole.Administrator)
                 return true;
+
+            if (networkId == null)
+                return false;
 
             var userNetworks = DataContext.UserNetwork.GetByUser(RequestContext.CurrentUser.ID);
             return userNetworks.Any(un => un.NetworkID == networkId);

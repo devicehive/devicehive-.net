@@ -71,6 +71,10 @@
     <Compile Include="Migrations\201208020910522_6.1.Designer.cs">
       <DependentUpon>201208020910522_6.1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201211271726121_7.0.cs" />
+    <Compile Include="Migrations\201211271726121_7.0.Designer.cs">
+      <DependentUpon>201211271726121_7.0.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Migrator.cs" />
     <Compile Include="Validation\JsonFieldAttribute.cs" />
     <Compile Include="Migrations\201205191537489_5.cs" />
