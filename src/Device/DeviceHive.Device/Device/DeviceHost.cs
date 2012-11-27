@@ -52,13 +52,11 @@ namespace DeviceHive.Device
         /// Default constructor.
         /// </summary>
         /// <param name="client">Associated DeviceHive device client. Use any custom or default <see cref="RestfulDeviceService"/> implementation.</param>
-        /// <param name="network">Associated DeviceHive network object. If specified network is not found in the DeviceHive service, it will be automatically created.</param>
+        /// <param name="network">Associated DeviceHive network object (optional). If specified network is not found in the DeviceHive service, it will be automatically created.</param>
         public DeviceHost(IDeviceService client, Network network)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
-            if (network == null)
-                throw new ArgumentNullException("network");
 
             DeviceClient = client;
             Network = network;

@@ -58,10 +58,11 @@ namespace DeviceHive.Device
                 throw new ArgumentException("Device key is null or empty string", "device.Key");
             if (string.IsNullOrEmpty(device.Name))
                 throw new ArgumentException("Device name is null or empty string!", "device.Name");
-            if (device.Network == null)
-                throw new ArgumentException("Device network is null!", "device.Network");
-            if (string.IsNullOrEmpty(device.Network.Name))
-                throw new ArgumentException("Device network name is null or empty!", "device.Network.Name");
+            if (device.Network != null)
+            {
+                if (string.IsNullOrEmpty(device.Network.Name))
+                    throw new ArgumentException("Device network name is null or empty!", "device.Network.Name");
+            }
             if (device.DeviceClass == null)
                 throw new ArgumentException("Device class is null!", "device.DeviceClass");
             if (string.IsNullOrEmpty(device.DeviceClass.Name))
