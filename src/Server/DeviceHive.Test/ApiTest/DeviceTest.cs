@@ -135,13 +135,15 @@ namespace DeviceHive.Test.ApiTest
         {
             // make device class permanent
             Client.Put("/device/class/" + DeviceClassID, new { isPermanent = true }, auth: Admin);
-
-            var resource = Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" },
+            
+            var resource = Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" },
+                deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 },
                 equipment = new[] { new { name = "eq1", code = "eq1_code", type = "eq1_type" }}});
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             var dcResponse = Client.Get("/device/class/" + DeviceClassID, auth: Admin);
             var equipment = (JArray)dcResponse.Json["equipment"];
+            Expect(dcResponse.Json, Matches(new { offlineTimeout = (int?)null }));
             Expect(equipment.Count, Is.EqualTo(0)); // permanent device classes should not change
         }
 
@@ -184,13 +186,14 @@ namespace DeviceHive.Test.ApiTest
             var resource = Update(ID, new { key = "key", name = "_ut", deviceClass = DeviceClassID }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + ID);
 
-            // modify device status only (device authentication)
-            var update = Update(resource, new { status = "status", network = NetworkID }, auth: Device(ID, "key"));
+            // modify device properties (device authentication)
+            var update = Update(resource, new { status = "status", network = NetworkID,
+                deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }, auth: Device(ID, "key"));
 
             Expect(update, Matches(new { id = ID, name = "_ut", status = "status",
-                network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
+                network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }));
             Expect(Get(resource, auth: Admin), Matches(new { id = ID, name = "_ut", status = "status",
-                network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
+                network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }));
         }
 
         [Test]

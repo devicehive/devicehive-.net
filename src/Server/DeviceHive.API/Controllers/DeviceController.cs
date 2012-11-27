@@ -65,6 +65,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="deviceClass" type="integer or object" required="true">
         ///         <para>Device class identifier or <see cref="DeviceClass"/> object.</para>
         ///         <para>If object is passed, the target device class will be searched by name and version, and automatically created if not found.</para>
+        ///         <para>The device class object will be also updated accordingly unless the <see cref="DeviceClass.IsPermanent"/> flag is set.</para>
         ///     </parameter>
         ///     <parameter name="equipment" type="array" required="false" cref="Equipment">
         ///         <para>Array of <see cref="Equipment"/> objects to be associated with the device class. If specified, all existing values will be replaced.</para>
@@ -146,6 +147,7 @@ namespace DeviceHive.API.Controllers
             var verifyNetworkKey = RequestContext.CurrentUser == null;
             if (jNetwork != null && jNetwork.Value is JValue)
             {
+                // a value is passed, can be null
                 var jNetworkValue = (JValue)jNetwork.Value;
                 if (jNetworkValue.Value is long)
                 {
@@ -157,7 +159,7 @@ namespace DeviceHive.API.Controllers
             }
             else if (jNetwork != null && jNetwork.Value is JObject)
             {
-                // search network by name or auto-create
+                // search network by name or auto-create if it does not exist
                 var jNetworkObj = (JObject)jNetwork.Value;
                 if (jNetworkObj["name"] == null)
                     ThrowHttpResponse(HttpStatusCode.BadRequest, "Specified 'network' object must include 'name' property!");
@@ -165,9 +167,10 @@ namespace DeviceHive.API.Controllers
                 network = DataContext.Network.Get((string)jNetworkObj["name"]);
                 if (network == null)
                 {
-                    // auto-create network if it does not exist
+                    // auto-create network
                     network = new Network();
                     GetMapper<Network>().Apply(network, jNetworkObj);
+                    Validate(network);
                     DataContext.Network.Save(network);
                 }
 
@@ -187,7 +190,7 @@ namespace DeviceHive.API.Controllers
             
             if (jDeviceClass != null && jDeviceClass.Value is JObject)
             {
-                // search device class by name/version or auto-create
+                // search device class by name/version or auto-create if it does not exist
                 var jDeviceClassObj = (JObject)jDeviceClass.Value;
                 if (jDeviceClassObj["name"] == null)
                     ThrowHttpResponse(HttpStatusCode.BadRequest, "Specified 'deviceClass' object must include 'name' property!");
@@ -197,9 +200,14 @@ namespace DeviceHive.API.Controllers
                 var deviceClass = DataContext.DeviceClass.Get((string)jDeviceClassObj["name"], (string)jDeviceClassObj["version"]);
                 if (deviceClass == null)
                 {
-                    // auto-create device class if it does not exist
+                    // auto-create device class
                     deviceClass = new DeviceClass();
+                }
+                if (deviceClass.ID == 0 || !deviceClass.IsPermanent)
+                {
+                    // auto-update device class if it's not set as permanent
                     GetMapper<DeviceClass>().Apply(deviceClass, jDeviceClassObj);
+                    Validate(deviceClass);
                     DataContext.DeviceClass.Save(deviceClass);
                 }
                 jDeviceClass.Value = (long)deviceClass.ID;
