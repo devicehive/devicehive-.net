@@ -155,7 +155,7 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             // modify device
-            var obj = new { name = "_ut2", status = "status",
+            var obj = new { name = "_ut2", status = "status", data = new { a = "b" },
                 network = new { name = "_ut_n2", description = "desc" }, deviceClass = new { name = "_ut_dc", version = "2" } };
             var update = Update(resource, obj, auth: Admin);
             RegisterForDeletion("/network/" + update["network"]["id"]);
@@ -187,12 +187,12 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             // modify device properties (device authentication)
-            var update = Update(resource, new { status = "status", network = NetworkID,
+            var update = Update(resource, new { status = "status", data = new { a = "b" }, network = NetworkID,
                 deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }, auth: Device(ID, "key"));
 
-            Expect(update, Matches(new { id = ID, name = "_ut", status = "status",
+            Expect(update, Matches(new { id = ID, name = "_ut", status = "status", data = new { a = "b" },
                 network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }));
-            Expect(Get(resource, auth: Admin), Matches(new { id = ID, name = "_ut", status = "status",
+            Expect(Get(resource, auth: Admin), Matches(new { id = ID, name = "_ut", status = "status", data = new { a = "b" },
                 network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }));
         }
 

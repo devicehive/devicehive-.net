@@ -30,19 +30,22 @@ namespace DeviceHive.API.Mapping
                 .Property(e => e.Name, "name")
                 .Property(e => e.Version, "version")
                 .Property(e => e.IsPermanent, "isPermanent")
-                .Property(e => e.OfflineTimeout, "offlineTimeout");
+                .Property(e => e.OfflineTimeout, "offlineTimeout")
+                .RawJsonProperty(e => e.Data, "data");
 
             manager.Configure<Equipment>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Code, "code")
-                .Property(e => e.Type, "type");
+                .Property(e => e.Type, "type")
+                .RawJsonProperty(e => e.Data, "data");
 
             manager.Configure<Device>()
                 .Property(e => e.GUID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Key, "key", JsonMapperEntryMode.OneWayToSource)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Status, "status")
+                .RawJsonProperty(e => e.Data, "data")
                 .ReferenceProperty(e => e.Network, "network")
                 .ReferenceProperty(e => e.DeviceClass, "deviceClass");
 

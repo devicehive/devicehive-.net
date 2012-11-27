@@ -64,7 +64,7 @@ namespace DeviceHive.Data.Model
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="login">User login</param>
         /// <param name="password">User password</param>

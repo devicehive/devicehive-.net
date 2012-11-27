@@ -22,7 +22,7 @@ namespace DeviceHive.Data.Model
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="command">Command text</param>
         /// <param name="device">Associated device object</param>

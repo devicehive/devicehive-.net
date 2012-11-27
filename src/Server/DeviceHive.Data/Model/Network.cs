@@ -20,7 +20,7 @@ namespace DeviceHive.Data.Model
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="name">Network name</param>
         public Network(string name)

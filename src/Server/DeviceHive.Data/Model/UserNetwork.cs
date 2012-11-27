@@ -20,7 +20,7 @@ namespace DeviceHive.Data.Model
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="user">Associated user object</param>
         /// <param name="network">Associated network object</param>

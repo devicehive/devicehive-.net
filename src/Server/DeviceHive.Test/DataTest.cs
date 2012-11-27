@@ -151,11 +151,15 @@ namespace DeviceHive.Test
             deviceClass.Name = "Test2";
             deviceClass.Version = "V2";
             deviceClass.IsPermanent = true;
+            deviceClass.OfflineTimeout = 10;
+            deviceClass.Data = "{}";
             DeviceClassRepository.Save(deviceClass);
             var deviceClass3 = DeviceClassRepository.Get(deviceClass.ID);
             Assert.AreEqual("Test2", deviceClass3.Name);
             Assert.AreEqual("V2", deviceClass3.Version);
             Assert.AreEqual(true, deviceClass3.IsPermanent);
+            Assert.AreEqual(10, deviceClass3.OfflineTimeout);
+            Assert.AreEqual("{}", deviceClass3.Data);
 
             // test Delete
             DeviceClassRepository.Delete(deviceClass.ID);
@@ -189,11 +193,13 @@ namespace DeviceHive.Test
             equipment.Name = "Test2";
             equipment.Code = "Code2";
             equipment.Type = "Type2";
+            equipment.Data = "{}";
             EquipmentRepository.Save(equipment);
             var equipment2 = EquipmentRepository.Get(equipment.ID);
             Assert.AreEqual("Test2", equipment2.Name);
             Assert.AreEqual("Code2", equipment2.Code);
             Assert.AreEqual("Type2", equipment2.Type);
+            Assert.AreEqual("{}", equipment2.Data);
 
             // test update relationship
             var deviceClass2 = new DeviceClass("D2", "V2");
@@ -249,12 +255,14 @@ namespace DeviceHive.Test
             // test Save
             device.Name = "Test2";
             device.Status = "Status";
+            device.Data = "{}";
             device.Network = null;
             device.NetworkID = null;
             DeviceRepository.Save(device);
             var device3 = DeviceRepository.Get(device.ID);
             Assert.AreEqual("Test2", device3.Name);
             Assert.AreEqual("Status", device3.Status);
+            Assert.AreEqual("{}", device3.Data);
             Assert.IsNull(device3.Network);
             Assert.IsNull(device3.NetworkID);
 

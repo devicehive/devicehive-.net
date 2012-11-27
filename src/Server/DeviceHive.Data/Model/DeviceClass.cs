@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using DeviceHive.Data.Validation;
 
 namespace DeviceHive.Data.Model
 {
@@ -20,7 +21,7 @@ namespace DeviceHive.Data.Model
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="name">Device class name</param>
         /// <param name="version">Device class version</param>
@@ -68,6 +69,12 @@ namespace DeviceHive.Data.Model
         /// Device considered inactive when it does not send any notifications.
         /// </summary>
         public int? OfflineTimeout { get; set; }
+
+        /// <summary>
+        /// Device class data, a JSON object with an arbitrary structure.
+        /// </summary>
+        [JsonField]
+        public string Data { get; set; }
 
         #endregion
     }
