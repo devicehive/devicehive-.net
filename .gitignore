@@ -1,0 +1,9 @@
+/bin
+/packages
+[Bb]in
+[Oo]bj
+PrecompiledWeb
+*.suo
+*.user
+log*.txt
+_ReSharper.*

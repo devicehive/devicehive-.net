@@ -1,0 +1,93 @@
+﻿@* Generator : Template *@
+@using DeviceHive.API.Models
+
+@functions  {
+    public MetadataResource Resource { get; set; }
+    public MetadataMethod Method { get; set; }
+}
+
+<h1>@Html.Encode(Resource.Name): @Html.Encode(Method.Name)</h1>
+
+<p>@Html.Documentation(Method.Documentation)</p>
+
+<h2>Request</h2>
+    
+<h3>HTTP Request</h3>
+<pre class="uri">@Html.Encode(Method.Verb) @Html.Encode(Method.Uri)</pre>
+    
+@if (Method.UriParameters != null && Method.UriParameters.Any())
+{
+<h3>Parameters</h3>
+<table>
+    <tr>
+        <th style="width:200px">Parameter Name</th>
+        <th style="width:80px">Required</th>
+        <th style="width:80px">Type</th>
+        <th style="width:400px">Description</th>
+    </tr>
+    @foreach (var parameter in Method.UriParameters)
+    {
+    <tr>
+        <td>@Html.Encode(parameter.Name)</td>
+        <td>@(parameter.IsRequred ? "Yes" : "No")</td>
+        <td>@Html.Encode(parameter.Type)</td>
+        <td>@Html.Documentation(parameter.Documentation)</td>
+    </tr>
+    }
+</table>
+}
+    
+<h3>Authorization</h3>
+<p>@Html.Encode(Method.Authorization)</p>
+
+@if (Method.RequestDocumentation != null)
+{
+<h3>Request Body</h3>
+<p>@Html.Documentation(Method.RequestDocumentation)</p>
+
+if (Method.RequestParameters != null && Method.RequestParameters.Any())
+{
+<table>
+    <tr>
+        <th style="width:200px">Property Name</th>
+        <th style="width:80px">Required</th>
+        <th style="width:80px">Type</th>
+        <th style="width:400px">Description</th>
+    </tr>
+    @foreach (var parameter in Method.RequestParameters)
+    {
+    <tr>
+        <td>@Html.Encode(parameter.Name)</td>
+        <td>@(parameter.IsRequred ? "Yes" : "No")</td>
+        <td>@Html.Encode(parameter.Type)</td>
+        <td>@Html.Documentation(parameter.Documentation)</td>
+    </tr>
+    }
+</table>
+}
+}
+    
+@if (Method.ResponseDocumentation != null)
+{
+<h2>Response</h2>
+<p>@Html.Documentation(Method.ResponseDocumentation)</p>
+    
+if (Method.ResponseParameters != null && Method.ResponseParameters.Any())
+{
+<table>
+    <tr>
+        <th style="width:200px">Property Name</th>
+        <th style="width:80px">Type</th>
+        <th style="width:400px">Description</th>
+    </tr>
+    @foreach (var parameter in Method.ResponseParameters)
+    {
+    <tr>
+        <td>@Html.Encode(parameter.Name)</td>
+        <td>@Html.Encode(parameter.Type)</td>
+        <td>@Html.Documentation(parameter.Documentation)</td>
+    </tr>
+    }
+</table>
+}
+}

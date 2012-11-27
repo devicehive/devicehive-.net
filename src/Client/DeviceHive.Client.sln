@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Client", "DeviceHive.Client\DeviceHive.Client.csproj", "{7C50A4A9-3564-42F2-BE2B-267664925A16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualLedClient", "Examples\VirtualLedClient\VirtualLedClient.csproj", "{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{CE51D270-A7A7-4D34-866C-5928DAEB693A}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{0D17BD69-4D12-4BC9-9888-55FD6990FF91}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7C50A4A9-3564-42F2-BE2B-267664925A16}.Release|x86.ActiveCfg = Release|Any CPU
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Debug|x86.ActiveCfg = Debug|x86
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Debug|x86.Build.0 = Debug|x86
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Release|Any CPU.ActiveCfg = Release|x86
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Release|Mixed Platforms.Build.0 = Release|x86
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Release|x86.ActiveCfg = Release|x86
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7} = {0D17BD69-4D12-4BC9-9888-55FD6990FF91}
+	EndGlobalSection
+EndGlobal

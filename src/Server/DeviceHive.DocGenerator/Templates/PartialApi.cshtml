@@ -1,0 +1,100 @@
+﻿@* Generator : Template *@
+@using DeviceHive.DocGenerator.Templates
+@using DeviceHive.API.Models
+@functions  {
+    public Metadata Doc { get; set; }
+}
+<div id="sidebar">
+    <ul>
+        <li><a href="#GetStarted">Get Started</a></li>
+        <li><a href="#Reference">Reference</a>
+            <ul>
+            @foreach (var resource in Doc.Resources)
+            {
+                <li><a href="#Reference/@Html.Encode(resource.Name)">@Html.Encode(resource.Name)</a>
+                    <ul id="nav-Reference-@Html.Encode(resource.Name)">
+                    @foreach (var method in resource.Methods)
+                    {
+                        <li><a href="#Reference/@Html.Encode(resource.Name)/@Html.Encode(method.Name)">@Html.Encode(method.Name)</a></li>
+                    }
+                    </ul>
+                </li>
+            }
+            </ul>
+        </li>
+    </ul>
+</div>
+<div id="content" class="column" role="main">
+    <div id="GetStarted">
+        @(new PartialGetStarted().TransformText())
+    </div>
+    <div id="Reference">
+        <h1>Reference</h1>
+        @foreach (var resource in Doc.Resources)
+        {
+            <h2>@Html.Encode(resource.Name)</h2>
+            <p>@Html.Documentation(resource.Documentation)</p>
+            <p>For @Html.Encode(resource.Name) resource details, see the <a href="#Reference/@Html.Encode(resource.Name)">resource representation</a> page.</p>
+            <table>
+                <tr>
+                    <th style="width:120px">Method</th>
+                    <th style="width:150px">Authorization</th>
+                    <th style="width:300px">Uri</th>
+                    <th style="width:400px">Description</th>
+                </tr>
+                @foreach (var method in resource.Methods)
+                {
+                <tr>
+                    <td><a href="#Reference/@Html.Encode(resource.Name)/@Html.Encode(method.Name)">@Html.Encode(method.Name)</a></td>
+                    <td>@Html.Encode(method.Authorization)</td>
+                    <td>@Html.Encode(method.Verb) @Html.Encode(method.Uri)</td>
+                    <td>@Html.Documentation(method.Documentation)</td>
+                </tr>
+                }
+            </table>
+        }
+    </div>
+    @foreach (var resource in Doc.Resources)
+    {
+    <div id="Reference-@Html.Encode(resource.Name)">
+        @(new PartialResource{ Resource = resource }.TransformText())
+    </div>
+    foreach (var method in resource.Methods)
+    {
+    <div id="Reference-@Html.Encode(resource.Name)-@Html.Encode(method.Name)">
+        @(new PartialMethod{ Resource = resource, Method = method }.TransformText())
+    </div>
+    }
+}
+</div>
+<script type="text/javascript">
+    jQuery(function () {
+        if ("onhashchange" in window) {
+            window.onhashchange = function () {
+                navigator.open(window.location.hash);
+            }
+        }
+        else {
+            var storedHash = window.location.hash;
+            window.setInterval(function () {
+                if (window.location.hash != storedHash) {
+                    storedHash = window.location.hash;
+                    navigator.open(storedHash);
+                }
+            }, 100);
+        }
+
+        var navigator = {
+            open: function (hash) {
+                hash = hash.replace(/^\#/, ""); if (hash == "") hash = "GetStarted";
+                jQuery("#content > div").hide().filter("#" + hash.replace(/\//g, "-")).show();
+                jQuery("#sidebar ul[id^='nav-']").hide();
+                var nav = ""; jQuery.each(hash.split("/"), function (index, value) { nav += "-" + value; jQuery("#nav" + nav).show(); });
+                window.scrollTo(0, 0);
+            }
+        }
+
+        navigator.open(window.location.hash);
+    });
+</script>
+

@@ -1,0 +1,52 @@
+﻿@* Generator : Template *@
+@using DeviceHive.API.Models
+
+@functions  {
+    public MetadataResource Resource { get; set; }
+}
+
+<h1>@Html.Encode(Resource.Name)</h1>
+
+<p>@Html.Documentation(Resource.Documentation)</p>
+
+<h2>Methods</h2>
+
+<table>
+    <tr>
+        <th style="width:120px">Method</th>
+        <th style="width:150px">Authorization</th>
+        <th style="width:300px">Uri</th>
+        <th style="width:400px">Description</th>
+    </tr>
+    @foreach (var method in Resource.Methods)
+    {
+    <tr>
+        <td><a href="#Reference/@Html.Encode(Resource.Name)/@Html.Encode(method.Name)">@Html.Encode(method.Name)</a></td>
+        <td>@Html.Encode(method.Authorization)</td>
+        <td>@Html.Encode(method.Verb) @Html.Encode(method.Uri)</td>
+        <td>@Html.Documentation(method.Documentation)</td>
+    </tr>
+    }
+</table>
+
+
+<h2>Resource Representation</h2>
+
+@Html.Resource(Resource)
+
+<table>
+    <tr>
+        <th style="width:200px">Property Name</th>
+        <th style="width:80px">Type</th>
+        <th style="width:400px">Description</th>
+    </tr>
+    @foreach (var property in Resource.Properties)
+    {
+    <tr>
+        <td>@Html.Encode(property.Name)</td>
+        <td>@Html.Encode(property.Type)</td>
+        <td>@Html.Documentation(property.Documentation)</td>
+    </tr>
+    }
+</table>
+

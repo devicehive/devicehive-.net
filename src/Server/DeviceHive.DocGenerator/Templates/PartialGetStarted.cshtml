@@ -1,0 +1,69 @@
+﻿@* Generator : Template *@
+
+<h1>Get Started</h1>
+
+<p>The DeviceHive API is the central part of the framework which allows different components to interact with each other.
+The API provides access to information about registered components in the system, and allows them to exchange messages in real time.</p>
+
+<h2>Use Cases</h2>
+
+<p>There are three types of consumers of the DeviceHive API, as shown on the diagram below:</p>
+
+<img src="{image-path}/Images/UseCases.png" alt="Use Cases" />
+
+<h3>Device</h3>
+<p>Device is a unit that runs microcode, and it communicates with the API for in following cases:</p>
+<ul>
+    <li>When started, device registers within the framework by passing unique identifier, display name and other meta-information.</li>
+    <li>Device sends notifications with an arbitrary content format to notify other components about the changes in the device's environment.</li>
+    <li>Device listens for commands issued by other components and executes them in an appropriate way.</li>
+</ul>
+
+<h3>Client</h3>
+<p>Client is an application that is used to monitor and/or control devices.
+It could be a user interface, or completely automated software that manages the entire device network.
+Clients may invoke the API in the following use cases:</p>
+<ul>
+    <li>Client enumerates all the devices in the network, view their status and other meta-information.</li>
+    <li>Client listens for device notifications and processes them in an appropriate way.</li>
+    <li>Client sends commands to devices to trigger any logic on the device side.</li>
+</ul>
+
+<h3>Administrator</h3>
+<p>Administrator controls all aspects of the environment with the full access to the API.
+Commonly, administrators will need to use this API in the following cases:</p>
+<ul>
+    <li>Administrator creates and manages API users (clients and other administrators).</li>
+    <li>Administrator creates and manages device networks and associates users with them.</li>
+    <li>Administrator monitors devices and all dispatched notifications and commands.</li>
+</ul>
+
+<h2>Resources</h2>
+<p>The DeviceHive API is a RESTful service, which operates on several resource types.
+The diagram below reflects all used resource types and their relationships:</p>
+<img src="{image-path}/Images/DataModel.png" alt="Data Model" />
+
+<ul>
+    <li><a href="#Reference/User">User</a>: represents a user with credentials and API access rights (client or administrator).</li>
+    <li><a href="#Reference/Network">Network</a>: represents an isolation entity that encapsulates multiple devices with controlled access.</li>
+    <li><a href="#Reference/Device">Device</a>: represents a unit that runs microcode.</li>
+    <li><a href="#Reference/DeviceClass">Device Class</a>: represents an entity that holds all meta-information about particular type of devices.</li>
+    <li><a href="#Reference/Equipment">Equipment</a>: represents meta-information about one unit of equipment devices have onboard.</li>
+    <li><a href="#Reference/DeviceNotification">Device Notification</a>: represents a message dispatched by devices for clients.</li>
+    <li><a href="#Reference/DeviceCommand">Device Command</a>: represents a message dispatched by clients for devices.</li>
+</ul>
+
+<h2>Authentication</h2>
+<p>The API supports two types of authentication: User and Device.</p>
+
+<h3>User</h3>
+<p>The users are authenticated using <a href="http://en.wikipedia.org/wiki/Basic_access_authentication" target="_blank">HTTP Basic Authentication</a>.</p>
+<p>The access is provided based on authenticated user role (Client or Administrator), please refer to the <a href="#Reference">Reference</a> for the list of available resources and methods for each user role.</p>
+
+<h3>Device</h3>
+<p>Devices are authenticated by passing two custom HTTP headers:</p>
+<ul>
+    <li><strong>Auth-DeviceID</strong>: Device unique identifier.</li>
+    <li><strong>Auth-DeviceKey</strong>: Device authentication key.</li>
+</ul>
+<p>Both device unique identifier and authentication key are specified during <a href="#Reference/Device/register">device registration</a>.</p>
