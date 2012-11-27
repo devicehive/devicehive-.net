@@ -75,6 +75,37 @@ namespace DeviceHive.Device
         }
 
         /// <summary>
+        /// Updates a device in the DeviceHive network.
+        /// </summary>
+        /// <param name="device"><see cref="Device"/> object.</param>
+        /// <returns><see cref="Device"/> object updated.</returns>
+        public Device UpdateDevice(Device device)
+        {
+            if (device == null)
+                throw new ArgumentNullException("device");
+            if (device.Id == null)
+                throw new ArgumentNullException("device.ID");
+            if (string.IsNullOrEmpty(device.Key))
+                throw new ArgumentException("Device key is null or empty string", "device.Key");
+
+            if (device.Network != null)
+            {
+                if (string.IsNullOrEmpty(device.Network.Name))
+                    throw new ArgumentException("Device network name is null or empty!", "device.Network.Name");
+            }
+            if (device.DeviceClass != null)
+            {
+                if (string.IsNullOrEmpty(device.DeviceClass.Name))
+                    throw new ArgumentException("Device class name is null or empty!", "device.DeviceClass.Name");
+                if (string.IsNullOrEmpty(device.DeviceClass.Version))
+                    throw new ArgumentException("Device class version is null or empty!", "device.DeviceClass.Version");
+            }
+
+            var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
+            return Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d, NullValueHandling.Ignore);
+        }
+
+        /// <summary>
         /// Sends new device notification to the service.
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
@@ -222,7 +253,7 @@ namespace DeviceHive.Device
             }
         }
 
-        private T Put<T>(string url, Guid deviceId, string deviceKey, T obj)
+        private T Put<T>(string url, Guid deviceId, string deviceKey, T obj, NullValueHandling nullValueHandling = NullValueHandling.Include)
         {
             Logger.Debug("Calling PUT " + url);
             var request = WebRequest.Create(ServiceUrl + url);
@@ -232,7 +263,7 @@ namespace DeviceHive.Device
             request.Headers["Auth-DeviceKey"] = deviceKey;
             using (var stream = request.GetRequestStream())
             {
-                Serialize(stream, obj);
+                Serialize(stream, obj, nullValueHandling);
             }
 
             try
@@ -273,7 +304,7 @@ namespace DeviceHive.Device
             }
         }
 
-        private void Serialize<T>(Stream stream, T obj)
+        private void Serialize<T>(Stream stream, T obj, NullValueHandling nullValueHandling = NullValueHandling.Include)
         {
             if (obj == null)
                 throw new ArgumentNullException("obj");
@@ -281,7 +312,7 @@ namespace DeviceHive.Device
             using (var writer = new StreamWriter(stream))
             {
                 var serializer = new JsonSerializer();
-                serializer.NullValueHandling = NullValueHandling.Ignore;
+                serializer.NullValueHandling = nullValueHandling;
                 serializer.ContractResolver = new JsonContractResolver();
                 serializer.Serialize(writer, obj);
             }
@@ -292,7 +323,6 @@ namespace DeviceHive.Device
             using (var reader = new StreamReader(stream))
             {
                 var serializer = new JsonSerializer();
-                serializer.NullValueHandling = NullValueHandling.Ignore;
                 serializer.ContractResolver = new JsonContractResolver();
                 return (T)serializer.Deserialize(reader, typeof(T));
             }
@@ -323,6 +353,14 @@ namespace DeviceHive.Device
                 if (property.DeclaringType == typeof(Command) && property.PropertyName == "name")
                 {
                     property.PropertyName = "command";
+                }
+                if (property.DeclaringType == typeof(Device) && property.PropertyName == "network")
+                {
+                    property.NullValueHandling = NullValueHandling.Ignore;
+                }
+                if (property.PropertyName == "id")
+                {
+                    property.NullValueHandling = NullValueHandling.Ignore;
                 }
                 return property;
             }

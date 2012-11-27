@@ -20,15 +20,19 @@ namespace DeviceHive.Device
         /// <returns>An instance of dictionary with parameter values.</returns>
         public static Dictionary<string, object> Map(object source)
         {
+            if (source == null)
+                return null;
+
             var target = new Dictionary<string, object>();
 
-            if (source != null)
+            var sourceType = source.GetType();
+            foreach (var property in sourceType.PrivateGetProperties().Where(p => p.IsDefined(typeof(ParameterAttribute), true)))
             {
-                var sourceType = source.GetType();
-                foreach (var property in sourceType.PrivateGetProperties().Where(p => p.IsDefined(typeof(ParameterAttribute), true)))
+                var parameterAttribute = property.GetAttributes<ParameterAttribute>().FirstOrDefault();
+                var propertyValue = property.GetGetMethod(true).Invoke(source, new object[] { });
+                if (propertyValue != null)
                 {
-                    var parameterAttribute = property.GetAttributes<ParameterAttribute>().FirstOrDefault();
-                    target[parameterAttribute.Name] = property.GetGetMethod(true).Invoke(source, new object[] { });
+                    target[parameterAttribute.Name] = propertyValue;
                 }
             }
 

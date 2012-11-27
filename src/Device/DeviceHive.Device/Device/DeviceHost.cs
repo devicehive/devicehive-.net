@@ -142,6 +142,33 @@ namespace DeviceHive.Device
         }
 
         /// <summary>
+        /// Sends a device status update.
+        /// </summary>
+        /// <param name="sender">Sender <see cref="DeviceBase"/> object.</param>
+        /// <param name="status">New device status.</param>
+        public void SendStatusUpdate(DeviceBase sender, string status)
+        {
+            if (sender == null)
+                throw new ArgumentNullException("sender");
+            if (string.IsNullOrEmpty(status))
+                throw new ArgumentException("Status is null or empty!", "status");
+
+            Logger.InfoFormat("Updating device {1} ({2}) status to '{0}'", status, sender.ID, sender.Name);
+
+            try
+            {
+                var cDevice = new Device(sender.ID, sender.Key) { Status = status };
+                DeviceClient.UpdateDevice(cDevice);
+            }
+            catch (Exception ex)
+            {
+                // critical error - log and fault the service
+                Logger.Error(string.Format("Exception while updating device {1} ({2}) status to '{0}'", status, sender.ID, sender.Name), ex);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Sends a notification on behalf of the specified device.
         /// </summary>
         /// <param name="sender">Sender <see cref="DeviceBase"/> object.</param>
@@ -157,7 +184,8 @@ namespace DeviceHive.Device
 
             try
             {
-                var cNotification = new Notification(notification.Name.Trim(), new Dictionary<string, object>(notification.Parameters));
+                var cNotification = new Notification(notification.Name.Trim(), notification.Parameters != null &&
+                    notification.Parameters.Any() ? new Dictionary<string, object>(notification.Parameters) : null);
                 DeviceClient.SendNotification(sender.ID, sender.Key, cNotification);
             }
             catch (Exception ex)
@@ -315,21 +343,19 @@ namespace DeviceHive.Device
 
             #region IDeviceServiceChannel Members
 
+            public void SendStatusUpdate(string status)
+            {
+                _host.SendStatusUpdate(_device, status);
+            }
+
             public void SendNotification(DeviceNotification notification)
             {
-                if (notification == null)
-                    throw new ArgumentNullException("notification");
-
                 _host.SendNotification(_device, notification);
             }
 
             public void SendNotification(string notification, object parameters)
             {
-                if (string.IsNullOrEmpty(notification))
-                    throw new ArgumentException("Notification is null or empty!", "notification");
-
-                var notificationParameters = ParameterMapper.Map(parameters);
-                SendNotification(new DeviceNotification(notification, notificationParameters));
+                SendNotification(new DeviceNotification(notification, ParameterMapper.Map(parameters)));
             }
 
             public void SendEquipmentNotification(string equipment, object parameters)
@@ -337,7 +363,7 @@ namespace DeviceHive.Device
                 if (string.IsNullOrEmpty(equipment))
                     throw new ArgumentException("Equipment is null or empty!", "equipment");
 
-                var notificationParameters = ParameterMapper.Map(parameters);
+                var notificationParameters = ParameterMapper.Map(parameters) ?? new Dictionary<string, object>();
                 notificationParameters["equipment"] = equipment;
                 SendNotification(new DeviceNotification("equipment", notificationParameters));
             }

@@ -69,6 +69,17 @@ namespace DeviceHive.Device
         }
 
         /// <summary>
+        /// Initializes device unique identifier and key.
+        /// </summary>
+        /// <param name="id">Device unique identifier (device-assigned).</param>
+        /// <param name="key">Device key. Device key is a private value used for device authentication in DeviceHive.</param>
+        public Device(Guid? id, string key)
+        {
+            Id = id;
+            Key = key;
+        }
+
+        /// <summary>
         /// Initializes all device properties.
         /// </summary>
         /// <param name="id">Device unique identifier (device-assigned).</param>
@@ -79,9 +90,8 @@ namespace DeviceHive.Device
         /// <param name="network">Associated device network object (optional).</param>
         /// <param name="deviceClass">Associated device class object.</param>
         public Device(Guid? id, string key, string name, string status, Dictionary<string, object> data, Network network, DeviceClass deviceClass)
+            : this(id, key)
         {
-            Id = id;
-            Key = key;
             Name = name;
             Status = status;
             Data = data;

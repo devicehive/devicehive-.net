@@ -45,7 +45,7 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets initial device status.
         /// Changing the value does not automatically set new value in the DeviceHive server,
-        /// the device needs to send "deviceStatus" notification with "status" parameter containing new value.
+        /// the device needs to invoke <see cref="IDeviceServiceChannel.SendStatusUpdate"/> to perform an update.
         /// </summary>
         public string Status { get; protected set; }
 

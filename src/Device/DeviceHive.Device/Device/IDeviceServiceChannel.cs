@@ -8,6 +8,12 @@ namespace DeviceHive.Device
     public interface IDeviceServiceChannel
     {
         /// <summary>
+        /// Sends a device status update.
+        /// </summary>
+        /// <param name="status">New device status.</param>
+        void SendStatusUpdate(string status);
+
+        /// <summary>
         /// Sends a notification to the DeviceHive service.
         /// </summary>
         /// <param name="notification"><see cref="DeviceNotification"/> object to send.</param>

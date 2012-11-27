@@ -18,6 +18,13 @@ namespace DeviceHive.Device
         Device RegisterDevice(Device device);
 
         /// <summary>
+        /// Updates a device in the DeviceHive network.
+        /// </summary>
+        /// <param name="device"><see cref="Device"/> object.</param>
+        /// <returns><see cref="Device"/> object updated.</returns>
+        Device UpdateDevice(Device device);
+
+        /// <summary>
         /// Sends new device notification to the service.
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
