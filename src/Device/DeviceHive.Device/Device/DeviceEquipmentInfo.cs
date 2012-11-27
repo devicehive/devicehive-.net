@@ -26,6 +26,11 @@ namespace DeviceHive.Device
         /// </summary>
         public string Type { get; private set; }
 
+        /// <summary>
+        /// Gets or sets equipment data, an object with an arbitrary structure.
+        /// </summary>
+        public object Data { get; set; }
+
         #endregion
 
         #region Constructor

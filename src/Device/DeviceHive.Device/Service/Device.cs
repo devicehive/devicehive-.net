@@ -38,6 +38,11 @@ namespace DeviceHive.Device
         public string Status { get; set; }
 
         /// <summary>
+        /// Gets or sets a dictionary of arbitrary device data.
+        /// </summary>
+        public Dictionary<string, object> Data { get; set; }
+
+        /// <summary>
         /// Gets or sets associated device network object.
         /// </summary>
         public Network Network { get; set; }
@@ -70,14 +75,16 @@ namespace DeviceHive.Device
         /// <param name="key">Device key. Device key is a private value used for device authentication in DeviceHive.</param>
         /// <param name="name">Device name.</param>
         /// <param name="status">Device status.</param>
-        /// <param name="network">Associated device network object.</param>
+        /// <param name="data">Device data, an optional key/value dictionary used to describe additional properties.</param>
+        /// <param name="network">Associated device network object (optional).</param>
         /// <param name="deviceClass">Associated device class object.</param>
-        public Device(Guid? id, string key, string name, string status, Network network, DeviceClass deviceClass)
+        public Device(Guid? id, string key, string name, string status, Dictionary<string, object> data, Network network, DeviceClass deviceClass)
         {
             Id = id;
             Key = key;
             Name = name;
             Status = status;
+            Data = data;
             Network = network;
             DeviceClass = deviceClass;
         }

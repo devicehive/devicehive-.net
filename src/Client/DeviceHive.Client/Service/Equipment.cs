@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DeviceHive.Client
 {
@@ -31,6 +32,11 @@ namespace DeviceHive.Client
         /// The type is arbitrary string, and client may use it to make some decisions about equipment capabilities.
         /// </summary>
         public string Type { get; set; }
+
+        /// <summary>
+        /// Gets or sets a dictionary of arbitrary equipment data.
+        /// </summary>
+        public Dictionary<string, object> Data { get; set; }
 
         #endregion
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DeviceHive.Client
 {
@@ -23,6 +24,11 @@ namespace DeviceHive.Client
         /// Gets or sets device status.
         /// </summary>
         public string Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets a dictionary of arbitrary device data.
+        /// </summary>
+        public Dictionary<string, object> Data { get; set; }
 
         /// <summary>
         /// Gets or sets associated device network object.

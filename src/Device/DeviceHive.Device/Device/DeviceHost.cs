@@ -177,9 +177,9 @@ namespace DeviceHive.Device
 
             try
             {
-                var cDevice = new Device(device.ID, device.Key, device.Name, device.Status, Network,
-                    new DeviceClass(device.ClassName, device.ClassVersion, device.ClassOfflineTimeout));
-                cDevice.Equipment = device.EquipmentInfo.Select(e => new Equipment(e.Name, e.Code, e.Type)).ToList();
+                var cDevice = new Device(device.ID, device.Key, device.Name, device.Status, ParameterMapper.Map(device.Data), Network,
+                    new DeviceClass(device.ClassName, device.ClassVersion, device.ClassOfflineTimeout, ParameterMapper.Map(device.ClassData)));
+                cDevice.Equipment = device.EquipmentInfo.Select(e => new Equipment(e.Name, e.Code, e.Type, ParameterMapper.Map(e.Data))).ToList();
                 DeviceClient.RegisterDevice(cDevice);
             }
             catch (Exception ex)

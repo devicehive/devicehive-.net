@@ -32,6 +32,11 @@ namespace DeviceHive.Client
         public int? OfflineTimeout { get; set; }
 
         /// <summary>
+        /// Gets or sets a dictionary of arbitrary device class data.
+        /// </summary>
+        public Dictionary<string, object> Data { get; set; }
+
+        /// <summary>
         /// Gets or sets the list of device class equipment.
         /// </summary>
         public List<Equipment> Equipment { get; set; }

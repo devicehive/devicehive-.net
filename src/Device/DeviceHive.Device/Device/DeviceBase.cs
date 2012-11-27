@@ -12,101 +12,83 @@ namespace DeviceHive.Device
     /// </summary>
     /// <remarks>
     /// Each specific device should derive from the class and implement the following:
-    /// 1. Specify <see cref="DeviceAttribute"/> and <see cref="DeviceClassAttribute"/> attributes on the derived class.
-    /// 2. Optionally set one or several <see cref="DeviceEquipmentAttribute"/> attributes on the derived class.
+    /// 1. Initialize main device properties in constructor.
+    /// 2. Alternatively use <see cref="DeviceAttribute"/>, <see cref="DeviceClassAttribute"/> and <see cref="DeviceEquipmentAttribute"/> attributes.
     /// 3. Override <see cref="Main"/> method and implement desired functionality.
-    /// 4. Define command handler methods and decorate with with <see cref="DeviceCommandAttribute"/> attributes.
+    /// 4. Define command handler methods and decorate them with <see cref="DeviceCommandAttribute"/> attributes.
     /// </remarks>
     public abstract class DeviceBase
     {
-        private readonly DeviceAttribute _device;
-        private readonly DeviceClassAttribute _deviceClass;
-        private readonly List<DeviceEquipmentInfo> _deviceEquipmentInfo;
         private readonly Dictionary<string, MethodInfo> _deviceCommands;
 
         #region Public Properties
 
         /// <summary>
         /// Gets device unique identifier.
-        /// The value is set by declating <see cref="DeviceAttribute"/> attribute set on concrete device.
+        /// The value is initialized from the <see cref="DeviceAttribute"/> attribute set on the current device.
         /// </summary>
-        public Guid ID
-        {
-            get { return _device.ID; }
-        }
+        public Guid ID { get; protected set; }
 
         /// <summary>
         /// Gets device key.
         /// Device key is a private value used for device authentication in DeviceHive.
-        /// The value is received from <see cref="DeviceAttribute"/> attribute set on concrete device.
+        /// The value is initialized from the <see cref="DeviceAttribute"/> attribute set on the current device.
         /// </summary>
-        public string Key
-        {
-            get { return _device.Key; }
-        }
+        public string Key { get; protected set; }
 
         /// <summary>
         /// Gets device name.
-        /// The value is received from <see cref="DeviceAttribute"/> attribute set on concrete device.
+        /// The value is initialized from the <see cref="DeviceAttribute"/> attribute set on the current device.
         /// </summary>
-        public string Name
-        {
-            get { return _device.Name; }
-        }
+        public string Name { get; protected set; }
+
+        /// <summary>
+        /// Gets initial device status.
+        /// Changing the value does not automatically set new value in the DeviceHive server,
+        /// the device needs to send "deviceStatus" notification with "status" parameter containing new value.
+        /// </summary>
+        public string Status { get; protected set; }
+
+        /// <summary>
+        /// Gets a dictionary of arbitrary device data used to describe additional properties.
+        /// </summary>
+        public object Data { get; protected set; }
 
         /// <summary>
         /// Gets the flag indicating whether device should listen for commands sent to the device.
         /// If true, the device will listen to commands. Otherwise, the device will ignore all incoming commands.
-        /// The value is received from <see cref="DeviceAttribute"/> attribute set on concrete device.
+        /// The value is initialized from the <see cref="DeviceAttribute"/> attribute set on the current device.
         /// </summary>
-        public bool ListenCommands
-        {
-            get { return _device.ListenCommands; }
-        }
+        public bool ListenCommands { get; protected set; }
 
         /// <summary>
         /// Gets device class name.
-        /// The value is received from <see cref="DeviceClassAttribute"/> attribute set on concrete device.
+        /// The value is initialized from the <see cref="DeviceClassAttribute"/> attribute set on the current device.
         /// </summary>
-        public string ClassName
-        {
-            get { return _deviceClass.Name; }
-        }
+        public string ClassName { get; protected set; }
 
         /// <summary>
         /// Gets device class version.
-        /// The value is received from <see cref="DeviceClassAttribute"/> attribute set on concrete device.
+        /// The value is initialized from the <see cref="DeviceClassAttribute"/> attribute set on the current device.
         /// </summary>
-        public string ClassVersion
-        {
-            get { return _deviceClass.Version; }
-        }
+        public string ClassVersion { get; protected set; }
 
         /// <summary>
         /// Gets optional timeout in seconds, after which the DeviceHive framework sets device status to Offline.
-        /// The value is received from <see cref="DeviceClassAttribute"/> attribute set on concrete device.
+        /// The value is initialized from the <see cref="DeviceClassAttribute"/> attribute set on the current device.
         /// </summary>
-        public int? ClassOfflineTimeout
-        {
-            get { return _deviceClass.OfflineTimeout > 0 ? (int?)_deviceClass.OfflineTimeout : null; }
-        }
+        public int? ClassOfflineTimeout { get; protected set; }
+
+        /// <summary>
+        /// Gets a dictionary of arbitrary device class data used to describe additional properties.
+        /// </summary>
+        public object ClassData { get; protected set; }
 
         /// <summary>
         /// Gets the list of device equipment.
-        /// The value is received from <see cref="DeviceEquipmentAttribute"/> attributes set on concrete device.
-        /// Override to provide alternative implementation.
+        /// The value is initialized from the <see cref="DeviceEquipmentAttribute"/> attributes set on the current device.
         /// </summary>
-        public virtual List<DeviceEquipmentInfo> EquipmentInfo
-        {
-            get { return _deviceEquipmentInfo; }
-        }
-
-        /// <summary>
-        /// Gets or sets current device status.
-        /// Changing the value does not automatically set new value in the DeviceHive server,
-        /// the device needs to send "deviceStatus" notification with "status" parameter containing new value.
-        /// </summary>
-        public virtual string Status { get; protected set; }
+        public List<DeviceEquipmentInfo> EquipmentInfo { get; protected set; }
 
         #endregion
 
@@ -117,15 +99,27 @@ namespace DeviceHive.Device
         /// </summary>
         public DeviceBase()
         {
-            _device = GetType().GetAttributes<DeviceAttribute>(false).FirstOrDefault();
-            if (_device == null)
-                throw new InvalidOperationException("Device class must declare DeviceAttribute!");
+            Status = "Online";
+            ListenCommands = true;
 
-            _deviceClass = GetType().GetAttributes<DeviceClassAttribute>(false).FirstOrDefault();
-            if (_deviceClass == null)
-                throw new InvalidOperationException("Device class must declare DeviceClassAttribute!");
+            var deviceAttribute = GetType().GetAttributes<DeviceAttribute>(false).FirstOrDefault();
+            if (deviceAttribute != null)
+            {
+                ID = deviceAttribute.ID;
+                Key = deviceAttribute.Key;
+                Name = deviceAttribute.Name;
+                ListenCommands = deviceAttribute.ListenCommands;
+            }
 
-            _deviceEquipmentInfo = GetType().GetAttributes<DeviceEquipmentAttribute>().Select(e => new DeviceEquipmentInfo(e.Code, e.Name, e.Type)).ToList();
+            var deviceClassAttribute = GetType().GetAttributes<DeviceClassAttribute>(false).FirstOrDefault();
+            if (deviceClassAttribute != null)
+            {
+                ClassName = deviceClassAttribute.Name;
+                ClassVersion = deviceClassAttribute.Version;
+                ClassOfflineTimeout = deviceClassAttribute.OfflineTimeout > 0 ? (int?)deviceClassAttribute.OfflineTimeout : null;
+            }
+
+            EquipmentInfo = GetType().GetAttributes<DeviceEquipmentAttribute>().Select(e => new DeviceEquipmentInfo(e.Code, e.Name, e.Type)).ToList();
 
             _deviceCommands = new Dictionary<string, MethodInfo>();
             foreach (var method in GetType().PublicGetMethods().Where(p => p.IsDefined(typeof(DeviceCommandAttribute), true)))
@@ -149,7 +143,6 @@ namespace DeviceHive.Device
 
         /// <summary>
         /// Initializes device with the <see cref="IDeviceServiceChannel"/> interface.
-        /// Also sets device status to "Online".
         /// </summary>
         /// <param name="serviceChannel">Service channel used to communicate with the DeviceHive service.</param>
         public virtual void Initialize(IDeviceServiceChannel serviceChannel)
@@ -158,7 +151,6 @@ namespace DeviceHive.Device
                 throw new ArgumentNullException("serviceChannel");
 
             ServiceChannel = serviceChannel;
-            Status = "Online";
         }
         
         /// <summary>
