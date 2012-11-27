@@ -15,6 +15,9 @@ namespace VirtualLedClient
         {
             try
             {
+                // initialize logger
+                log4net.Config.XmlConfigurator.Configure();
+
                 // create a ClientService used to communicate with the DeviceHive service
                 // insert your assigned DeviceHive service URL, username and password here
                 var service = new RestfulClientService("http://pg.devicehive.com/api", "", "");

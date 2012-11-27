@@ -9,6 +9,9 @@ namespace VirtualLed
         {
             try
             {
+                // initialize logger
+                log4net.Config.XmlConfigurator.Configure();
+
                 // create a RestfulDeviceService used to communicate with the DeviceHive cloud
                 // insert your assigned DeviceHive service URL here
                 var service = new RestfulDeviceService("http://pg.devicehive.com/api");
