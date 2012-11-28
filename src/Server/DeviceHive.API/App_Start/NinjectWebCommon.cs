@@ -1,6 +1,6 @@
 using System;
+using System.Reflection;
 using System.Web;
-using System.Web.Http;
 using Ninject;
 using Ninject.Web.Common;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
@@ -49,7 +49,6 @@ namespace DeviceHive.API
             kernel.Bind<IHttpModule>().To<HttpApplicationInitializationHttpModule>();
 
             RegisterServices(kernel);
-            GlobalConfiguration.Configuration.DependencyResolver = new NinjectDependencyResolver(kernel);
             return kernel;
         }
 
@@ -59,6 +58,9 @@ namespace DeviceHive.API
         /// <param name="kernel">The kernel.</param>
         private static void RegisterServices(IKernel kernel)
         {
+            // load assembly modules
+            kernel.Load(Assembly.GetExecutingAssembly());
+
             // bind repositories
             kernel.Bind<IUserRepository, ISimpleRepository<User>>().To<UserRepository>();
             kernel.Bind<IUserNetworkRepository, ISimpleRepository<UserNetwork>>().To<UserNetworkRepository>();

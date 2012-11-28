@@ -83,7 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\FilterConfig.cs" />
-    <Compile Include="App_Start\NInjectDependencyResolver.cs" />
+    <Compile Include="App_Start\NinjectWebApi.cs" />
     <Compile Include="App_Start\NinjectWebCommon.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Business\NotificationHandlers\DeviceStatusNotificationHandler.cs" />
