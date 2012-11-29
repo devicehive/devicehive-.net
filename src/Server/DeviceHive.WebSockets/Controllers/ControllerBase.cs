@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
-using DeviceHive.WebSockets.Core;
 using DeviceHive.WebSockets.Network;
 using Newtonsoft.Json.Linq;
 

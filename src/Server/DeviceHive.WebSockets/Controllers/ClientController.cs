@@ -13,8 +13,12 @@ namespace DeviceHive.WebSockets.Controllers
 {
 	public class ClientController : ControllerBase
 	{
-		private readonly SubscriptionManager _subscriptionManager;
-		private readonly MessageBus _messageBus;
+	    #region Private fields
+
+	    private readonly SubscriptionManager _subscriptionManager;
+	    private readonly MessageBus _messageBus;
+
+	    #endregion
 
 		#region Constructor
 
