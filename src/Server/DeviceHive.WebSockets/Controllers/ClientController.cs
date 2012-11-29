@@ -101,7 +101,7 @@ namespace DeviceHive.WebSockets.Controllers
 
 			var command = CommandMapper.Map(commandObj);
 			command.Device = device;
-			// todo: command validation
+		    Validate(command);
 
 			DataContext.DeviceCommand.Save(command);
 			_messageBus.Notify(new DeviceCommandAddedMessage(deviceGuid, command.ID));
@@ -126,7 +126,7 @@ namespace DeviceHive.WebSockets.Controllers
 
             CommandMapper.Apply(command, commandObj);
 		    command.Device = device;
-            // todo: command validation
+		    Validate(command);
 
             DataContext.DeviceCommand.Save(command);
 

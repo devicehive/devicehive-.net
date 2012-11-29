@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Net;
 using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
@@ -135,6 +137,13 @@ namespace DeviceHive.WebSockets.Controllers
 
 			return new Guid?[] {Guid.Parse((string) deviceGuids)};
 		}
+
+        protected void Validate(object entity)
+        {
+            var result = new List<ValidationResult>();
+            if (!Validator.TryValidateObject(entity, new ValidationContext(entity, null, null), result, true))
+                throw new WebSocketRequestException(result.First().ErrorMessage);
+        }
 
 		#endregion
 	}

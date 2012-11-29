@@ -93,7 +93,7 @@ namespace DeviceHive.WebSockets.Controllers
 	        
             var notification = NotificationMapper.Map(notificationObj);
 	        notification.Device = CurrentDevice;
-            // todo: validate notification
+	        Validate(notification);
 
             DataContext.DeviceNotification.Save(notification);
             _notificationManager.ProcessNotification(notification);
