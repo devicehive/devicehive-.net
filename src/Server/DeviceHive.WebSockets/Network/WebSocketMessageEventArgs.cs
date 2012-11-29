@@ -1,16 +1,13 @@
-﻿using System;
-
-namespace DeviceHive.WebSockets.Network
+﻿namespace DeviceHive.WebSockets.Network
 {
-	public class WebSocketMessageEventArgs : EventArgs
+    public class WebSocketMessageEventArgs : WebSocketConnectionEventArgs
 	{
-		public WebSocketMessageEventArgs(WebSocketConnectionBase connection, string message)
+		public WebSocketMessageEventArgs(WebSocketConnectionBase connection, string message) :
+            base(connection)
 		{
-			Connection = connection;
 			Message = message;
 		}
 
-		public WebSocketConnectionBase Connection { get; private set; }
 		public string Message { get; private set; }
 	}
 }

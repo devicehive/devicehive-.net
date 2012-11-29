@@ -146,6 +146,11 @@ namespace DeviceHive.WebSockets.Controllers
 				Notify(connection, notification);
 		}
 
+        public void CleanupNotifications(WebSocketConnectionBase connection)
+        {
+            _subscriptionManager.Cleanup(connection);
+        }
+
 		private void Notify(WebSocketConnectionBase connection, DeviceNotification notification)
 		{
 			// todo: check connection user and his access to the device

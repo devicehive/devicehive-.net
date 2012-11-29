@@ -6,42 +6,74 @@ namespace DeviceHive.WebSockets.Network
 {
 	public abstract class WebSocketServerBase
 	{
-		private readonly IDictionary<Guid, WebSocketConnectionBase> _connections =
-			new Dictionary<Guid, WebSocketConnectionBase>();
+	    #region Private fields
 
-		protected void RegisterConnection(WebSocketConnectionBase connection)
-		{
-			_connections[connection.Identity] = connection;
-		}
+	    private readonly IDictionary<Guid, WebSocketConnectionBase> _connections =
+	        new Dictionary<Guid, WebSocketConnectionBase>();
 
-		protected void UnregisterConnection(Guid connectionIdentity)
-		{
-			_connections.Remove(connectionIdentity);
-		}
+	    #endregion
 
-		public abstract void Start(string url);
+	    
+        #region Working with connection list
 
-		public abstract void Stop();
+        public IEnumerable<WebSocketConnectionBase> GetAllConnections()
+        {
+            return _connections.Values;
+        }
 
-		public event EventHandler<WebSocketMessageEventArgs> MessageReceived;
+        public WebSocketConnectionBase GetConnection(Guid identity)
+        {
+            WebSocketConnectionBase connection;
+            return _connections.TryGetValue(identity, out connection) ? connection : null;
+        }
 
-		protected void OnMessageReceived(WebSocketMessageEventArgs e)
-		{
-			var handler = MessageReceived;
-			if (handler != null)
-				handler(this, e);
-		}
 
-		public IEnumerable<WebSocketConnectionBase> GetAllConnections()
-		{
-			return _connections.Values;
-		}
+	    protected void RegisterConnection(WebSocketConnectionBase connection)
+	    {
+	        _connections[connection.Identity] = connection;
+	    }
 
-		public WebSocketConnectionBase GetConnection(Guid identity)
-		{
-			WebSocketConnectionBase connection;
-			return _connections.TryGetValue(identity, out connection) ? connection : null;
-		}
+	    protected void UnregisterConnection(Guid connectionIdentity)
+	    {
+	        var connection = GetConnection(connectionIdentity);
+	        _connections.Remove(connectionIdentity);
+            OnConnectionClosed(new WebSocketConnectionEventArgs(connection));
+	    }
+
+	    #endregion
+
+
+	    #region Start / Stop server
+
+	    public abstract void Start(string url);
+
+	    public abstract void Stop();
+
+	    #endregion
+
+
+	    #region Events
+
+	    public event EventHandler<WebSocketMessageEventArgs> MessageReceived;
+
+	    protected void OnMessageReceived(WebSocketMessageEventArgs e)
+	    {
+	        var handler = MessageReceived;
+	        if (handler != null)
+	            handler(this, e);
+	    }
+
+
+	    public event EventHandler<WebSocketConnectionEventArgs> ConnectionClosed;
+
+	    public void OnConnectionClosed(WebSocketConnectionEventArgs e)
+	    {
+	        var handler = ConnectionClosed;
+	        if (handler != null)
+                handler(this, e);
+	    }
+
+	    #endregion
 	}
 
 	public class FleckWebSocketServer : WebSocketServerBase
@@ -53,8 +85,8 @@ namespace DeviceHive.WebSockets.Network
 			_webSocketServer = new WebSocketServer(url);
 			_webSocketServer.Start(c =>
 			{
-				c.OnOpen = () => RegisterConnection(new FleckWebSocketConnection(c));
-				c.OnClose = () => UnregisterConnection(c.ConnectionInfo.Id);
+				c.OnOpen = () => RegisterConnection(new FleckWebSocketConnection(c));				
+                c.OnClose = () => UnregisterConnection(c.ConnectionInfo.Id);
 				
 				c.OnMessage = msg =>
 				{

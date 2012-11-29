@@ -25,6 +25,11 @@ namespace DeviceHive.WebSockets
 
 			_server = server;
 			_server.MessageReceived += (s, e) => router.RouteRequest(e.Connection, e.Message);
+		    _server.ConnectionClosed += (s, e) =>
+		    {
+                _clientController.CleanupNotifications(e.Connection);
+                _deviceController.CleanupNotifications(e.Connection);
+		    };
 
 			messageBus.Subscribe((DeviceNotificationAddedMessage msg) => HandleNewNotification(msg));
 			messageBus.Subscribe((DeviceCommandAddedMessage msg) => HandleNewCommand(msg));

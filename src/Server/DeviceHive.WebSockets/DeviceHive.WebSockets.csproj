@@ -69,6 +69,7 @@
     <Compile Include="Core\Router.cs" />
     <Compile Include="Network\SessionContext.cs" />
     <Compile Include="Network\WebSocketConnection.cs" />
+    <Compile Include="Network\WebSocketConnectionEventArgs.cs" />
     <Compile Include="Network\WebSocketMessageEventArgs.cs" />
     <Compile Include="Network\WebSocketServer.cs" />
     <Compile Include="ProjectInstaller.cs">

@@ -112,6 +112,11 @@ namespace DeviceHive.WebSockets.Controllers
 	    #endregion
 
         #region Notification handling
+
+        public void CleanupNotifications(WebSocketConnectionBase connection)
+        {
+            _subscriptionManager.Cleanup(connection);
+        }
         
         #endregion
 
