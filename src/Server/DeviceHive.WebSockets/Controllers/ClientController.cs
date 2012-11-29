@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.Messaging;
@@ -95,7 +96,7 @@ namespace DeviceHive.WebSockets.Controllers
 			var commandObj = (JObject) ActionArgs["device"];
 
 			var device = DataContext.Device.Get(deviceGuid);
-			if (device == null) // todo: check that user has access to this device
+			if (device == null || !IsNetworkAccessible(device.NetworkID))
 				throw new WebSocketRequestException("Device not found");
 
 			var command = CommandMapper.Map(commandObj);
@@ -116,7 +117,7 @@ namespace DeviceHive.WebSockets.Controllers
             var commandObj = (JObject)ActionArgs["device"];
 
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null) // todo: check that user has access to this device
+            if (device == null || !IsNetworkAccessible(device.NetworkID))
                 throw new WebSocketRequestException("Device not found");
 
             var command = DataContext.DeviceCommand.Get(commandId);
@@ -158,10 +159,11 @@ namespace DeviceHive.WebSockets.Controllers
 		public void HandleDeviceNotification(Guid deviceGuid, int notificationId)
 		{
 			var notification = DataContext.DeviceNotification.Get(notificationId);
+		    var device = DataContext.Device.Get(deviceGuid);
 			var connections = _subscriptionManager.GetConnections(deviceGuid);
 
 			foreach (var connection in connections)
-				Notify(connection, notification);
+				Notify(connection, notification, device);
 		}
 
         public void CleanupNotifications(WebSocketConnectionBase connection)
@@ -169,9 +171,11 @@ namespace DeviceHive.WebSockets.Controllers
             _subscriptionManager.Cleanup(connection);
         }
 
-		private void Notify(WebSocketConnectionBase connection, DeviceNotification notification)
+		private void Notify(WebSocketConnectionBase connection, DeviceNotification notification, Device device)
 		{
-			// todo: check connection user and his access to the device
+		    var user = (User) connection.Session["user"];
+            if (user == null || !IsNetworkAccessible(device.NetworkID, user))
+                return;
 
 			SendResponse(connection, "notification/notify",
 				new JProperty("notification", NotificationMapper.Map(notification)));
@@ -180,6 +184,18 @@ namespace DeviceHive.WebSockets.Controllers
 		#endregion
 
         #region Helper methods
+
+        private bool IsNetworkAccessible(int networkId, User user = null)
+        {
+            if (user == null)
+                user = CurrentUser;
+
+            if (user.Role == (int) UserRole.Administrator)
+                return true;
+
+            var userNetworks = DataContext.UserNetwork.GetByUser(user.ID);
+            return userNetworks.Any(un => un.NetworkID == networkId);
+        }
 
         #endregion
 
