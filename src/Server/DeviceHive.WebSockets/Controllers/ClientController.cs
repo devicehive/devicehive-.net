@@ -185,13 +185,16 @@ namespace DeviceHive.WebSockets.Controllers
 
         #region Helper methods
 
-        private bool IsNetworkAccessible(int networkId, User user = null)
+        private bool IsNetworkAccessible(int? networkId, User user = null)
         {
             if (user == null)
                 user = CurrentUser;
 
             if (user.Role == (int) UserRole.Administrator)
                 return true;
+
+            if (networkId == null)
+                return false;
 
             var userNetworks = DataContext.UserNetwork.GetByUser(user.ID);
             return userNetworks.Any(un => un.NetworkID == networkId);
