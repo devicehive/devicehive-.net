@@ -85,6 +85,7 @@ namespace DeviceHive.WebSockets.Controllers
                 throw new WebSocketRequestException("Device not found");
 
 	        CurrentDevice = device;
+	        SendSuccessResponse();
 	    }
 
 	    private void InsertDeviceNotification()
@@ -104,20 +105,14 @@ namespace DeviceHive.WebSockets.Controllers
 	    }
 
 	    private void SubsrcibeToDeviceCommands()
-	    {
-	        var deviceGuids = ParseDeviceGuids();
-	        foreach (var deviceGuid in deviceGuids)
-	            _subscriptionManager.Subscribe(Connection, deviceGuid);
-
+	    {	        
+	        _subscriptionManager.Subscribe(Connection, CurrentDevice.GUID);
             SendSuccessResponse();
 	    }
 
 	    private void UnsubsrcibeFromDeviceCommands()
 	    {
-            var deviceGuids = ParseDeviceGuids();
-            foreach (var deviceGuid in deviceGuids)
-                _subscriptionManager.Unsubscribe(Connection, deviceGuid);
-
+            _subscriptionManager.Unsubscribe(Connection, CurrentDevice.GUID); 
             SendSuccessResponse();
 	    }
 
@@ -125,7 +120,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #region Notification handling
 
-        public void HandleDeviceNotification(Guid deviceGuid, int commandId)
+        public void HandleDeviceCommand(Guid deviceGuid, int commandId)
         {
             var command = DataContext.DeviceCommand.Get(commandId);
             var connections = _subscriptionManager.GetConnections(deviceGuid);

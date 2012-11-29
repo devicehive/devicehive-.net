@@ -48,9 +48,9 @@ namespace DeviceHive.WebSockets
 		}
 
 
-		private object HandleNewCommand(DeviceCommandAddedMessage message)
+		private void HandleNewCommand(DeviceCommandAddedMessage message)
 		{
-			throw new System.NotImplementedException();
+            _deviceController.HandleDeviceCommand(message.DeviceGuid, message.CommandId);
 		}
 
 		private void HandleNewNotification(DeviceNotificationAddedMessage message)

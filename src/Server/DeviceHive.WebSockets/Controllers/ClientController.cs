@@ -93,7 +93,7 @@ namespace DeviceHive.WebSockets.Controllers
 		private void InsertDeviceCommand()
 		{
 			var deviceGuid = Guid.Parse((string) ActionArgs["deviceGuid"]);
-			var commandObj = (JObject) ActionArgs["device"];
+			var commandObj = (JObject) ActionArgs["command"];
 
 			var device = DataContext.Device.Get(deviceGuid);
 			if (device == null || !IsNetworkAccessible(device.NetworkID))
@@ -114,7 +114,7 @@ namespace DeviceHive.WebSockets.Controllers
 		{
 		    var deviceGuid = Guid.Parse((string) ActionArgs["deviceGuid"]);
 		    var commandId = (int) ActionArgs["commandId"];
-            var commandObj = (JObject)ActionArgs["device"];
+            var commandObj = (JObject)ActionArgs["command"];
 
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsNetworkAccessible(device.NetworkID))
