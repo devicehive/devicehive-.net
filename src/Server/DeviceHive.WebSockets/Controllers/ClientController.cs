@@ -3,7 +3,6 @@ using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.Messaging;
 using DeviceHive.Data.Model;
-using DeviceHive.WebSockets.Core;
 using DeviceHive.WebSockets.Network;
 using DeviceHive.WebSockets.Subscriptions;
 using Newtonsoft.Json.Linq;
@@ -93,7 +92,7 @@ namespace DeviceHive.WebSockets.Controllers
 		private void InsertDeviceCommand()
 		{
 			var deviceGuid = Guid.Parse((string) ActionArgs["deviceGuid"]);
-			var commandObj = (JObject) ActionArgs["device"];			
+			var commandObj = (JObject) ActionArgs["device"];
 
 			var device = DataContext.Device.Get(deviceGuid);
 			if (device == null) // todo: check that user has access to this device
@@ -112,7 +111,26 @@ namespace DeviceHive.WebSockets.Controllers
 
 		private void UpdateDeviceCommand()
 		{
-			throw new NotImplementedException();
+		    var deviceGuid = Guid.Parse((string) ActionArgs["deviceGuid"]);
+		    var commandId = (int) ActionArgs["commandId"];
+            var commandObj = (JObject)ActionArgs["device"];
+
+            var device = DataContext.Device.Get(deviceGuid);
+            if (device == null) // todo: check that user has access to this device
+                throw new WebSocketRequestException("Device not found");
+
+            var command = DataContext.DeviceCommand.Get(commandId);
+            if (command == null || command.DeviceID != device.ID)
+                throw new WebSocketRequestException("Device command not found");
+
+            CommandMapper.Apply(command, commandObj);
+		    command.Device = device;
+            // todo: command validation
+
+            DataContext.DeviceCommand.Save(command);
+
+            commandObj = CommandMapper.Map(command);
+            SendResponse(new JProperty("command", commandObj));
 		}
 
 		private void SubsrcibeToDeviceNotifications()
@@ -161,6 +179,10 @@ namespace DeviceHive.WebSockets.Controllers
 
 		#endregion
 
-		#endregion
-	}
+        #region Helper methods
+
+        #endregion
+
+        #endregion
+    }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using DeviceHive.Core;
+using DeviceHive.Core.Business;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.Messaging;
 using DeviceHive.Data.Model;
-using DeviceHive.WebSockets.Core;
 using DeviceHive.WebSockets.Network;
 using DeviceHive.WebSockets.Subscriptions;
 using Newtonsoft.Json.Linq;
@@ -17,6 +17,7 @@ namespace DeviceHive.WebSockets.Controllers
 
 	    private readonly SubscriptionManager _subscriptionManager;
 	    private readonly MessageBus _messageBus;
+	    private readonly INotificationManager _notificationManager;
 
 	    #endregion
 
@@ -25,11 +26,12 @@ namespace DeviceHive.WebSockets.Controllers
 	    public DeviceController(DataContext dataContext, WebSocketServerBase server,
 	        JsonMapperManager jsonMapperManager,
 	        [Named("DeviceCommand")] SubscriptionManager subscriptionManager,
-	        MessageBus messageBus) :
+	        MessageBus messageBus, INotificationManager notificationManager) :
 	            base(dataContext, server, jsonMapperManager)
 	    {
 	        _subscriptionManager = subscriptionManager;
 	        _messageBus = messageBus;
+	        _notificationManager = notificationManager;
 	    }
 
 	    #endregion
@@ -63,10 +65,6 @@ namespace DeviceHive.WebSockets.Controllers
                     InsertDeviceNotification();
                     break;
 
-                case "notification/update":
-                    UpdateDeviceNotification();
-                    break;
-
                 case "command/subscribe":
                     SubsrcibeToDeviceCommands();
                     break;
@@ -91,33 +89,66 @@ namespace DeviceHive.WebSockets.Controllers
 
 	    private void InsertDeviceNotification()
 	    {
-	        throw new NotImplementedException();
-	    }
+	        var notificationObj = (JObject) ActionArgs["notification"];
+	        
+            var notification = NotificationMapper.Map(notificationObj);
+	        notification.Device = CurrentDevice;
+            // todo: validate notification
 
-	    private void UpdateDeviceNotification()
-	    {
-	        throw new NotImplementedException();
+            DataContext.DeviceNotification.Save(notification);
+            _notificationManager.ProcessNotification(notification);
+            _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.GUID, notification.ID));
+
+	        notificationObj = NotificationMapper.Map(notification);
+            SendResponse(new JProperty("notification", notificationObj));
 	    }
 
 	    private void SubsrcibeToDeviceCommands()
 	    {
-	        throw new NotImplementedException();
+	        var deviceGuids = ParseDeviceGuids();
+	        foreach (var deviceGuid in deviceGuids)
+	            _subscriptionManager.Subscribe(Connection, deviceGuid);
+
+            SendSuccessResponse();
 	    }
 
 	    private void UnsubsrcibeFromDeviceCommands()
 	    {
-	        throw new NotImplementedException();
+            var deviceGuids = ParseDeviceGuids();
+            foreach (var deviceGuid in deviceGuids)
+                _subscriptionManager.Unsubscribe(Connection, deviceGuid);
+
+            SendSuccessResponse();
 	    }
 
 	    #endregion
 
         #region Notification handling
 
+        public void HandleDeviceNotification(Guid deviceGuid, int commandId)
+        {
+            var command = DataContext.DeviceCommand.Get(commandId);
+            var connections = _subscriptionManager.GetConnections(deviceGuid);
+
+            foreach (var connection in connections)
+                Notify(connection, command);
+        }
+
         public void CleanupNotifications(WebSocketConnectionBase connection)
         {
             _subscriptionManager.Cleanup(connection);
         }
-        
+
+        private void Notify(WebSocketConnectionBase connection, DeviceCommand command)
+        {
+            var device = (Device) connection.Session["device"];
+            if (device == null || device.ID != command.DeviceID)
+                return;
+
+            SendResponse(connection, "command/notify",
+                new JProperty("command", CommandMapper.Map(command)));
+        }
+
         #endregion
 
         #endregion
