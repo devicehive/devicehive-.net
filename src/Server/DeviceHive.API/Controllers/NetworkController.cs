@@ -117,49 +117,7 @@ namespace DeviceHive.API.Controllers
 
         private IJsonMapper<Network> Mapper
         {
-            get
-            {
-                var mapper = GetMapper<Network>();
-                if (RequestContext.CurrentUser.Role == (int)UserRole.Client)
-                    return new ClientNetworkMapper(mapper);
-                return mapper;
-            }
-        }
-
-        private class ClientNetworkMapper : IJsonMapper<Network>
-        {
-            private IJsonMapper<Network> _mapper;
-
-            #region Constructor
-
-            public ClientNetworkMapper(IJsonMapper<Network> mapper)
-            {
-                if (mapper == null)
-                    throw new ArgumentNullException("mapper");
-
-                _mapper = mapper;
-            }
-            #endregion
-
-            #region IJsonMapper<Network> Members
-
-            public JObject Map(Network entity)
-            {
-                var jObject = _mapper.Map(entity);
-                jObject.Remove("key"); // do not expose network key to clients
-                return jObject;
-            }
-
-            public Network Map(JObject json)
-            {
-                return _mapper.Map(json);
-            }
-
-            public void Apply(Network entity, JObject json)
-            {
-                _mapper.Apply(entity, json);
-            }
-            #endregion
+            get { return GetMapper<Network>(); }
         }
     }
 }

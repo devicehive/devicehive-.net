@@ -46,7 +46,8 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             Expect(() => Get(resource, auth: user1), FailsWith(404)); // should fail with 404
-            Get(resource, auth: user2); // should succeed
+            var device = Get(resource, auth: user2); // should succeed
+            Expect(device["network"]["key"], Is.Null); // verify that network does not include key
         }
 
         [Test]

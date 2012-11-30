@@ -127,6 +127,9 @@
     <Compile Include="Mapping\JsonMapperEntry.cs" />
     <Compile Include="Mapping\JsonMapperException.cs" />
     <Compile Include="Mapping\JsonMapperManager.cs" />
+    <Compile Include="Mapping\NetworkJsonMapper.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Models\ErrorDetail.cs" />
     <Compile Include="Models\Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -17,7 +17,7 @@ namespace DeviceHive.API.Mapping
                 .Property(e => e.Status, "status")
                 .Property(e => e.LastLogin, "lastLogin", JsonMapperEntryMode.OneWay);
 
-            context.Kernel.ConfigureMapping<Network>()
+            context.Kernel.ConfigureMapping<Network, NetworkJsonMapper>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Key, "key") // is returned to administrators only
                 .Property(e => e.Name, "name")
