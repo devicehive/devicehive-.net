@@ -122,6 +122,10 @@
     <Compile Include="Mapping\IJsonMapper.cs" />
     <Compile Include="App_Start\JsonMapperConfig.cs" />
     <Compile Include="Mapping\JsonMapper.cs" />
+    <Compile Include="Mapping\JsonMapperConfiguration.cs" />
+    <Compile Include="Mapping\JsonMapperConfigurer.cs" />
+    <Compile Include="Mapping\JsonMapperEntry.cs" />
+    <Compile Include="Mapping\JsonMapperException.cs" />
     <Compile Include="Mapping\JsonMapperManager.cs" />
     <Compile Include="Models\ErrorDetail.cs" />
     <Compile Include="Models\Metadata.cs" />

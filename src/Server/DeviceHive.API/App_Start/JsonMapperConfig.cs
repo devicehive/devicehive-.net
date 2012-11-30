@@ -2,30 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 using DeviceHive.Data.Model;
+using Ninject.Activation;
 
 namespace DeviceHive.API.Mapping
 {
     public class JsonMapperConfig
     {
-        public static void ConfigureMapping(JsonMapperManager manager)
+        public static void ConfigureMapping(IContext context, JsonMapperManager manager)
         {
-            manager.Configure<User>()
+            context.Kernel.ConfigureMapping<User>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Login, "login")
                 .Property(e => e.Role, "role")
                 .Property(e => e.Status, "status")
                 .Property(e => e.LastLogin, "lastLogin", JsonMapperEntryMode.OneWay);
 
-            manager.Configure<Network>()
+            context.Kernel.ConfigureMapping<Network>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Key, "key") // is returned to administrators only
                 .Property(e => e.Name, "name")
                 .Property(e => e.Description, "description");
 
-            manager.Configure<UserNetwork>()
+            context.Kernel.ConfigureMapping<UserNetwork>()
                 .ReferenceProperty(e => e.Network, "network");
 
-            manager.Configure<DeviceClass>()
+            context.Kernel.ConfigureMapping<DeviceClass>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Version, "version")
@@ -33,14 +34,14 @@ namespace DeviceHive.API.Mapping
                 .Property(e => e.OfflineTimeout, "offlineTimeout")
                 .RawJsonProperty(e => e.Data, "data");
 
-            manager.Configure<Equipment>()
+            context.Kernel.ConfigureMapping<Equipment>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Code, "code")
                 .Property(e => e.Type, "type")
                 .RawJsonProperty(e => e.Data, "data");
 
-            manager.Configure<Device>()
+            context.Kernel.ConfigureMapping<Device>()
                 .Property(e => e.GUID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Key, "key", JsonMapperEntryMode.OneWayToSource)
                 .Property(e => e.Name, "name")
@@ -49,13 +50,13 @@ namespace DeviceHive.API.Mapping
                 .ReferenceProperty(e => e.Network, "network")
                 .ReferenceProperty(e => e.DeviceClass, "deviceClass");
 
-            manager.Configure<DeviceNotification>()
+            context.Kernel.ConfigureMapping<DeviceNotification>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Notification, "notification")
                 .RawJsonProperty(e => e.Parameters, "parameters");
 
-            manager.Configure<DeviceCommand>()
+            context.Kernel.ConfigureMapping<DeviceCommand>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Command, "command")
@@ -65,7 +66,7 @@ namespace DeviceHive.API.Mapping
                 .Property(e => e.Status, "status")
                 .Property(e => e.Result, "result");
 
-            manager.Configure<DeviceEquipment>()
+            context.Kernel.ConfigureMapping<DeviceEquipment>()
                 .Property(e => e.Code, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.OneWay)
                 .RawJsonProperty(e => e.Parameters, "parameters", JsonMapperEntryMode.OneWay);

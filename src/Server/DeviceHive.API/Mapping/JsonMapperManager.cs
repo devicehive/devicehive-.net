@@ -4,30 +4,21 @@ using System.Linq;
 
 namespace DeviceHive.API.Mapping
 {
+    /// <summary>
+    /// Represents container for json mappers
+    /// </summary>
     public class JsonMapperManager
     {
-        private Dictionary<Type, object> _configurations = new Dictionary<Type, object>();
-
-        #region Public Properties
-
-        public DataContext DataContext { get; private set; }
-
-        #endregion
-
-        #region Constructor
-
-        public JsonMapperManager(DataContext dataContext)
-        {
-            if (dataContext == null)
-                throw new ArgumentNullException("dataContext");
-
-            DataContext = dataContext;
-        }
-        #endregion
+        private readonly Dictionary<Type, object> _configurations = new Dictionary<Type, object>();
 
         #region Public Methods
 
-        public void Configure<T>(IJsonMapper<T> mapper)
+        /// <summary>
+        /// Adds json mapper instance to the container
+        /// </summary>
+        /// <typeparam name="T">Object type</typeparam>
+        /// <param name="mapper">Json mapper instance</param>
+        public void AddMapper<T>(IJsonMapper<T> mapper)
         {
             if (mapper == null)
                 throw new ArgumentNullException("mapper");
@@ -35,11 +26,20 @@ namespace DeviceHive.API.Mapping
             _configurations[typeof(T)] = mapper;
         }
 
+        /// <summary>
+        /// Gets list of mapped types
+        /// </summary>
+        /// <returns>Array of Type objects</returns>
         public Type[] GetTypes()
         {
             return _configurations.Keys.ToArray();
         }
 
+        /// <summary>
+        /// Gets mapper instance
+        /// </summary>
+        /// <param name="type">Object type</param>
+        /// <returns>Mapper implementation</returns>
         public IJsonMapper GetMapper(Type type)
         {
             object obj;
@@ -51,6 +51,11 @@ namespace DeviceHive.API.Mapping
             return (IJsonMapper)obj;
         }
 
+        /// <summary>
+        /// Gets mapper instance
+        /// </summary>
+        /// <typeparam name="T">Object type</typeparam>
+        /// <returns>Mapper implementation</returns>
         public IJsonMapper<T> GetMapper<T>()
         {
             object obj;
