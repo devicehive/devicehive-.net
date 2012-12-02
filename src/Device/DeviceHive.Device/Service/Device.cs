@@ -27,11 +27,11 @@ namespace DeviceHive.Device
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets device status.
+        /// Gets or sets initial device status.
         /// </summary>
         /// <remarks>
         /// Device statuses are arbitrary strings. In order to update device status on the DeviceHive service,
-        /// devices should send "deviceStatus" notification with "status" parameter containing new value.
+        /// devices should call <see cref="IDeviceServiceChannel.SendStatusUpdate"/> method with "status" parameter containing new value.
         /// The DeviceHive server could also automaticall set device status to "Offline",
         /// if the OfflineTimeout property is set on the corresponding device class.
         /// </remarks>

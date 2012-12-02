@@ -124,6 +124,12 @@ namespace DeviceHive.Device
 
             Logger.Info("Stopping device host");
 
+            // stop all devices
+            foreach (var device in Devices)
+            {
+                device.Stop();
+            }
+
             // cancel all tasks
             _cancellationSource.Cancel();
             try

@@ -178,6 +178,15 @@ namespace DeviceHive.Device
 
             return OnHandleUnknownCommand(command, token);
         }
+
+        /// <summary>
+        /// Executed when device is about to stop.
+        /// Default implementation sends Offline status to the server.
+        /// </summary>
+        public virtual void Stop()
+        {
+            ServiceChannel.SendStatusUpdate("Offline");
+        }
         #endregion
 
         #region Protected Methods
