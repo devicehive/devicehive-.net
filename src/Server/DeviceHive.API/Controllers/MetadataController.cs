@@ -10,8 +10,8 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
-using DeviceHive.API.Mapping;
 using DeviceHive.API.Models;
+using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Validation;
 using Ninject;
 

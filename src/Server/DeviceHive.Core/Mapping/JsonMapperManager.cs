@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DeviceHive.API.Mapping
+namespace DeviceHive.Core.Mapping
 {
     /// <summary>
     /// Represents container for json mappers

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace DeviceHive.API.Mapping
+namespace DeviceHive.Core.Mapping
 {
     /// <summary>
     /// Represents object to json mapper

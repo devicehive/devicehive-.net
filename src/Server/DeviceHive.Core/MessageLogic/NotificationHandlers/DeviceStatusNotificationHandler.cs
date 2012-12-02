@@ -5,15 +5,22 @@ using Newtonsoft.Json.Linq;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
 
-namespace DeviceHive.API.Business.NotificationHandlers
+namespace DeviceHive.Core.MessageLogic.NotificationHandlers
 {
-    [HandleNotificationType("deviceStatus")]
+    /// <summary>
+    /// Handles device status notifications.
+    /// The handler update device status in the datastore.
+    /// </summary>
     public class DeviceStatusNotificationHandler : INotificationHandler
     {
-        private IDeviceRepository _deviceRepository;
+        private readonly IDeviceRepository _deviceRepository;
 
         #region Constructor
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="deviceRepository">IDeviceRepository implementation</param>
         public DeviceStatusNotificationHandler(IDeviceRepository deviceRepository)
         {
             _deviceRepository = deviceRepository;
@@ -22,6 +29,18 @@ namespace DeviceHive.API.Business.NotificationHandlers
 
         #region INotificationHandler Members
 
+        /// <summary>
+        /// Gets array of supported notification types
+        /// </summary>
+        public string[] NotificationTypes
+        {
+            get { return new[] { "deviceStatus" }; }
+        }
+
+        /// <summary>
+        /// Handles a device notification
+        /// </summary>
+        /// <param name="notification">DeviceNotification object</param>
         public void Handle(DeviceNotification notification)
         {
             var parameters = JObject.Parse(notification.Parameters);

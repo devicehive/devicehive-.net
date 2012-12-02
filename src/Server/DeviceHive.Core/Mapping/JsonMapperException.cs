@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DeviceHive.API.Mapping
+namespace DeviceHive.Core.Mapping
 {
     /// <summary>
     /// Represents json mapping exception

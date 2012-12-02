@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataContext.cs" />
     <Compile Include="EF\DeviceClassRepository.cs" />
     <Compile Include="EF\DeviceCommandRepository.cs" />
     <Compile Include="EF\DeviceEquipmentRepository.cs" />

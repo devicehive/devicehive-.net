@@ -1,7 +1,7 @@
 ﻿using System;
 using Ninject;
 
-namespace DeviceHive.API.Mapping
+namespace DeviceHive.Core.Mapping
 {
     /// <summary>
     /// Includes extensions methods for configuring json mapping

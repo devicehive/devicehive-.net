@@ -4,8 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http.Filters;
-using DeviceHive.API.Mapping;
 using DeviceHive.API.Models;
+using DeviceHive.Core.Mapping;
 using log4net;
 
 namespace DeviceHive.API.Filters

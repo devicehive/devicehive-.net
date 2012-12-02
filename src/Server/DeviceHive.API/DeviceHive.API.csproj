@@ -86,10 +86,6 @@
     <Compile Include="App_Start\NinjectWebApi.cs" />
     <Compile Include="App_Start\NinjectWebCommon.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="Business\NotificationHandlers\DeviceStatusNotificationHandler.cs" />
-    <Compile Include="Business\NotificationHandlers\EquipmentNotificationHandler.cs" />
-    <Compile Include="Business\INotificationHandler.cs" />
-    <Compile Include="Business\NotificationManager.cs" />
     <Compile Include="Business\ObjectWaiter.cs" />
     <Compile Include="Business\XmlCommentReader.cs" />
     <Compile Include="Controllers\CronController.cs" />
@@ -103,7 +99,6 @@
     <Compile Include="Controllers\MetadataController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\UserNetworkController.cs" />
-    <Compile Include="DataContext.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\DeviceClassController.cs" />
     <Compile Include="Controllers\EquipmentController.cs" />
@@ -119,17 +114,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Controllers\NetworkController.cs" />
-    <Compile Include="Mapping\IJsonMapper.cs" />
     <Compile Include="App_Start\JsonMapperConfig.cs" />
-    <Compile Include="Mapping\JsonMapper.cs" />
-    <Compile Include="Mapping\JsonMapperConfiguration.cs" />
-    <Compile Include="Mapping\JsonMapperConfigurer.cs" />
-    <Compile Include="Mapping\JsonMapperEntry.cs" />
-    <Compile Include="Mapping\JsonMapperException.cs" />
-    <Compile Include="Mapping\JsonMapperManager.cs" />
-    <Compile Include="Mapping\NetworkJsonMapper.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Models\ErrorDetail.cs" />
     <Compile Include="Models\Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -144,6 +129,10 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DeviceHive.Core\DeviceHive.Core.csproj">
+      <Project>{20C669F5-66EF-4C45-A40A-4C2441879645}</Project>
+      <Name>DeviceHive.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DeviceHive.Data\DeviceHive.Data.csproj">
       <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>
       <Name>DeviceHive.Data</Name>

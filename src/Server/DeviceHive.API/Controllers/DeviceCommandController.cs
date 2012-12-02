@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Web.Http;
 using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
-using DeviceHive.API.Mapping;
+using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
-using Ninject;
 
 namespace DeviceHive.API.Controllers
 {

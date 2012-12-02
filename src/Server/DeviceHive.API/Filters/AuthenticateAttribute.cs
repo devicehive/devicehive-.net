@@ -5,6 +5,7 @@ using System.Text;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 using DeviceHive.API.Controllers;
+using DeviceHive.Data;
 using DeviceHive.Data.Model;
 
 namespace DeviceHive.API.Filters

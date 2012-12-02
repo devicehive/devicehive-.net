@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Web.Http;
 using DeviceHive.API.Filters;
-using DeviceHive.API.Mapping;
+using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 

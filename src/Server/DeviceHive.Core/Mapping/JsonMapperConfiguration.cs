@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using DeviceHive.Data;
 using Newtonsoft.Json.Linq;
 
-namespace DeviceHive.API.Mapping
+namespace DeviceHive.Core.Mapping
 {
     /// <summary>
     /// Represents configuration for <see cref="JsonMapper{T}"/> class
@@ -196,7 +197,7 @@ namespace DeviceHive.API.Mapping
             var json = Expression.Parameter(typeof(JObject), "json");
             var entityProperty = GetProperty(entityPropertyExpression);
             var mapper = _manager.GetMapper<TRef>();
-            var repository = _dataContext.Get<TRef>();
+            var repository = _dataContext.GetRepositoryFor<TRef>();
 
             // create MapToJson action
             var jsonAddProperty = Expression.Call(json,

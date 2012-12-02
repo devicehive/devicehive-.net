@@ -1,15 +1,17 @@
 using System;
 using System.Reflection;
 using System.Web;
-using Ninject;
-using Ninject.Web.Common;
-using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using DeviceHive.API.Business;
-using DeviceHive.API.Business.NotificationHandlers;
-using DeviceHive.API.Mapping;
+using DeviceHive.Core.Mapping;
+using DeviceHive.Core.MessageLogic;
+using DeviceHive.Core.MessageLogic.NotificationHandlers;
+using DeviceHive.Data;
 using DeviceHive.Data.EF;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
+using Microsoft.Web.Infrastructure.DynamicModuleHelper;
+using Ninject;
+using Ninject.Web.Common;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(DeviceHive.API.NinjectWebCommon), "Start")]
 [assembly: WebActivator.ApplicationShutdownMethodAttribute(typeof(DeviceHive.API.NinjectWebCommon), "Stop")]
@@ -72,11 +74,11 @@ namespace DeviceHive.API
             kernel.Bind<IDeviceCommandRepository, ISimpleRepository<DeviceCommand>>().To<DeviceCommandRepository>();
             kernel.Bind<IDeviceEquipmentRepository, ISimpleRepository<DeviceEquipment>>().To<DeviceEquipmentRepository>();
 
-            // bind JSON mapper
-            kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
-
             // bind data context
             kernel.Bind<DataContext>().ToSelf().InSingletonScope();
+
+            // bind JSON mapper
+            kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
 
             // bind request context
             kernel.Bind<RequestContext>().ToSelf().InRequestScope();
@@ -85,8 +87,8 @@ namespace DeviceHive.API
             kernel.Bind<ObjectWaiter<DeviceNotification>>().ToSelf().InSingletonScope();
             kernel.Bind<ObjectWaiter<DeviceCommand>>().ToSelf().InSingletonScope();
 
-            // bind notification handlers
-            kernel.Bind<INotificationManager>().To<NotificationManager>().InSingletonScope();
+            // bind message handlers
+            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();
             kernel.Bind<INotificationHandler>().To<DeviceStatusNotificationHandler>();
             kernel.Bind<INotificationHandler>().To<EquipmentNotificationHandler>();
 
