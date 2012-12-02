@@ -138,6 +138,36 @@ namespace DeviceHive.Core.Mapping
                     entry.MapToEntity(json, entity);
             }
         }
+
+        /// <summary>
+        /// Gets the difference between two entities
+        /// </summary>
+        /// <param name="source">Source entity to compare</param>
+        /// <param name="target">Target entity to compare</param>
+        /// <returns>JObject object with changed properties containing values from target entity</returns>
+        public JObject Diff(T source, T target)
+        {
+            if (target == null)
+                return null;
+            if (source == null)
+                return Map(target);
+
+            var sourceJson = Map(source);
+            var targetJson = Map(target);
+
+            targetJson["data"].ToString();
+            sourceJson["data"].ToString();
+
+            var diff = new JObject();
+            foreach (var property in targetJson.Properties())
+            {
+                if (!JToken.DeepEquals(sourceJson[property.Name], property.Value))
+                {
+                    diff.Add(property);
+                }
+            }
+            return diff;
+        }
         #endregion
 
         #region Protected Methods

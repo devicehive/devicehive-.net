@@ -64,6 +64,7 @@
     <Compile Include="MessageLogic\NotificationHandlers\DeviceStatusNotificationHandler.cs" />
     <Compile Include="MessageLogic\NotificationHandlers\EquipmentNotificationHandler.cs" />
     <Compile Include="MessageLogic\MessageManager.cs" />
+    <Compile Include="MessageLogic\SpecialNotifications.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

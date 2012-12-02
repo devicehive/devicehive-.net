@@ -53,11 +53,19 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create()
         {
+            // create new device
             var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID });
             RegisterForDeletion(ResourceUri + "/" + ID);
 
+            // expect valid server response
             Expect(resource, Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
             Expect(Get(resource, auth: Admin), Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
+            
+            // verify device-add notification
+            var notificationResponse = Client.Get("/device/" + ID + "/notification", auth: Admin);
+            Expect(notificationResponse.Json.Count(), Is.EqualTo(1));
+            Expect(notificationResponse.Json[0], Matches(new { notification = "$device-add", parameters =
+                new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } } }));
         }
 
         [Test]
@@ -162,8 +170,14 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion("/network/" + update["network"]["id"]);
             RegisterForDeletion("/device/class/" + update["deviceClass"]["id"]);
 
+            // expect valid server response
             Expect(update, Matches(obj));
             Expect(Get(resource, auth: Admin), Matches(obj));
+
+            // verify device-update notification
+            var notificationResponse = Client.Get("/device/" + ID + "/notification", auth: Admin);
+            Expect(notificationResponse.Json.Count(), Is.GreaterThan(0));
+            Expect(notificationResponse.Json.Last(), Matches(new { notification = "$device-update", parameters = obj }));
         }
 
         [Test]

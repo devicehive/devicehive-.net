@@ -34,7 +34,7 @@ namespace DeviceHive.Core.MessageLogic.NotificationHandlers
         /// </summary>
         public string[] NotificationTypes
         {
-            get { return new[] { "equipment" }; }
+            get { return new[] { SpecialNotifications.EQUIPMENT }; }
         }
 
         /// <summary>

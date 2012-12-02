@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
+using DeviceHive.Core.MessageLogic;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 
@@ -13,6 +15,13 @@ namespace DeviceHive.API.Controllers
     /// <resource cref="Device" />
     public class DeviceController : BaseController
     {
+        private readonly ObjectWaiter<DeviceNotification> _notificationWaiter;
+
+        public DeviceController(ObjectWaiter<DeviceNotification> notificationWaiter)
+        {
+            _notificationWaiter = notificationWaiter;
+        }
+
         /// <name>list</name>
         /// <summary>
         /// Gets list of devices.
@@ -90,13 +99,16 @@ namespace DeviceHive.API.Controllers
                 device = new Device(id);
             }
 
-            // map and save the device object
+            // load original device for comparison
+            var sourceDevice = device.ID > 0 ? DataContext.Device.Get(device.ID) : null;
+
+            // map and validate the device object
             ResolveNetwork(json);
             ResolveDeviceClass(json, device.ID == 0);
-
             Mapper.Apply(device, json);
             Validate(device);
 
+            // save device object
             DataContext.Device.Save(device);
 
             // replace equipments for the corresponding device class
@@ -114,6 +126,14 @@ namespace DeviceHive.API.Controllers
                     DataContext.Equipment.Save(equipment);
                 }
             }
+
+            // save the device diff notification
+            var diff = Mapper.Diff(sourceDevice, device);
+            var notificationName = sourceDevice == null ? SpecialNotifications.DEVICE_ADD : SpecialNotifications.DEVICE_UPDATE;
+            var notification = new DeviceNotification(notificationName, device);
+            notification.Parameters = diff.ToString();
+            DataContext.DeviceNotification.Save(notification);
+            _notificationWaiter.NotifyChanges(device.ID);
 
             return Mapper.Map(device);
         }

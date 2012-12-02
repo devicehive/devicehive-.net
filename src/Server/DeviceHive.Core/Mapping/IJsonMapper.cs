@@ -68,6 +68,14 @@ namespace DeviceHive.Core.Mapping
         /// <param name="entity">Destination entity object</param>
         /// <param name="json">JObject object to apply</param>
         void Apply(T entity, JObject json);
+
+        /// <summary>
+        /// Gets the difference between two entities
+        /// </summary>
+        /// <param name="source">Source entity to compare</param>
+        /// <param name="target">Target entity to compare</param>
+        /// <returns>JObject object with changed properties containing values from target entity</returns>
+        JObject Diff(T source, T target);
     }
 
     /// <summary>
