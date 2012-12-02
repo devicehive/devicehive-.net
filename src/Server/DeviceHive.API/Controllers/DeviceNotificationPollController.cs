@@ -42,7 +42,7 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var waitUntil = DateTime.UtcNow.Add(_timeout);
-            var start = timestamp != null ? timestamp.Value.AddTicks(10) : DateTime.UtcNow;
+            var start = timestamp != null ? timestamp.Value.AddTicks(10) : DataContext.DeviceNotification.GetCurrentTimestamp();
 
             while (true)
             {
@@ -52,7 +52,8 @@ namespace DeviceHive.API.Controllers
                     if (notifications != null && notifications.Any())
                         return new JArray(notifications.Select(n => Mapper.Map(n)));
 
-                    if (!waiterHandle.Handle.WaitOne(waitUntil - DateTime.UtcNow))
+                    var now = DateTime.UtcNow;
+                    if (now >= waitUntil || !waiterHandle.Handle.WaitOne(waitUntil - now))
                         return new JArray();
                 }
             }

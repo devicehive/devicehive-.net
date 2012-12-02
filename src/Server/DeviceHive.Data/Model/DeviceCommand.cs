@@ -18,7 +18,6 @@ namespace DeviceHive.Data.Model
         /// </summary>
         public DeviceCommand()
         {
-            this.Timestamp = DateTime.UtcNow;
         }
 
         /// <summary>
@@ -33,7 +32,6 @@ namespace DeviceHive.Data.Model
             if (device == null)
                 throw new ArgumentNullException("device");
 
-            this.Timestamp = DateTime.UtcNow;
             this.Command = command;
             this.Device = device;
         }
