@@ -5,57 +5,132 @@ using System.Threading;
 
 namespace DeviceHive.API.Business
 {
-    public class ObjectWaiter<T>
+    /// <summary>
+    /// Represents a primitive that allows to wait for object changes.
+    /// Call <see cref="BeginWait"/> to start waiting for object changes.
+    /// Call <see cref="NotifyChanges"/> from to notify all waiting threads about object change.
+    /// </summary>
+    public class ObjectWaiter
     {
-        private Dictionary<object, ManualResetEvent> _handles = new Dictionary<object, ManualResetEvent>();
+        private readonly HashSet<Subscription> _subscriptions = new HashSet<Subscription>();
 
         #region Public Methods
 
-        public List<T> WaitForObjects(object key, Func<List<T>> getter, TimeSpan timeout)
+        /// <summary>
+        /// Begins waiting for objects changes with specified keys
+        /// </summary>
+        /// <param name="keys">Array of object keys to wait</param>
+        /// <returns>IWaiterHandle interface</returns>
+        public IWaiterHandle BeginWait(params object[] keys)
         {
-            var timestamp = DateTime.UtcNow;
-            var handle = GetHandle(key);
-            while (true)
-            {
-                lock (handle)
-                {
-                    var result = getter();
-                    if (result != null && result.Any())
-                        return result;
-
-                    handle.Reset();
-                }
-
-                if (!handle.WaitOne((timestamp + timeout) - DateTime.UtcNow))
-                    return new List<T>();
-            }
+            var subscription = Subscribe(keys);
+            return new WaiterHandle(this, subscription);
         }
 
+        /// <summary>
+        /// Notifies about object change
+        /// </summary>
+        /// <param name="key">Object key</param>
         public void NotifyChanges(object key)
         {
-            var handle = GetHandle(key);
-            lock (handle)
-            {
-                handle.Set();
-            }
+            foreach (var subscription in GetSubscriptionsFor(key))
+                subscription.Notify();
         }
         #endregion
 
         #region Private Methods
 
-        private ManualResetEvent GetHandle(object key)
+        private Subscription Subscribe(object[] keys)
         {
-            lock (_handles)
+            lock (_subscriptions)
             {
-                ManualResetEvent handle;
-                if (!_handles.TryGetValue(key, out handle))
-                {
-                    handle = new ManualResetEvent(false);
-                    _handles[key] = handle;
-                }
-                return handle;
+                var subscription = new Subscription(keys);
+                _subscriptions.Add(subscription);
+                return subscription;
+            }
+        }
+
+        private void Unsubscribe(Subscription subscription)
+        {
+            lock (_subscriptions)
+            {
+                _subscriptions.Remove(subscription);
+            }
+        }
+
+        private Subscription[] GetSubscriptionsFor(object key)
+        {
+            lock (_subscriptions)
+            {
+                return _subscriptions.Where(s => s.Keys.Contains(key) || s.Keys.Contains(null)).ToArray();
             }
         }
         #endregion
+
+        #region Subscription class
+
+        private class Subscription
+        {
+            private readonly HashSet<object> _keys;
+            private readonly ManualResetEvent _handle;
+
+            public HashSet<object> Keys
+            {
+                get { return _keys; }
+            }
+
+            public WaitHandle Handle
+            {
+                get { return _handle; }
+            }
+
+            public Subscription(object[] keys)
+            {
+                _keys = new HashSet<object>(keys);
+                _handle = new ManualResetEvent(false);
+            }
+
+            public void Notify()
+            {
+                _handle.Set();
+            }
+        }
+        #endregion
+
+        #region WaiterHandle class
+
+        private class WaiterHandle : IWaiterHandle
+        {
+            private readonly ObjectWaiter _waiter;
+            private readonly Subscription _subscription;
+
+            public WaiterHandle(ObjectWaiter waiter, Subscription subscription)
+            {
+                _waiter = waiter;
+                _subscription = subscription;
+            }
+
+            public WaitHandle Handle
+            {
+                get { return _subscription.Handle; }
+            }
+
+            public void Dispose()
+            {
+                _waiter.Unsubscribe(_subscription);
+            }
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// Represents waiting handle interface
+    /// </summary>
+    public interface IWaiterHandle : IDisposable
+    {
+        /// <summary>
+        /// Gets associated wait handle
+        /// </summary>
+        WaitHandle Handle { get; }
     }
 }

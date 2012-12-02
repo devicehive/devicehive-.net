@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
+using DeviceHive.Core.Messaging;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 
@@ -13,11 +13,11 @@ namespace DeviceHive.API.Controllers
     /// <resource cref="DeviceCommand" />
     public class DeviceCommandController : BaseController
     {
-        private ObjectWaiter<DeviceCommand> _commandWaiter;
+        private readonly MessageBus _messageBus;
 
-        public DeviceCommandController(ObjectWaiter<DeviceCommand> commandWaiter)
+        public DeviceCommandController(MessageBus messageBus)
         {
-            _commandWaiter = commandWaiter;
+            _messageBus = messageBus;
         }
 
         /// <name>query</name>
@@ -87,7 +87,7 @@ namespace DeviceHive.API.Controllers
             Validate(command);
 
             DataContext.DeviceCommand.Save(command);
-            _commandWaiter.NotifyChanges(device.ID);
+            _messageBus.Notify(new DeviceCommandAddedMessage(deviceGuid, command.ID));
             return Mapper.Map(command);
         }
 
@@ -122,6 +122,7 @@ namespace DeviceHive.API.Controllers
             Validate(command);
 
             DataContext.DeviceCommand.Save(command);
+            _messageBus.Notify(new DeviceCommandUpdatedMessage(deviceGuid, command.ID));
             return Mapper.Map(command);
         }
 

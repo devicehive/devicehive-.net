@@ -7,16 +7,17 @@ using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
+using Ninject;
 
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="DeviceNotification" />
     public class DeviceNotificationPollController : BaseController
     {
-        private ObjectWaiter<DeviceNotification> _notificationWaiter;
+        private ObjectWaiter _notificationWaiter;
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
 
-        public DeviceNotificationPollController(ObjectWaiter<DeviceNotification> notificationWaiter)
+        public DeviceNotificationPollController([Named("DeviceNotification")] ObjectWaiter notificationWaiter)
         {
             _notificationWaiter = notificationWaiter;
         }
@@ -40,10 +41,21 @@ namespace DeviceHive.API.Controllers
             if (device == null || !IsNetworkAccessible(device.NetworkID))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
+            var waitUntil = DateTime.UtcNow.Add(_timeout);
             var start = timestamp != null ? timestamp.Value.AddTicks(10) : DateTime.UtcNow;
 
-            var result = _notificationWaiter.WaitForObjects(device.ID, () => DataContext.DeviceNotification.GetByDevice(device.ID, start, null), _timeout);
-            return new JArray(result.Select(n => Mapper.Map(n)));
+            while (true)
+            {
+                using (var waiterHandle = _notificationWaiter.BeginWait(device.GUID))
+                {
+                    var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, start, null);
+                    if (notifications != null && notifications.Any())
+                        return new JArray(notifications.Select(n => Mapper.Map(n)));
+
+                    if (!waiterHandle.Handle.WaitOne(waitUntil - DateTime.UtcNow))
+                        return new JArray();
+                }
+            }
         }
 
         private IJsonMapper<DeviceNotification> Mapper

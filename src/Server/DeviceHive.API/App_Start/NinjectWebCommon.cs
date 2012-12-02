@@ -5,6 +5,7 @@ using DeviceHive.API.Business;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.MessageLogic.NotificationHandlers;
+using DeviceHive.Core.Messaging;
 using DeviceHive.Data;
 using DeviceHive.Data.EF;
 using DeviceHive.Data.Model;
@@ -77,20 +78,23 @@ namespace DeviceHive.API
             // bind data context
             kernel.Bind<DataContext>().ToSelf().InSingletonScope();
 
-            // bind JSON mapper
+            // bind json mapper
             kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
 
-            // bind request context
-            kernel.Bind<RequestContext>().ToSelf().InRequestScope();
+            // bind message bus
+            kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope().OnActivation(MessageBusConfig.ConfigureSubscriptions);
 
             // bind object waiters
-            kernel.Bind<ObjectWaiter<DeviceNotification>>().ToSelf().InSingletonScope();
-            kernel.Bind<ObjectWaiter<DeviceCommand>>().ToSelf().InSingletonScope();
+            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceNotification");
+            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand");
 
-            // bind message handlers
+            // bind message logic handlers
             kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();
             kernel.Bind<INotificationHandler>().To<DeviceStatusNotificationHandler>();
             kernel.Bind<INotificationHandler>().To<EquipmentNotificationHandler>();
+
+            // bind request context
+            kernel.Bind<RequestContext>().ToSelf().InRequestScope();
 
             // bind API XML reader
             kernel.Bind<XmlCommentReader>().ToSelf().InSingletonScope().Named("Data").WithConstructorArgument("fileName", "DeviceHive.Data.xml");

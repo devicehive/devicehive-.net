@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
+using DeviceHive.Core.Messaging;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 
@@ -15,11 +15,11 @@ namespace DeviceHive.API.Controllers
     /// <resource cref="Device" />
     public class DeviceController : BaseController
     {
-        private readonly ObjectWaiter<DeviceNotification> _notificationWaiter;
+        private readonly MessageBus _messageBus;
 
-        public DeviceController(ObjectWaiter<DeviceNotification> notificationWaiter)
+        public DeviceController(MessageBus messageBus)
         {
-            _notificationWaiter = notificationWaiter;
+            _messageBus = messageBus;
         }
 
         /// <name>list</name>
@@ -133,7 +133,7 @@ namespace DeviceHive.API.Controllers
             var notification = new DeviceNotification(notificationName, device);
             notification.Parameters = diff.ToString();
             DataContext.DeviceNotification.Save(notification);
-            _notificationWaiter.NotifyChanges(device.ID);
+            _messageBus.Notify(new DeviceNotificationAddedMessage(device.GUID, notification.ID));
 
             return Mapper.Map(device);
         }

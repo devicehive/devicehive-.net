@@ -65,6 +65,11 @@
     <Compile Include="MessageLogic\NotificationHandlers\EquipmentNotificationHandler.cs" />
     <Compile Include="MessageLogic\MessageManager.cs" />
     <Compile Include="MessageLogic\SpecialNotifications.cs" />
+    <Compile Include="Messaging\DeviceCommandAddedMessage.cs" />
+    <Compile Include="Messaging\DeviceCommandUpdatedMessage.cs" />
+    <Compile Include="Messaging\DeviceNotificationAddedMessage.cs" />
+    <Compile Include="Messaging\MessageBus.cs" />
+    <Compile Include="Messaging\NamedPipeMessageBus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

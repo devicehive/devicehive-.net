@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 using System.Web.Http.Description;
-using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.MessageLogic;
+using DeviceHive.Core.Messaging;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 
@@ -16,11 +16,11 @@ namespace DeviceHive.API.Controllers
     {
         private const string OFFLINE_STATUS = "Offline";
 
-        private readonly ObjectWaiter<DeviceNotification> _notificationWaiter;
+        private readonly MessageBus _messageBus;
 
-        public CronController(ObjectWaiter<DeviceNotification> notificationWaiter)
+        public CronController(MessageBus messageBus)
         {
-            _notificationWaiter = notificationWaiter;
+            _messageBus = messageBus;
         }
 
         [HttpGet]
@@ -38,7 +38,7 @@ namespace DeviceHive.API.Controllers
                 var notification = new DeviceNotification(SpecialNotifications.DEVICE_UPDATE, device);
                 notification.Parameters = new JObject(new JProperty("status", OFFLINE_STATUS)).ToString();
                 DataContext.DeviceNotification.Save(notification);
-                _notificationWaiter.NotifyChanges(device.ID);
+                _messageBus.Notify(new DeviceNotificationAddedMessage(device.GUID, notification.ID));
             }
         }
     }

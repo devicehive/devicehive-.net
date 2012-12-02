@@ -2,22 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
+using Ninject;
 
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="DeviceCommand" />
     public class DeviceCommandPollController : BaseController
     {
-        private ObjectWaiter<DeviceCommand> _commandWaiter;
+        private ObjectWaiter _commandWaiter;
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
 
-        public DeviceCommandPollController(ObjectWaiter<DeviceCommand> commandWaiter)
+        public DeviceCommandPollController([Named("DeviceCommand")] ObjectWaiter commandWaiter)
         {
             _commandWaiter = commandWaiter;
         }
@@ -43,10 +43,21 @@ namespace DeviceHive.API.Controllers
             if (device == null || !IsNetworkAccessible(device.NetworkID))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
+            var waitUntil = DateTime.UtcNow.Add(_timeout);
             var start = timestamp != null ? timestamp.Value.AddTicks(10) : DateTime.UtcNow;
 
-            var result = _commandWaiter.WaitForObjects(device.ID, () => DataContext.DeviceCommand.GetByDevice(device.ID, start, null), _timeout);
-            return new JArray(result.Select(n => Mapper.Map(n)));
+            while (true)
+            {
+                using (var waiterHandle = _commandWaiter.BeginWait(device.GUID))
+                {
+                    var commands = DataContext.DeviceCommand.GetByDevice(device.ID, start, null);
+                    if (commands != null && commands.Any())
+                        return new JArray(commands.Select(n => Mapper.Map(n)));
+
+                    if (!waiterHandle.Handle.WaitOne(waitUntil - DateTime.UtcNow))
+                        return new JArray();
+                }
+            }
         }
 
         private IJsonMapper<DeviceCommand> Mapper
