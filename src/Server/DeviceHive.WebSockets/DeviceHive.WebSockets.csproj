@@ -72,6 +72,8 @@
     <Compile Include="Core\JsonMapperConfig.cs" />
     <Compile Include="Core\NinjectConfig.cs" />
     <Compile Include="Core\Router.cs" />
+    <Compile Include="Network\Fleck\FleckWebSocketServer.cs" />
+    <Compile Include="Network\Fleck\FleckWebSocketConnection.cs" />
     <Compile Include="Network\SessionContext.cs" />
     <Compile Include="Network\WebSocketConnection.cs" />
     <Compile Include="Network\WebSocketConnectionEventArgs.cs" />

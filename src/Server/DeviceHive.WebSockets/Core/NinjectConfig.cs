@@ -8,6 +8,7 @@ using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
 using DeviceHive.WebSockets.Controllers;
 using DeviceHive.WebSockets.Network;
+using DeviceHive.WebSockets.Network.Fleck;
 using DeviceHive.WebSockets.Subscriptions;
 using Ninject;
 
