@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.ServiceProcess;
 using DeviceHive.WebSockets.Core;
 using Ninject;
@@ -14,6 +13,8 @@ namespace DeviceHive.WebSockets
 		/// </summary>
 		private static void Main(string[] args)
 		{
+            log4net.Config.XmlConfigurator.Configure();
+
 		    AppDomain.CurrentDomain.UnhandledException += (s, e) =>
 		    {
 		        LogManager.GetLogger(typeof (Program)).Fatal(
