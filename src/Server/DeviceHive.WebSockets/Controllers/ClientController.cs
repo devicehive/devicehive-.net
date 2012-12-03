@@ -13,8 +13,10 @@ using Ninject;
 namespace DeviceHive.WebSockets.Controllers
 {
 	public class ClientController : ControllerBase
-	{
+	{	    
 	    #region Private fields
+
+        private const int _maxLoginAttempts = 10;
 
 	    private readonly SubscriptionManager _subscriptionManager;
 	    private readonly MessageBus _messageBus;
@@ -80,12 +82,37 @@ namespace DeviceHive.WebSockets.Controllers
 			var password = (string) ActionArgs["password"];
 
 			var user = DataContext.User.Get(login);
-			if (user == null || !user.IsValidPassword(password))
+			if (user == null || user.Status != (int)UserStatus.Active)
 				throw new WebSocketRequestException("Invalid login or password");
+
+            if (user.IsValidPassword(password))
+            {
+                UpdateUserLastLogin(user);
+            }
+            else
+            {
+                IncrementUserLoginAttempts(user);
+                throw new WebSocketRequestException("Invalid login or password");
+            }
 
 			CurrentUser = user;
 			SendSuccessResponse();
 		}
+
+        private void IncrementUserLoginAttempts(User user)
+        {
+            user.LoginAttempts++;
+            if (user.LoginAttempts >= _maxLoginAttempts)
+                user.Status = (int)UserStatus.LockedOut;
+            DataContext.User.Save(user);
+        }
+
+        private void UpdateUserLastLogin(User user)
+        {
+            user.LoginAttempts = 0;
+            user.LastLogin = DateTime.UtcNow;
+            DataContext.User.Save(user);
+        }
 
 		private void InsertDeviceCommand()
 		{
