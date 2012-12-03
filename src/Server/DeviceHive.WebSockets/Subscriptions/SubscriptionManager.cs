@@ -26,7 +26,7 @@ namespace DeviceHive.WebSockets.Subscriptions
 			connectionSubscriptions.RemoveAll(s => s.DeviceGuid == deviceGuid);
 
 			var subscriptionList = _subscriptionCollection.GetSubscriptionList(deviceGuid);
-			subscriptionList.RemoveAll(s => s.DeviceGuid == deviceGuid);
+			subscriptionList.RemoveAll(s => s.Connection == connection);
 		}
 
 		public IEnumerable<WebSocketConnectionBase> GetConnections(Guid? deviceGuid)
@@ -45,7 +45,7 @@ namespace DeviceHive.WebSockets.Subscriptions
 			foreach (var deviceGuid in deviceGuids)
 			{
 				var subscriptionList = _subscriptionCollection.GetSubscriptionList(deviceGuid);
-				subscriptionList.RemoveAll(s => s.DeviceGuid == deviceGuid);
+				subscriptionList.RemoveAll(s => s.Connection == connection);
 			}
 		}
 

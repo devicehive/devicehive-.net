@@ -99,7 +99,7 @@ namespace DeviceHive.WebSockets.Network
 
 		public override void Stop()
 		{
-			_webSocketServer.Dispose();
+			_webSocketServer.Dispose();           
 		}
 	}
 }

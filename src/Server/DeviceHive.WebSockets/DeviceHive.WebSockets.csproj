@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{240E0349-322C-4DCF-B968-CE6554F76D3A}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DeviceHive.WebSockets</RootNamespace>
     <AssemblyName>DeviceHive.WebSockets</AssemblyName>
@@ -34,6 +34,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Fleck">
@@ -74,20 +77,12 @@
     <Compile Include="Network\WebSocketConnectionEventArgs.cs" />
     <Compile Include="Network\WebSocketMessageEventArgs.cs" />
     <Compile Include="Network\WebSocketServer.cs" />
-    <Compile Include="ProjectInstaller.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="ProjectInstaller.Designer.cs">
-      <DependentUpon>ProjectInstaller.cs</DependentUpon>
-    </Compile>
     <Compile Include="Subscriptions\Subscription.cs" />
     <Compile Include="Subscriptions\SubscriptionManager.cs" />
     <Compile Include="WebSocketService.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="WebSocketService.Designer.cs">
-      <DependentUpon>WebSocketService.cs</DependentUpon>
-    </Compile>
+    <Compile Include="WebSocketServiceImpl.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -104,11 +99,6 @@
       <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>
       <Name>DeviceHive.Data</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ProjectInstaller.resx">
-      <DependentUpon>ProjectInstaller.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

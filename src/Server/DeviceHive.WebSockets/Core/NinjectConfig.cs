@@ -55,7 +55,7 @@ namespace DeviceHive.WebSockets.Core
 
 			// bind web socket server
 			kernel.Bind<WebSocketServerBase>().To<FleckWebSocketServer>().InSingletonScope();
-			kernel.Bind<WebSocketService>().ToSelf().InSingletonScope();
+			kernel.Bind<WebSocketServiceImpl>().ToSelf().InSingletonScope();
 
             // bind notification handlers
             kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();

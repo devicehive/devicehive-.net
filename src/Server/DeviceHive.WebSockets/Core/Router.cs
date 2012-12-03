@@ -1,7 +1,6 @@
 ﻿using System;
 using DeviceHive.WebSockets.Controllers;
 using DeviceHive.WebSockets.Network;
-using DeviceHive.WebSockets.Subscriptions;
 using Newtonsoft.Json.Linq;
 using Ninject;
 using log4net;

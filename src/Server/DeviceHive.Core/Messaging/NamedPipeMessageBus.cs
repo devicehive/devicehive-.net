@@ -13,6 +13,8 @@ namespace DeviceHive.Core.Messaging
     {
         private readonly string _pipeName;
         private readonly Thread _readThread;
+        private readonly EventWaitHandle _cancelConnectionEvent = new AutoResetEvent(false);
+        private NamedPipeServerStream _namedPipeServer;
         private volatile bool _stopReading = false;
 
         #region Constructor
@@ -73,21 +75,31 @@ namespace DeviceHive.Core.Messaging
 
         private void ReadData()
         {
-            using (var namedPipeServer = new NamedPipeServerStream(_pipeName, PipeDirection.InOut, -1))
+            using (_namedPipeServer = new NamedPipeServerStream(_pipeName,
+                PipeDirection.InOut, -1,
+                PipeTransmissionMode.Byte, PipeOptions.Asynchronous))
             {
                 while (true)
                 {
                     if (_stopReading)
                         return;
-
-                    ReadMessage(namedPipeServer);
+                    
+                    ReadMessage(_namedPipeServer);                    
                 }
             }
         }
 
         private void ReadMessage(NamedPipeServerStream namedPipeServer)
         {
-            namedPipeServer.WaitForConnection();
+            var connectEvent = new AutoResetEvent(false);
+
+            var connectResult = namedPipeServer.BeginWaitForConnection(ar => connectEvent.Set(), null);
+            WaitHandle.WaitAny(new WaitHandle[] {_cancelConnectionEvent, connectEvent});
+
+            if (_stopReading)
+                return;
+
+            namedPipeServer.EndWaitForConnection(connectResult);            
 
             byte[] data;
             
@@ -106,6 +118,7 @@ namespace DeviceHive.Core.Messaging
 
             HandleMessage(data);
         }
+
         #endregion
 
         #region IDisposable Members
@@ -115,9 +128,11 @@ namespace DeviceHive.Core.Messaging
             if (_readThread != null && _readThread.IsAlive)
             {
                 _stopReading = true;
+                _cancelConnectionEvent.Set();
                 _readThread.Join();
             }
         }
+
         #endregion
     }
 }
