@@ -55,7 +55,9 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
             try
             {
+                BeforeActionInvoke();
                 _actionInvoker.InvokeAction(this, action);
+                AfterActionInvoke();
             }
             catch (WebSocketRequestException e)
             {
@@ -66,6 +68,14 @@ namespace DeviceHive.WebSockets.ActionsFramework
                 SendResponse(new JProperty("error", "Server error"));
                 throw;
             }
+        }
+
+        protected virtual void BeforeActionInvoke()
+        {            
+        }
+
+        protected virtual void AfterActionInvoke()
+        {            
         }
 
         #endregion

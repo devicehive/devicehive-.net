@@ -41,9 +41,16 @@ namespace DeviceHive.WebSockets.Controllers
 
         private Device CurrentDevice
         {
-            get { return (Device) Connection.Session["device"]; }
+            get { return RequestDevice ?? SessionDevice; }
+        }
+
+        private Device SessionDevice
+        {
+            get { return (Device)Connection.Session["device"]; }
             set { Connection.Session["device"] = value; }
         }
+
+        private Device RequestDevice { get; set; }
 
         #endregion
 
@@ -53,7 +60,16 @@ namespace DeviceHive.WebSockets.Controllers
 
         public override bool IsAuthenticated
         {
-            get { return CurrentDevice != null; }
+            get
+            {
+                AuthenticateImpl();
+                return CurrentDevice != null;
+            }
+        }
+
+        protected override void BeforeActionInvoke()
+        {
+            RequestDevice = null;
         }
 
         #endregion
@@ -63,15 +79,14 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("authenticate")]
         public void Authenticate()
         {
-            var deviceId = Guid.Parse((string) ActionArgs["deviceId"]);
-            var deviceKey = (string) ActionArgs["deviceKey"];
+            if (AuthenticateImpl())
+            {
+                SessionDevice = RequestDevice;
+                SendSuccessResponse();
+                return;
+            }
 
-            var device = DataContext.Device.Get(deviceId);
-            if (device == null || device.Key != deviceKey)
-                throw new WebSocketRequestException("Device not found");
-
-            CurrentDevice = device;
-            SendSuccessResponse();
+            throw new WebSocketRequestException("Please specify valid authentication data");
         }
 
         [Action("notification/insert", NeedAuthentication = true)]
@@ -151,6 +166,29 @@ namespace DeviceHive.WebSockets.Controllers
 
             SendResponse(connection, "command/notify",
                 new JProperty("command", CommandMapper.Map(command)));
+        }
+
+        #endregion
+
+        #region Helper methods
+
+        private bool AuthenticateImpl()
+        {
+            var deviceIdValue = ActionArgs["deviceId"];
+            var deviceKeyValue = ActionArgs["deviceKey"];
+
+            if (deviceIdValue == null || deviceKeyValue == null)
+                return false;
+
+            var deviceId = Guid.Parse((string)deviceIdValue);            
+            var deviceKey = (string)deviceKeyValue;
+
+            var device = DataContext.Device.Get(deviceId);
+            if (device == null || device.Key != deviceKey)
+                throw new WebSocketRequestException("Device not found");
+
+            RequestDevice = device;
+            return true;
         }
 
         #endregion
