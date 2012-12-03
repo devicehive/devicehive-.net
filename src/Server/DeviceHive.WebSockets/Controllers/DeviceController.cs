@@ -4,6 +4,7 @@ using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.Messaging;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
+using DeviceHive.WebSockets.ActionsFramework;
 using DeviceHive.WebSockets.Network;
 using DeviceHive.WebSockets.Subscriptions;
 using Newtonsoft.Json.Linq;
@@ -11,104 +12,87 @@ using Ninject;
 
 namespace DeviceHive.WebSockets.Controllers
 {
-	public class DeviceController : ControllerBase
-	{
-	    #region Private fields
+    public class DeviceController : ControllerBase
+    {
+        #region Private fields
 
-	    private readonly SubscriptionManager _subscriptionManager;
-	    private readonly MessageBus _messageBus;
-	    private readonly IMessageManager _messageManager;
-
-	    #endregion
-
-	    #region Constructor
-
-	    public DeviceController(DataContext dataContext, WebSocketServerBase server,
-	        JsonMapperManager jsonMapperManager,
-	        [Named("DeviceCommand")] SubscriptionManager subscriptionManager,
-	        MessageBus messageBus, IMessageManager messageManager) :
-	            base(dataContext, server, jsonMapperManager)
-	    {
-	        _subscriptionManager = subscriptionManager;
-	        _messageBus = messageBus;
-	        _messageManager = messageManager;
-	    }
-
-	    #endregion
-
-        #region Properties
-
-	    private Device CurrentDevice
-	    {
-            get { return (Device) Connection.Session["device"]; }
-            set { Connection.Session["device"] = value; }
-	    }
+        private readonly SubscriptionManager _subscriptionManager;
+        private readonly MessageBus _messageBus;
+        private readonly IMessageManager _messageManager;
 
         #endregion
 
-	    #region Methods
+        #region Constructor
 
-	    #region Actions
+        public DeviceController(ActionInvoker actionInvoker, WebSocketServerBase server,
+            DataContext dataContext, JsonMapperManager jsonMapperManager,
+            [Named("DeviceCommand")] SubscriptionManager subscriptionManager,
+            MessageBus messageBus, IMessageManager messageManager) :
+            base(actionInvoker, server, dataContext, jsonMapperManager)
+        {
+            _subscriptionManager = subscriptionManager;
+            _messageBus = messageBus;
+            _messageManager = messageManager;
+        }
 
-	    protected override void InvokeActionImpl()
-	    {
-	        if (CurrentDevice == null && ActionName != "authenticate")
-	            return;
+        #endregion
 
-	        switch (ActionName)
-	        {
-                case "authenticate":
-                    Authenticate();
-                    break;
+        #region Properties
 
-                case "notification/insert":
-                    InsertDeviceNotification();
-                    break;
+        private Device CurrentDevice
+        {
+            get { return (Device) Connection.Session["device"]; }
+            set { Connection.Session["device"] = value; }
+        }
 
-                case "command/update":
-                    UpdateDeviceCommand();
-                    break;
+        #endregion
 
-                case "command/subscribe":
-                    SubsrcibeToDeviceCommands();
-                    break;
+        #region Methods
 
-                case "command/unsubscribe":
-                    UnsubsrcibeFromDeviceCommands();
-                    break;
-	        }
-	    }
+        #region Overrides
 
-	    private void Authenticate()
-	    {
-	        var deviceId = Guid.Parse((string) ActionArgs["deviceId"]);
-	        var deviceKey = (string) ActionArgs["deviceKey"];
+        public override bool IsAuthenticated
+        {
+            get { return CurrentDevice != null; }
+        }
 
-	        var device = DataContext.Device.Get(deviceId);
+        #endregion
+
+        #region Actions
+
+        [Action("authenticate")]
+        public void Authenticate()
+        {
+            var deviceId = Guid.Parse((string) ActionArgs["deviceId"]);
+            var deviceKey = (string) ActionArgs["deviceKey"];
+
+            var device = DataContext.Device.Get(deviceId);
             if (device == null || device.Key != deviceKey)
                 throw new WebSocketRequestException("Device not found");
 
-	        CurrentDevice = device;
-	        SendSuccessResponse();
-	    }
+            CurrentDevice = device;
+            SendSuccessResponse();
+        }
 
-	    private void InsertDeviceNotification()
-	    {
-	        var notificationObj = (JObject) ActionArgs["notification"];
-	        
+        [Action("notification/insert", NeedAuthentication = true)]
+        public void InsertDeviceNotification()
+        {
+            var notificationObj = (JObject) ActionArgs["notification"];
+            
             var notification = NotificationMapper.Map(notificationObj);
-	        notification.Device = CurrentDevice;
-	        Validate(notification);
+            notification.Device = CurrentDevice;
+            Validate(notification);
 
             DataContext.DeviceNotification.Save(notification);
             _messageManager.ProcessNotification(notification);
             _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.GUID, notification.ID));
 
-	        notificationObj = NotificationMapper.Map(notification);
+            notificationObj = NotificationMapper.Map(notification);
             SendResponse(new JProperty("notification", notificationObj));
-	    }
+        }
 
-        private void UpdateDeviceCommand()
+        [Action("command/update", NeedAuthentication = true)]
+        public void UpdateDeviceCommand()
         {
             var commandId = (int)ActionArgs["commandId"];
             var commandObj = (JObject)ActionArgs["command"];
@@ -127,19 +111,21 @@ namespace DeviceHive.WebSockets.Controllers
             SendResponse(new JProperty("command", commandObj));
         }
 
-	    private void SubsrcibeToDeviceCommands()
-	    {	        
-	        _subscriptionManager.Subscribe(Connection, CurrentDevice.GUID);
+        [Action("command/subscribe", NeedAuthentication = true)]
+        public void SubsrcibeToDeviceCommands()
+        {            
+            _subscriptionManager.Subscribe(Connection, CurrentDevice.GUID);
             SendSuccessResponse();
-	    }
+        }
 
-	    private void UnsubsrcibeFromDeviceCommands()
-	    {
+        [Action("command/unsubscribe", NeedAuthentication = true)]
+        public void UnsubsrcibeFromDeviceCommands()
+        {
             _subscriptionManager.Unsubscribe(Connection, CurrentDevice.GUID); 
             SendSuccessResponse();
-	    }
+        }
 
-	    #endregion
+        #endregion
 
         #region Notification handling
 

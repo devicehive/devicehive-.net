@@ -3,16 +3,16 @@ using System.Collections.Generic;
 
 namespace DeviceHive.WebSockets.Network
 {
-	public abstract class WebSocketServerBase
-	{
-	    #region Private fields
+    public abstract class WebSocketServerBase
+    {
+        #region Private fields
 
-	    private readonly IDictionary<Guid, WebSocketConnectionBase> _connections =
-	        new Dictionary<Guid, WebSocketConnectionBase>();
+        private readonly IDictionary<Guid, WebSocketConnectionBase> _connections =
+            new Dictionary<Guid, WebSocketConnectionBase>();
 
-	    #endregion
+        #endregion
 
-	    
+        
         #region Working with connection list
 
         public IEnumerable<WebSocketConnectionBase> GetAllConnections()
@@ -27,51 +27,51 @@ namespace DeviceHive.WebSockets.Network
         }
 
 
-	    protected void RegisterConnection(WebSocketConnectionBase connection)
-	    {
-	        _connections[connection.Identity] = connection;
-	    }
+        protected void RegisterConnection(WebSocketConnectionBase connection)
+        {
+            _connections[connection.Identity] = connection;
+        }
 
-	    protected void UnregisterConnection(Guid connectionIdentity)
-	    {
-	        var connection = GetConnection(connectionIdentity);
-	        _connections.Remove(connectionIdentity);
+        protected void UnregisterConnection(Guid connectionIdentity)
+        {
+            var connection = GetConnection(connectionIdentity);
+            _connections.Remove(connectionIdentity);
             OnConnectionClosed(new WebSocketConnectionEventArgs(connection));
-	    }
+        }
 
-	    #endregion
-
-
-	    #region Start / Stop server
-
-	    public abstract void Start(string url);
-
-	    public abstract void Stop();
-
-	    #endregion
+        #endregion
 
 
-	    #region Events
+        #region Start / Stop server
 
-	    public event EventHandler<WebSocketMessageEventArgs> MessageReceived;
+        public abstract void Start(string url);
 
-	    protected void OnMessageReceived(WebSocketMessageEventArgs e)
-	    {
-	        var handler = MessageReceived;
-	        if (handler != null)
-	            handler(this, e);
-	    }
+        public abstract void Stop();
+
+        #endregion
 
 
-	    public event EventHandler<WebSocketConnectionEventArgs> ConnectionClosed;
+        #region Events
 
-	    public void OnConnectionClosed(WebSocketConnectionEventArgs e)
-	    {
-	        var handler = ConnectionClosed;
-	        if (handler != null)
+        public event EventHandler<WebSocketMessageEventArgs> MessageReceived;
+
+        protected void OnMessageReceived(WebSocketMessageEventArgs e)
+        {
+            var handler = MessageReceived;
+            if (handler != null)
                 handler(this, e);
-	    }
+        }
 
-	    #endregion
-	}
+
+        public event EventHandler<WebSocketConnectionEventArgs> ConnectionClosed;
+
+        public void OnConnectionClosed(WebSocketConnectionEventArgs e)
+        {
+            var handler = ConnectionClosed;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        #endregion
+    }
 }

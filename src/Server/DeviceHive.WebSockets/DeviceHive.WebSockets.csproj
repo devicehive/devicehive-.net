@@ -65,13 +65,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionsFramework\ActionAttribute.cs" />
+    <Compile Include="ActionsFramework\ActionInvoker.cs" />
     <Compile Include="Controllers\ClientController.cs" />
     <Compile Include="Controllers\ControllerBase.cs" />
+    <Compile Include="Core\NinjectRouter.cs" />
+    <Compile Include="ActionsFramework\ControllerBase.cs" />
     <Compile Include="Controllers\DeviceController.cs" />
-    <Compile Include="Controllers\WebSocketRequestException.cs" />
+    <Compile Include="ActionsFramework\WebSocketRequestException.cs" />
     <Compile Include="Core\JsonMapperConfig.cs" />
     <Compile Include="Core\NinjectConfig.cs" />
-    <Compile Include="Core\Router.cs" />
+    <Compile Include="ActionsFramework\Router.cs" />
+    <Compile Include="Core\RoutesConfig.cs" />
     <Compile Include="Network\Fleck\FleckWebSocketServer.cs" />
     <Compile Include="Network\Fleck\FleckWebSocketConnection.cs" />
     <Compile Include="Network\SessionContext.cs" />

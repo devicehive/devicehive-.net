@@ -11,9 +11,9 @@ namespace DeviceHive.WebSockets.Network.Fleck
             _webSocketServer = new WebSocketServer(url);
             _webSocketServer.Start(c =>
             {
-                c.OnOpen = () => RegisterConnection(new FleckWebSocketConnection(c));				
+                c.OnOpen = () => RegisterConnection(new FleckWebSocketConnection(c));                
                 c.OnClose = () => UnregisterConnection(c.ConnectionInfo.Id);
-				
+                
                 c.OnMessage = msg =>
                 {
                     var fc = GetConnection(c.ConnectionInfo.Id);
