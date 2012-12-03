@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
+using DeviceHive.Data;
 using DeviceHive.Data.Model;
 using DeviceHive.WebSockets.Network;
 using Newtonsoft.Json.Linq;

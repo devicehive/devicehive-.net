@@ -66,6 +66,7 @@
     <Compile Include="Controllers\ControllerBase.cs" />
     <Compile Include="Controllers\DeviceController.cs" />
     <Compile Include="Controllers\WebSocketRequestException.cs" />
+    <Compile Include="Core\JsonMapperConfig.cs" />
     <Compile Include="Core\NinjectConfig.cs" />
     <Compile Include="Core\Router.cs" />
     <Compile Include="Network\SessionContext.cs" />

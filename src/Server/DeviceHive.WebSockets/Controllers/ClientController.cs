@@ -3,6 +3,7 @@ using System.Linq;
 using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.Messaging;
+using DeviceHive.Data;
 using DeviceHive.Data.Model;
 using DeviceHive.WebSockets.Network;
 using DeviceHive.WebSockets.Subscriptions;

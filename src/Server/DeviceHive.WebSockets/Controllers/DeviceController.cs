@@ -1,8 +1,8 @@
 ﻿using System;
-using DeviceHive.Core;
-using DeviceHive.Core.Business;
 using DeviceHive.Core.Mapping;
+using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.Messaging;
+using DeviceHive.Data;
 using DeviceHive.Data.Model;
 using DeviceHive.WebSockets.Network;
 using DeviceHive.WebSockets.Subscriptions;
@@ -17,7 +17,7 @@ namespace DeviceHive.WebSockets.Controllers
 
 	    private readonly SubscriptionManager _subscriptionManager;
 	    private readonly MessageBus _messageBus;
-	    private readonly INotificationManager _notificationManager;
+	    private readonly IMessageManager _messageManager;
 
 	    #endregion
 
@@ -26,12 +26,12 @@ namespace DeviceHive.WebSockets.Controllers
 	    public DeviceController(DataContext dataContext, WebSocketServerBase server,
 	        JsonMapperManager jsonMapperManager,
 	        [Named("DeviceCommand")] SubscriptionManager subscriptionManager,
-	        MessageBus messageBus, INotificationManager notificationManager) :
+	        MessageBus messageBus, IMessageManager messageManager) :
 	            base(dataContext, server, jsonMapperManager)
 	    {
 	        _subscriptionManager = subscriptionManager;
 	        _messageBus = messageBus;
-	        _notificationManager = notificationManager;
+	        _messageManager = messageManager;
 	    }
 
 	    #endregion
@@ -97,7 +97,7 @@ namespace DeviceHive.WebSockets.Controllers
 	        Validate(notification);
 
             DataContext.DeviceNotification.Save(notification);
-            _notificationManager.ProcessNotification(notification);
+            _messageManager.ProcessNotification(notification);
             _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.GUID, notification.ID));
 
 	        notificationObj = NotificationMapper.Map(notification);

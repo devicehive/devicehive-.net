@@ -1,8 +1,8 @@
-﻿using DeviceHive.Core;
-using DeviceHive.Core.Business;
-using DeviceHive.Core.Business.NotificationHandlers;
-using DeviceHive.Core.Mapping;
+﻿using DeviceHive.Core.Mapping;
+using DeviceHive.Core.MessageLogic;
+using DeviceHive.Core.MessageLogic.NotificationHandlers;
 using DeviceHive.Core.Messaging;
+using DeviceHive.Data;
 using DeviceHive.Data.EF;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
@@ -58,7 +58,7 @@ namespace DeviceHive.WebSockets.Core
 			kernel.Bind<WebSocketService>().ToSelf().InSingletonScope();
 
             // bind notification handlers
-            kernel.Bind<INotificationManager>().To<NotificationManager>().InSingletonScope();
+            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();
             kernel.Bind<INotificationHandler>().To<DeviceStatusNotificationHandler>();
             kernel.Bind<INotificationHandler>().To<EquipmentNotificationHandler>();
 		}
