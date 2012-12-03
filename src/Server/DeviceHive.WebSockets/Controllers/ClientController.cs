@@ -63,11 +63,7 @@ namespace DeviceHive.WebSockets.Controllers
 				case "command/insert":
 					InsertDeviceCommand();
 					break;
-
-				case "command/update":
-					UpdateDeviceCommand();
-					break;
-
+				
 				case "notification/subscribe":
 					SubsrcibeToDeviceNotifications();
 					break;
@@ -109,31 +105,7 @@ namespace DeviceHive.WebSockets.Controllers
 			
 			commandObj = CommandMapper.Map(command);
 			SendResponse(new JProperty("command", commandObj));
-		}
-
-		private void UpdateDeviceCommand()
-		{
-		    var deviceGuid = Guid.Parse((string) ActionArgs["deviceGuid"]);
-		    var commandId = (int) ActionArgs["commandId"];
-            var commandObj = (JObject)ActionArgs["command"];
-
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
-                throw new WebSocketRequestException("Device not found");
-
-            var command = DataContext.DeviceCommand.Get(commandId);
-            if (command == null || command.DeviceID != device.ID)
-                throw new WebSocketRequestException("Device command not found");
-
-            CommandMapper.Apply(command, commandObj);
-		    command.Device = device;
-		    Validate(command);
-
-            DataContext.DeviceCommand.Save(command);
-
-            commandObj = CommandMapper.Map(command);
-            SendResponse(new JProperty("command", commandObj));
-		}
+		}		
 
 		private void SubsrcibeToDeviceNotifications()
 		{
