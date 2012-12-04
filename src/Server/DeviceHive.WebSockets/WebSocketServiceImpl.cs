@@ -30,7 +30,8 @@ namespace DeviceHive.WebSockets
 
             messageBus.Subscribe((DeviceNotificationAddedMessage msg) => HandleNewNotification(msg));
             messageBus.Subscribe((DeviceCommandAddedMessage msg) => HandleNewCommand(msg));
-        }
+            messageBus.Subscribe((DeviceCommandUpdatedMessage msg) => HandleUpdatedCommand(msg));
+        }        
 
 
         public void Start()
@@ -54,6 +55,11 @@ namespace DeviceHive.WebSockets
         private void HandleNewNotification(DeviceNotificationAddedMessage message)
         {
             _clientController.HandleDeviceNotification(message.DeviceGuid, message.NotificationId);
+        }
+
+        private void HandleUpdatedCommand(DeviceCommandUpdatedMessage message)
+        {
+            _clientController.HandleCommandUpdate(message.CommandId);
         }
     }
 }

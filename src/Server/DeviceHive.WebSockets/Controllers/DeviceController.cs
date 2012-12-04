@@ -16,7 +16,7 @@ namespace DeviceHive.WebSockets.Controllers
     {
         #region Private fields
 
-        private readonly SubscriptionManager _subscriptionManager;
+        private readonly DeviceSubscriptionManager _subscriptionManager;
         private readonly MessageBus _messageBus;
         private readonly IMessageManager _messageManager;
 
@@ -26,7 +26,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         public DeviceController(ActionInvoker actionInvoker, WebSocketServerBase server,
             DataContext dataContext, JsonMapperManager jsonMapperManager,
-            [Named("DeviceCommand")] SubscriptionManager subscriptionManager,
+            [Named("DeviceCommand")] DeviceSubscriptionManager subscriptionManager,
             MessageBus messageBus, IMessageManager messageManager) :
             base(actionInvoker, server, dataContext, jsonMapperManager)
         {
@@ -121,6 +121,7 @@ namespace DeviceHive.WebSockets.Controllers
             Validate(command);
 
             DataContext.DeviceCommand.Save(command);
+            _messageBus.Notify(new DeviceCommandUpdatedMessage(CurrentDevice.GUID, command.ID));
 
             commandObj = CommandMapper.Map(command);
             SendResponse(new JProperty("command", commandObj));
@@ -128,7 +129,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         [Action("command/subscribe", NeedAuthentication = true)]
         public void SubsrcibeToDeviceCommands()
-        {            
+        {
             _subscriptionManager.Subscribe(Connection, CurrentDevice.GUID);
             SendSuccessResponse();
         }
@@ -160,11 +161,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         private void Notify(WebSocketConnectionBase connection, DeviceCommand command)
         {
-            var device = (Device) connection.Session["device"];
-            if (device == null || device.ID != command.DeviceID)
-                return;
-
-            SendResponse(connection, "command/notify",
+            SendResponse(connection, "command/insert",
                 new JProperty("command", CommandMapper.Map(command)));
         }
 
@@ -174,6 +171,9 @@ namespace DeviceHive.WebSockets.Controllers
 
         private bool AuthenticateImpl()
         {
+            if (ActionArgs == null)
+                return false;
+
             var deviceIdValue = ActionArgs["deviceId"];
             var deviceKeyValue = ActionArgs["deviceKey"];
 

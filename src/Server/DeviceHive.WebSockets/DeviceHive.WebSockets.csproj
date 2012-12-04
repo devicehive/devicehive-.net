@@ -84,6 +84,8 @@
     <Compile Include="Network\WebSocketConnectionEventArgs.cs" />
     <Compile Include="Network\WebSocketMessageEventArgs.cs" />
     <Compile Include="Network\WebSocketServer.cs" />
+    <Compile Include="Subscriptions\CommandSubscriptionManager.cs" />
+    <Compile Include="Subscriptions\DeviceSubscriptionManager.cs" />
     <Compile Include="Subscriptions\Subscription.cs" />
     <Compile Include="Subscriptions\SubscriptionManager.cs" />
     <Compile Include="WebSocketService.cs">

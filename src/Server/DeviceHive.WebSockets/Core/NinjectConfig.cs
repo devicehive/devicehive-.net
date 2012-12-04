@@ -53,8 +53,9 @@ namespace DeviceHive.WebSockets.Core
             kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope();
 
             // bind subscription managers
-            kernel.Bind<SubscriptionManager>().ToSelf().InSingletonScope().Named("DeviceCommand");
-            kernel.Bind<SubscriptionManager>().ToSelf().InSingletonScope().Named("DeviceNotification");
+            kernel.Bind<DeviceSubscriptionManager>().ToSelf().InSingletonScope().Named("DeviceCommand");
+            kernel.Bind<DeviceSubscriptionManager>().ToSelf().InSingletonScope().Named("DeviceNotification");
+            kernel.Bind<CommandSubscriptionManager>().ToSelf().InSingletonScope();
 
             // bind web socket server
             kernel.Bind<WebSocketServerBase>().To<FleckWebSocketServer>().InSingletonScope();

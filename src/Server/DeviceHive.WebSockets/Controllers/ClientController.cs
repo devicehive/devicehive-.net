@@ -18,7 +18,8 @@ namespace DeviceHive.WebSockets.Controllers
 
         private const int _maxLoginAttempts = 10;
 
-        private readonly SubscriptionManager _subscriptionManager;
+        private readonly DeviceSubscriptionManager _subscriptionManager;
+        private readonly CommandSubscriptionManager _commandSubscriptionManager;
         private readonly MessageBus _messageBus;
 
         #endregion
@@ -27,11 +28,13 @@ namespace DeviceHive.WebSockets.Controllers
 
         public ClientController(ActionInvoker actionInvoker, WebSocketServerBase server,
             DataContext dataContext, JsonMapperManager jsonMapperManager,
-            [Named("DeviceNotification")] SubscriptionManager subscriptionManager,
+            [Named("DeviceNotification")] DeviceSubscriptionManager subscriptionManager,
+            CommandSubscriptionManager commandSubscriptionManager,
             MessageBus messageBus) :
             base(actionInvoker, server, dataContext, jsonMapperManager)
         {
             _subscriptionManager = subscriptionManager;
+            _commandSubscriptionManager = commandSubscriptionManager;
             _messageBus = messageBus;
         }
 
@@ -99,6 +102,7 @@ namespace DeviceHive.WebSockets.Controllers
             Validate(command);
 
             DataContext.DeviceCommand.Save(command);
+            _commandSubscriptionManager.Subscribe(Connection, command.ID);
             _messageBus.Notify(new DeviceCommandAddedMessage(deviceGuid, command.ID));
             
             commandObj = CommandMapper.Map(command);
@@ -150,8 +154,24 @@ namespace DeviceHive.WebSockets.Controllers
             if (user == null || !IsNetworkAccessible(device.NetworkID, user))
                 return;
 
-            SendResponse(connection, "notification/notify",
+            SendResponse(connection, "notification/insert",
                 new JProperty("notification", NotificationMapper.Map(notification)));
+        }
+
+        #endregion
+
+        #region Command update handle
+
+        public void HandleCommandUpdate(int commandId)
+        {
+            var command = DataContext.DeviceCommand.Get(commandId);
+            var connections = _commandSubscriptionManager.GetConnections(commandId);
+
+            foreach (var connection in connections)
+            {
+                SendResponse(connection, "command/update",
+                    new JProperty("command", CommandMapper.Map(command)));
+            }
         }
 
         #endregion

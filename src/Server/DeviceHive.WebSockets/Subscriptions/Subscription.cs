@@ -1,17 +1,16 @@
-﻿using System;
-using DeviceHive.WebSockets.Network;
+﻿using DeviceHive.WebSockets.Network;
 
 namespace DeviceHive.WebSockets.Subscriptions
 {
-    public class Subscription
+    public class Subscription<TKey>
     {
-        public Subscription(Guid? deviceGuid, WebSocketConnectionBase connection)
+        public Subscription(TKey key, WebSocketConnectionBase connection)
         {
-            DeviceGuid = deviceGuid;
+            Key = key;
             Connection = connection;
         }
 
-        public Guid? DeviceGuid { get; private set; }
+        public TKey Key { get; private set; }
 
         public WebSocketConnectionBase Connection { get; set; }
     }
