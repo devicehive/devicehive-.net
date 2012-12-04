@@ -57,20 +57,20 @@ namespace DeviceHive.WebSockets.Controllers
 
         #region Protected methods
         
-        protected IEnumerable<Guid?> ParseDeviceGuids()
+        protected IEnumerable<int?> ParseDeviceIds()
         {
             if (ActionArgs == null)
-                return new Guid?[] {null};
+                return new int?[] {null};
 
-            var deviceGuids = ActionArgs["deviceGuids"];
-            if (deviceGuids == null)
-                return new Guid?[] {null};
+            var deviceIds = ActionArgs["deviceIds"];
+            if (deviceIds == null)
+                return new int?[] {null};
 
-            var deviceGuidsArray = deviceGuids as JArray;
-            if (deviceGuidsArray != null)
-                return deviceGuidsArray.Select(t => (Guid?) Guid.Parse((string) t)).ToArray();
+            var deviceIdsArray = deviceIds as JArray;
+            if (deviceIdsArray != null)
+                return deviceIdsArray.Select(t => (int?) (int) t).ToArray();
 
-            return new Guid?[] {Guid.Parse((string) deviceGuids)};
+            return new int?[] {(int) deviceIds};
         }
 
         protected void Validate(object entity)

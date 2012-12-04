@@ -130,14 +130,14 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("command/subscribe", NeedAuthentication = true)]
         public void SubsrcibeToDeviceCommands()
         {
-            _subscriptionManager.Subscribe(Connection, CurrentDevice.GUID);
+            _subscriptionManager.Subscribe(Connection, CurrentDevice.ID);
             SendSuccessResponse();
         }
 
         [Action("command/unsubscribe", NeedAuthentication = true)]
         public void UnsubsrcibeFromDeviceCommands()
         {
-            _subscriptionManager.Unsubscribe(Connection, CurrentDevice.GUID); 
+            _subscriptionManager.Unsubscribe(Connection, CurrentDevice.ID); 
             SendSuccessResponse();
         }
 
@@ -148,7 +148,8 @@ namespace DeviceHive.WebSockets.Controllers
         public void HandleDeviceCommand(Guid deviceGuid, int commandId)
         {
             var command = DataContext.DeviceCommand.Get(commandId);
-            var connections = _subscriptionManager.GetConnections(deviceGuid);
+            var device = DataContext.Device.Get(deviceGuid); // todo: remove it when messages will use device IDs
+            var connections = _subscriptionManager.GetConnections(device.ID);
 
             foreach (var connection in connections)
                 Notify(connection, command);

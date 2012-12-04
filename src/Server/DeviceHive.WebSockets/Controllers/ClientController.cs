@@ -112,9 +112,9 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("notification/subscribe", NeedAuthentication = true)]
         public void SubsrcibeToDeviceNotifications()
         {
-            var deviceGuids = ParseDeviceGuids();
-            foreach (var deviceGuid in deviceGuids)
-                _subscriptionManager.Subscribe(Connection, deviceGuid);
+            var deviceIds = ParseDeviceIds();
+            foreach (var deviceId in deviceIds)
+                _subscriptionManager.Subscribe(Connection, deviceId);
 
             SendSuccessResponse();
         }
@@ -122,9 +122,9 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("notification/unsubscribe", NeedAuthentication = true)]
         public void UnsubsrcibeFromDeviceNotifications()
         {
-            var deviceGuids = ParseDeviceGuids();
-            foreach (var deviceGuid in deviceGuids)
-                _subscriptionManager.Unsubscribe(Connection, deviceGuid);
+            var deviceIds = ParseDeviceIds();
+            foreach (var deviceId in deviceIds)
+                _subscriptionManager.Unsubscribe(Connection, deviceId);
 
             SendSuccessResponse();
         }
@@ -137,7 +137,7 @@ namespace DeviceHive.WebSockets.Controllers
         {
             var notification = DataContext.DeviceNotification.Get(notificationId);
             var device = DataContext.Device.Get(deviceGuid);
-            var connections = _subscriptionManager.GetConnections(deviceGuid);
+            var connections = _subscriptionManager.GetConnections(device.ID);
 
             foreach (var connection in connections)
                 Notify(connection, notification, device);
