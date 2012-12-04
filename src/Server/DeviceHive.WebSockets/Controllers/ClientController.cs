@@ -103,7 +103,7 @@ namespace DeviceHive.WebSockets.Controllers
 
             DataContext.DeviceCommand.Save(command);
             _commandSubscriptionManager.Subscribe(Connection, command.ID);
-            _messageBus.Notify(new DeviceCommandAddedMessage(deviceGuid, command.ID));
+            _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, command.ID));
             
             commandObj = CommandMapper.Map(command);
             SendResponse(new JProperty("command", commandObj));
@@ -133,11 +133,11 @@ namespace DeviceHive.WebSockets.Controllers
 
         #region Notification handling
 
-        public void HandleDeviceNotification(Guid deviceGuid, int notificationId)
+        public void HandleDeviceNotification(int deviceId, int notificationId)
         {
             var notification = DataContext.DeviceNotification.Get(notificationId);
-            var device = DataContext.Device.Get(deviceGuid);
-            var connections = _subscriptionManager.GetConnections(device.ID);
+            var device = DataContext.Device.Get(deviceId);
+            var connections = _subscriptionManager.GetConnections(deviceId);
 
             foreach (var connection in connections)
                 Notify(connection, notification, device);

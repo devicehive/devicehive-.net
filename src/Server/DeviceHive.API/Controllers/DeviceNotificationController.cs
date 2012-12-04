@@ -85,7 +85,7 @@ namespace DeviceHive.API.Controllers
 
             DataContext.DeviceNotification.Save(notification);
             _messageManager.ProcessNotification(notification);
-            _messageBus.Notify(new DeviceNotificationAddedMessage(deviceGuid, notification.ID));
+            _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
             return Mapper.Map(notification);
         }
 

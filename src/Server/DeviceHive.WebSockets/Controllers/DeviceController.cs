@@ -100,7 +100,7 @@ namespace DeviceHive.WebSockets.Controllers
 
             DataContext.DeviceNotification.Save(notification);
             _messageManager.ProcessNotification(notification);
-            _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.GUID, notification.ID));
+            _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.ID, notification.ID));
 
             notificationObj = NotificationMapper.Map(notification);
             SendResponse(new JProperty("notification", notificationObj));
@@ -121,7 +121,7 @@ namespace DeviceHive.WebSockets.Controllers
             Validate(command);
 
             DataContext.DeviceCommand.Save(command);
-            _messageBus.Notify(new DeviceCommandUpdatedMessage(CurrentDevice.GUID, command.ID));
+            _messageBus.Notify(new DeviceCommandUpdatedMessage(CurrentDevice.ID, command.ID));
 
             commandObj = CommandMapper.Map(command);
             SendResponse(new JProperty("command", commandObj));
@@ -145,11 +145,10 @@ namespace DeviceHive.WebSockets.Controllers
 
         #region Notification handling
 
-        public void HandleDeviceCommand(Guid deviceGuid, int commandId)
+        public void HandleDeviceCommand(int deviceId, int commandId)
         {
             var command = DataContext.DeviceCommand.Get(commandId);
-            var device = DataContext.Device.Get(deviceGuid); // todo: remove it when messages will use device IDs
-            var connections = _subscriptionManager.GetConnections(device.ID);
+            var connections = _subscriptionManager.GetConnections(deviceId);
 
             foreach (var connection in connections)
                 Notify(connection, command);

@@ -49,12 +49,12 @@ namespace DeviceHive.WebSockets
 
         private void HandleNewCommand(DeviceCommandAddedMessage message)
         {
-            _deviceController.HandleDeviceCommand(message.DeviceGuid, message.CommandId);
+            _deviceController.HandleDeviceCommand(message.DeviceId, message.CommandId);
         }
 
         private void HandleNewNotification(DeviceNotificationAddedMessage message)
         {
-            _clientController.HandleDeviceNotification(message.DeviceGuid, message.NotificationId);
+            _clientController.HandleDeviceNotification(message.DeviceId, message.NotificationId);
         }
 
         private void HandleUpdatedCommand(DeviceCommandUpdatedMessage message)
