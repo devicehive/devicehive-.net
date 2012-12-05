@@ -47,7 +47,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
         #region Public methods
 
-        public virtual void InvokeAction(WebSocketConnectionBase connection, string action, JObject args)
+        public void InvokeAction(WebSocketConnectionBase connection, string action, JObject args)
         {
             Connection = connection;
             ActionName = action;
@@ -69,6 +69,19 @@ namespace DeviceHive.WebSockets.ActionsFramework
                 throw;
             }
         }
+
+        public TArg GetArgument<TArg>(string name)
+        {
+            if (ActionArgs == null)
+                return default(TArg);
+
+            var val = ActionArgs[name];
+            if (val == null)
+                return default(TArg);
+
+            return val.ToObject<TArg>();
+        }
+
 
         public virtual void CleanupConnection(WebSocketConnectionBase connection)
         {            

@@ -22,7 +22,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
                 var controller = GetController(connection);
 
                 var request = JObject.Parse(message);
-                var action = (string)request["action"];
+                var action = (string) request["action"];
 
                 controller.InvokeAction(connection, action, request);
             }

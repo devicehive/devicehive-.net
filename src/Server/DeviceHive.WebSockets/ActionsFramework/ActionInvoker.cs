@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
 
 namespace DeviceHive.WebSockets.ActionsFramework
 {
@@ -24,37 +22,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
             action.Invoke(controller);
         }
 
-
-        #region Inner classes
-
-        private class ActionInfo
-        {
-            private readonly bool _needAuthentication;
-            private readonly Action<ControllerBase> _invokeAction;
-
-            public ActionInfo(MethodInfo methodInfo, bool needAuthentication)
-            {
-                var controllerType = methodInfo.DeclaringType;
-                var controllerParam = Expression.Parameter(typeof(ControllerBase));
-
-                var typedControllerExpr = Expression.Convert(controllerParam, controllerType);
-                var actionCallExpr = Expression.Call(typedControllerExpr, methodInfo);
-                var lambda = Expression.Lambda<Action<ControllerBase>>(actionCallExpr, controllerParam);
-
-                _invokeAction = lambda.Compile();
-                _needAuthentication = needAuthentication;
-            }
-
-            public void Invoke(ControllerBase controller)
-            {
-                if (_needAuthentication && !controller.IsAuthenticated)
-                {
-                    return;
-                }
-
-                _invokeAction(controller);
-            }
-        }
+        #region ActionCollection class
 
         private class ActionCollection
         {
@@ -88,6 +56,10 @@ namespace DeviceHive.WebSockets.ActionsFramework
                 }
             }
         }
+
+        #endregion
+
+        #region ControllerCollection class
 
         private class ControllerCollection
         {

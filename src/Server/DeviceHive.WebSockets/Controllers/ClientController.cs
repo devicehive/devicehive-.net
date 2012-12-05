@@ -71,11 +71,8 @@ namespace DeviceHive.WebSockets.Controllers
         #region Actions
 
         [Action("authenticate")]
-        public void Authenticate()
+        public void Authenticate(string login, string password)
         {
-            var login = (string) ActionArgs["login"];
-            var password = (string) ActionArgs["password"];
-
             var user = DataContext.User.Get(login);
             if (user == null || user.Status != (int)UserStatus.Active)
                 throw new WebSocketRequestException("Invalid login or password");
