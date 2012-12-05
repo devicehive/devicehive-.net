@@ -1,7 +1,5 @@
 ﻿using System.Configuration;
-using DeviceHive.Core.Messaging;
 using DeviceHive.WebSockets.ActionsFramework;
-using DeviceHive.WebSockets.Controllers;
 using DeviceHive.WebSockets.Network;
 
 namespace DeviceHive.WebSockets
@@ -10,29 +8,12 @@ namespace DeviceHive.WebSockets
     {
         private readonly WebSocketServerBase _server;
 
-        private readonly ClientController _clientController;
-        private readonly DeviceController _deviceController;
-
-        public WebSocketServiceImpl(WebSocketServerBase server,
-            ClientController clientController, DeviceController deviceController,
-            Router router, MessageBus messageBus)
+        public WebSocketServiceImpl(WebSocketServerBase server, Router router)
         {
-            _clientController = clientController;
-            _deviceController = deviceController;
-
             _server = server;
             _server.MessageReceived += (s, e) => router.RouteRequest(e.Connection, e.Message);
-            _server.ConnectionClosed += (s, e) =>
-            {
-                _clientController.CleanupNotifications(e.Connection);
-                _deviceController.CleanupNotifications(e.Connection);
-            };
-
-            messageBus.Subscribe((DeviceNotificationAddedMessage msg) => HandleNewNotification(msg));
-            messageBus.Subscribe((DeviceCommandAddedMessage msg) => HandleNewCommand(msg));
-            messageBus.Subscribe((DeviceCommandUpdatedMessage msg) => HandleUpdatedCommand(msg));
+            _server.ConnectionClosed += (s, e) => router.CleanupConnection(e.Connection);
         }        
-
 
         public void Start()
         {
@@ -42,24 +23,7 @@ namespace DeviceHive.WebSockets
 
         public void Stop()
         {
-            _server.Stop();
-            
-        }
-
-
-        private void HandleNewCommand(DeviceCommandAddedMessage message)
-        {
-            _deviceController.HandleDeviceCommand(message.DeviceId, message.CommandId);
-        }
-
-        private void HandleNewNotification(DeviceNotificationAddedMessage message)
-        {
-            _clientController.HandleDeviceNotification(message.DeviceId, message.NotificationId);
-        }
-
-        private void HandleUpdatedCommand(DeviceCommandUpdatedMessage message)
-        {
-            _clientController.HandleCommandUpdate(message.CommandId);
-        }
+            _server.Stop();            
+        }        
     }
 }

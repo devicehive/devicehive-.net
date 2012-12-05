@@ -8,8 +8,7 @@ namespace DeviceHive.WebSockets.Subscriptions
     {
         private readonly string _subscriptionsValueKey;
 
-        private readonly SubscriptionCollection<TKey> _subscriptionCollection =
-            new SubscriptionCollection<TKey>();
+        private readonly SubscriptionCollection _subscriptionCollection = new SubscriptionCollection();
 
 
         protected SubscriptionManager(string subscriptionsValueKey)
@@ -68,21 +67,21 @@ namespace DeviceHive.WebSockets.Subscriptions
 
         #region Inner classes
 
-        private class SubscriptionCollection<TKey>
+        private class SubscriptionCollection
         {
             private readonly object _lock = new object();
 
-            private readonly Dictionary<TKey, SubscriptionList<TKey>> _subscriptions =
-                new Dictionary<TKey, SubscriptionList<TKey>>();
+            private readonly Dictionary<TKey, SubscriptionList> _subscriptions =
+                new Dictionary<TKey, SubscriptionList>();
 
-            public SubscriptionList<TKey> GetSubscriptionList(TKey key)
+            public SubscriptionList GetSubscriptionList(TKey key)
             {
                 lock (_lock)
                 {
-                    SubscriptionList<TKey> list;
+                    SubscriptionList list;
                     if (!_subscriptions.TryGetValue(key, out list))
                     {
-                        list = new SubscriptionList<TKey>();
+                        list = new SubscriptionList();
                         _subscriptions.Add(key, list);
                     }
 
@@ -91,7 +90,7 @@ namespace DeviceHive.WebSockets.Subscriptions
             }
         }
 
-        private class SubscriptionList<TKey> : List<Subscription<TKey>>
+        private class SubscriptionList : List<Subscription<TKey>>
         {            
         }
 

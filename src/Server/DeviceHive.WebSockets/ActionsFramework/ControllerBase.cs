@@ -40,7 +40,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
         public virtual bool IsAuthenticated
         {
-            get { return true; }
+            get { return false; }
         }
 
         #endregion
@@ -68,6 +68,10 @@ namespace DeviceHive.WebSockets.ActionsFramework
                 SendErrorResponse("Server error");
                 throw;
             }
+        }
+
+        public virtual void CleanupConnection(WebSocketConnectionBase connection)
+        {            
         }
 
         protected virtual void BeforeActionInvoke()

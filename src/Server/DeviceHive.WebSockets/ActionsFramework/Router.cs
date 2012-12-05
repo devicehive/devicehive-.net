@@ -32,6 +32,12 @@ namespace DeviceHive.WebSockets.ActionsFramework
             }            
         }
 
+        public void CleanupConnection(WebSocketConnectionBase connection)
+        {
+            var controller = GetController(connection);
+            controller.CleanupConnection(connection);
+        }
+
         private ControllerBase GetController(WebSocketConnectionBase connection)
         {
             Type controllerType;

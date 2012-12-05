@@ -40,17 +40,20 @@ namespace DeviceHive.WebSockets.Core
             // bind controllers, router and action invoker
             kernel.Bind<ClientController>().ToSelf();
             kernel.Bind<DeviceController>().ToSelf();
-            kernel.Bind<Router>().To<NinjectRouter>().InSingletonScope().OnActivation(RoutesConfig.ConfigureRoutes);
+            kernel.Bind<Router>().To<NinjectRouter>().InSingletonScope()
+                .OnActivation(RoutesConfig.ConfigureRoutes);
             kernel.Bind<ActionInvoker>().ToSelf().InSingletonScope();
 
             // bind JSON mapper
-            kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
+            kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope()
+                .OnActivation(JsonMapperConfig.ConfigureMapping);
 
             // bind data context
             kernel.Bind<DataContext>().ToSelf().InSingletonScope();
 
             // bind message bus
-            kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope();
+            kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope()
+                .OnActivation(MessageBusConfig.ConfigureMessageBus);
 
             // bind subscription managers
             kernel.Bind<DeviceSubscriptionManager>().ToSelf().InSingletonScope().Named("DeviceCommand");

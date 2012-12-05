@@ -69,6 +69,7 @@
     <Compile Include="ActionsFramework\ActionInvoker.cs" />
     <Compile Include="Controllers\ClientController.cs" />
     <Compile Include="Controllers\ControllerBase.cs" />
+    <Compile Include="Core\MessageBusConfig.cs" />
     <Compile Include="Core\NinjectRouter.cs" />
     <Compile Include="ActionsFramework\ControllerBase.cs" />
     <Compile Include="Controllers\DeviceController.cs" />

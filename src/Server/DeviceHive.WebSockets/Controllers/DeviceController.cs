@@ -54,8 +54,6 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Methods
-
         #region Overrides
 
         public override bool IsAuthenticated
@@ -72,7 +70,15 @@ namespace DeviceHive.WebSockets.Controllers
             RequestDevice = null;
         }
 
+        public override void CleanupConnection(WebSocketConnectionBase connection)
+        {
+            base.CleanupConnection(connection);
+            CleanupNotifications(connection);
+        }
+
         #endregion
+
+        #region Methods
 
         #region Actions
 
@@ -154,7 +160,7 @@ namespace DeviceHive.WebSockets.Controllers
                 Notify(connection, command);
         }
 
-        public void CleanupNotifications(WebSocketConnectionBase connection)
+        private void CleanupNotifications(WebSocketConnectionBase connection)
         {
             _subscriptionManager.Cleanup(connection);
         }
