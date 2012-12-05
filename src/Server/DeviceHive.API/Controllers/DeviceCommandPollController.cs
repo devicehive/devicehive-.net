@@ -48,7 +48,7 @@ namespace DeviceHive.API.Controllers
 
             while (true)
             {
-                using (var waiterHandle = _commandWaiter.BeginWait(device.GUID))
+                using (var waiterHandle = _commandWaiter.BeginWait(device.ID))
                 {
                     var commands = DataContext.DeviceCommand.GetByDevice(device.ID, start, null);
                     if (commands != null && commands.Any())

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.Messaging;
@@ -112,7 +113,7 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("notification/subscribe", NeedAuthentication = true)]
         public void SubsrcibeToDeviceNotifications()
         {
-            var deviceIds = ParseDeviceIds();
+            var deviceIds = GetSubscriptionDeviceIds().ToArray();
             foreach (var deviceId in deviceIds)
                 _subscriptionManager.Subscribe(Connection, deviceId);
 
@@ -122,7 +123,7 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("notification/unsubscribe", NeedAuthentication = true)]
         public void UnsubsrcibeFromDeviceNotifications()
         {
-            var deviceIds = ParseDeviceIds();
+            var deviceIds = GetSubscriptionDeviceIds().ToArray();
             foreach (var deviceId in deviceIds)
                 _subscriptionManager.Unsubscribe(Connection, deviceId);
 
@@ -206,6 +207,38 @@ namespace DeviceHive.WebSockets.Controllers
             user.LoginAttempts = 0;
             user.LastLogin = DateTime.UtcNow;
             DataContext.User.Save(user);
+        }
+
+        private IEnumerable<int?> GetSubscriptionDeviceIds()
+        {
+            var deviceGuids = ParseDeviceGuids();
+            if (deviceGuids == null)
+                yield return null;
+
+            foreach (var deviceGuid in deviceGuids)
+            {
+                var device = DataContext.Device.Get(deviceGuid);
+                if (device == null || !IsNetworkAccessible(device.NetworkID))
+                    throw new WebSocketRequestException("Invalid deviceGuid: " + deviceGuid);
+
+                yield return device.ID;
+            }
+        }
+
+        private IEnumerable<Guid> ParseDeviceGuids()
+        {
+            if (ActionArgs == null)
+                return null;
+
+            var deviceGuids = ActionArgs["deviceGuids"];
+            if (deviceGuids == null)
+                return null;
+
+            var deviceGuidsArray = deviceGuids as JArray;
+            if (deviceGuidsArray != null)
+                return deviceGuidsArray.Select(t => Guid.Parse((string)t)).ToArray();
+
+            return new[] { Guid.Parse((string)deviceGuids) };
         }
 
         #endregion

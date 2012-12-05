@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using DeviceHive.Core.Mapping;
@@ -7,7 +6,6 @@ using DeviceHive.Data;
 using DeviceHive.Data.Model;
 using DeviceHive.WebSockets.ActionsFramework;
 using DeviceHive.WebSockets.Network;
-using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.WebSockets.Controllers
 {
@@ -55,23 +53,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Protected methods
-        
-        protected IEnumerable<int?> ParseDeviceIds()
-        {
-            if (ActionArgs == null)
-                return new int?[] {null};
-
-            var deviceIds = ActionArgs["deviceIds"];
-            if (deviceIds == null)
-                return new int?[] {null};
-
-            var deviceIdsArray = deviceIds as JArray;
-            if (deviceIdsArray != null)
-                return deviceIdsArray.Select(t => (int?) (int) t).ToArray();
-
-            return new int?[] {(int) deviceIds};
-        }
+        #region Protected methods               
 
         protected void Validate(object entity)
         {
