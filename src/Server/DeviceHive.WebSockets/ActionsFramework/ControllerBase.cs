@@ -79,7 +79,14 @@ namespace DeviceHive.WebSockets.ActionsFramework
             if (val == null)
                 return default(TArg);
 
-            return val.ToObject<TArg>();
+            try
+            {
+                return val.ToObject<TArg>();
+            }
+            catch (FormatException)
+            {
+                throw new WebSocketRequestException("Invalid format for parameter " + name);
+            }
         }
 
 

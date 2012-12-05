@@ -96,41 +96,36 @@ namespace DeviceHive.WebSockets.Controllers
         }
 
         [Action("notification/insert", NeedAuthentication = true)]
-        public void InsertDeviceNotification()
+        public void InsertDeviceNotification(JObject notification)
         {
-            var notificationObj = (JObject) ActionArgs["notification"];
-            
-            var notification = NotificationMapper.Map(notificationObj);
-            notification.Device = CurrentDevice;
-            Validate(notification);
+            var notificationEntity = NotificationMapper.Map(notification);
+            notificationEntity.Device = CurrentDevice;
+            Validate(notificationEntity);
 
-            DataContext.DeviceNotification.Save(notification);
-            _messageManager.ProcessNotification(notification);
-            _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.ID, notification.ID));
+            DataContext.DeviceNotification.Save(notificationEntity);
+            _messageManager.ProcessNotification(notificationEntity);
+            _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.ID, notificationEntity.ID));
 
-            notificationObj = NotificationMapper.Map(notification);
-            SendResponse(new JProperty("notification", notificationObj));
+            notification = NotificationMapper.Map(notificationEntity);
+            SendResponse(new JProperty("notification", notification));
         }
 
         [Action("command/update", NeedAuthentication = true)]
-        public void UpdateDeviceCommand()
+        public void UpdateDeviceCommand(int commandId, JObject command)
         {
-            var commandId = (int)ActionArgs["commandId"];
-            var commandObj = (JObject)ActionArgs["command"];
-
-            var command = DataContext.DeviceCommand.Get(commandId);
-            if (command == null || command.DeviceID != CurrentDevice.ID)
+            var commandEntity = DataContext.DeviceCommand.Get(commandId);
+            if (commandEntity == null || commandEntity.DeviceID != CurrentDevice.ID)
                 throw new WebSocketRequestException("Device command not found");
 
-            CommandMapper.Apply(command, commandObj);
-            command.Device = CurrentDevice;
-            Validate(command);
+            CommandMapper.Apply(commandEntity, command);
+            commandEntity.Device = CurrentDevice;
+            Validate(commandEntity);
 
-            DataContext.DeviceCommand.Save(command);
-            _messageBus.Notify(new DeviceCommandUpdatedMessage(CurrentDevice.ID, command.ID));
+            DataContext.DeviceCommand.Save(commandEntity);
+            _messageBus.Notify(new DeviceCommandUpdatedMessage(CurrentDevice.ID, commandEntity.ID));
 
-            commandObj = CommandMapper.Map(command);
-            SendResponse(new JProperty("command", commandObj));
+            command = CommandMapper.Map(commandEntity);
+            SendResponse(new JProperty("command", command));
         }
 
         [Action("command/subscribe", NeedAuthentication = true)]

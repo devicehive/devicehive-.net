@@ -92,25 +92,22 @@ namespace DeviceHive.WebSockets.Controllers
         }
 
         [Action("command/insert", NeedAuthentication = true)]
-        public void InsertDeviceCommand()
+        public void InsertDeviceCommand(Guid deviceGuid, JObject command)
         {
-            var deviceGuid = Guid.Parse((string) ActionArgs["deviceGuid"]);
-            var commandObj = (JObject) ActionArgs["command"];
-
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsNetworkAccessible(device.NetworkID))
                 throw new WebSocketRequestException("Device not found");
 
-            var command = CommandMapper.Map(commandObj);
-            command.Device = device;
-            Validate(command);
+            var commandEntity = CommandMapper.Map(command);
+            commandEntity.Device = device;
+            Validate(commandEntity);
 
-            DataContext.DeviceCommand.Save(command);
-            _commandSubscriptionManager.Subscribe(Connection, command.ID);
-            _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, command.ID));
+            DataContext.DeviceCommand.Save(commandEntity);
+            _commandSubscriptionManager.Subscribe(Connection, commandEntity.ID);
+            _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, commandEntity.ID));
             
-            commandObj = CommandMapper.Map(command);
-            SendResponse(new JProperty("command", commandObj));
+            command = CommandMapper.Map(commandEntity);
+            SendResponse(new JProperty("command", command));
         }
 
         [Action("notification/subscribe", NeedAuthentication = true)]
