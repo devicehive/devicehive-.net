@@ -161,7 +161,7 @@ namespace DeviceHive.WebSockets.Controllers
             if (user == null || !IsNetworkAccessible(device.NetworkID, user))
                 return;
 
-            SendResponse(connection, "notification/insert",
+            connection.SendResponse("notification/insert",
                 new JProperty("notification", NotificationMapper.Map(notification)));
         }
 
@@ -176,7 +176,7 @@ namespace DeviceHive.WebSockets.Controllers
 
             foreach (var connection in connections)
             {
-                SendResponse(connection, "command/update",
+                connection.SendResponse("command/update",
                     new JProperty("command", CommandMapper.Map(command)));
             }
         }

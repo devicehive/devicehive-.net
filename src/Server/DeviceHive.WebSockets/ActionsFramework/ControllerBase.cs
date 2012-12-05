@@ -96,14 +96,12 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
         #endregion
 
-        #region Protected methods
+        #region Send responce helpers
 
-        protected void SendResponse(WebSocketConnectionBase connection, string action,
-            bool isErrorResponse, params JProperty[] properties)
+        private JProperty[] GetResponseProperties(bool isErrorResponse, params JProperty[] baseProperties)
         {
-            var mainProperties = new List<JProperty>()
+            var additionalProperties = new List<JProperty>()
             {
-                new JProperty("action", action),
                 new JProperty("status", isErrorResponse ? "error" : "success")
             };
 
@@ -111,31 +109,15 @@ namespace DeviceHive.WebSockets.ActionsFramework
             {
                 var requestId = ActionArgs["requestId"];
                 if (requestId != null)
-                    mainProperties.Add(new JProperty("requestId", requestId));
+                    additionalProperties.Add(new JProperty("requestId", requestId));
             }
 
-            var responseProperties = mainProperties.Concat(properties).Cast<object>().ToArray();
-            var responseObj = new JObject(responseProperties);
-
-            connection.Send(responseObj.ToString());
+            return additionalProperties.Concat(baseProperties).ToArray();
         }
-
-        protected void SendResponse(WebSocketConnectionBase connection, string action,
-            params JProperty[] properties)
-        {
-            SendResponse(connection, action, false, properties);
-        }
-
-        protected void SendResponse(string action, params JProperty[] properties)
-        {
-            if (Connection != null)
-                SendResponse(Connection, action, properties);
-        }
-
+        
         protected void SendResponse(params JProperty[] properties)
         {
-            if (Connection != null)
-                SendResponse(Connection, ActionName, properties);
+            Connection.SendResponse(ActionName, GetResponseProperties(false, properties));
         }
         
         protected void SendSuccessResponse()
@@ -143,14 +125,10 @@ namespace DeviceHive.WebSockets.ActionsFramework
             SendResponse();
         }
 
-        protected void SendErrorResponse(WebSocketConnectionBase connection, string action, string error)
-        {
-            SendResponse(connection, action, true, new JProperty("error", error));
-        }
-
         protected void SendErrorResponse(string error)
         {
-            SendErrorResponse(Connection, ActionName, error);
+            Connection.SendResponse(ActionName, GetResponseProperties(true,
+                new[] {new JProperty("error", error)}));
         }
 
         #endregion

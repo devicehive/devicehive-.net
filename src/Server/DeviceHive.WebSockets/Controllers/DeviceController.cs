@@ -167,7 +167,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         private void Notify(WebSocketConnectionBase connection, DeviceCommand command)
         {
-            SendResponse(connection, "command/insert",
+            connection.SendResponse("command/insert",
                 new JProperty("command", CommandMapper.Map(command)));
         }
 
