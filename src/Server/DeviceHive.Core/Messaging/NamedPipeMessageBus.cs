@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Threading;
 using log4net;
 
@@ -11,33 +13,29 @@ namespace DeviceHive.Core.Messaging
     /// </summary>
     public class NamedPipeMessageBus : MessageBus, IDisposable
     {
-        private readonly string _pipeName;
+        private readonly ILog _log = LogManager.GetLogger(typeof (NamedPipeMessageBus));
+
+        private NamedPipeElement _serverPipeConfiguration;
+        private NamedPipeElement[] _clientPipesConfiguration;
+        private int _connectTimeout;
+
         private readonly Thread _readThread;
         private readonly EventWaitHandle _cancelConnectionEvent = new AutoResetEvent(false);
-        private NamedPipeServerStream _namedPipeServer;
-        private volatile bool _stopReading = false;
+        private volatile bool _stopReading = false;        
 
         #region Constructor
-
-        /// <summary>
-        /// Specified named pipe name
-        /// </summary>
-        /// <param name="pipeName">Named pipe name</param>
-        public NamedPipeMessageBus(string pipeName)
-        {
-            _pipeName = pipeName;
-
-            _readThread = new Thread(ReadData);
-            _readThread.Start();
-        }
 
         /// <summary>
         /// Default constructor
         /// </summary>
         public NamedPipeMessageBus()
-            : this("DeviceHive")
-        {            
-        }
+        {
+            LoadConfiguration();
+
+            _readThread = new Thread(ReadData);
+            _readThread.Start();
+        }        
+
         #endregion
 
         #region Protected Methods
@@ -47,44 +45,54 @@ namespace DeviceHive.Core.Messaging
         /// </summary>
         /// <param name="data">Message data</param>
         protected override void SendMessage(byte[] data)
-        {            
-            var serversNotified = 0;
-
-            while (true)
+        {
+            foreach (var pipeConfiguration in _clientPipesConfiguration)
             {
-                using (var namedPipeClient = new NamedPipeClientStream(_pipeName))
+                using (var namedPipeClient = new NamedPipeClientStream(
+                    pipeConfiguration.ServerName, pipeConfiguration.Name))
                 {
                     try
                     {
-                        namedPipeClient.Connect();
-                        namedPipeClient.Write(data, 0, data.Length);
+                        _log.DebugFormat("Send message to {0}\\{1}",
+                            pipeConfiguration.ServerName, pipeConfiguration.Name);
 
-                        if (++serversNotified >= namedPipeClient.NumberOfServerInstances)
-                            break;
+                        try
+                        {
+                            namedPipeClient.Connect(_connectTimeout);
+                        }
+                        catch (TimeoutException)
+                        {
+                            _log.WarnFormat("Couldn't connect to pipe {0}\\{1}",
+                                pipeConfiguration.ServerName, pipeConfiguration.Name);
+                            continue;
+                        }
+     
+                        namedPipeClient.Write(data, 0, data.Length);
                     }
                     catch (IOException ex)
                     {
-                        LogManager.GetLogger(GetType()).Warn("Exception while sending a message", ex);
+                        _log.Warn("Exception while sending a message", ex);
                     }
                 }
             }
         }
+
         #endregion
 
         #region Private Methods
 
         private void ReadData()
         {
-            using (_namedPipeServer = new NamedPipeServerStream(_pipeName,
-                PipeDirection.InOut, -1,
+            using (var namedPipeServer = new NamedPipeServerStream(
+                _serverPipeConfiguration.Name, PipeDirection.InOut, 1,
                 PipeTransmissionMode.Byte, PipeOptions.Asynchronous))
             {
                 while (true)
                 {
                     if (_stopReading)
                         return;
-                    
-                    ReadMessage(_namedPipeServer);                    
+
+                    ReadMessage(namedPipeServer);
                 }
             }
         }
@@ -117,6 +125,24 @@ namespace DeviceHive.Core.Messaging
             namedPipeServer.Disconnect();
 
             HandleMessage(data);
+        }
+
+        private void LoadConfiguration()
+        {
+            var configurationSection = (NamedPipeMessageBusConfigurationSection)
+                ConfigurationManager.GetSection("namedPipeMessageBus");
+
+            if (configurationSection == null)
+                throw new InvalidOperationException("namedPipeMessageBus configuration sections can't be found");
+
+            _connectTimeout = configurationSection.ConnectTimeout;
+
+            var pipes = configurationSection.Pipes.Cast<NamedPipeElement>();
+            _serverPipeConfiguration = pipes.Single(p => p.IsServer);
+            _clientPipesConfiguration = pipes.ToArray();
+
+            if (_serverPipeConfiguration.ServerName != ".")
+                throw new InvalidOperationException("Server pipe can't be located on the remote machine");
         }
 
         #endregion

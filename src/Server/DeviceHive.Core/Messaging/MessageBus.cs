@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
+using log4net;
+using log4net.Core;
 
 namespace DeviceHive.Core.Messaging
 {
@@ -12,6 +14,7 @@ namespace DeviceHive.Core.Messaging
     public abstract class MessageBus
     {
         private readonly SubscriptionStorage _subscriptions = new SubscriptionStorage();
+        private readonly ILog _log = LogManager.GetLogger(typeof (MessageBus));
 
         #region Public Methods
 
@@ -48,8 +51,10 @@ namespace DeviceHive.Core.Messaging
                 data = ms.ToArray();
             }
 
+            _log.DebugFormat("Send message {0}", messageContainer.TypeName);            
             SendMessage(data);
         }
+
         #endregion
 
         #region Protected Methods
@@ -68,6 +73,8 @@ namespace DeviceHive.Core.Messaging
                 var serializer = new JsonSerializer();
                 messageContainer = serializer.Deserialize<MessageContainer>(reader);
             }
+
+            _log.DebugFormat("Receive message {0}", messageContainer.TypeName);
 
             var handlers = _subscriptions[messageContainer.TypeName];
             foreach (var handler in handlers)
