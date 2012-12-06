@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using DeviceHive.WebSockets.Network;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.WebSockets.ActionsFramework
@@ -18,7 +20,8 @@ namespace DeviceHive.WebSockets.ActionsFramework
             var responseProperties = mainProperties.Concat(properties).Cast<object>().ToArray();
             var responseObj = new JObject(responseProperties);
 
-            connection.Send(responseObj.ToString());
+            connection.Send(responseObj.ToString(Formatting.None,
+                new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffffff" }));
         }        
     }
 }

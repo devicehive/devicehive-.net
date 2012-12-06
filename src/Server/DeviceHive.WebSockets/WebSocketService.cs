@@ -7,8 +7,10 @@ namespace DeviceHive.WebSockets
         private readonly WebSocketServiceImpl _impl;
 
         public WebSocketService(WebSocketServiceImpl impl)
-        {
+        {            
             _impl = impl;
+
+            ServiceName = "DeviceHive.WebSockets";
         }
 
         protected override void OnStart(string[] args)
