@@ -104,18 +104,6 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
         #endregion
 
-        #region Internal methods
-
-        protected internal void InitConnection(WebSocketConnectionBase connection,
-            string actionName, JObject actionArgs)
-        {
-            Connection = connection;
-            ActionName = actionName;
-            ActionArgs = actionArgs;
-        }
-
-        #endregion
-
         #region Send responce helpers
 
         private JProperty[] GetResponseProperties(bool isErrorResponse, params JProperty[] baseProperties)

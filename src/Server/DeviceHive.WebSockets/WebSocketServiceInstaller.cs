@@ -11,8 +11,19 @@ namespace DeviceHive.WebSockets
         {
             Installers.AddRange(new Installer[]
             {
-                new ServiceProcessInstaller(),
-                new ServiceInstaller() {ServiceName = "DeviceHive.WebSockets"}
+                new ServiceProcessInstaller()
+                {
+                    Account = ServiceAccount.LocalSystem,
+                    Username = null,
+                    Password = null
+                },
+                new ServiceInstaller()
+                {
+                    ServiceName = "DeviceHive.WebSockets",
+                    DisplayName = "DeviceHive WebSockets Service",
+                    Description = "DeviceHive WebSockets Service",
+                    StartType = ServiceStartMode.Automatic
+                }
             });
         }
     }
