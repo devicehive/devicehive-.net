@@ -73,6 +73,9 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("authenticate")]
         public void Authenticate(string login, string password)
         {
+            if (login == null || password == null)
+                throw new WebSocketRequestException("Please specify 'login' and 'password'");
+
             var user = DataContext.User.Get(login);
             if (user == null || user.Status != (int)UserStatus.Active)
                 throw new WebSocketRequestException("Invalid login or password");
@@ -94,6 +97,12 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("command/insert", NeedAuthentication = true)]
         public void InsertDeviceCommand(Guid deviceGuid, JObject command)
         {
+            if (deviceGuid == Guid.Empty)
+                throw new WebSocketRequestException("Please specify valid deviceGuid");
+
+            if (command == null)
+                throw new WebSocketRequestException("Please specify command");
+
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsNetworkAccessible(device.NetworkID))
                 throw new WebSocketRequestException("Device not found");
@@ -236,9 +245,9 @@ namespace DeviceHive.WebSockets.Controllers
 
             var deviceGuidsArray = deviceGuids as JArray;
             if (deviceGuidsArray != null)
-                return deviceGuidsArray.Select(t => Guid.Parse((string)t)).ToArray();
+                return deviceGuidsArray.Select(t => (Guid) t).ToArray();
 
-            return new[] { Guid.Parse((string)deviceGuids) };
+            return new[] {(Guid) deviceGuids};
         }
 
         #endregion

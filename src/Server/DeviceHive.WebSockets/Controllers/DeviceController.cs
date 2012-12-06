@@ -98,6 +98,9 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("notification/insert", NeedAuthentication = true)]
         public void InsertDeviceNotification(JObject notification)
         {
+            if (notification == null)
+                throw new WebSocketRequestException("Please specify notification");
+
             var notificationEntity = NotificationMapper.Map(notification);
             notificationEntity.Device = CurrentDevice;
             Validate(notificationEntity);
@@ -113,6 +116,12 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("command/update", NeedAuthentication = true)]
         public void UpdateDeviceCommand(int commandId, JObject command)
         {
+            if (commandId == 0)
+                throw new WebSocketRequestException("Please specify valid commandId");
+
+            if (command == null)
+                throw new WebSocketRequestException("Please specify command");
+
             var commandEntity = DataContext.DeviceCommand.Get(commandId);
             if (commandEntity == null || commandEntity.DeviceID != CurrentDevice.ID)
                 throw new WebSocketRequestException("Device command not found");
