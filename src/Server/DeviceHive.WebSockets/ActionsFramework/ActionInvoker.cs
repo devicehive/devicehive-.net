@@ -14,7 +14,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
             if (action == null)
             {
-                throw new InvalidOperationException(string.Format(
+                throw new WebSocketRequestException(string.Format(
                     "Can't find action {0} in controller {1}",
                     actionName, controller.GetType().FullName));
             }

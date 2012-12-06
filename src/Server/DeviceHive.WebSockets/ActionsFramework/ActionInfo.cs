@@ -13,16 +13,14 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
         public ActionInfo(MethodInfo methodInfo, bool needAuthentication)
         {
-            _invokeAction = BuildInvokeAction(methodInfo); // lambda.Compile();
+            _invokeAction = BuildInvokeAction(methodInfo);
             _needAuthentication = needAuthentication;
         }
 
         public void Invoke(ControllerBase controller)
         {
             if (_needAuthentication && !controller.IsAuthenticated)
-            {
-                return;
-            }
+                throw new WebSocketRequestException("Please authenticate to invoke this action");
 
             _invokeAction(controller);
         }
