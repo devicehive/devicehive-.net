@@ -18,7 +18,7 @@ namespace DeviceHive.Core.MessageLogic
         /// <summary>
         /// Default constructor
         /// </summary>
-        /// <param name="handlers">Array of notification handlers</param>
+        /// <param name="notificationHandlers">Array of notification handlers</param>
         public MessageManager(INotificationHandler[] notificationHandlers)
         {
             _notificationHandlers = notificationHandlers
