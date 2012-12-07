@@ -121,5 +121,29 @@ namespace DeviceHive.Test.WebSocketsTest
         }
 
         #endregion
+
+
+        #region Insert device notification
+
+        [Test]
+        public void InsertDeviceNotification_EmptyData()
+        {
+            var connection = DeviceController.Connect();
+            DeviceController.Authenticate(connection, DeviceGUID, DeviceKey);
+            var msg = DeviceController.InsertDeviceNotification(connection, null);
+            Expect((string) msg["status"], EqualTo("error"));
+        }
+
+        [Test]
+        public void InsertDeviceNotification_ValidRequest()
+        {
+            var connection = DeviceController.Connect();
+            DeviceController.Authenticate(connection, DeviceGUID, DeviceKey);
+            var msg = DeviceController.InsertDeviceNotification(connection,
+                new JObject(new JProperty("notification", "_ut")));
+            Expect((string) msg["status"], EqualTo("success"));
+        }
+
+        #endregion
     }
 }

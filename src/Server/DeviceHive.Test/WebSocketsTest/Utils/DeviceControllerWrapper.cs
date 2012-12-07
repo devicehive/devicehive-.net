@@ -36,5 +36,11 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
                 new JProperty("deviceId", deviceId),
                 new JProperty("deviceKey", deviceKey)));
         }
+
+        public JObject InsertDeviceNotification(StubWebSocketConnection connection, JObject notification)
+        {
+            return InvokeAction(connection, "notification/insert", new JObject(
+                new JProperty("notification", notification)));
+        }
     }
 }
