@@ -27,5 +27,27 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
                 new JProperty("deviceGuid", deviceGuid),
                 new JProperty("command", command)));
         }
+
+        public JObject SubscribeToDeviceNotifications(StubWebSocketConnection connection)
+        {
+            return InvokeAction(connection, "notification/subscribe", null);
+        }
+
+        public JObject SubscribeToDeviceNotifications(StubWebSocketConnection connection, Guid[] devieGuids)
+        {
+            return InvokeAction(connection, "notification/subscribe", new JObject(
+                new JProperty("deviceGuids", new JArray(devieGuids))));
+        }
+
+        public JObject UnsubscribeFromDeviceNotifications(StubWebSocketConnection connection)
+        {
+            return InvokeAction(connection, "notification/unsubscribe", null);
+        }
+
+        public JObject UnsubscribeFromDeviceNotifications(StubWebSocketConnection connection, Guid[] devieGuids)
+        {
+            return InvokeAction(connection, "notification/unsubscribe", new JObject(
+                new JProperty("deviceGuids", new JArray(devieGuids))));
+        }
     }
 }

@@ -13,6 +13,7 @@ namespace DeviceHive.Test.WebSocketsTest
         protected const string Password = "dhadmin_#911";
 
         protected static readonly Guid DeviceGUID = new Guid("a97266f4-6e8a-4008-8242-022b49ea484f");
+        protected static readonly Guid OtherDeviceGUID = new Guid("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
         protected const string DeviceKey = "key";
 
         [SetUp]
