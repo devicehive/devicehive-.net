@@ -81,7 +81,7 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// Command execution result, and optional value that could be provided by device.
         /// </summary>
-        [StringLength(1024)]
+        [JsonField]
         public string Result { get; set; }
 
         /// <summary>
