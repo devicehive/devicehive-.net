@@ -145,5 +145,68 @@ namespace DeviceHive.Test.WebSocketsTest
         }
 
         #endregion
+
+
+        #region Device command subscription
+
+        [Test]
+        public void DeviceCommandsSubscription_Subscribe()
+        {
+            // subscribe to commands
+            var deviceConnection = DeviceController.Connect();
+            DeviceController.Authenticate(deviceConnection, DeviceGUID, DeviceKey);
+            var msg = DeviceController.SubsrcibeToDeviceCommands(deviceConnection);
+            Expect((string) msg["status"], EqualTo("success"));
+
+            // send handler for new command
+            JObject command = null;
+            deviceConnection.SendMessageHandler = m =>
+            {
+                var res = JObject.Parse(m);
+                command = (JObject) res["command"];
+            };
+
+            // insert command
+            var clientConnection = ClientController.Connect();
+            ClientController.Authenticate(clientConnection, Login, Password);
+            msg = ClientController.InsertDeviceCommand(clientConnection, DeviceGUID, new JObject(
+                new JProperty("command", "_ut")));
+            var insertedCommand = (JObject) msg["command"];
+
+            Expect(() => (string) command["command"], EqualTo("_ut"));
+            Expect(() => (int) command["id"], EqualTo((int) insertedCommand["id"]));
+        }
+
+        [Test]
+        public void DeviceCommandsSubscription_Unsubscribe()
+        {
+            // subscribe to commands
+            var deviceConnection = DeviceController.Connect();
+            DeviceController.Authenticate(deviceConnection, DeviceGUID, DeviceKey);
+            var msg = DeviceController.SubsrcibeToDeviceCommands(deviceConnection);
+            Expect((string)msg["status"], EqualTo("success"));
+
+            // unsubscribe from commands
+            msg = DeviceController.UnsubsrcibeFromDeviceCommands(deviceConnection);
+            Expect((string)msg["status"], EqualTo("success"));
+
+            // send handler for new command
+            JObject command = null;
+            deviceConnection.SendMessageHandler = m =>
+            {
+                var res = JObject.Parse(m);
+                command = (JObject)res["command"];
+            };
+
+            // insert command
+            var clientConnection = ClientController.Connect();
+            ClientController.Authenticate(clientConnection, Login, Password);
+            ClientController.InsertDeviceCommand(clientConnection, DeviceGUID, new JObject(
+                new JProperty("command", "_ut")));
+
+            Expect(command, EqualTo(null));
+        }
+
+        #endregion
     }
 }

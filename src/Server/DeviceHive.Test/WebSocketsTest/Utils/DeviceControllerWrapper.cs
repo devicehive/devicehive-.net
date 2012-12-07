@@ -42,5 +42,15 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
             return InvokeAction(connection, "notification/insert", new JObject(
                 new JProperty("notification", notification)));
         }
+
+        public JObject SubsrcibeToDeviceCommands(StubWebSocketConnection connection)
+        {
+            return InvokeAction(connection, "command/subscribe", null);
+        }
+
+        public JObject UnsubsrcibeFromDeviceCommands(StubWebSocketConnection connection)
+        {
+            return InvokeAction(connection, "command/unsubscribe", null);
+        }
     }
 }
