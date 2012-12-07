@@ -74,7 +74,12 @@
     <Compile Include="Stubs\StubMessageBus.cs" />
     <Compile Include="Stubs\StubWebSocketServer.cs" />
     <Compile Include="WebSocketsTest\ClientControllerTest.cs" />
-    <Compile Include="WebSocketsTest\NinjectConfig.cs" />
+    <Compile Include="WebSocketsTest\Utils\ClientControllerWrapper.cs" />
+    <Compile Include="WebSocketsTest\Utils\ControllerWrapperBase.cs" />
+    <Compile Include="WebSocketsTest\DeviceControllerTest.cs" />
+    <Compile Include="WebSocketsTest\Utils\DeviceControllerWrapper.cs" />
+    <Compile Include="WebSocketsTest\Utils\NinjectConfig.cs" />
+    <Compile Include="WebSocketsTest\WebSocketTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

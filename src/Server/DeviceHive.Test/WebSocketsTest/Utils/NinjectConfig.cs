@@ -14,7 +14,7 @@ using DeviceHive.WebSockets.Network;
 using DeviceHive.WebSockets.Subscriptions;
 using Ninject;
 
-namespace DeviceHive.Test.WebSocketsTest
+namespace DeviceHive.Test.WebSocketsTest.Utils
 {
     internal class NinjectConfig
     {
