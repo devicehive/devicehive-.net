@@ -222,7 +222,10 @@ namespace DeviceHive.WebSockets.Controllers
         {
             var deviceGuids = ParseDeviceGuids();
             if (deviceGuids == null)
+            {
                 yield return null;
+                yield break;
+            }
 
             foreach (var deviceGuid in deviceGuids)
             {
