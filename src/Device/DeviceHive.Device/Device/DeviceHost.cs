@@ -249,7 +249,7 @@ namespace DeviceHive.Device
 
         private void PollCommandsTask(DeviceBase device)
         {
-            var timestamp = DateTime.UtcNow;
+            var timestamp = (DateTime?)null;
             var token = _cancellationSource.Token;
             while (true)
             {

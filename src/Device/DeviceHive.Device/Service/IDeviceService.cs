@@ -49,7 +49,7 @@ namespace DeviceHive.Device
         /// <param name="timestamp">Last received command timestamp.</param>
         /// <param name="token">Cancellation token used to cancel polling operation.</param>
         /// <returns>A list of <see cref="Command"/> objects.</returns>
-        List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime timestamp, CancellationToken token);
+        List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime? timestamp, CancellationToken token);
 
         /// <summary>
         /// Updates a device command status and result.
