@@ -131,7 +131,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
         /// <param name="timestamp">Last received notification timestamp.</param>
-        /// <param name="token">Cancellation token used to cancel polling operation.</param>
+        /// <param name="token">Cancellation token used to cancel the polling operation.</param>
         /// <returns>A list of <see cref="Notification"/> objects.</returns>
         public List<Notification> PollNotifications(Guid deviceId, DateTime? timestamp, CancellationToken token)
         {
@@ -201,6 +201,24 @@ namespace DeviceHive.Client
                 throw new ArgumentNullException("command");
 
             return Post<Command>(string.Format("/device/{0}/command", deviceId), command);
+        }
+
+        /// <summary>
+        /// Waits for a command to be handled by the device.
+        /// This methods blocks the current thread until a command is updated on the server by a device.
+        /// </summary>
+        /// <param name="deviceId">Device unique identifier.</param>
+        /// <param name="id">Command identifier.</param>
+        /// <param name="token">Cancellation token used to cancel the polling operation.</param>
+        /// <returns>The <see cref="Command"/> object with status and result fields.</returns>
+        public Command WaitCommand(Guid deviceId, int id, CancellationToken token)
+        {
+            while (true)
+            {
+                var command = Get<Command>(string.Format("/device/{0}/command/{1}/poll", deviceId, id), token);
+                if (command != null)
+                    return command;
+            }
         }
         #endregion
 
