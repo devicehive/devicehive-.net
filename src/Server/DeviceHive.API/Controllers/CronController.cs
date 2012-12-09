@@ -38,7 +38,7 @@ namespace DeviceHive.API.Controllers
                 var notification = new DeviceNotification(SpecialNotifications.DEVICE_UPDATE, device);
                 notification.Parameters = new JObject(new JProperty("status", OFFLINE_STATUS)).ToString();
                 DataContext.DeviceNotification.Save(notification);
-                _messageBus.Notify(new DeviceNotificationAddedMessage(device.GUID, notification.ID));
+                _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
             }
         }
     }

@@ -87,7 +87,7 @@ namespace DeviceHive.API.Controllers
             Validate(command);
 
             DataContext.DeviceCommand.Save(command);
-            _messageBus.Notify(new DeviceCommandAddedMessage(deviceGuid, command.ID));
+            _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, command.ID));
             return Mapper.Map(command);
         }
 
@@ -122,7 +122,7 @@ namespace DeviceHive.API.Controllers
             Validate(command);
 
             DataContext.DeviceCommand.Save(command);
-            _messageBus.Notify(new DeviceCommandUpdatedMessage(deviceGuid, command.ID));
+            _messageBus.Notify(new DeviceCommandUpdatedMessage(device.ID, command.ID));
             return Mapper.Map(command);
         }
 

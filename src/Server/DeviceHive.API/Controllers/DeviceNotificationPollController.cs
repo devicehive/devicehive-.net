@@ -46,7 +46,7 @@ namespace DeviceHive.API.Controllers
 
             while (true)
             {
-                using (var waiterHandle = _notificationWaiter.BeginWait(device.GUID))
+                using (var waiterHandle = _notificationWaiter.BeginWait(device.ID))
                 {
                     var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, start, null);
                     if (notifications != null && notifications.Any())

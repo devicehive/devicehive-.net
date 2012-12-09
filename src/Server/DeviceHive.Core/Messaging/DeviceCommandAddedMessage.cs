@@ -10,9 +10,9 @@ namespace DeviceHive.Core.Messaging
         #region Public Properties
 
         /// <summary>
-        /// Gets or sets device unique identifier
+        /// Gets or sets device identifier
         /// </summary>
-        public Guid DeviceGuid { get; set; }
+        public int DeviceId { get; set; }
 
         /// <summary>
         /// Gets or sets command identifier
@@ -33,11 +33,11 @@ namespace DeviceHive.Core.Messaging
         /// <summary>
         /// Specifies device and command identifiers
         /// </summary>
-        /// <param name="deviceGuid">Device unique identifier</param>
+        /// <param name="DeviceId">Device identifier</param>
         /// <param name="commandId">Command identifier</param>
-        public DeviceCommandAddedMessage(Guid deviceGuid, int commandId)
+        public DeviceCommandAddedMessage(int deviceId, int commandId)
         {
-            DeviceGuid = deviceGuid;
+            DeviceId = deviceId;
             CommandId = commandId;
         }
         #endregion

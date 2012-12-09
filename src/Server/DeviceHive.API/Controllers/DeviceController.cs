@@ -135,7 +135,7 @@ namespace DeviceHive.API.Controllers
             var notification = new DeviceNotification(notificationName, device);
             notification.Parameters = diff.ToString();
             DataContext.DeviceNotification.Save(notification);
-            _messageBus.Notify(new DeviceNotificationAddedMessage(device.GUID, notification.ID));
+            _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
 
             return Mapper.Map(device);
         }
