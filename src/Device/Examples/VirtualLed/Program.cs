@@ -14,7 +14,7 @@ namespace VirtualLed
 
                 // create a RestfulDeviceService used to communicate with the DeviceHive cloud
                 // insert your assigned DeviceHive service URL here
-                var service = new RestfulDeviceService("http://pg.devicehive.com/api");
+                var service = new RestfulDeviceService("http://localhost/DeviceHive.API");
 
                 // create a DeviceHive network where our device will reside
                 var network = new Network("VirtualLed Sample Network", "A DeviceHive network for VirtualLed sample");
