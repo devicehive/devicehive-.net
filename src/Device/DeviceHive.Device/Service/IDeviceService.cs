@@ -11,6 +11,13 @@ namespace DeviceHive.Device
     public interface IDeviceService
     {
         /// <summary>
+        /// Gets device from the DeviceHive network.
+        /// </summary>
+        /// <param name="device"><see cref="Device"/> object with a valid unique identifier and key.</param>
+        /// <returns><see cref="Device"/> object from DeviceHive.</returns>
+        Device GetDevice(Device device);
+
+        /// <summary>
         /// Registers a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>

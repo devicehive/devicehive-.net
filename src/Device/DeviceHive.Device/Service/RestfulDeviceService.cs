@@ -44,6 +44,23 @@ namespace DeviceHive.Device
         #region IDeviceService Members
 
         /// <summary>
+        /// Gets device from the DeviceHive network.
+        /// </summary>
+        /// <param name="device"><see cref="Device"/> object with a valid unique identifier and key.</param>
+        /// <returns><see cref="Device"/> object from DeviceHive.</returns>
+        public Device GetDevice(Device device)
+        {
+            if (device == null)
+                throw new ArgumentNullException("device");
+            if (device.Id == null)
+                throw new ArgumentNullException("device.ID");
+            if (string.IsNullOrEmpty(device.Key))
+                throw new ArgumentException("Device key is null or empty string", "device.Key");
+
+            return Get<Device>(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key);
+        }
+
+        /// <summary>
         /// Registers a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
