@@ -75,8 +75,8 @@ namespace DeviceHive.Test
             ExpectedCreatedStatus = 201;
             ExpectedDeletedStatus = 204;
             UnexistingResourceID = 999999;
-            ExistingAdminUsername = "ut";
-            ExistingAdminPassword = "ut_165GxCl$$boTTc2";
+            ExistingAdminUsername = "dhadmin";
+            ExistingAdminPassword = "dhadmin_#911";
         }
         #endregion
 
