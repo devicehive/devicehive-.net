@@ -11,11 +11,13 @@ namespace DeviceHive.API
     {
         public static void ConfigureSubscriptions(IContext context, MessageBus messageBus)
         {
-            var notificationWaiter = context.Kernel.Get<ObjectWaiter>("DeviceNotification");
-            var commandWaiter = context.Kernel.Get<ObjectWaiter>("DeviceCommand");
-            
-            messageBus.Subscribe<DeviceNotificationAddedMessage>(message => notificationWaiter.NotifyChanges(message.DeviceId));
-            messageBus.Subscribe<DeviceCommandAddedMessage>(message => commandWaiter.NotifyChanges(message.DeviceId));
+            var notificationByDeviceIdWaiter = context.Kernel.Get<ObjectWaiter>("DeviceNotification.DeviceID");
+            var commandByDeviceIdWaiter = context.Kernel.Get<ObjectWaiter>("DeviceCommand.DeviceID");
+            var commandByCommandIdWaiter = context.Kernel.Get<ObjectWaiter>("DeviceCommand.CommandID");
+
+            messageBus.Subscribe<DeviceNotificationAddedMessage>(message => notificationByDeviceIdWaiter.NotifyChanges(message.DeviceId));
+            messageBus.Subscribe<DeviceCommandAddedMessage>(message => commandByDeviceIdWaiter.NotifyChanges(message.DeviceId));
+            messageBus.Subscribe<DeviceCommandUpdatedMessage>(message => commandByCommandIdWaiter.NotifyChanges(message.CommandId));
         }
     }
 }

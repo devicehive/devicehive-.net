@@ -68,6 +68,9 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Poll()
         {
+            // create resource
+            var resource1 = Create(new { command = "_ut1" }, auth: Admin);
+
             // task to poll new resources
             var poll = new Task(() =>
                 {
@@ -80,11 +83,35 @@ namespace DeviceHive.Test.ApiTest
                     Expect(result[0], Matches(new { command = "_ut2" }));
                 });
 
-            // create resource, start poll, wait, then create another resource
-            var resource1 = Create(new { command = "_ut1" }, auth: Admin);
+            // start poll, wait, then create another resource
             poll.Start();
             Thread.Sleep(100);
             var resource2 = Create(new { command = "_ut2" }, auth: Admin);
+
+            Expect(poll.Wait(2000), Is.True); // task should complete
+        }
+
+        [Test]
+        public void Poll_ByID()
+        {
+            // create resource
+            var resource = Create(new { command = "_ut1" }, auth: Admin);
+
+            // task to poll command update
+            var poll = new Task(() =>
+            {
+                var response = Client.Get(ResourceUri + "/" + GetResourceId(resource) + "/poll", auth: Admin);
+                Expect(response.Status, Is.EqualTo(200));
+                Expect(response.Json, Is.InstanceOf<JObject>());
+
+                var result = (JObject)response.Json;
+                Expect(result, Matches(new { command = "_ut1", status = "Done", result = "OK" }));
+            });
+
+            // start poll, wait, then update resource
+            poll.Start();
+            Thread.Sleep(100);
+            Update(resource, new { status = "Done", result = "OK" }, auth: Admin);
 
             Expect(poll.Wait(2000), Is.True); // task should complete
         }

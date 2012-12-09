@@ -14,12 +14,12 @@ namespace DeviceHive.API.Controllers
     /// <resource cref="DeviceNotification" />
     public class DeviceNotificationPollController : BaseController
     {
-        private ObjectWaiter _notificationWaiter;
+        private ObjectWaiter _notificationByDeviceIdWaiter;
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
 
-        public DeviceNotificationPollController([Named("DeviceNotification")] ObjectWaiter notificationWaiter)
+        public DeviceNotificationPollController([Named("DeviceNotification.DeviceID")] ObjectWaiter notificationByDeviceIdWaiter)
         {
-            _notificationWaiter = notificationWaiter;
+            _notificationByDeviceIdWaiter = notificationByDeviceIdWaiter;
         }
 
         /// <name>poll</name>
@@ -46,7 +46,7 @@ namespace DeviceHive.API.Controllers
 
             while (true)
             {
-                using (var waiterHandle = _notificationWaiter.BeginWait(device.ID))
+                using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(device.ID))
                 {
                     var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, start, null);
                     if (notifications != null && notifications.Any())
