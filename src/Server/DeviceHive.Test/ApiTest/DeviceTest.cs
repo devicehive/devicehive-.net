@@ -51,6 +51,17 @@ namespace DeviceHive.Test.ApiTest
         }
 
         [Test]
+        public void Get_Device()
+        {
+            var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID }, auth: Admin);
+            RegisterForDeletion(ResourceUri + "/" + ID);
+
+            Expect(() => Get(resource, auth: Device(ID, "wrong_key")), FailsWith(401)); // should fail with 401
+            var device = Get(resource, auth: Device(ID, "key")); // should succeed
+            Expect(device["network"]["key"], Is.Null); // verify that network does not include key
+        }
+
+        [Test]
         public void Create()
         {
             // create new device

@@ -39,9 +39,11 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         /// <returns cref="Device">If successful, this method returns a <see cref="Device"/> resource in the response body.</returns>
-        [AuthorizeUser]
+        [AuthorizeDeviceOrUser]
         public JObject Get(Guid id)
         {
+            EnsureDeviceAccess(id);
+
             var device = DataContext.Device.Get(id);
             if (device == null || !IsNetworkAccessible(device.NetworkID))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
