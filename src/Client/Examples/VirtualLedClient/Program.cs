@@ -79,7 +79,7 @@ namespace VirtualLedClient
         {
             try
             {
-                var timestamp = DateTime.UtcNow;
+                var timestamp = (DateTime?)null;
                 while (true)
                 {
                     // poll notification from the server
