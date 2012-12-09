@@ -13,7 +13,6 @@ namespace VirtualLed
         /// <summary>
         /// Gets new LED state.
         /// </summary>
-        [Parameter("state")]
         public int State { get; private set; }
 
         #endregion

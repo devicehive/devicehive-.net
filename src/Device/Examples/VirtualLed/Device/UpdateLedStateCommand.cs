@@ -14,14 +14,12 @@ namespace VirtualLed
         /// <summary>
         /// Gets LED equipment code.
         /// </summary>
-        [Parameter("equipment")]
-        public string Equipment { get; private set; }
+        public string Equipment { get; set; }
 
         /// <summary>
         /// Gets new LED state.
         /// </summary>
-        [Parameter("state")]
-        public int? State { get; private set; }
+        public int? State { get; set; }
 
         #endregion
     }

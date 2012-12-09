@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
@@ -30,7 +29,7 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets or sets notification parameters.
         /// </summary>
-        public Dictionary<string, object> Parameters { get; set; }
+        public JToken Parameters { get; set; }
 
         #endregion
 
@@ -48,7 +47,7 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="name">Notification name.</param>
         /// <param name="parameters">Notification parameters.</param>
-        public Notification(string name, Dictionary<string, object> parameters)
+        public Notification(string name, JToken parameters)
         {
             Name = name;
             Parameters = parameters;

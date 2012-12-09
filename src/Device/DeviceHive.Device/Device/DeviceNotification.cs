@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
@@ -8,7 +8,7 @@ namespace DeviceHive.Device
     /// </summary>
     /// <remarks>
     /// This is the generic class which uses a dictionary to hold notification parameters.
-    /// Alternatively, declare a custom strongly-typed class and use <see cref="ParameterAttribute"/> to specify notification parameters.
+    /// Alternatively, declare a custom strongly-typed class and use json mapping to specify notification parameters.
     /// </remarks>
     public class DeviceNotification
     {
@@ -20,9 +20,9 @@ namespace DeviceHive.Device
         public string Name { get; private set; }
 
         /// <summary>
-        /// Gets a dictionary of notification parameters.
+        /// Gets notification parameters in the raw json format.
         /// </summary>
-        public Dictionary<string, object> Parameters { get; private set; }
+        public JToken Parameters { get; private set; }
 
         #endregion
 
@@ -38,35 +38,21 @@ namespace DeviceHive.Device
                 throw new ArgumentException("Name is null or empty!", "name");
 
             Name = name;
-            Parameters = new Dictionary<string, object>();
         }
 
         /// <summary>
         /// Initializes device notification name and parameters.
         /// </summary>
         /// <param name="name">Notification name.</param>
-        /// <param name="parameters">Notification parameters dictionary.</param>
-        public DeviceNotification(string name, Dictionary<string, object> parameters)
+        /// <param name="parameters">Notification parameters in the raw json format.</param>
+        public DeviceNotification(string name, JToken parameters)
             : this(name)
         {
-            Parameters = parameters ?? new Dictionary<string, object>();
+            Parameters = parameters;
         }
         #endregion
 
         #region Public Methods
-
-        /// <summary>
-        /// Sets a value of notification parameter with specified name.
-        /// </summary>
-        /// <param name="name">Parameter name.</param>
-        /// <param name="value">Parameter value to set.</param>
-        public void Parameter(string name, object value)
-        {
-            if (name == null)
-                throw new ArgumentNullException("name");
-
-            Parameters[name] = value;
-        }
 
         /// <summary>
         /// Sets a value of notification parameter with specified name.
@@ -76,22 +62,16 @@ namespace DeviceHive.Device
         /// <param name="value">Parameter value to set.</param>
         public void Parameter<TValue>(string name, TValue value)
         {
-            Parameter(name, TypeConverter.ToObject(value));
-        }
-
-        /// <summary>
-        /// Gets a value of notification parameter with specified name.
-        /// </summary>
-        /// <param name="name">Parameter name.</param>
-        /// <returns>Parameter value.</returns>
-        public object GetParameter(string name)
-        {
             if (name == null)
                 throw new ArgumentNullException("name");
 
-            object value = null;
-            Parameters.TryGetValue(name, out value);
-            return value;
+            if (Parameters != null && Parameters.Type != JTokenType.Object)
+                throw new InvalidOperationException("Parameters must be a json object to use this method!");
+
+            if (Parameters == null)
+                Parameters = new JObject();
+
+            Parameters[name] = JToken.FromObject(value);
         }
 
         /// <summary>
@@ -102,7 +82,16 @@ namespace DeviceHive.Device
         /// <returns>Parameter value.</returns>
         public TValue GetParameter<TValue>(string name)
         {
-            return TypeConverter.FromObject<TValue>(GetParameter(name));
+            if (name == null)
+                throw new ArgumentNullException("name");
+
+            if (Parameters == null)
+                return default(TValue);
+
+            if (Parameters.Type != JTokenType.Object || Parameters[name] == null)
+                return default(TValue);
+
+            return Parameters[name].ToObject<TValue>();
         }
         #endregion
     }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
@@ -29,7 +29,7 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets or sets command parameters.
         /// </summary>
-        public Dictionary<string, object> Parameters { get; set; }
+        public JToken Parameters { get; set; }
 
         /// <summary>
         /// Gets or sets command execution status.
@@ -39,7 +39,7 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets or sets command result (optional).
         /// </summary>
-        public string Result { get; set; }
+        public JToken Result { get; set; }
 
         #endregion
 
@@ -57,7 +57,7 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="name">Command name.</param>
         /// <param name="parameters">Command parameters.</param>
-        public Command(string name, Dictionary<string, object> parameters)
+        public Command(string name, JToken parameters)
         {
             Name = name;
             Parameters = parameters;
@@ -70,7 +70,7 @@ namespace DeviceHive.Device
         /// <param name="parameters">Command parameters.</param>
         /// <param name="status">Command status.</param>
         /// <param name="result">Command result.</param>
-        public Command(string name, Dictionary<string, object> parameters, string status, string result)
+        public Command(string name, JToken parameters, string status, JToken result)
             : this(name, parameters)
         {
             Status = status;
