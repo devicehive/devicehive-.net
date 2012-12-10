@@ -60,7 +60,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
         /// <param name="timestamp">Last received notification timestamp.</param>
-        /// <param name="token">Cancellation token used to cancel polling operation.</param>
+        /// <param name="token">Cancellation token used to cancel the polling operation.</param>
         /// <returns>A list of <see cref="Notification"/> objects.</returns>
         List<Notification> PollNotifications(Guid deviceId, DateTime? timestamp, CancellationToken token);
 
@@ -96,5 +96,15 @@ namespace DeviceHive.Client
         /// <param name="command">A <see cref="Command"/> object to be sent.</param>
         /// <returns>The <see cref="Command"/> object with updated identifier and timestamp.</returns>
         Command SendCommand(Guid deviceId, Command command);
+
+        /// <summary>
+        /// Waits for a command to be handled by the device.
+        /// This methods blocks the current thread until a command is updated on the server by a device.
+        /// </summary>
+        /// <param name="deviceId">Device unique identifier.</param>
+        /// <param name="id">Command identifier.</param>
+        /// <param name="token">Cancellation token used to cancel the polling operation.</param>
+        /// <returns>The <see cref="Command"/> object with status and result fields.</returns>
+        Command WaitCommand(Guid deviceId, int id, CancellationToken token);
     }
 }

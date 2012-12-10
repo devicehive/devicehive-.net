@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
@@ -34,9 +34,9 @@ namespace DeviceHive.Device
         public string Type { get; set; }
 
         /// <summary>
-        /// Gets or sets a dictionary of arbitrary equipment data.
+        /// Gets or sets associated equipment data.
         /// </summary>
-        public Dictionary<string, object> Data { get; set; }
+        public JToken Data { get; set; }
 
         #endregion
 
@@ -68,8 +68,8 @@ namespace DeviceHive.Device
         /// <param name="name">Equipment name</param>
         /// <param name="code">Equipment code. The code is usually used in DeviceHive messages in order to refer to specific equipment.</param>
         /// <param name="type">Equipment type. The type is arbitrary string, and client may use it to make some decisions about equipment capabilities.</param>
-        /// <param name="data">Equipment data. The data is an optional key/value dictionary used to describe additional properties.</param>
-        public Equipment(string name, string code, string type, Dictionary<string, object> data)
+        /// <param name="data">Equipment data, an optional json token used to describe additional equipment information.</param>
+        public Equipment(string name, string code, string type, JToken data)
             : this(name, code, type)
         {
             Data = data;

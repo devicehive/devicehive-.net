@@ -54,14 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Device\DeviceEquipmentInfo.cs" />
-    <Compile Include="Device\ParameterAttribute.cs" />
-    <Compile Include="Device\ParameterMapper.cs" />
     <Compile Include="Service\DeviceServiceException.cs" />
     <Compile Include="Device\IDeviceServiceChannel.cs" />
     <Compile Include="Helpers\ReflectionExtensions.cs" />
-    <Compile Include="Helpers\TypeConverter.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Device\DeviceAttribute.cs" />
     <Compile Include="Device\DeviceBase.cs" />
     <Compile Include="Device\DeviceClassAttribute.cs" />

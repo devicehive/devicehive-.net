@@ -85,8 +85,9 @@ namespace DeviceHive.API
             kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope().OnActivation(MessageBusConfig.ConfigureSubscriptions);
 
             // bind object waiters
-            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceNotification");
-            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand");
+            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceNotification.DeviceID");
+            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand.DeviceID");
+            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand.CommandID");
 
             // bind message logic handlers
             kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();

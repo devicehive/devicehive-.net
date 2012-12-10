@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using log4net;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace DeviceHive.Device
 {
@@ -90,6 +92,12 @@ namespace DeviceHive.Device
         /// </summary>
         public List<DeviceEquipmentInfo> EquipmentInfo { get; protected set; }
 
+        /// <summary>
+        /// Gets or sets json serializer used during serialization/deserialization of JToken fields to custom strongly-typed objects.
+        /// Default serializer uses CamelCasePropertyNamesContractResolver as a contract resolver.
+        /// </summary>
+        public JsonSerializer JsonSerializer { get; set; }
+
         #endregion
 
         #region Constructor
@@ -101,7 +109,9 @@ namespace DeviceHive.Device
         {
             Status = "Online";
             ListenCommands = true;
+            JsonSerializer = new JsonSerializer { ContractResolver = new CamelCasePropertyNamesContractResolver() };
 
+            // device fields
             var deviceAttribute = GetType().GetAttributes<DeviceAttribute>(false).FirstOrDefault();
             if (deviceAttribute != null)
             {
@@ -111,6 +121,7 @@ namespace DeviceHive.Device
                 ListenCommands = deviceAttribute.ListenCommands;
             }
 
+            // device class fields
             var deviceClassAttribute = GetType().GetAttributes<DeviceClassAttribute>(false).FirstOrDefault();
             if (deviceClassAttribute != null)
             {
@@ -119,8 +130,10 @@ namespace DeviceHive.Device
                 ClassOfflineTimeout = deviceClassAttribute.OfflineTimeout > 0 ? (int?)deviceClassAttribute.OfflineTimeout : null;
             }
 
+            // equipment fields
             EquipmentInfo = GetType().GetAttributes<DeviceEquipmentAttribute>().Select(e => new DeviceEquipmentInfo(e.Code, e.Name, e.Type)).ToList();
 
+            // initialize command handlers meta-information
             _deviceCommands = new Dictionary<string, MethodInfo>();
             foreach (var method in GetType().PublicGetMethods().Where(p => p.IsDefined(typeof(DeviceCommandAttribute), true)))
             {
@@ -172,7 +185,9 @@ namespace DeviceHive.Device
             if (_deviceCommands.TryGetValue(command.Name, out method))
             {
                 var commandType = method.GetParameters()[0].ParameterType;
-                var parameters = commandType == typeof(DeviceCommand) ? command : ParameterMapper.Map(command.Parameters, commandType);
+                var parameters = commandType == typeof(DeviceCommand) ? command :
+                    (command.Parameters == null ? Activator.CreateInstance(commandType) :
+                    command.Parameters.ToObject(commandType, JsonSerializer));
                 return (DeviceCommandResult)method.Invoke(this, new object[] { parameters, token });
             }
 

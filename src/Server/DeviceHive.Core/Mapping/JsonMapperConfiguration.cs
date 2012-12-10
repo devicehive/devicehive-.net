@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using DeviceHive.Data;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Core.Mapping
@@ -171,7 +172,9 @@ namespace DeviceHive.Core.Mapping
                                 Expression.Property(Expression.Convert(Expression.Property(jsonPropertyCall, "Value"), typeof(JValue)), "Value"),
                                 Expression.Constant(null, typeof(object)))),
                         Expression.Constant(null, typeof(string)),
-                        Expression.Call(Expression.Property(jsonPropertyCall, "Value"), typeof(JToken).GetMethod("ToString", new Type[] { })))));
+                        Expression.Call(Expression.Property(jsonPropertyCall, "Value"),
+                            typeof(JToken).GetMethod("ToString", new Type[] { typeof(Formatting), typeof(JsonConverter[]) }),
+                            Expression.Constant(Formatting.None), Expression.Constant(new JsonConverter[] { })))));
             var mapToEntityLabmda = Expression.Lambda<Action<JObject, T>>(entityAssign, json, entity);
 
             Entries.Add(new JsonMapperEntry<T>(mode, jsonProperty, entityProperty, mapToJsonLabmda.Compile(), mapToEntityLabmda.Compile()));

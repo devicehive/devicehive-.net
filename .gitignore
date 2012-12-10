@@ -5,5 +5,5 @@
 PrecompiledWeb
 *.suo
 *.user
-log*.txt
+log*.txt*
 _ReSharper.*

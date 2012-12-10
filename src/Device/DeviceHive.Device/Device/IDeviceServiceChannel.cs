@@ -31,7 +31,7 @@ namespace DeviceHive.Device
         /// These notifications allow DeviceHive to track the latest state of the equipment so clients can retrieve it from the service.
         /// </summary>
         /// <param name="equipment">Equipment code as set in <see cref="DeviceEquipmentInfo.Code"/> property.</param>
-        /// <param name="parameters">A custom strongly-typed object with equipment notification parameters.</param>
+        /// <param name="parameters">A custom strongly-typed object with equipment notification parameters (must be convertible to JObject).</param>
         void SendEquipmentNotification(string equipment, object parameters);
     }
 }

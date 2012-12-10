@@ -44,6 +44,23 @@ namespace DeviceHive.Device
         #region IDeviceService Members
 
         /// <summary>
+        /// Gets device from the DeviceHive network.
+        /// </summary>
+        /// <param name="device"><see cref="Device"/> object with a valid unique identifier and key.</param>
+        /// <returns><see cref="Device"/> object from DeviceHive.</returns>
+        public Device GetDevice(Device device)
+        {
+            if (device == null)
+                throw new ArgumentNullException("device");
+            if (device.Id == null)
+                throw new ArgumentNullException("device.ID");
+            if (string.IsNullOrEmpty(device.Key))
+                throw new ArgumentException("Device key is null or empty string", "device.Key");
+
+            return Get<Device>(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key);
+        }
+
+        /// <summary>
         /// Registers a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
@@ -135,7 +152,7 @@ namespace DeviceHive.Device
         /// <param name="timestamp">Last received command timestamp.</param>
         /// <param name="token">Cancellation token used to cancel polling operation.</param>
         /// <returns>A list of <see cref="Command"/> objects.</returns>
-        public List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime timestamp, CancellationToken token)
+        public List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime? timestamp, CancellationToken token)
         {
             if (deviceId == Guid.Empty)
                 throw new ArgumentException("Device ID is empty!", "deviceId");
@@ -144,8 +161,12 @@ namespace DeviceHive.Device
 
             while (true)
             {
-                var commands = Get<List<Command>>(string.Format("/device/{0}/command/poll?timestamp={1}",
-                    deviceId, timestamp.ToString("yyyy-MM-ddTHH:mm:ss.ffffff")), deviceId, deviceKey, token);
+                var url = string.Format("/device/{0}/command/poll", deviceId);
+                if (timestamp != null)
+                {
+                    url += "?timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff");
+                }
+                var commands = Get<List<Command>>(url, deviceId, deviceKey, token);
                 if (commands != null && commands.Any())
                     return commands;
             }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Client
 {
@@ -26,9 +26,9 @@ namespace DeviceHive.Client
         public string Status { get; set; }
 
         /// <summary>
-        /// Gets or sets a dictionary of arbitrary device data.
+        /// Gets or sets associated device data.
         /// </summary>
-        public Dictionary<string, object> Data { get; set; }
+        public JToken Data { get; set; }
 
         /// <summary>
         /// Gets or sets associated device network object.

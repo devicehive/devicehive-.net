@@ -11,6 +11,13 @@ namespace DeviceHive.Device
     public interface IDeviceService
     {
         /// <summary>
+        /// Gets device from the DeviceHive network.
+        /// </summary>
+        /// <param name="device"><see cref="Device"/> object with a valid unique identifier and key.</param>
+        /// <returns><see cref="Device"/> object from DeviceHive.</returns>
+        Device GetDevice(Device device);
+
+        /// <summary>
         /// Registers a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
@@ -42,7 +49,7 @@ namespace DeviceHive.Device
         /// <param name="timestamp">Last received command timestamp.</param>
         /// <param name="token">Cancellation token used to cancel polling operation.</param>
         /// <returns>A list of <see cref="Command"/> objects.</returns>
-        List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime timestamp, CancellationToken token);
+        List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime? timestamp, CancellationToken token);
 
         /// <summary>
         /// Updates a device command status and result.

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
@@ -190,8 +191,8 @@ namespace DeviceHive.Device
 
             try
             {
-                var cNotification = new Notification(notification.Name.Trim(), notification.Parameters != null &&
-                    notification.Parameters.Any() ? new Dictionary<string, object>(notification.Parameters) : null);
+                var cNotification = new Notification(notification.Name.Trim(),
+                    notification.Parameters == null ? null : notification.Parameters.DeepClone());
                 DeviceClient.SendNotification(sender.ID, sender.Key, cNotification);
             }
             catch (Exception ex)
@@ -211,9 +212,12 @@ namespace DeviceHive.Device
 
             try
             {
-                var cDevice = new Device(device.ID, device.Key, device.Name, device.Status, ParameterMapper.Map(device.Data), Network,
-                    new DeviceClass(device.ClassName, device.ClassVersion, device.ClassOfflineTimeout, ParameterMapper.Map(device.ClassData)));
-                cDevice.Equipment = device.EquipmentInfo.Select(e => new Equipment(e.Name, e.Code, e.Type, ParameterMapper.Map(e.Data))).ToList();
+                var cDeviceClass = new DeviceClass(device.ClassName, device.ClassVersion, device.ClassOfflineTimeout,
+                    device.ClassData == null ? null : JToken.FromObject(device.ClassData, device.JsonSerializer));
+                var cDevice = new Device(device.ID, device.Key, device.Name, device.Status,
+                    device.Data == null ? null : JToken.FromObject(device.Data, device.JsonSerializer), Network, cDeviceClass);
+                cDevice.Equipment = device.EquipmentInfo.Select(e => new Equipment(
+                    e.Name, e.Code, e.Type, e.Data == null ? null : JToken.FromObject(e.Data, device.JsonSerializer))).ToList();
                 DeviceClient.RegisterDevice(cDevice);
             }
             catch (Exception ex)
@@ -245,7 +249,7 @@ namespace DeviceHive.Device
 
         private void PollCommandsTask(DeviceBase device)
         {
-            var timestamp = DateTime.UtcNow;
+            var timestamp = (DateTime?)null;
             var token = _cancellationSource.Token;
             while (true)
             {
@@ -285,7 +289,8 @@ namespace DeviceHive.Device
             DeviceCommandResult result;
             try
             {
-                var command = new DeviceCommand(cCommand.Name.Trim(), cCommand.Parameters == null ? null : new Dictionary<string, object>(cCommand.Parameters));
+                var command = new DeviceCommand(cCommand.Name.Trim(),
+                    cCommand.Parameters == null ? null : cCommand.Parameters.DeepClone());
                 result = device.HandleCommand(command, _cancellationSource.Token);
             }
             catch (OperationCanceledException)
@@ -301,7 +306,7 @@ namespace DeviceHive.Device
                     
             // send command result
             cCommand.Status = result.Status;
-            cCommand.Result = result.Result;
+            cCommand.Result = result.Result == null ? null : JToken.FromObject(result.Result, device.JsonSerializer);
             SendCommandResult(device, cCommand);
         }
 
@@ -361,7 +366,8 @@ namespace DeviceHive.Device
 
             public void SendNotification(string notification, object parameters)
             {
-                SendNotification(new DeviceNotification(notification, ParameterMapper.Map(parameters)));
+                SendNotification(new DeviceNotification(notification,
+                    parameters == null ? null : JToken.FromObject(parameters, _device.JsonSerializer)));
             }
 
             public void SendEquipmentNotification(string equipment, object parameters)
@@ -369,7 +375,8 @@ namespace DeviceHive.Device
                 if (string.IsNullOrEmpty(equipment))
                     throw new ArgumentException("Equipment is null or empty!", "equipment");
 
-                var notificationParameters = ParameterMapper.Map(parameters) ?? new Dictionary<string, object>();
+                var notificationParameters = parameters == null ?
+                    new JObject() : JObject.FromObject(parameters, _device.JsonSerializer);
                 notificationParameters["equipment"] = equipment;
                 SendNotification(new DeviceNotification("equipment", notificationParameters));
             }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Client
 {
@@ -32,9 +33,9 @@ namespace DeviceHive.Client
         public int? OfflineTimeout { get; set; }
 
         /// <summary>
-        /// Gets or sets a dictionary of arbitrary device class data.
+        /// Gets or sets associated device class data.
         /// </summary>
-        public Dictionary<string, object> Data { get; set; }
+        public JToken Data { get; set; }
 
         /// <summary>
         /// Gets or sets the list of device class equipment.

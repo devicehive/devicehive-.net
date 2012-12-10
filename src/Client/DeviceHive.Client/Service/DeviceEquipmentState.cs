@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Client
 {
@@ -17,36 +17,18 @@ namespace DeviceHive.Client
         public string Id { get; set; }
 
 		/// <summary>
-		/// Gets equipment state timestamp
+		/// Gets equipment state timestamp.
 		/// </summary>
 		public DateTime? Timestamp { get; set; }
 
 		/// <summary>
-		/// Gets equipment state parameters
+		/// Gets equipment state parameters.
 		/// </summary>
-		public Dictionary<string, object> Parameters { get; set; }
+		public JToken Parameters { get; set; }
 
         #endregion
 
         #region Public Methods
-
-        /// <summary>
-        /// Gets a value of equipment state parameter with specified name.
-        /// </summary>
-        /// <param name="name">Parameter name.</param>
-        /// <returns>Parameter value.</returns>
-        public object GetParameter(string name)
-        {
-            if (name == null)
-                throw new ArgumentNullException("name");
-
-            if (Parameters == null)
-                return null;
-
-            object value = null;
-            Parameters.TryGetValue(name, out value);
-            return value;
-        }
 
         /// <summary>
         /// Gets a value of equipment state parameter with specified name.
@@ -56,7 +38,16 @@ namespace DeviceHive.Client
         /// <returns>Parameter value.</returns>
         public TValue GetParameter<TValue>(string name)
         {
-            return TypeConverter.FromObject<TValue>(GetParameter(name));
+            if (name == null)
+                throw new ArgumentNullException("name");
+
+            if (Parameters == null)
+                return default(TValue);
+
+            if (Parameters.Type != JTokenType.Object || Parameters[name] == null)
+                return default(TValue);
+
+            return Parameters[name].ToObject<TValue>();
         }
         #endregion
     }

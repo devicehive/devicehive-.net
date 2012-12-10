@@ -54,6 +54,12 @@ namespace DeviceHive.API
             );
 
             routes.MapHttpRoute(
+                name: "DeviceCommandIdPoll",
+                routeTemplate: "device/{deviceGuid}/command/{id}/poll",
+                defaults: new { controller = "DeviceCommandPoll" }
+            );
+
+            routes.MapHttpRoute(
                 name: "DeviceCommandPoll",
                 routeTemplate: "device/{deviceGuid}/command/poll",
                 defaults: new { controller = "DeviceCommandPoll" }

@@ -52,7 +52,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Helpers\TypeConverter.cs" />
     <Compile Include="Service\DeviceEquipmentState.cs" />
     <Compile Include="Service\IClientService.cs" />
     <Compile Include="Service\ClientServiceException.cs" />

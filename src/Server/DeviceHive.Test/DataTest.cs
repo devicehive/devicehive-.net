@@ -349,13 +349,13 @@ namespace DeviceHive.Test
             command.Command = "Test2";
             command.Parameters = "{}";
             command.Status = "OK";
-            command.Result = "Success";
+            command.Result = "\"Success\"";
             DeviceCommandRepository.Save(command);
             var command2 = DeviceCommandRepository.Get(command.ID);
             Assert.AreEqual("Test2", command2.Command);
             Assert.AreEqual("{}", command2.Parameters);
             Assert.AreEqual("OK", command2.Status);
-            Assert.AreEqual("Success", command2.Result);
+            Assert.AreEqual("\"Success\"", command2.Result);
 
             // test Delete
             DeviceCommandRepository.Delete(command.ID);
