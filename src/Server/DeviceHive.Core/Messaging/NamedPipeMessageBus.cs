@@ -3,6 +3,8 @@ using System.Configuration;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Threading;
 using log4net;
 
@@ -83,9 +85,17 @@ namespace DeviceHive.Core.Messaging
 
         private void ReadData()
         {
+            var pipeSecurity = new PipeSecurity();
+            var everyoneSecurityIdentifier = new SecurityIdentifier(
+                WellKnownSidType.WorldSid, null);
+            var everyoneAccessRule = new PipeAccessRule(everyoneSecurityIdentifier,
+                PipeAccessRights.FullControl, AccessControlType.Allow);
+            pipeSecurity.AddAccessRule(everyoneAccessRule);
+
             using (var namedPipeServer = new NamedPipeServerStream(
                 _serverPipeConfiguration.Name, PipeDirection.InOut, 1,
-                PipeTransmissionMode.Byte, PipeOptions.Asynchronous))
+                PipeTransmissionMode.Byte, PipeOptions.Asynchronous,
+                0, 0, pipeSecurity))
             {
                 while (true)
                 {
