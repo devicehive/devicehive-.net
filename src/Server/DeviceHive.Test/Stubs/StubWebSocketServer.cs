@@ -5,7 +5,7 @@ namespace DeviceHive.Test.Stubs
 {
     public class StubWebSocketServer : WebSocketServerBase
     {
-        public override void Start(string url)
+        public override void Start(string url, string sslCertificateSerialNumber)
         {
         }
 

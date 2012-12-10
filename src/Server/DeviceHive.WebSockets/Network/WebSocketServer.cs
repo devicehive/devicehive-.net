@@ -44,7 +44,7 @@ namespace DeviceHive.WebSockets.Network
 
         #region Start / Stop server
 
-        public abstract void Start(string url);
+        public abstract void Start(string url, string sslCertificateSerialNumber);
 
         public abstract void Stop();
 

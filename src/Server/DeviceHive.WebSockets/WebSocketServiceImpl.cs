@@ -18,7 +18,9 @@ namespace DeviceHive.WebSockets
         public void Start()
         {
             var url = ConfigurationManager.AppSettings["webSocketListenUrl"];
-            _server.Start(url);
+            var sslCertificateSerialNumber = ConfigurationManager.AppSettings["webSocketCertificateSerialNumber"];
+
+            _server.Start(url, sslCertificateSerialNumber);
         }
 
         public void Stop()

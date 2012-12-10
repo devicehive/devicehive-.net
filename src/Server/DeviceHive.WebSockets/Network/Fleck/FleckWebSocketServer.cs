@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Fleck;
 
 namespace DeviceHive.WebSockets.Network.Fleck
@@ -6,9 +8,22 @@ namespace DeviceHive.WebSockets.Network.Fleck
     {
         private WebSocketServer _webSocketServer;
 
-        public override void Start(string url)
+        public override void Start(string url, string sslCertificateSerialNumber)
         {
             _webSocketServer = new WebSocketServer(url);
+
+            if (sslCertificateSerialNumber != null)
+            {
+                var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
+                var certificate = store.Certificates
+                    .Find(X509FindType.FindBySerialNumber, sslCertificateSerialNumber, false)
+                    .OfType<X509Certificate2>()
+                    .FirstOrDefault();
+
+                _webSocketServer.Certificate = certificate;
+            }
+
             _webSocketServer.Start(c =>
             {
                 c.OnOpen = () => RegisterConnection(new FleckWebSocketConnection(c));                
