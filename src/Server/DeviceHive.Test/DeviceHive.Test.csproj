@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiTest\ApiInfoTest.cs" />
     <Compile Include="ApiTest\DeviceClassTest.cs" />
     <Compile Include="ApiTest\DeviceCommandTest.cs" />
     <Compile Include="ApiTest\DeviceEquipmentTest.cs" />

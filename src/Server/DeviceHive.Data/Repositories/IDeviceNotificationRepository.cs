@@ -6,7 +6,6 @@ namespace DeviceHive.Data.Repositories
 {
     public interface IDeviceNotificationRepository : ISimpleRepository<DeviceNotification>
     {
-        DateTime GetCurrentTimestamp();
         List<DeviceNotification> GetByDevice(int deviceId, DateTime? start, DateTime? end);
     }
 }

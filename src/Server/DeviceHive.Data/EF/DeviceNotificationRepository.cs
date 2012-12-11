@@ -10,14 +10,6 @@ namespace DeviceHive.Data.EF
 {
     public class DeviceNotificationRepository : IDeviceNotificationRepository
     {
-        public DateTime GetCurrentTimestamp()
-        {
-            using (var context = new DeviceHiveContext())
-            {
-                return context.Database.SqlQuery<DateTime>("select sysutcdatetime()").First();
-            }
-        }
-        
         public List<DeviceNotification> GetByDevice(int deviceId, DateTime? start, DateTime? end)
         {
             using (var context = new DeviceHiveContext())

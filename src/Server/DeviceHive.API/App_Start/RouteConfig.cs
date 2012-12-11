@@ -84,6 +84,12 @@ namespace DeviceHive.API
             );
 
             routes.MapHttpRoute(
+                name: "Info",
+                routeTemplate: "info",
+                defaults: new { controller = "ApiInfo" }
+            );
+
+            routes.MapHttpRoute(
                 name: "Cron",
                 routeTemplate: "cron/{action}",
                 defaults: new { controller = "Cron" }

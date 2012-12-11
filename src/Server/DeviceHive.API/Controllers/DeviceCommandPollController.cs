@@ -6,6 +6,7 @@ using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
+using DeviceHive.Data.Repositories;
 using Newtonsoft.Json.Linq;
 using Ninject;
 
@@ -14,14 +15,16 @@ namespace DeviceHive.API.Controllers
     /// <resource cref="DeviceCommand" />
     public class DeviceCommandPollController : BaseController
     {
+        private ITimestampRepository _timestampRepository;
         private ObjectWaiter _commandByDeviceIdWaiter;
         private ObjectWaiter _commandByCommandIdWaiter;
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
 
-        public DeviceCommandPollController(
+        public DeviceCommandPollController(ITimestampRepository timestampRepository,
             [Named("DeviceCommand.DeviceID")] ObjectWaiter commandByDeviceIdWaiter,
             [Named("DeviceCommand.CommandID")] ObjectWaiter commandByCommandIdWaiter)
         {
+            _timestampRepository = timestampRepository;
             _commandByDeviceIdWaiter = commandByDeviceIdWaiter;
             _commandByCommandIdWaiter = commandByCommandIdWaiter;
         }
@@ -48,7 +51,7 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var waitUntil = DateTime.UtcNow.Add(_timeout);
-            var start = timestamp != null ? timestamp.Value.AddTicks(10) : DataContext.DeviceCommand.GetCurrentTimestamp();
+            var start = timestamp != null ? timestamp.Value.AddTicks(10) : _timestampRepository.GetCurrentTimestamp();
 
             while (true)
             {

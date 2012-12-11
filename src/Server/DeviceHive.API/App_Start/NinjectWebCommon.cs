@@ -65,6 +65,7 @@ namespace DeviceHive.API
             kernel.Load(Assembly.GetExecutingAssembly());
 
             // bind repositories
+            kernel.Bind<ITimestampRepository>().To<TimestampRepository>();
             kernel.Bind<IUserRepository, ISimpleRepository<User>>().To<UserRepository>();
             kernel.Bind<IUserNetworkRepository, ISimpleRepository<UserNetwork>>().To<UserNetworkRepository>();
             kernel.Bind<INetworkRepository, ISimpleRepository<Network>>().To<NetworkRepository>();

@@ -97,6 +97,7 @@
     <Compile Include="Controllers\DeviceNotificationController.cs" />
     <Compile Include="Controllers\DeviceNotificationPollController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ApiInfoController.cs" />
     <Compile Include="Controllers\MetadataController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\UserNetworkController.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="Models\Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestContext.cs" />
+    <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
