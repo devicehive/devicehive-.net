@@ -165,6 +165,7 @@ namespace DeviceHive.WebSockets.Controllers
                 return;
 
             connection.SendResponse("notification/insert",
+                new JProperty("deviceGuid", device.GUID),
                 new JProperty("notification", NotificationMapper.Map(notification)));
         }
 
