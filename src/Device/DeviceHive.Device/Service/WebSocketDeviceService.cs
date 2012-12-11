@@ -20,6 +20,7 @@ namespace DeviceHive.Device
         private readonly WebSocket _webSocket;
 
         private bool _isAuthenticated = false;
+        private bool _isConnected = false;
 
         private readonly EventWaitHandle _cancelWaitHandle = new ManualResetEvent(false);
         private readonly EventWaitHandle _authWaitHandle = new ManualResetEvent(false);
@@ -29,40 +30,184 @@ namespace DeviceHive.Device
 
         #endregion
 
+         #region Constructor
+
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        /// <param name="serviceUrl">URL of the DeviceHive web sockets service.</param>
+        /// <param name="deviceGuid">Device GUID to authenticate.</param>
+        /// <param name="deviceKey">Device key for authentication.</param>
+        public WebSocketDeviceService(string serviceUrl, Guid? deviceGuid = null, string deviceKey = null)
+        {
+            _webSocket = new WebSocket(serviceUrl); // todo: maybe we should pass URL without /device and add it here?
+            _webSocket.MessageReceived += (s, e) => HandleMessage(e.Message);
+            _webSocket.Opened += (s, e) => Authenticate(deviceGuid, deviceKey);
+            _webSocket.Closed += (s, e) => _cancelWaitHandle.Set();
+        }
+        
+        #endregion
+
+        #region Events
+
+        /// <summary>
+        /// Fires when new command is inserted for active subscription
+        /// </summary>
+        public event EventHandler<CommandEventArgs> CommandInserted;
+
+        protected void OnCommandInserted(Command command)
+        {
+            var handler = CommandInserted;
+            if (handler != null)
+                handler(this, new CommandEventArgs(command));
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Open WebSocket connection and authenticate user.
+        /// </summary>
+        public void Open()
+        {
+            _isAuthenticated = false;
+            _isConnected = false;
+
+            if (_webSocket.State != WebSocketState.Closed &&
+                _webSocket.State != WebSocketState.None)
+            {
+                _cancelWaitHandle.Reset();
+                _webSocket.Close();
+                WaitHandle.WaitAny(new WaitHandle[] {_cancelWaitHandle});
+            }
+
+            _webSocket.Open();
+            WaitHandle.WaitAny(new WaitHandle[] {_authWaitHandle, _cancelWaitHandle});
+
+            if (!_isConnected)
+                throw new DeviceServiceException("WebSocket connection error");
+        }
+
+        /// <summary>
+        /// Close WebSocket connection.
+        /// </summary>
+        public void Close()
+        {
+            if (_webSocket.State != WebSocketState.Closed && _webSocket.State != WebSocketState.Closing)
+                _webSocket.Close();
+        }
+
+        /// <summary>
+        /// Sends new device notification to the service.
+        /// </summary>
+        /// <param name="notification">A <see cref="Notification"/> object</param>
+        /// <param name="deviceGuid">Optional device unique identifier.</param>
+        /// <param name="deviceKey">Optional device key.</param>
+        /// <returns>The <see cref="Notification"/> object with updated identifier and timestamp.</returns>
+        public Notification SendNotification(Notification notification,
+            Guid? deviceGuid = null, string deviceKey = null)
+        {
+            if (!_isConnected)
+                Open();
+
+            var res = SendRequest("notification/insert", deviceGuid, deviceKey,
+                new JProperty("notification", Serialize(notification)));
+            var notificationJson = (JObject) res["notification"];
+            return Deserialize<Notification>(notificationJson);
+        }
+
+        /// <summary>
+        /// Updates a device command status and result.
+        /// </summary>
+        /// <param name="command">A <see cref="Command"/> object to be updated.</param>
+        /// <param name="deviceGuid">Optional device unique identifier.</param>
+        /// <param name="deviceKey">Optional device key.</param>
+        public void UpdateCommand(Command command, Guid? deviceGuid = null, string deviceKey = null)
+        {
+            if (!_isConnected)
+                Open();
+
+            SendRequest("command/update", deviceGuid, deviceKey,
+                new JProperty("commandId", command.Id),
+                new JProperty("command", Serialize(command)));
+        }
+
+        /// <summary>
+        /// Subscribe to device commands.
+        /// </summary>
+        /// <param name="deviceGuid">Optional device unique identifier.</param>
+        /// <param name="deviceKey">Optional device key.</param>
+        public void SubscribeToCommands(Guid? deviceGuid = null, string deviceKey = null)
+        {
+            if (!_isConnected)
+                Open();
+
+            SendRequest("command/subscribe", deviceGuid, deviceKey);
+        }
+
+        /// <summary>
+        /// Unsubscribe from device commands.
+        /// </summary>
+        /// <param name="deviceGuid">Optional device unique identifier.</param>
+        /// <param name="deviceKey">Optional device key.</param>
+        public void UnsubscribeFromCommands(Guid? deviceGuid = null, string deviceKey = null)
+        {
+            if (!_isConnected)
+                Open();
+
+            SendRequest("command/unsubscribe", deviceGuid, deviceKey);
+        }
+
+        #endregion
+
         #region Private methods
 
-        private void Authenticate(string login, string password)
+        private void Authenticate(Guid? deviceGuid, string deviceKey)
         {
-            SendRequest("authenticate",
-                new JProperty("login", login),
-                new JProperty("password", password));
+            if (!deviceGuid.HasValue)
+            {
+                _isConnected = true;
+                _isAuthenticated = false;
+                _authWaitHandle.Set();
+                return;
+            }
+
+            SendRequest("authenticate", deviceGuid, deviceKey);
             _isAuthenticated = true;
+            _isConnected = true;
             _authWaitHandle.Set();
         }
 
-        private JObject SendRequest(string action, params JProperty[] args)
+        private JObject SendRequest(string action, Guid? deviceGuid, string deviceKey, params JProperty[] args)
         {
             var requestId = Guid.NewGuid().ToString();
             var requestInfo = new RequestInfo();
             _requests.Add(requestId, requestInfo);
 
-            var commonProperties = new[]
+            var commonProperties = new List<JProperty>()
             {
                 new JProperty("action", action),
                 new JProperty("requestId", requestId)
             };
 
+            if (deviceGuid.HasValue)
+            {
+                commonProperties.Add(new JProperty("deviceGuid", deviceGuid.Value));
+                commonProperties.Add(new JProperty("deviceKey", deviceKey));
+            }
+
             var requestJson = new JObject(commonProperties.Concat(args).Cast<object>().ToArray());
             _webSocket.Send(requestJson.ToString());
 
-            WaitHandle.WaitAny(new[] { requestInfo.WaitHandle, _cancelWaitHandle });
+            WaitHandle.WaitAny(new[] {requestInfo.WaitHandle, _cancelWaitHandle});
 
             if (requestInfo.Result == null)
-                throw new ClientServiceException("WebSocket connection was unexpectly closed");
+                throw new DeviceServiceException("WebSocket connection was unexpectly closed");
 
             var status = (string)requestInfo.Result["status"];
             if (status == "error")
-                throw new ClientServiceException((string)requestInfo.Result["error"]);
+                throw new DeviceServiceException((string) requestInfo.Result["error"]);
 
             return requestInfo.Result;
         }
@@ -75,38 +220,27 @@ namespace DeviceHive.Device
             var action = (string)json["action"];
             switch (action)
             {
-                case "notification/insert":
-                    HandleNotificationInsert(json);
-                    return;
-
-                case "command/update":
-                    HandleCommandUpdate(json);
+                case "command/insert":
+                    HandleCommandInsert(json);
                     return;
             }
 
             // handle responses to client requests
-            var requestId = (string)json["requestId"];
+            var requestId = (string) json["requestId"];
 
             RequestInfo requestInfo;
             if (_requests.TryGetValue(requestId, out requestInfo))
                 requestInfo.Result = json;
         }
 
-        private void HandleNotificationInsert(JObject json)
+        private void HandleCommandInsert(JObject json)
         {
-            var notificationJson = (JObject)json["notification"];
-            var notification = Deserialize<Notification>(notificationJson);
-            OnNotificationInserted(notification);
+            var commandJson = (JObject) json["command"];
+            var command = Deserialize<Command>(commandJson);
+            OnCommandInserted(command);
         }
 
-        private void HandleCommandUpdate(JObject json)
-        {
-            var notificationJson = (JObject)json["command"];
-            var command = Deserialize<Command>(notificationJson);
-            OnCommandUpdated(command);
-        }
-
-        private JObject Serialize<T>(T obj) where T : class
+        private static JObject Serialize<T>(T obj) where T : class
         {
             if (obj == null)
                 throw new ArgumentNullException("obj");
@@ -117,7 +251,7 @@ namespace DeviceHive.Device
             return JObject.FromObject(obj, serializer);
         }
 
-        private T Deserialize<T>(JObject json)
+        private static T Deserialize<T>(JObject json)
         {
             var serializer = new JsonSerializer();
             serializer.NullValueHandling = NullValueHandling.Ignore;

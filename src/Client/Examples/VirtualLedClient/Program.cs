@@ -20,7 +20,7 @@ namespace VirtualLedClient
 
                 // create a ClientService used to communicate with the DeviceHive service
                 // insert your assigned DeviceHive service URL, username and password here
-                var service = new RestfulClientService("http://localhost/DeviceHive.API", "dhadmin", "dhadmin_#911");
+                ; var service = new RestfulClientService("http://localhost/DeviceHive.API", "dhadmin", "dhadmin_#911");
 
                 // get information about VirtualLed device
                 var device = service.GetDevice(new Guid("E50D6085-2ABA-48E9-B1C3-73C673E414BE"));
