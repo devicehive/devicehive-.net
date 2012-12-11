@@ -17,6 +17,12 @@ namespace DeviceHive.Client
     /// </summary>
     public class RestfulClientService : IClientService
     {
+        #region Private fields
+
+        private WebSocketsClientService _webSocketsClientService;
+
+        #endregion
+
         #region Public Properties
 
         /// <summary>
@@ -34,6 +40,11 @@ namespace DeviceHive.Client
         /// </summary>
         public string Password { get; private set; }
 
+        /// <summary>
+        /// Gets flag indicating that WebSockets is used when available
+        /// </summary>
+        public bool UseWebSockets { get; private set; }
+
         #endregion
 
         #region Constructor
@@ -44,11 +55,14 @@ namespace DeviceHive.Client
         /// <param name="serviceUrl">URL of the DeviceHive service.</param>
         /// <param name="login">Login used for service authentication.</param>
         /// <param name="password">Password used for service authentication.</param>
-        public RestfulClientService(string serviceUrl, string login, string password)
+        /// <param name="useWebSockets">Allow using WebSockets API (it it's available).</param>
+        public RestfulClientService(string serviceUrl, string login, string password,
+            bool useWebSockets = true)
         {
             ServiceUrl = serviceUrl;
             Login = login;
             Password = password;
+            UseWebSockets = useWebSockets;
         }
         #endregion
 
@@ -200,6 +214,10 @@ namespace DeviceHive.Client
             if (command == null)
                 throw new ArgumentNullException("command");
 
+            var webSocketsService = WebSocketsService;
+            if (webSocketsService != null)
+                return webSocketsService.SendCommand(deviceId, command);
+
             return Post<Command>(string.Format("/device/{0}/command", deviceId), command);
         }
 
@@ -223,6 +241,37 @@ namespace DeviceHive.Client
         #endregion
 
         #region Private Methods
+
+        private WebSocketsClientService WebSocketsService
+        {
+            get
+            {
+                if (_webSocketsClientService != null)
+                    return _webSocketsClientService;
+
+                if (!UseWebSockets)
+                    return null;
+
+                var serviceUrl = string.Empty; // todo: get web sockets ServiceUrl through /info API call
+                if (serviceUrl == null) // todo: replace to check if WebSockets service is available
+                {
+                    UseWebSockets = false;
+                    return null;
+                }
+
+                try
+                {
+                    _webSocketsClientService = new WebSocketsClientService(serviceUrl, Login, Password);
+                    _webSocketsClientService.Open();
+                    return _webSocketsClientService;
+                }
+                catch (ClientServiceException)
+                {
+                    UseWebSockets = false;
+                    return null;
+                }
+            }
+        }
 
         private T Get<T>(string url)
         {

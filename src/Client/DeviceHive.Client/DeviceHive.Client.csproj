@@ -50,9 +50,13 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="WebSocket4Net">
+      <HintPath>..\..\..\packages\WebSocket4Net.0.8\lib\net40\WebSocket4Net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Service\DeviceEquipmentState.cs" />
+    <Compile Include="Service\EventArgs.cs" />
     <Compile Include="Service\IClientService.cs" />
     <Compile Include="Service\ClientServiceException.cs" />
     <Compile Include="Service\Command.cs">
@@ -75,7 +79,7 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service\RestfulClientService.cs" />
-    <Compile Include="Service\WebSocketsService.cs" />
+    <Compile Include="Service\WebSocketsClientService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -39,7 +39,7 @@ namespace DeviceHive.Client
         /// <param name="password">Password used for service authentication.</param>
         public WebSocketsClientService(string serviceUrl, string login, string password)
         {
-            _webSocket = new WebSocket(serviceUrl); // todo: maybe we should pass URL without /client and add it here?
+            _webSocket = new WebSocket(serviceUrl);
             _webSocket.MessageReceived += (s, e) => HandleMessage(e.Message);
             _webSocket.Opened += (s, e) => Authenticate(login, password);
             _webSocket.Closed += (s, e) => _cancelWaitHandle.Set();
@@ -54,6 +54,11 @@ namespace DeviceHive.Client
         /// </summary>
         public event EventHandler<NotificationEventArgs> NotificationInserted;
 
+        /// <summary>
+        /// Fires <see cref="NotificationInserted"/> event
+        /// </summary>
+        /// <param name="deviceGuid">Device GUID</param>
+        /// <param name="notification">Notification object</param>
         protected void OnNotificationInserted(Guid deviceGuid, Notification notification)
         {
             var handler = NotificationInserted;
@@ -67,7 +72,11 @@ namespace DeviceHive.Client
         /// </summary>
         public event EventHandler<CommandEventArgs> CommandUpdated;
 
-        internal void OnCommandUpdated(Command command)
+        /// <summary>
+        /// Fires <see cref="CommandUpdated"/> event
+        /// </summary>
+        /// <param name="command">Command object</param>
+        protected void OnCommandUpdated(Command command)
         {
             var handler = CommandUpdated;
             if (handler != null)
