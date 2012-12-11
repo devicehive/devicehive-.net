@@ -48,6 +48,12 @@ namespace DeviceHive.API
             );
 
             routes.MapHttpRoute(
+                name: "DeviceNotificationPollMany",
+                routeTemplate: "device/notification/poll",
+                defaults: new { controller = "DeviceNotificationPoll" }
+            );
+
+            routes.MapHttpRoute(
                 name: "DeviceNotification",
                 routeTemplate: "device/{deviceGuid}/notification/{id}",
                 defaults: new { controller = "DeviceNotification", id = RouteParameter.Optional }

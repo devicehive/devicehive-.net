@@ -10,5 +10,7 @@ namespace DeviceHive.API
     {
         public User CurrentUser { get; set; }
         public Device CurrentDevice { get; set; }
+
+        public List<UserNetwork> CurrentUserNetworks { get; set; }
     }
 }
