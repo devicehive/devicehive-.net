@@ -90,6 +90,21 @@ namespace DeviceHive.Test.ApiTest
         }
 
         [Test]
+        public void Poll_NoWait()
+        {
+            // task to poll new resources
+            var poll = Task.Factory.StartNew(() =>
+                {
+                    var response = Client.Get(ResourceUri + "/poll?waitTimeout=0", auth: Admin);
+                    Expect(response.Status, Is.EqualTo(200));
+                    Expect(response.Json, Is.InstanceOf<JArray>());
+                    Expect(response.Json.Count(), Is.EqualTo(0));
+                });
+
+            Expect(poll.Wait(2000), Is.True); // task should complete immediately
+        }
+
+        [Test]
         public void Create()
         {
             var resource = Create(new { notification = "_ut" }, auth: Device(DeviceGUID, "key"));

@@ -15,9 +15,11 @@ namespace DeviceHive.API.Controllers
     /// <resource cref="DeviceNotification" />
     public class DeviceNotificationPollController : BaseController
     {
+        private static readonly int _defaultWaitTimeout = 30;
+        private static readonly int _maxWaitTimeout = 60;
+
         private ITimestampRepository _timestampRepository;
         private ObjectWaiter _notificationByDeviceIdWaiter;
-        private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
 
         public DeviceNotificationPollController(ITimestampRepository timestampRepository,
             [Named("DeviceNotification.DeviceID")] ObjectWaiter notificationByDeviceIdWaiter)
@@ -31,23 +33,29 @@ namespace DeviceHive.API.Controllers
         ///     <para>Polls new device notifications.</para>
         ///     <para>This method returns all device notifications that were created after specified timestamp.</para>
         ///     <para>In the case when no notifications were found, the method blocks until new notification is received.
-        ///         The blocking period is limited (currently 30 seconds), and the server returns empty response if no notifications are received.
+        ///         If no notifications are received within the waitTimeout period, the server returns an empty response.
         ///         In this case, to continue polling, the client should repeat the call with the same timestamp value.
         ///     </para>
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="timestamp">Timestamp of the last received notification (UTC). If not specified, the server's timestamp is taken instead.</param>
+        /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
         [AuthorizeUser]
-        public JArray Get(Guid deviceGuid, DateTime? timestamp = null)
+        public JArray Get(Guid deviceGuid, DateTime? timestamp = null, int? waitTimeout = null)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsNetworkAccessible(device.NetworkID))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
-            var waitUntil = DateTime.UtcNow.Add(_timeout);
             var start = timestamp != null ? timestamp.Value.AddTicks(10) : _timestampRepository.GetCurrentTimestamp();
+            if (waitTimeout <= 0)
+            {
+                var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, start, null);
+                return new JArray(notifications.Select(n => Mapper.Map(n)));
+            }
 
+            var waitUntil = DateTime.UtcNow.AddSeconds(Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
             while (true)
             {
                 using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(device.ID))
