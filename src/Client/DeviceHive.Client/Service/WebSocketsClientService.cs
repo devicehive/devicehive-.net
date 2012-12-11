@@ -54,11 +54,11 @@ namespace DeviceHive.Client
         /// </summary>
         public event EventHandler<NotificationEventArgs> NotificationInserted;
 
-        protected void OnNotificationInserted(Notification notification)
+        protected void OnNotificationInserted(Guid deviceGuid, Notification notification)
         {
             var handler = NotificationInserted;
             if (handler != null)
-                handler(this, new NotificationEventArgs(notification));
+                handler(this, new NotificationEventArgs(deviceGuid, notification));
         }
 
 
@@ -83,16 +83,18 @@ namespace DeviceHive.Client
         /// </summary>
         public void Open()
         {
-            if (_isAuthenticated)
-            {
-                if (_webSocket.State != WebSocketState.Open)
-                    throw new ClientServiceException("WebSocket connection was unexpectly closed");
+            _isAuthenticated = false;
 
-                return;
+            if (_webSocket.State != WebSocketState.Closed &&
+                _webSocket.State != WebSocketState.None)
+            {
+                _cancelWaitHandle.Reset();
+                _webSocket.Close();
+                WaitHandle.WaitAny(new WaitHandle[] {_cancelWaitHandle});
             }
 
             _webSocket.Open();
-            WaitHandle.WaitAny(new[] {_authWaitHandle, _cancelWaitHandle});
+            WaitHandle.WaitAny(new WaitHandle[] {_authWaitHandle, _cancelWaitHandle});
 
             if (!_isAuthenticated)
                 throw new ClientServiceException("Authentication error");
@@ -115,6 +117,9 @@ namespace DeviceHive.Client
         /// <returns>The <see cref="Command"/> object with updated identifier and timestamp.</returns>
         public Command SendCommand(Guid deviceGuid, Command command)
         {
+            if (!_isAuthenticated)
+                Open();
+
             var res = SendRequest("command/insert",
                 new JProperty("deviceGuid", deviceGuid),
                 new JProperty("command", Serialize(command)));
@@ -129,6 +134,9 @@ namespace DeviceHive.Client
         /// will be created</param>
         public void SubscribeToNotifications(params Guid[] deviceGuids)
         {
+            if (!_isAuthenticated)
+                Open();
+
             var properties = new JProperty[0];
             if (deviceGuids.Length >= 0)
                 properties = new[] {new JProperty("deviceGuids", new JArray(deviceGuids))};
@@ -143,6 +151,9 @@ namespace DeviceHive.Client
         /// will be removed</param>
         public void UnsubscribeFromNotifications(params Guid[] deviceGuids)
         {
+            if (!_isAuthenticated)
+                Open();
+
             var properties = new JProperty[0];
             if (deviceGuids.Length >= 0)
                 properties = new[] { new JProperty("deviceGuids", new JArray(deviceGuids)) };
@@ -218,8 +229,9 @@ namespace DeviceHive.Client
         private void HandleNotificationInsert(JObject json)
         {
             var notificationJson = (JObject) json["notification"];
+            var deviceGuid = (Guid) notificationJson["deviceGuid"];
             var notification = Deserialize<Notification>(notificationJson);
-            OnNotificationInserted(notification);
+            OnNotificationInserted(deviceGuid, notification);
         }
 
         private void HandleCommandUpdate(JObject json)
@@ -229,7 +241,7 @@ namespace DeviceHive.Client
             OnCommandUpdated(command);
         }
 
-        private JObject Serialize<T>(T obj) where T : class
+        private static JObject Serialize<T>(T obj) where T : class
         {
             if (obj == null)
                 throw new ArgumentNullException("obj");
@@ -240,7 +252,7 @@ namespace DeviceHive.Client
             return JObject.FromObject(obj, serializer);
         }
 
-        private T Deserialize<T>(JObject json)
+        private static T Deserialize<T>(JObject json)
         {           
             var serializer = new JsonSerializer();
             serializer.NullValueHandling = NullValueHandling.Ignore;

@@ -7,15 +7,26 @@ namespace DeviceHive.Client
     /// </summary>
     public class NotificationEventArgs : EventArgs
     {
+        private readonly Guid _deviceGuid;       
         private readonly Notification _notification;
 
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="notification">Notification object</param>
-        public NotificationEventArgs(Notification notification)
+        /// <param name="deviceGuid">Device GUID</param>
+        /// <param name="notification">Notification object</param>        
+        public NotificationEventArgs(Guid deviceGuid, Notification notification)
         {
-            _notification = notification;
+            _deviceGuid = deviceGuid;
+            _notification = notification;            
+        }
+
+        /// <summary>
+        /// Gets device GUID
+        /// </summary>
+        public Guid DeviceGuid
+        {
+            get { return _deviceGuid; }
         }
 
         /// <summary>
