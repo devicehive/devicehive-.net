@@ -73,6 +73,31 @@ namespace DeviceHive.Client
         Notification GetNotification(Guid deviceId, int id);
 
         /// <summary>
+        /// Subscribe to device notifications
+        /// </summary>
+        /// <param name="deviceIds">List of device unique identifiers. If empty - subscription for all
+        /// available devices will be created</param>
+        /// <remarks>
+        /// Subscription can be removed through <see cref="UnsubscribeFromNotifications"/> method
+        /// </remarks>
+        void SubscribeToNotifications(params Guid[] deviceIds);
+
+        /// <summary>
+        /// Unsubscribe from device notifications
+        /// </summary>
+        /// <param name="deviceIds">List of device unique identifiers. If empty - subscription for all
+        /// available devices will be removed</param>
+        void UnsubscribeFromNotifications(params Guid[] deviceIds);
+
+        /// <summary>
+        /// Fires when new notification inserted for some active notification subscription.
+        /// </summary>
+        /// <remarks>
+        /// Subscription can be created through <see cref="SubscribeToNotifications"/> method.
+        /// </remarks>
+        event EventHandler<NotificationEventArgs> NotificationInserted;
+            
+        /// <summary>
         /// Gets a list of commands sent to the device.
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>

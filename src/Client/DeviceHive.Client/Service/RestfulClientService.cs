@@ -20,6 +20,12 @@ namespace DeviceHive.Client
         #region Private fields
 
         private WebSocketsClientService _webSocketsClientService;
+        
+        private Thread _notificationPollThread;        
+        private Guid[] _notificationSubscriptionDeviceIds;
+
+        private readonly CancellationTokenSource _notificationPollCancellationTokenSource =
+            new CancellationTokenSource();
 
         #endregion
 
@@ -174,6 +180,83 @@ namespace DeviceHive.Client
         }
 
         /// <summary>
+        /// Subscribe to device notifications
+        /// </summary>
+        /// <param name="deviceIds">List of device unique identifiers. If empty - subscription for all
+        /// available devices will be created</param>
+        /// <remarks>
+        /// Subscription can be removed through <see cref="IClientService.UnsubscribeFromNotifications"/> method
+        /// </remarks>
+        public void SubscribeToNotifications(params Guid[] deviceIds)
+        {
+            if (InitWebSocketsService())
+            {
+                _webSocketsClientService.SubscribeToNotifications(deviceIds);
+                return;
+            }
+
+            if (_notificationSubscriptionDeviceIds == null)
+            {
+                // there are no any subscriptions yet
+                _notificationSubscriptionDeviceIds = deviceIds;
+            }
+            else if (_notificationSubscriptionDeviceIds.Length > 0)
+            {
+                // if there is subscription to all devices - we don't need add anything
+                _notificationSubscriptionDeviceIds = _notificationSubscriptionDeviceIds
+                    .Union(deviceIds)
+                    .ToArray();
+            }
+
+            RestartNotificationPollThread();
+        }
+
+        /// <summary>
+        /// Unsubscribe from device notifications
+        /// </summary>
+        /// <param name="deviceIds">List of device unique identifiers. If empty - subscription for all
+        /// available devices will be removed</param>
+        public void UnsubscribeFromNotifications(params Guid[] deviceIds)
+        {
+            if (InitWebSocketsService())
+            {
+                _webSocketsClientService.UnsubscribeFromNotifications(deviceIds);
+                return;
+            }
+
+            if (_notificationSubscriptionDeviceIds != null) // there are subscriptions
+            {
+                if (_notificationSubscriptionDeviceIds.Length == 0) // there is subscription to all devices
+                {
+                    // it's impossible to remove subscription for concrete device if
+                    // there is subscription for all devices
+                    if (deviceIds.Length == 0)
+                        _notificationSubscriptionDeviceIds = null;
+                }
+                else
+                {
+                    _notificationSubscriptionDeviceIds = _notificationSubscriptionDeviceIds
+                        .Except(deviceIds)
+                        .ToArray();
+
+                    // zero length subscription is subcription to all devices
+                    if (_notificationSubscriptionDeviceIds.Length == 0)
+                        _notificationSubscriptionDeviceIds = null;
+                }
+            }
+
+            RestartNotificationPollThread();
+        }
+
+        /// <summary>
+        /// Fires when new notification inserted for some active notification subscription.
+        /// </summary>
+        /// <remarks>
+        /// Subscription can be created through <see cref="IClientService.SubscribeToNotifications"/> method.
+        /// </remarks>
+        public event EventHandler<NotificationEventArgs> NotificationInserted;        
+
+        /// <summary>
         /// Gets a list of commands sent to the device.
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
@@ -214,9 +297,8 @@ namespace DeviceHive.Client
             if (command == null)
                 throw new ArgumentNullException("command");
 
-            var webSocketsService = WebSocketsService;
-            if (webSocketsService != null)
-                return webSocketsService.SendCommand(deviceId, command);
+            if (InitWebSocketsService())
+                return _webSocketsClientService.SendCommand(deviceId, command);
 
             return Post<Command>(string.Format("/device/{0}/command", deviceId), command);
         }
@@ -240,37 +322,84 @@ namespace DeviceHive.Client
         }
         #endregion
 
+        #region Protected methods
+
+        /// <summary>
+        /// Fires <see cref="NotificationInserted"/> event
+        /// </summary>
+        /// <param name="e">Notification event arguments</param>
+        protected void OnNotificationInserted(NotificationEventArgs e)
+        {
+            var handler = NotificationInserted;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        #endregion
+
         #region Private Methods
 
-        private WebSocketsClientService WebSocketsService
+        private bool InitWebSocketsService()
         {
-            get
+            if (_webSocketsClientService != null)
+                return true;
+
+            if (!UseWebSockets)
+                return false;
+
+            var serviceUrl = string.Empty; // todo: get web sockets ServiceUrl through /info API call
+            if (serviceUrl == null) // todo: replace to check if WebSockets service is available
             {
-                if (_webSocketsClientService != null)
-                    return _webSocketsClientService;
+                UseWebSockets = false;
+                return false;
+            }
 
-                if (!UseWebSockets)
-                    return null;
+            try
+            {
+                _webSocketsClientService = new WebSocketsClientService(serviceUrl, Login, Password);
+                _webSocketsClientService.Open();
+                _webSocketsClientService.NotificationInserted += (s, e) => OnNotificationInserted(e);
+                return true;
+            }
+            catch (ClientServiceException)
+            {
+                UseWebSockets = false;
+                return false;
+            }
+        }
 
-                var serviceUrl = string.Empty; // todo: get web sockets ServiceUrl through /info API call
-                if (serviceUrl == null) // todo: replace to check if WebSockets service is available
-                {
-                    UseWebSockets = false;
-                    return null;
-                }
+        private void RestartNotificationPollThread()
+        {
+            if (_notificationPollThread != null && _notificationPollThread.IsAlive)
+            {
+                _notificationPollCancellationTokenSource.Cancel();
+                _notificationPollThread.Join();
+            }
 
+            if (_notificationSubscriptionDeviceIds == null)
+                return;
+
+            _notificationPollThread = new Thread(() =>
+            {
                 try
                 {
-                    _webSocketsClientService = new WebSocketsClientService(serviceUrl, Login, Password);
-                    _webSocketsClientService.Open();
-                    return _webSocketsClientService;
+                    while (true)
+                    {
+                        // todo: use correct device guids
+
+                        var notifications = PollNotifications(Guid.Empty, DateTime.Now,
+                            _notificationPollCancellationTokenSource.Token);
+
+                        foreach (var notification in notifications)
+                            OnNotificationInserted(new NotificationEventArgs(Guid.Empty, notification));
+                    }
                 }
-                catch (ClientServiceException)
+                catch (OperationCanceledException)
                 {
-                    UseWebSockets = false;
-                    return null;
                 }
-            }
+            });
+
+            _notificationPollThread.Start();
         }
 
         private T Get<T>(string url)
