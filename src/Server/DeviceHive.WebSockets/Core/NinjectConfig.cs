@@ -2,6 +2,7 @@
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.MessageLogic.NotificationHandlers;
 using DeviceHive.Core.Messaging;
+using DeviceHive.Core.Services;
 using DeviceHive.Data;
 using DeviceHive.Data.EF;
 using DeviceHive.Data.Model;
@@ -36,6 +37,9 @@ namespace DeviceHive.WebSockets.Core
             kernel.Bind<IDeviceNotificationRepository, ISimpleRepository<DeviceNotification>>().To<DeviceNotificationRepository>();
             kernel.Bind<IDeviceCommandRepository, ISimpleRepository<DeviceCommand>>().To<DeviceCommandRepository>();
             kernel.Bind<IDeviceEquipmentRepository, ISimpleRepository<DeviceEquipment>>().To<DeviceEquipmentRepository>();
+
+            // bind services
+            kernel.Bind<DeviceService>().ToSelf();
 
             // bind controllers, router and action invoker
             kernel.Bind<ClientController>().ToSelf();

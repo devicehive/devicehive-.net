@@ -2,6 +2,7 @@
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.Messaging;
+using DeviceHive.Core.Services;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
 using DeviceHive.WebSockets.ActionsFramework;
@@ -19,6 +20,9 @@ namespace DeviceHive.WebSockets.Controllers
         private readonly DeviceSubscriptionManager _subscriptionManager;
         private readonly MessageBus _messageBus;
         private readonly IMessageManager _messageManager;
+        private readonly DeviceService _deviceService;
+
+        private readonly IJsonMapper<Device> _deviceMapper;
 
         #endregion
 
@@ -27,12 +31,16 @@ namespace DeviceHive.WebSockets.Controllers
         public DeviceController(ActionInvoker actionInvoker, WebSocketServerBase server,
             DataContext dataContext, JsonMapperManager jsonMapperManager,
             [Named("DeviceCommand")] DeviceSubscriptionManager subscriptionManager,
-            MessageBus messageBus, IMessageManager messageManager) :
+            MessageBus messageBus, IMessageManager messageManager,
+            DeviceService deviceService) :
             base(actionInvoker, server, dataContext, jsonMapperManager)
         {
             _subscriptionManager = subscriptionManager;
             _messageBus = messageBus;
             _messageManager = messageManager;
+            _deviceService = deviceService;
+
+            _deviceMapper = jsonMapperManager.GetMapper<Device>();
         }
 
         #endregion
@@ -149,6 +157,27 @@ namespace DeviceHive.WebSockets.Controllers
         {
             _subscriptionManager.Unsubscribe(Connection, CurrentDevice.ID); 
             SendSuccessResponse();
+        }
+
+        [Action("device/get", NeedAuthentication = true)]
+        public void GetDevice()
+        {
+            SendResponse(new JProperty("device", _deviceMapper.Map(CurrentDevice)));
+        }
+
+        [Action("device/save", NeedAuthentication = false)]
+        public void SaveDevice(Guid deviceGuid, JObject device)
+        {
+            try
+            {
+                AuthenticateImpl();
+                var deviceJson = _deviceService.SaveDevice(deviceGuid, device, currentDevice: CurrentDevice);
+                SendResponse(new JProperty("device", deviceJson));   
+            }
+            catch (ServiceException e)
+            {
+                SendErrorResponse(e.Message);
+            }            
         }
 
         #endregion

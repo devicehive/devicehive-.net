@@ -22,6 +22,6 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
             connection.Send(responseObj.ToString(Formatting.None,
                 new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffffff" }));
-        }        
+        }
     }
 }
