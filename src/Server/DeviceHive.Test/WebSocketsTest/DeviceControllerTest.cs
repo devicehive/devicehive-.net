@@ -60,6 +60,8 @@ namespace DeviceHive.Test.WebSocketsTest
         [Test]
         public void UpdateDeviceCommand_ValidRequest()
         {
+            const string commandResult = "{\"result\": \"test\"}";
+
             // create command
             var clientConnection = ClientController.Connect();
             ClientController.Authenticate(clientConnection, Login, Password);
@@ -81,17 +83,19 @@ namespace DeviceHive.Test.WebSocketsTest
             var connection = DeviceController.Connect();
             DeviceController.Authenticate(connection, DeviceGUID, DeviceKey);
             var msg = DeviceController.UpdateDeviceCommand(connection, commandId, new JObject(
-                new JProperty("result", "testResult")));
+                new JProperty("result", commandResult)));
             command = (JObject) msg["command"];
             
             Expect((string) msg["status"], EqualTo("success"));
-            Expect((string) command["result"], EqualTo("testResult"));
-            Expect(result, EqualTo("testResult"));
+            Expect((string)command["result"], EqualTo(commandResult));
+            Expect(result, EqualTo(commandResult));
         }
 
         [Test]
         public void UpdateDeviceCommand_GatewayAuth()
         {
+            const string commandResult = "{\"result\": \"test\"}";
+
             // create command
             var clientConnection = ClientController.Connect();
             ClientController.Authenticate(clientConnection, Login, Password);
@@ -112,12 +116,12 @@ namespace DeviceHive.Test.WebSocketsTest
             // update command
             var connection = DeviceController.Connect();
             var msg = DeviceController.UpdateDeviceCommand(connection, DeviceGUID, DeviceKey,
-                commandId, new JObject(new JProperty("result", "testResult")));
+                commandId, new JObject(new JProperty("result", commandResult)));
             command = (JObject)msg["command"];
 
             Expect((string)msg["status"], EqualTo("success"));
-            Expect((string)command["result"], EqualTo("testResult"));
-            Expect(result, EqualTo("testResult"));
+            Expect((string)command["result"], EqualTo(commandResult));
+            Expect(result, EqualTo(commandResult));
         }
 
         #endregion
