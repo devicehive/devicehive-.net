@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="Service\ApiInfo.cs" />
     <Compile Include="Service\DeviceEquipmentState.cs" />
+    <Compile Include="Service\DeviceNotification.cs" />
     <Compile Include="Service\EventArgs.cs" />
     <Compile Include="Service\IClientService.cs" />
     <Compile Include="Service\ClientServiceException.cs" />
