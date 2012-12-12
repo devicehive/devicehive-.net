@@ -76,7 +76,8 @@ namespace DeviceHive.API
 
             context.Kernel.ConfigureMapping<ApiInfo>()
                 .Property(e => e.ApiVersion, "apiVersion")
-                .Property(e => e.ServerTimestamp, "serverTimestamp");
+                .Property(e => e.ServerTimestamp, "serverTimestamp")
+                .Property(e => e.WebSocketServerUrl, "webSocketServerUrl");
         }
     }
 

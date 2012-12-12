@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DeviceHive.Data.Model
+namespace DeviceHive.Client
 {
     /// <summary>
     /// Represents meta-information about the current API.

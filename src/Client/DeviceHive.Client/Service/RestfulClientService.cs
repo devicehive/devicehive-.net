@@ -347,8 +347,10 @@ namespace DeviceHive.Client
             if (!UseWebSockets)
                 return false;
 
-            var serviceUrl = string.Empty; // todo: get web sockets ServiceUrl through /info API call
-            if (serviceUrl == null) // todo: replace to check if WebSockets service is available
+            var apiInfo = Get<ApiInfo>("/info");
+            var serviceUrl = apiInfo.WebSocketServerUrl;
+
+            if (serviceUrl == null)
             {
                 UseWebSockets = false;
                 return false;
@@ -356,7 +358,7 @@ namespace DeviceHive.Client
 
             try
             {
-                _webSocketsClientService = new WebSocketsClientService(serviceUrl, Login, Password);
+                _webSocketsClientService = new WebSocketsClientService(serviceUrl + "/client", Login, Password);
                 _webSocketsClientService.Open();
                 _webSocketsClientService.NotificationInserted += (s, e) => OnNotificationInserted(e);
                 return true;
