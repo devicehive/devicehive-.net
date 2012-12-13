@@ -201,10 +201,11 @@ namespace DeviceHive.WebSockets.Controllers
         public void HandleDeviceCommand(int deviceId, int commandId)
         {
             var command = DataContext.DeviceCommand.Get(commandId);
+            var device = DataContext.Device.Get(deviceId);
             var connections = _subscriptionManager.GetConnections(deviceId);
 
             foreach (var connection in connections)
-                Notify(connection, command);
+                Notify(connection, device, command);
         }
 
         private void CleanupNotifications(WebSocketConnectionBase connection)
@@ -212,9 +213,10 @@ namespace DeviceHive.WebSockets.Controllers
             _subscriptionManager.Cleanup(connection);
         }
 
-        private void Notify(WebSocketConnectionBase connection, DeviceCommand command)
+        private void Notify(WebSocketConnectionBase connection, Device device, DeviceCommand command)
         {
             connection.SendResponse("command/insert",
+                new JProperty("deviceGuid", device.GUID),
                 new JProperty("command", CommandMapper.Map(command)));
         }
 

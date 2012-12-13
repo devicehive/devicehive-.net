@@ -31,7 +31,7 @@ namespace DeviceHive.Device
 
         #endregion
 
-         #region Constructor
+        #region Constructor
 
         /// <summary>
         /// Default constructor.
@@ -114,16 +114,44 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets device from the DeviceHive network.
         /// </summary>
-        /// <param name="device"><see cref="Device"/> object with a valid unique identifier and key.</param>
         /// <returns><see cref="Device"/> object from DeviceHive.</returns>
-        public Device GetDevice(Device device,
-            Guid? deviceGuid = null, string deviceKey = null)
+        public Device GetDevice(Guid deviceGuid, string deviceKey)
         {
             if (!_isConnected)
                 Open();
 
             var res = SendRequest("device/get", deviceGuid, deviceKey);
             var deviceJson = (JObject) res["device"];
+            return Deserialize<Device>(deviceJson);
+        }
+
+        /// <summary>
+        /// Registers new device
+        /// </summary>
+        public Device RegisterDevice(Device device)
+        {
+            if (!_isConnected)
+                Open();
+
+            var deviceJson = Serialize(device);
+            var res = SendRequest("device/save", device.Id, null,
+                new JProperty("device", deviceJson));
+            deviceJson = (JObject) res["device"];
+            return Deserialize<Device>(deviceJson);
+        }
+
+        /// <summary>
+        /// Update existing device
+        /// </summary>
+        public Device UpdateDevice(Device device, string deviceKey = null)
+        {
+            if (!_isConnected)
+                Open();
+
+            var deviceJson = Serialize(device, NullValueHandling.Ignore);
+            var res = SendRequest("device/save", device.Id, deviceKey,
+                new JProperty("device", deviceJson));
+            deviceJson = (JObject)res["device"];
             return Deserialize<Device>(deviceJson);
         }
 
@@ -221,10 +249,10 @@ namespace DeviceHive.Device
             };
 
             if (deviceGuid.HasValue)
-            {
                 commonProperties.Add(new JProperty("deviceGuid", deviceGuid.Value));
+
+            if (deviceKey != null)
                 commonProperties.Add(new JProperty("deviceKey", deviceKey));
-            }
 
             var requestJson = new JObject(commonProperties.Concat(args).Cast<object>().ToArray());
             _webSocket.Send(requestJson.ToString());
@@ -269,13 +297,13 @@ namespace DeviceHive.Device
             OnCommandInserted(command);
         }
 
-        private static JObject Serialize<T>(T obj) where T : class
+        private static JObject Serialize<T>(T obj, NullValueHandling nullValueHandling = NullValueHandling.Include) where T : class
         {
             if (obj == null)
                 throw new ArgumentNullException("obj");
 
             var serializer = new JsonSerializer();
-            serializer.NullValueHandling = NullValueHandling.Ignore;
+            serializer.NullValueHandling = nullValueHandling;
             serializer.ContractResolver = new JsonContractResolver();
             return JObject.FromObject(obj, serializer);
         }

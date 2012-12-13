@@ -52,6 +52,31 @@ namespace DeviceHive.Device
         List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime? timestamp, CancellationToken token);
 
         /// <summary>
+        /// Fires when new command inserted for some active command subscription.
+        /// </summary>
+        /// <remarks>
+        /// Subscription can be created through <see cref="IDeviceService.SubscribeToCommands"/> method.
+        /// </remarks>
+        event EventHandler<CommandEventArgs> CommandInserted;
+
+        /// <summary>
+        /// Subscribe to device commands
+        /// </summary>
+        /// <param name="deviceId">Device unique identifier.</param>
+        /// <param name="deviceKey">Device key.</param>
+        /// <remarks>
+        /// Subscription can be removed through <see cref="UnsubscribeFromCommands"/> method
+        /// </remarks>
+        void SubscribeToCommands(Guid deviceId, string deviceKey);
+
+        /// <summary>
+        /// Unsubscribe from device notifications
+        /// </summary>
+        /// <param name="deviceId">Device unique identifier.</param>
+        /// <param name="deviceKey">Device key.</param>
+        void UnsubscribeFromCommands(Guid deviceId, string deviceKey);
+
+        /// <summary>
         /// Updates a device command status and result.
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
