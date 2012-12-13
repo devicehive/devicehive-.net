@@ -87,18 +87,35 @@ namespace DeviceHive.API.Controllers
         /// </request>
         public JObject Put(Guid id, JObject json)
         {
+            // load device from repository
+            var device = DataContext.Device.Get(id);
+            if (device != null)
+            {
+                // if device exists, administrator or device authorization is required
+                if ((RequestContext.CurrentUser == null || RequestContext.CurrentUser.Role != (int)UserRole.Administrator) &&
+                    (RequestContext.CurrentDevice == null || RequestContext.CurrentDevice.GUID != id))
+                {
+                    throw new UnauthroizedNetworkException("Not authorized");
+                }
+            }
+            else
+            {
+                // otherwise, create new device
+                device = new Device(id);
+            }
+
             JObject result = null;
 
             try
             {
-                result = _deviceService.SaveDevice(id, json,
-                    RequestContext.CurrentUser, RequestContext.CurrentDevice);
+                result = _deviceService.SaveDevice(device, json,
+                    RequestContext.CurrentUser == null);
             }
-            catch (BadRequestException e)
+            catch (InvalidDataException e)
             {
                 ThrowHttpResponse(HttpStatusCode.BadRequest, e.Message);
             }
-            catch (AccessForbiddenException e)
+            catch (UnauthroizedNetworkException e)
             {
                 ThrowHttpResponse(HttpStatusCode.Forbidden, e.Message);
             }

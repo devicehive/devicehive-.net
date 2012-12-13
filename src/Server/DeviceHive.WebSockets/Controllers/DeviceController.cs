@@ -170,9 +170,23 @@ namespace DeviceHive.WebSockets.Controllers
         {
             try
             {
+                // load device from repository
+                var deviceEntity = DataContext.Device.Get(deviceGuid);
+                if (deviceEntity != null)
+                {
+                    if (!AuthenticateImpl() || CurrentDevice.GUID != deviceGuid)
+                        throw new WebSocketRequestException("Not authorized");
+                }
+                else
+                {
+                    // otherwise, create new device
+                    deviceEntity = new Device(deviceGuid);
+                }
+
                 AuthenticateImpl();
-                var deviceJson = _deviceService.SaveDevice(deviceGuid, device, currentDevice: CurrentDevice);
-                SendResponse(new JProperty("device", deviceJson));   
+
+                device = _deviceService.SaveDevice(deviceEntity, device);
+                SendResponse(new JProperty("device", device));
             }
             catch (ServiceException e)
             {

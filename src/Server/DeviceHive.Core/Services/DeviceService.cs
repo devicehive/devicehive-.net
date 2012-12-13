@@ -28,33 +28,16 @@ namespace DeviceHive.Core.Services
         /// <summary>
         /// Register new or update existing device
         /// </summary>
-        public JObject SaveDevice(Guid id, JObject deviceJson,
-            User currentUser = null, Device currentDevice = null)
+        public JObject SaveDevice(Device device, JObject deviceJson,
+            bool verifyNetworkKey = true)
         {
-            // load device from repository
-            var device = DataContext.Device.Get(id);
-            if (device != null)
-            {
-                // if device exists, administrator or device authorization is required
-                if ((currentUser == null || currentUser.Role != (int)UserRole.Administrator) &&
-                    (currentDevice == null || currentDevice.GUID != id))
-                {
-                    throw new AccessForbiddenException("Not authorized");
-                }
-            }
-            else
-            {
-                // otherwise, create new device
-                device = new Device(id);
-            }
-
             // load original device for comparison
             var sourceDevice = device.ID > 0 ? DataContext.Device.Get(device.ID) : null;
 
             // map and validate the device object
             var deviceMapper = GetMapper<Device>();
 
-            ResolveNetwork(deviceJson, currentUser);
+            ResolveNetwork(deviceJson, verifyNetworkKey);
             ResolveDeviceClass(deviceJson, device.ID == 0);
             deviceMapper.Apply(device, deviceJson);
             Validate(device);
@@ -89,12 +72,10 @@ namespace DeviceHive.Core.Services
             return deviceMapper.Map(device);
         }
 
-        private void ResolveNetwork(JObject json,
-            User currentUser = null)
+        private void ResolveNetwork(JObject json, bool verifyNetworkKey = true)
         {
             Network network = null;
             var jNetwork = json.Property("network");
-            var verifyNetworkKey = currentUser == null;
             if (jNetwork != null && jNetwork.Value is JValue)
             {
                 // a value is passed, can be null
@@ -104,7 +85,7 @@ namespace DeviceHive.Core.Services
                     // search network by ID
                     network = DataContext.Network.Get((int)jNetworkValue);
                     if (verifyNetworkKey && network != null && network.Key != null)
-                        throw new AccessForbiddenException("Could not register a device because target network is protected with a key!");
+                        throw new UnauthroizedNetworkException("Could not register a device because target network is protected with a key!");
                 }
             }
             else if (jNetwork != null && jNetwork.Value is JObject)
@@ -112,7 +93,7 @@ namespace DeviceHive.Core.Services
                 // search network by name or auto-create if it does not exist
                 var jNetworkObj = (JObject)jNetwork.Value;
                 if (jNetworkObj["name"] == null)
-                    throw new AccessForbiddenException("Specified 'network' object must include 'name' property!");
+                    throw new InvalidDataException("Specified 'network' object must include 'name' property!");
 
                 network = DataContext.Network.Get((string)jNetworkObj["name"]);
                 if (network == null)
@@ -126,7 +107,7 @@ namespace DeviceHive.Core.Services
 
                 // check passed network key
                 if (verifyNetworkKey && network.Key != null && (string)jNetworkObj["key"] != network.Key)
-                    throw new AccessForbiddenException("Could not register a device because target network is protected with a key!");
+                    throw new UnauthroizedNetworkException("Could not register a device because target network is protected with a key!");
 
                 jNetwork.Value = (long)network.ID;
             }
@@ -136,16 +117,16 @@ namespace DeviceHive.Core.Services
         {
             var jDeviceClass = json.Property("deviceClass");
             if (isRequired && jDeviceClass == null)
-                throw new BadRequestException("Required 'deviceClass' property was not specified!");
+                throw new InvalidDataException("Required 'deviceClass' property was not specified!");
 
             if (jDeviceClass != null && jDeviceClass.Value is JObject)
             {
                 // search device class by name/version or auto-create if it does not exist
                 var jDeviceClassObj = (JObject)jDeviceClass.Value;
                 if (jDeviceClassObj["name"] == null)
-                    throw new BadRequestException("Specified 'deviceClass' object must include 'name' property!");
+                    throw new InvalidDataException("Specified 'deviceClass' object must include 'name' property!");
                 if (jDeviceClassObj["version"] == null)
-                    throw new BadRequestException("Specified 'deviceClass' object must include 'version' property!");
+                    throw new InvalidDataException("Specified 'deviceClass' object must include 'version' property!");
 
                 var deviceClass = DataContext.DeviceClass.Get((string)jDeviceClassObj["name"], (string)jDeviceClassObj["version"]);
                 if (deviceClass == null)

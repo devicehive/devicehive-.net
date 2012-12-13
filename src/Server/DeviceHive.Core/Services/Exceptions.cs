@@ -19,27 +19,27 @@ namespace DeviceHive.Core.Services
     /// <summary>
     /// Thrown if client sent invalid request
     /// </summary>
-    public class BadRequestException : ServiceException
+    public class InvalidDataException : ServiceException
     {
         /// <summary>
-        /// Creates new <see cref="BadRequestException"/> with specified message
+        /// Creates new <see cref="InvalidDataException"/> with specified message
         /// </summary>
         /// <param name="message">Exception message</param>
-        public BadRequestException(string message) : base(message)
+        public InvalidDataException(string message) : base(message)
         {
         }
     }
 
     /// <summary>
-    /// Thrown if access to specific resource is forbidden
+    /// Thrown if access to specific device network is forbidden
     /// </summary>
-    public class AccessForbiddenException : ServiceException
+    public class UnauthroizedNetworkException : ServiceException
     {
         /// <summary>
-        /// Creates new <see cref="AccessForbiddenException"/> with specified message
+        /// Creates new <see cref="UnauthroizedNetworkException"/> with specified message
         /// </summary>
         /// <param name="message">Exception message</param>
-        public AccessForbiddenException(string message) : base(message)
+        public UnauthroizedNetworkException(string message) : base(message)
         {
         }
     }

@@ -34,7 +34,7 @@ namespace DeviceHive.Core.Services
         {
             var result = new List<ValidationResult>();
             if (!Validator.TryValidateObject(entity, new ValidationContext(entity, null, null), result, true))
-                throw new BadRequestException(result.First().ErrorMessage);
+                throw new InvalidDataException(result.First().ErrorMessage);
         }
     }
 }

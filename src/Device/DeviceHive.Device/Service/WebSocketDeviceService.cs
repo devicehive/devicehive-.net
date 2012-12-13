@@ -99,6 +99,22 @@ namespace DeviceHive.Device
         }
 
         /// <summary>
+        /// Gets device from the DeviceHive network.
+        /// </summary>
+        /// <param name="device"><see cref="Device"/> object with a valid unique identifier and key.</param>
+        /// <returns><see cref="Device"/> object from DeviceHive.</returns>
+        public Device GetDevice(Device device,
+            Guid? deviceGuid = null, string deviceKey = null)
+        {
+            if (!_isConnected)
+                Open();
+
+            var res = SendRequest("device/get", deviceGuid, deviceKey);
+            var deviceJson = (JObject) res["device"];
+            return Deserialize<Device>(deviceJson);
+        }
+
+        /// <summary>
         /// Sends new device notification to the service.
         /// </summary>
         /// <param name="notification">A <see cref="Notification"/> object</param>
