@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -39,9 +40,9 @@ namespace DeviceHive.Client
         /// <param name="password">Password used for service authentication.</param>
         public WebSocketsClientService(string serviceUrl, string login, string password)
         {
-            _webSocket = new WebSocket(serviceUrl);
-            _webSocket.MessageReceived += (s, e) => HandleMessage(e.Message);
-            _webSocket.Opened += (s, e) => Authenticate(login, password);
+            _webSocket = new WebSocket(serviceUrl) { EnableAutoSendPing = false };
+            _webSocket.MessageReceived += (s, e) => Task.Factory.StartNew(() => HandleMessage(e.Message));
+            _webSocket.Opened += (s, e) => Task.Factory.StartNew(() => Authenticate(login, password));
             _webSocket.Closed += (s, e) => _cancelWaitHandle.Set();
         }
         

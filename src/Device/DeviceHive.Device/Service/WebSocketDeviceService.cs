@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -40,9 +41,9 @@ namespace DeviceHive.Device
         /// <param name="deviceKey">Device key for authentication.</param>
         public WebSocketDeviceService(string serviceUrl, Guid? deviceGuid = null, string deviceKey = null)
         {
-            _webSocket = new WebSocket(serviceUrl); // todo: maybe we should pass URL without /device and add it here?
-            _webSocket.MessageReceived += (s, e) => HandleMessage(e.Message);
-            _webSocket.Opened += (s, e) => Authenticate(deviceGuid, deviceKey);
+            _webSocket = new WebSocket(serviceUrl) { EnableAutoSendPing = false };
+            _webSocket.MessageReceived += (s, e) => Task.Factory.StartNew(() => HandleMessage(e.Message));
+            _webSocket.Opened += (s, e) => Task.Factory.StartNew(() => Authenticate(deviceGuid, deviceKey));
             _webSocket.Closed += (s, e) => _cancelWaitHandle.Set();
         }
         
