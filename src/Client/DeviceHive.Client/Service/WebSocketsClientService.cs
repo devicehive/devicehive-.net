@@ -40,6 +40,8 @@ namespace DeviceHive.Client
         /// <param name="password">Password used for service authentication.</param>
         public WebSocketsClientService(string serviceUrl, string login, string password)
         {
+            Timeout = 100000;
+
             _webSocket = new WebSocket(serviceUrl) { EnableAutoSendPing = false };
             _webSocket.MessageReceived += (s, e) => Task.Factory.StartNew(() => HandleMessage(e.Message));
             _webSocket.Opened += (s, e) => Task.Factory.StartNew(() => Authenticate(login, password));
@@ -86,6 +88,16 @@ namespace DeviceHive.Client
 
         #endregion
 
+        #region Public properties
+
+        /// <summary>
+        /// The number of miliseconds to wait before the request times out.
+        /// The default value is 100,000 milliseconds (100 seconds)
+        /// </summary>
+        public int Timeout { get; set; }
+
+        #endregion
+
         #region Public methods
 
         /// <summary>
@@ -104,7 +116,7 @@ namespace DeviceHive.Client
             }
 
             _webSocket.Open();
-            WaitHandle.WaitAny(new WaitHandle[] {_authWaitHandle, _cancelWaitHandle});
+            WaitHandle.WaitAny(new WaitHandle[] {_authWaitHandle, _cancelWaitHandle}, Timeout);
 
             if (!_isAuthenticated)
                 throw new ClientServiceException("Authentication error");
@@ -199,7 +211,7 @@ namespace DeviceHive.Client
             var requestJson = new JObject(commonProperties.Concat(args).Cast<object>().ToArray());
             _webSocket.Send(requestJson.ToString());
 
-            WaitHandle.WaitAny(new[] {requestInfo.WaitHandle, _cancelWaitHandle});
+            WaitHandle.WaitAny(new[] {requestInfo.WaitHandle, _cancelWaitHandle}, Timeout);
             
             if (requestInfo.Result == null)
                 throw new ClientServiceException("WebSocket connection was unexpectly closed");
@@ -239,7 +251,7 @@ namespace DeviceHive.Client
         private void HandleNotificationInsert(JObject json)
         {
             var notificationJson = (JObject) json["notification"];
-            var deviceGuid = (Guid) notificationJson["deviceGuid"];
+            var deviceGuid = (Guid) json["deviceGuid"];
             var notification = Deserialize<Notification>(notificationJson);
             OnNotificationInserted(deviceGuid, notification);
         }

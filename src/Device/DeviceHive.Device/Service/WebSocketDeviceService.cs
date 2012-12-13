@@ -41,6 +41,8 @@ namespace DeviceHive.Device
         /// <param name="deviceKey">Device key for authentication.</param>
         public WebSocketDeviceService(string serviceUrl, Guid? deviceGuid = null, string deviceKey = null)
         {
+            Timeout = 100000;
+
             _webSocket = new WebSocket(serviceUrl) { EnableAutoSendPing = false };
             _webSocket.MessageReceived += (s, e) => Task.Factory.StartNew(() => HandleMessage(e.Message));
             _webSocket.Opened += (s, e) => Task.Factory.StartNew(() => Authenticate(deviceGuid, deviceKey));
@@ -65,6 +67,16 @@ namespace DeviceHive.Device
 
         #endregion
 
+        #region Public properties
+
+        /// <summary>
+        /// The number of miliseconds to wait before the request times out.
+        /// The default value is 100,000 milliseconds (100 seconds)
+        /// </summary>
+        public int Timeout { get; set; }
+
+        #endregion
+
         #region Public methods
 
         /// <summary>
@@ -84,7 +96,7 @@ namespace DeviceHive.Device
             }
 
             _webSocket.Open();
-            WaitHandle.WaitAny(new WaitHandle[] {_authWaitHandle, _cancelWaitHandle});
+            WaitHandle.WaitAny(new WaitHandle[] {_authWaitHandle, _cancelWaitHandle}, Timeout);
 
             if (!_isConnected)
                 throw new DeviceServiceException("WebSocket connection error");
@@ -217,7 +229,7 @@ namespace DeviceHive.Device
             var requestJson = new JObject(commonProperties.Concat(args).Cast<object>().ToArray());
             _webSocket.Send(requestJson.ToString());
 
-            WaitHandle.WaitAny(new[] {requestInfo.WaitHandle, _cancelWaitHandle});
+            WaitHandle.WaitAny(new[] {requestInfo.WaitHandle, _cancelWaitHandle}, Timeout);
 
             if (requestInfo.Result == null)
                 throw new DeviceServiceException("WebSocket connection was unexpectly closed");

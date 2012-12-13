@@ -15,7 +15,7 @@ namespace DeviceHive.Client
     /// Provides default implementation of the <see cref="IClientService"/> interface to connect a client with the RESTful DeviceHive service.
     /// Using this class, clients can get information about networks and devices, receive notification and send commands.
     /// </summary>
-    public class RestfulClientService : IClientService
+    public class RestfulClientService : IClientService, IDisposable
     {
         #region Private fields
 
@@ -569,5 +569,19 @@ namespace DeviceHive.Client
             #endregion
         }
         #endregion
-	}
+
+        #region Implementation of IDisposable
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
+        {
+            if (_webSocketsClientService != null)
+                _webSocketsClientService.Dispose();
+        }
+
+        #endregion
+    }
 }

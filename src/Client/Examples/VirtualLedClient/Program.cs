@@ -23,7 +23,8 @@ namespace VirtualLedClient
                 ; var service = new RestfulClientService("http://localhost/DeviceHive.API", "dhadmin", "dhadmin_#911");
 
                 // get information about VirtualLed device
-                var device = service.GetDevice(new Guid("E50D6085-2ABA-48E9-B1C3-73C673E414BE"));
+                var deviceGuid = new Guid("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
+                var device = service.GetDevice(deviceGuid);
                 if (device == null)
                 {
                     Console.WriteLine("VirtualLed device does not exist on the server, please run VirtualLed device first!");
@@ -40,10 +41,9 @@ namespace VirtualLedClient
                     Console.WriteLine("Current state of the VirtualLed: " + ledEquipmentState.GetParameter<int>("state"));
                 }
 
-                // start the device notification handling task
-                var cancellationSource = new CancellationTokenSource();
-                var token = cancellationSource.Token;
-                var task = Task.Factory.StartNew(() => { HandleNotifications(service, device, token); }, token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                // subscribe to device notifications
+                service.NotificationInserted += (s, e) => HandleNotification(e.Notification);
+                service.SubscribeToNotifications(deviceGuid);
 
                 // read user input to send corresponding commands to the VirtualLed device
                 Console.WriteLine("\nPlease enter a desired state of the led (either 0 or 1) or ESC to exit\n");
@@ -63,9 +63,8 @@ namespace VirtualLedClient
                     }
                 }
 
-                // stop the notification handling task
-                cancellationSource.Cancel();
-                task.Wait();
+                // unsubscribe from notifications
+                service.UnsubscribeFromNotifications(deviceGuid);
             }
             catch (Exception ex)
             {
@@ -75,34 +74,10 @@ namespace VirtualLedClient
             }
         }
 
-        private static void HandleNotifications(IClientService service, Device device, CancellationToken token)
+        private static void HandleNotification(Notification notification)
         {
-            try
-            {
-                var timestamp = (DateTime?)null;
-                while (true)
-                {
-                    // poll notification from the server
-                    var notifications = service.PollNotifications(device.Id.Value, timestamp, token);
-                    if (notifications == null)
-                        continue;
-
-                    // display information about received notification
-                    foreach (var notification in notifications.Where(n =>
-                        n.Name == "equipment" && n.GetParameter<string>("equipment") == LED_CODE))
-                    {
-                        var message = "Device sent LED state change notification, new state: {0}";
-                        Console.WriteLine(string.Format(message, notification.GetParameter<int>("state")));
-                    }
-
-                    // update last received notification timestamp
-                    timestamp = notifications.Max(n => n.Timestamp.Value);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
+            var message = "Device sent LED state change notification, new state: {0}";
+            Console.WriteLine(string.Format(message, notification.GetParameter<int>("state")));
         }
     }
 }
