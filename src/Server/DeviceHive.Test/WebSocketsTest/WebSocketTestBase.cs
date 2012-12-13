@@ -38,18 +38,37 @@ namespace DeviceHive.Test.WebSocketsTest
             if (device != null)
                 return;
 
-            var network = dataContext.Network.GetAll().FirstOrDefault();
-            var deviceClass = dataContext.DeviceClass.GetAll().FirstOrDefault();
-
             device = new Device(deviceGuid)
             {
                 Name = "test device",
-                Network = network,
-                DeviceClass = deviceClass,
+                Network = GetNetwork(dataContext),
+                DeviceClass = GetDeviceClass(dataContext),
                 Key = DeviceKey
             };
 
             dataContext.Device.Save(device);
+        }
+
+        private Network GetNetwork(DataContext dataContext)
+        {
+            var network = dataContext.Network.Get("test network");
+            if (network != null)
+                return network;
+                        
+            network = new Network("test network");
+            dataContext.Network.Save(network);
+            return network;
+        }
+
+        private DeviceClass GetDeviceClass(DataContext dataContext)
+        {
+            var deviceClass = dataContext.DeviceClass.Get("device class", "1");
+            if (deviceClass != null)
+                return deviceClass;
+
+            deviceClass = new DeviceClass("device class", "1");
+            dataContext.DeviceClass.Save(deviceClass);
+            return deviceClass;
         }
 
         protected ClientControllerWrapper ClientController { get; private set; }
