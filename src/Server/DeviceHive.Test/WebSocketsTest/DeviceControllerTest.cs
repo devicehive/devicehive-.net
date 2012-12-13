@@ -212,5 +212,32 @@ namespace DeviceHive.Test.WebSocketsTest
         }
 
         #endregion
+
+
+        #region Device get / update
+
+        [Test]
+        public void DeviceGetUpdate_ValidRequest()
+        {
+            var connection = DeviceController.Connect();
+            DeviceController.Authenticate(connection, DeviceGUID, DeviceKey);
+            
+            var res = DeviceController.GetDevice(connection);
+            var device = (JObject) res["device"];
+            Expect((string) device["name"], EqualTo("test device"));
+
+            device["name"] = "updated name";
+            res = DeviceController.SaveDevice(connection, DeviceGUID, device);
+            Expect((string) res["status"], EqualTo("success"));
+
+            res = DeviceController.GetDevice(connection);
+            device = (JObject)res["device"];
+            Expect((string)device["name"], EqualTo("updated name"));
+
+            device["name"] = "test device";
+            DeviceController.SaveDevice(connection, DeviceGUID, device);
+        }
+
+        #endregion
     }
 }

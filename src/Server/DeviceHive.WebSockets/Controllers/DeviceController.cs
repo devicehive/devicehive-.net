@@ -162,7 +162,8 @@ namespace DeviceHive.WebSockets.Controllers
         [Action("device/get", NeedAuthentication = true)]
         public void GetDevice()
         {
-            SendResponse(new JProperty("device", _deviceMapper.Map(CurrentDevice)));
+            var device = DataContext.Device.Get(CurrentDevice.ID);
+            SendResponse(new JProperty("device", _deviceMapper.Map(device)));
         }
 
         [Action("device/save", NeedAuthentication = false)]
@@ -174,7 +175,13 @@ namespace DeviceHive.WebSockets.Controllers
                 var deviceEntity = DataContext.Device.Get(deviceGuid);
                 if (deviceEntity != null)
                 {
-                    if (!AuthenticateImpl() || CurrentDevice.GUID != deviceGuid)
+                    if (CurrentDevice == null)
+                    {
+                        if (!AuthenticateImpl())
+                            throw new WebSocketRequestException("Not authorized");
+                    }
+
+                    if (CurrentDevice.GUID != deviceGuid)
                         throw new WebSocketRequestException("Not authorized");
                 }
                 else

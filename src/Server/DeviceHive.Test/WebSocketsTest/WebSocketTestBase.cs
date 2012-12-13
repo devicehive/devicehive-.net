@@ -36,7 +36,14 @@ namespace DeviceHive.Test.WebSocketsTest
         {
             var device = dataContext.Device.Get(deviceGuid);
             if (device != null)
+            {
+                if (device.Name == "test device")
+                    return;
+                
+                device.Name = "test device";
+                dataContext.Device.Save(device);
                 return;
+            }
 
             device = new Device(deviceGuid)
             {

@@ -52,5 +52,17 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
         {
             return InvokeAction(connection, "command/unsubscribe", null);
         }
+
+        public JObject GetDevice(StubWebSocketConnection connection)
+        {
+            return InvokeAction(connection, "device/get", null);
+        }
+
+        public JObject SaveDevice(StubWebSocketConnection connection, Guid deviceGuid, JObject device)
+        {
+            return InvokeAction(connection, "device/save", new JObject(
+                new JProperty("deviceGuid", deviceGuid),
+                new JProperty("device", device)));
+        }
     }
 }
