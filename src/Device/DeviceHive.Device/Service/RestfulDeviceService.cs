@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -21,10 +22,8 @@ namespace DeviceHive.Device
 
         private WebSocketDeviceService _webSocketDeviceService;
 
-        private Thread _commandPollThread;
-
-        private readonly CancellationTokenSource _commandPollCancellationTokenSource =
-            new CancellationTokenSource();
+        private readonly Dictionary<Guid, CommandSubscriptionTask> _commandSubscriptionTasks =
+            new Dictionary<Guid, CommandSubscriptionTask>();
 
         #endregion
 
@@ -225,7 +224,17 @@ namespace DeviceHive.Device
                 return;
             }
 
-            // todo: implement command polling for multiple devices
+            if (_commandSubscriptionTasks.ContainsKey(deviceId))
+                return;
+
+            lock (_commandSubscriptionTasks)
+            {
+                if (_commandSubscriptionTasks.ContainsKey(deviceId))
+                    return;
+
+                var task = new CommandSubscriptionTask(this, deviceId, deviceKey);
+                _commandSubscriptionTasks.Add(deviceId, task);
+            }
         }
 
         /// <summary>
@@ -241,7 +250,17 @@ namespace DeviceHive.Device
                 return;
             }
 
-            // todo: implement command polling for multiple devices
+            if (!_commandSubscriptionTasks.ContainsKey(deviceId))
+                return;
+
+            lock (_commandSubscriptionTasks)
+            {
+                CommandSubscriptionTask task;
+                if (!_commandSubscriptionTasks.TryGetValue(deviceId, out task))
+                    return;
+
+                task.Cancel();
+            }
         }
 
         /// <summary>
@@ -531,6 +550,48 @@ namespace DeviceHive.Device
             }
             #endregion
         }
+        #endregion
+
+        #region CommandSubscriptionTask class
+
+        private class CommandSubscriptionTask
+        {
+            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+            public CommandSubscriptionTask(RestfulDeviceService restfulDeviceService,
+                Guid deviceId, string deviceKey)
+            {
+                var apiInfo = restfulDeviceService.Get<ApiInfo>("/info");
+                var startTime = apiInfo.ServerTimestamp;
+
+                Task.Factory.StartNew(() =>
+                {
+                    try
+                    {
+                        while (true)
+                        {
+                            var сommands = restfulDeviceService.PollCommands(deviceId, deviceKey,
+                                startTime, _cancellationTokenSource.Token);
+
+                            foreach (var command in сommands)
+                            {
+                                var eventArgs = new CommandEventArgs(deviceId, command);
+                                restfulDeviceService.OnCommandInserted(eventArgs);
+                            }
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                });
+            }
+
+            public void Cancel()
+            {
+                _cancellationTokenSource.Cancel();
+            }
+        }
+
         #endregion
 
         #region Implementation of IDisposable

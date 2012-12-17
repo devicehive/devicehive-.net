@@ -58,11 +58,11 @@ namespace DeviceHive.Device
         /// </summary>
         public event EventHandler<CommandEventArgs> CommandInserted;
 
-        protected void OnCommandInserted(Command command)
+        protected void OnCommandInserted(CommandEventArgs eventArgs)
         {
             var handler = CommandInserted;
             if (handler != null)
-                handler(this, new CommandEventArgs(command));
+                handler(this, eventArgs);
         }
 
         #endregion
@@ -292,9 +292,10 @@ namespace DeviceHive.Device
 
         private void HandleCommandInsert(JObject json)
         {
+            var deviceGuid = (Guid) json["deviceGuid"];
             var commandJson = (JObject) json["command"];
             var command = Deserialize<Command>(commandJson);
-            OnCommandInserted(command);
+            OnCommandInserted(new CommandEventArgs(deviceGuid, command));
         }
 
         private static JObject Serialize<T>(T obj, NullValueHandling nullValueHandling = NullValueHandling.Include) where T : class

@@ -7,16 +7,26 @@ namespace DeviceHive.Device
     /// </summary>
     public class CommandEventArgs : EventArgs
     {
-        private readonly Command _command;
+        private readonly Guid _deviceGuid;
+        private readonly Command _command;        
 
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="command">Command object</param>
-        public CommandEventArgs(Command command)
+        public CommandEventArgs(Guid deviceGuid, Command command)
         {
             _command = command;
+            _deviceGuid = deviceGuid;
         }
+
+        /// <summary>
+        /// Gets device unique identifier
+        /// </summary>
+        public Guid DeviceGuid
+        {
+            get { return _deviceGuid; }
+        }        
 
         /// <summary>
         /// Gets command object
