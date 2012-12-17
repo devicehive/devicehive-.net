@@ -10,14 +10,6 @@ namespace DeviceHive.Data.EF
 {
     public class DeviceCommandRepository : IDeviceCommandRepository
     {
-        public DateTime GetCurrentTimestamp()
-        {
-            using (var context = new DeviceHiveContext())
-            {
-                return context.Database.SqlQuery<DateTime>("select sysutcdatetime()").First();
-            }
-        }
-
         public List<DeviceCommand> GetByDevice(int deviceId, DateTime? start, DateTime? end)
         {
             using (var context = new DeviceHiveContext())
@@ -27,7 +19,7 @@ namespace DeviceHive.Data.EF
                     query = query.Where(e => e.Timestamp >= start.Value);
                 if (end != null)
                     query = query.Where(e => e.Timestamp <= end.Value);
-                return query.ToList();
+                return query.OrderBy(e => e.Timestamp).Take(1000).ToList();
             }
         }
 

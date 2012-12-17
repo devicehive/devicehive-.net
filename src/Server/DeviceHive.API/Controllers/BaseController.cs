@@ -61,8 +61,10 @@ namespace DeviceHive.API.Controllers
             if (networkId == null)
                 return false;
 
-            var userNetworks = DataContext.UserNetwork.GetByUser(RequestContext.CurrentUser.ID);
-            return userNetworks.Any(un => un.NetworkID == networkId);
+            if (RequestContext.CurrentUserNetworks == null)
+                RequestContext.CurrentUserNetworks = DataContext.UserNetwork.GetByUser(RequestContext.CurrentUser.ID);
+
+            return RequestContext.CurrentUserNetworks.Any(un => un.NetworkID == networkId);
         }
 
         protected IJsonMapper<T> GetMapper<T>()

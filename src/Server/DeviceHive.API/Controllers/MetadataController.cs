@@ -122,7 +122,7 @@ namespace DeviceHive.API.Controllers
                                 Name = p.Name,
                                 Type = ToJsonType(p.ParameterDescriptor.ParameterType),
                                 Documentation = parameterElement.Contents(),
-                                IsRequred = p.ParameterDescriptor.DefaultValue == null &&
+                                IsRequred = !p.ParameterDescriptor.IsOptional &&
                                     !(p.ParameterDescriptor.ParameterType.IsGenericType &&
                                     p.ParameterDescriptor.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)),
                             };
@@ -262,6 +262,8 @@ namespace DeviceHive.API.Controllers
                     var cref = GetCrefType(parameterElement);
                     if (cref != null)
                     {
+                        if (param.Type == null)
+                            param.Type = "object";
                         parameters.AddRange(GetTypeParameters(cref, JsonMapperEntryMode.OneWayToSource, param.Name + (type == "array" ? "[]" : null)));
                     }
                 }

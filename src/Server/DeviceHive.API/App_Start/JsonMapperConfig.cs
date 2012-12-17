@@ -73,6 +73,10 @@ namespace DeviceHive.API
                 .Property(e => e.Code, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.OneWay)
                 .RawJsonProperty(e => e.Parameters, "parameters", JsonMapperEntryMode.OneWay);
+
+            context.Kernel.ConfigureMapping<ApiInfo>()
+                .Property(e => e.ApiVersion, "apiVersion")
+                .Property(e => e.ServerTimestamp, "serverTimestamp");
         }
     }
 

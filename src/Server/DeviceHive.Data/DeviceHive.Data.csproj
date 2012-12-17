@@ -66,6 +66,7 @@
     <Compile Include="EF\DeviceRepository.cs" />
     <Compile Include="EF\EquipmentRepository.cs" />
     <Compile Include="EF\NetworkRepository.cs" />
+    <Compile Include="EF\TimestampRepository.cs" />
     <Compile Include="EF\UserNetworkRepository.cs" />
     <Compile Include="EF\UserRepository.cs" />
     <Compile Include="Migrations\201208020910522_6.1.cs" />
@@ -88,7 +89,13 @@
     <Compile Include="Migrations\201212071109516_7.3.Designer.cs">
       <DependentUpon>201212071109516_7.3.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201212111857162_7.4.cs" />
+    <Compile Include="Migrations\201212111857162_7.4.Designer.cs">
+      <DependentUpon>201212111857162_7.4.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Migrator.cs" />
+    <Compile Include="Model\ApiInfo.cs" />
+    <Compile Include="Repositories\ITimestampRepository.cs" />
     <Compile Include="Validation\JsonFieldAttribute.cs" />
     <Compile Include="Migrations\201205191537489_5.cs" />
     <Compile Include="Migrations\201205191537489_5.Designer.cs">
