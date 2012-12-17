@@ -95,7 +95,7 @@ namespace DeviceHive.API.Controllers
                 if ((RequestContext.CurrentUser == null || RequestContext.CurrentUser.Role != (int)UserRole.Administrator) &&
                     (RequestContext.CurrentDevice == null || RequestContext.CurrentDevice.GUID != id))
                 {
-                    throw new UnauthroizedNetworkException("Not authorized");
+                    ThrowHttpResponse(HttpStatusCode.Unauthorized,  "Not authorized");
                 }
             }
             else
