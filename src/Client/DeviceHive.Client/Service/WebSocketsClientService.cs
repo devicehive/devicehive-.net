@@ -40,7 +40,7 @@ namespace DeviceHive.Client
         /// <param name="password">Password used for service authentication.</param>
         public WebSocketsClientService(string serviceUrl, string login, string password)
         {
-            Timeout = 100000;
+            Timeout = 30000;
 
             _webSocket = new WebSocket(serviceUrl) { EnableAutoSendPing = false };
             _webSocket.MessageReceived += (s, e) => Task.Factory.StartNew(() => HandleMessage(e.Message));
@@ -92,7 +92,7 @@ namespace DeviceHive.Client
 
         /// <summary>
         /// The number of miliseconds to wait before the request times out.
-        /// The default value is 100,000 milliseconds (100 seconds)
+        /// The default value is 30,000 milliseconds (30 seconds)
         /// </summary>
         public int Timeout { get; set; }
 

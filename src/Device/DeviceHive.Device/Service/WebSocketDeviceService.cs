@@ -41,7 +41,7 @@ namespace DeviceHive.Device
         /// <param name="deviceKey">Device key for authentication.</param>
         public WebSocketDeviceService(string serviceUrl, Guid? deviceGuid = null, string deviceKey = null)
         {
-            Timeout = 100000;
+            Timeout = 30000;
 
             _webSocket = new WebSocket(serviceUrl) { EnableAutoSendPing = false };
             _webSocket.MessageReceived += (s, e) => Task.Factory.StartNew(() => HandleMessage(e.Message));
@@ -71,7 +71,7 @@ namespace DeviceHive.Device
 
         /// <summary>
         /// The number of miliseconds to wait before the request times out.
-        /// The default value is 100,000 milliseconds (100 seconds)
+        /// The default value is 30,000 milliseconds (30 seconds)
         /// </summary>
         public int Timeout { get; set; }
 
