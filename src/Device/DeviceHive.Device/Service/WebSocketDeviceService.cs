@@ -128,13 +128,13 @@ namespace DeviceHive.Device
         /// <summary>
         /// Registers new device
         /// </summary>
-        public Device RegisterDevice(Device device)
+        public Device RegisterDevice(Guid? deviceGuid, Device device)
         {
             if (!_isConnected)
                 Open();
 
             var deviceJson = Serialize(device);
-            var res = SendRequest("device/save", device.Id, null,
+            var res = SendRequest("device/save", deviceGuid, device.Key,
                 new JProperty("device", deviceJson));
             deviceJson = (JObject) res["device"];
             return Deserialize<Device>(deviceJson);
@@ -249,7 +249,7 @@ namespace DeviceHive.Device
             };
 
             if (deviceGuid.HasValue)
-                commonProperties.Add(new JProperty("deviceGuid", deviceGuid.Value));
+                commonProperties.Add(new JProperty("deviceId", deviceGuid.Value));
 
             if (deviceKey != null)
                 commonProperties.Add(new JProperty("deviceKey", deviceKey));

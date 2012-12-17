@@ -167,12 +167,12 @@ namespace DeviceHive.WebSockets.Controllers
         }
 
         [Action("device/save", NeedAuthentication = false)]
-        public void SaveDevice(Guid deviceGuid, JObject device)
+        public void SaveDevice(Guid deviceId, JObject device)
         {
             try
             {
                 // load device from repository
-                var deviceEntity = DataContext.Device.Get(deviceGuid);
+                var deviceEntity = DataContext.Device.Get(deviceId);
                 if (deviceEntity != null)
                 {
                     if (CurrentDevice == null)
@@ -181,13 +181,13 @@ namespace DeviceHive.WebSockets.Controllers
                             throw new WebSocketRequestException("Not authorized");
                     }
 
-                    if (CurrentDevice.GUID != deviceGuid)
+                    if (CurrentDevice.GUID != deviceId)
                         throw new WebSocketRequestException("Not authorized");
                 }
                 else
                 {
                     // otherwise, create new device
-                    deviceEntity = new Device(deviceGuid);
+                    deviceEntity = new Device(deviceId);
                 }
 
                 AuthenticateImpl();

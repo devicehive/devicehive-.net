@@ -109,7 +109,7 @@ namespace DeviceHive.Device
 
             var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
             if (InitWebSocketsService())
-                return _webSocketDeviceService.RegisterDevice(d);
+                return _webSocketDeviceService.RegisterDevice(device.Id, d);
 
             return Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d);
         }
