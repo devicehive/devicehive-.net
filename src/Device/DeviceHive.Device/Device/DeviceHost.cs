@@ -99,6 +99,14 @@ namespace DeviceHive.Device
             _tasks = new List<Task>();
             _cancellationSource = new CancellationTokenSource();
             var token = _cancellationSource.Token;
+
+            DeviceClient.CommandInserted += (s, e) =>
+            {
+                var device = Devices.FirstOrDefault(d => d.ID == e.DeviceGuid);
+                if (device != null)
+                    Task.Factory.StartNew(() => DispatchCommandTask(device, e.Command));
+            };
+
             foreach (var device in Devices)
             {
                 Logger.InfoFormat("Staring device {0} ({1})", device.ID, device.Name);
@@ -107,7 +115,7 @@ namespace DeviceHive.Device
                 _tasks.Add(Task.Factory.StartNew(() => MainDeviceTask(deviceCopy), token, TaskCreationOptions.LongRunning, TaskScheduler.Default));
                 if (device.ListenCommands)
                 {
-                    _tasks.Add(Task.Factory.StartNew(() => PollCommandsTask(deviceCopy), token, TaskCreationOptions.LongRunning, TaskScheduler.Default));
+                    DeviceClient.SubscribeToCommands(device.ID, device.Key);
                 }
             }
 
@@ -244,42 +252,6 @@ namespace DeviceHive.Device
                 // operation faulted - log the error and stop the task
                 Logger.Error(string.Format("Exception in main thread of device {0} ({1})", device.ID, device.Name), ex);
                 throw;
-            }
-        }
-
-        private void PollCommandsTask(DeviceBase device)
-        {
-            var timestamp = (DateTime?)null;
-            var token = _cancellationSource.Token;
-            while (true)
-            {
-                // poll commands
-                List<Command> cCommands;
-                try
-                {
-                    cCommands = DeviceClient.PollCommands(device.ID, device.Key, timestamp, token);
-                }
-                catch (OperationCanceledException)
-                {
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    // not critical - will retry
-                    Logger.Error(string.Format("Exception while polling commands for device {0} ({1})", device.ID, device.Name), ex);
-                    token.WaitHandle.WaitOne(1000);
-                    continue;
-                }
-
-                // dispatch comands to device
-                timestamp = cCommands.Max(c => c.Timestamp.Value);
-                foreach (var cCommand in cCommands)
-                {
-                    Logger.InfoFormat("Dispatching command '{0}' to device {1} ({2})", cCommand.Name, device.ID, device.Name);
-
-                    var cCommandCopy = cCommand;
-                    _tasks.Add(Task.Factory.StartNew(() => DispatchCommandTask(device, cCommandCopy), token));
-                }
             }
         }
 
