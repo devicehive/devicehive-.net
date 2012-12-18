@@ -148,6 +148,12 @@ namespace DeviceHive.Device
             catch (AggregateException)
             {
             }
+
+            // unsubscribe from commands
+            foreach (var device in Devices)
+            {
+                DeviceClient.UnsubscribeFromCommands(device.ID, device.Key);
+            }
             
             // reset the properties
             _tasks = null;

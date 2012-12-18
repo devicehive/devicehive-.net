@@ -36,7 +36,9 @@ namespace DeviceHive.WebSockets.Network
         {
             var connection = GetConnection(connectionIdentity);
             _connections.Remove(connectionIdentity);
-            OnConnectionClosed(new WebSocketConnectionEventArgs(connection));
+
+            if (connection != null)
+                OnConnectionClosed(new WebSocketConnectionEventArgs(connection));
         }
 
         #endregion
