@@ -331,9 +331,12 @@ namespace DeviceHive.Device
 
             try
             {
-                _webSocketDeviceService = new WebSocketDeviceService(serviceUrl + "/device");
-                _webSocketDeviceService.Open();
-                _webSocketDeviceService.CommandInserted += (s, e) => OnCommandInserted(e);
+                var webSocketDeviceService = new WebSocketDeviceService(serviceUrl + "/device");
+                webSocketDeviceService.Open();
+                webSocketDeviceService.CommandInserted += (s, e) => OnCommandInserted(e);
+                
+                _webSocketDeviceService = webSocketDeviceService;
+
                 return true;
             }
             catch (DeviceServiceException)
@@ -562,7 +565,7 @@ namespace DeviceHive.Device
                 Guid deviceId, string deviceKey)
             {
                 var apiInfo = restfulDeviceService.Get<ApiInfo>("/info");
-                var startTime = apiInfo.ServerTimestamp;
+                var timestamp = apiInfo.ServerTimestamp;
 
                 Task.Factory.StartNew(() =>
                 {
@@ -571,13 +574,15 @@ namespace DeviceHive.Device
                         while (true)
                         {
                             var сommands = restfulDeviceService.PollCommands(deviceId, deviceKey,
-                                startTime, _cancellationTokenSource.Token);
+                                timestamp, _cancellationTokenSource.Token);
 
                             foreach (var command in сommands)
                             {
                                 var eventArgs = new CommandEventArgs(deviceId, command);
                                 restfulDeviceService.OnCommandInserted(eventArgs);
                             }
+
+                            timestamp = сommands.Max(c => c.Timestamp ?? timestamp);
                         }
                     }
                     catch (OperationCanceledException)

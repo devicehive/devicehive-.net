@@ -389,9 +389,12 @@ namespace DeviceHive.Client
 
             try
             {
-                _webSocketsClientService = new WebSocketsClientService(serviceUrl + "/client", Login, Password);
-                _webSocketsClientService.Open();
-                _webSocketsClientService.NotificationInserted += (s, e) => OnNotificationInserted(e);
+                var webSocketsClientService = new WebSocketsClientService(serviceUrl + "/client", Login, Password);
+                webSocketsClientService.Open();
+                webSocketsClientService.NotificationInserted += (s, e) => OnNotificationInserted(e);
+
+                _webSocketsClientService = webSocketsClientService;
+
                 return true;
             }
             catch (ClientServiceException)
@@ -404,7 +407,7 @@ namespace DeviceHive.Client
         private void RestartNotificationPollThread()
         {
             var apiInfo = Get<ApiInfo>("/info");
-            var startTime = apiInfo.ServerTimestamp;
+            var timestamp = apiInfo.ServerTimestamp;
 
             if (_notificationPollThread != null && _notificationPollThread.IsAlive)
             {
@@ -422,7 +425,7 @@ namespace DeviceHive.Client
                     while (true)
                     {
                         var notifications = PollNotifications(_notificationSubscriptionDeviceIds,
-                            startTime, _notificationPollCancellationTokenSource.Token);
+                            timestamp, _notificationPollCancellationTokenSource.Token);
 
                         foreach (var notification in notifications)
                         {
@@ -430,6 +433,8 @@ namespace DeviceHive.Client
                                 notification.DeviceGuid, notification.Notification);
                             OnNotificationInserted(eventArgs);
                         }
+
+                        timestamp = notifications.Max(n => n.Notification.Timestamp ?? timestamp);
                     }
                 }
                 catch (OperationCanceledException)
