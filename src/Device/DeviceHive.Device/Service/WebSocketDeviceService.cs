@@ -143,13 +143,13 @@ namespace DeviceHive.Device
         /// <summary>
         /// Update existing device
         /// </summary>
-        public Device UpdateDevice(Device device, string deviceKey = null)
+        public Device UpdateDevice(Device device, Guid deviceGuid, string deviceKey = null)
         {
             if (!_isConnected)
                 Open();
 
             var deviceJson = Serialize(device, NullValueHandling.Ignore);
-            var res = SendRequest("device/save", device.Id, deviceKey,
+            var res = SendRequest("device/save", deviceGuid, deviceKey,
                 new JProperty("device", deviceJson));
             deviceJson = (JObject)res["device"];
             return Deserialize<Device>(deviceJson);

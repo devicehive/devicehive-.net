@@ -142,7 +142,7 @@ namespace DeviceHive.Device
 
             var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
             if (InitWebSocketsService())
-                return _webSocketDeviceService.UpdateDevice(d, d.Key);
+                return _webSocketDeviceService.UpdateDevice(d, device.Id.Value, device.Key);
 
             return Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d, NullValueHandling.Ignore);
         }
@@ -607,7 +607,7 @@ namespace DeviceHive.Device
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _webSocketDeviceService.Dispose();
         }
 
         #endregion
