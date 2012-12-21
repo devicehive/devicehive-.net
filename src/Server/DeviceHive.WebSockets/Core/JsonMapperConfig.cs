@@ -64,7 +64,7 @@ namespace DeviceHive.WebSockets.Core
                 .Property(e => e.Lifetime, "lifetime")
                 .Property(e => e.Flags, "flags")
                 .Property(e => e.Status, "status")
-                .Property(e => e.Result, "result");
+                .RawJsonProperty(e => e.Result, "result");
 
             context.Kernel.ConfigureMapping<DeviceEquipment>()
                 .Property(e => e.Code, "id", JsonMapperEntryMode.OneWay)
