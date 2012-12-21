@@ -190,8 +190,6 @@ namespace DeviceHive.WebSockets.Controllers
                     deviceEntity = new Device(deviceId);
                 }
 
-                AuthenticateImpl();
-
                 device = _deviceService.SaveDevice(deviceEntity, device);
                 SendResponse(new JProperty("device", device));
             }
