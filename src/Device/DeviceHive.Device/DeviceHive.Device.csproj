@@ -51,9 +51,13 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="WebSocket4Net">
+      <HintPath>..\..\..\packages\WebSocket4Net.0.8\lib\net40\WebSocket4Net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Device\DeviceEquipmentInfo.cs" />
+    <Compile Include="Service\ApiInfo.cs" />
     <Compile Include="Service\DeviceServiceException.cs" />
     <Compile Include="Device\IDeviceServiceChannel.cs" />
     <Compile Include="Helpers\ReflectionExtensions.cs" />
@@ -71,10 +75,12 @@
     <Compile Include="Service\Device.cs" />
     <Compile Include="Service\DeviceClass.cs" />
     <Compile Include="Service\Equipment.cs" />
+    <Compile Include="Service\EventArgs.cs" />
     <Compile Include="Service\IDeviceService.cs" />
     <Compile Include="Service\Network.cs" />
     <Compile Include="Service\Notification.cs" />
     <Compile Include="Service\RestfulDeviceService.cs" />
+    <Compile Include="Service\WebSocketDeviceService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

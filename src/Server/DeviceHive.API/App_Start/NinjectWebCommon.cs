@@ -6,6 +6,7 @@ using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.MessageLogic.NotificationHandlers;
 using DeviceHive.Core.Messaging;
+using DeviceHive.Core.Services;
 using DeviceHive.Data;
 using DeviceHive.Data.EF;
 using DeviceHive.Data.Model;
@@ -78,6 +79,9 @@ namespace DeviceHive.API
 
             // bind data context
             kernel.Bind<DataContext>().ToSelf().InSingletonScope();
+
+            // bind services
+            kernel.Bind<DeviceService>().ToSelf();
 
             // bind json mapper
             kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);

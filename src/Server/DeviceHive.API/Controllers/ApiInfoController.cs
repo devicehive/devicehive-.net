@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
@@ -27,6 +28,7 @@ namespace DeviceHive.API.Controllers
             {
                 ApiVersion = Version.ApiVersion,
                 ServerTimestamp = _timestampRepository.GetCurrentTimestamp(),
+                WebSocketServerUrl = ConfigurationManager.AppSettings["WebSocketServerUrl"]
             };
 
             return Mapper.Map(apiInfo);

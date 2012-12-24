@@ -19,6 +19,14 @@ namespace DeviceHive.Data.Model
         /// </summary>
         public DateTime ServerTimestamp { get; set; }
 
+        /// <summary>
+        /// WebSocket server URL.
+        /// </summary>
+        /// <remarks>
+        /// Should be <c>null</c> if WebSockets are not supported.
+        /// </remarks>
+        public string WebSocketServerUrl { get; set; }
+
         #endregion
     }
 }
