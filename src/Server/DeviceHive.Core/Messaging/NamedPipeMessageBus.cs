@@ -159,6 +159,9 @@ namespace DeviceHive.Core.Messaging
 
         #region IDisposable Members
 
+        /// <summary>
+        /// Disposes the current object
+        /// </summary>
         public void Dispose()
         {
             if (_readThread != null && _readThread.IsAlive)
