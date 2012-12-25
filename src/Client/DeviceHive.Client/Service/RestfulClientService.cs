@@ -285,7 +285,12 @@ namespace DeviceHive.Client
         /// <remarks>
         /// Subscription can be created through <see cref="IClientService.SubscribeToNotifications"/> method.
         /// </remarks>
-        public event EventHandler<NotificationEventArgs> NotificationInserted;        
+        public event EventHandler<NotificationEventArgs> NotificationInserted;
+
+        /// <summary>
+        /// Fires when underlying connection is closed
+        /// </summary>
+        public event EventHandler ConnectionClosed;
 
         /// <summary>
         /// Gets a list of commands sent to the device.
@@ -366,6 +371,16 @@ namespace DeviceHive.Client
                 handler(this, e);
         }
 
+        /// <summary>
+        /// Fires <see cref="ConnectionClosed"/> event
+        /// </summary>
+        protected void OnConnectionClosed()
+        {
+            var handler = ConnectionClosed;
+            if (handler != null)
+                handler(this, EventArgs.Empty);
+        }
+
         #endregion
 
         #region Private Methods
@@ -394,6 +409,7 @@ namespace DeviceHive.Client
                 webSocketsClientService.NotificationInserted += (s, e) => OnNotificationInserted(e);
 
                 _webSocketsClientService = webSocketsClientService;
+                _webSocketsClientService.ConnectionClosed += (s, e) => OnConnectionClosed();
 
                 return true;
             }

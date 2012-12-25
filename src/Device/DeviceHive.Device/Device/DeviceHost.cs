@@ -230,18 +230,21 @@ namespace DeviceHive.Device
             Logger.InfoFormat("Subscribe to device {0} ({1}) commands", device.ID, device.Name);
             if (device.ListenCommands)
             {
-                try
+                while (true)
                 {
-                    DeviceClient.SubscribeToCommands(device.ID, device.Key);
-                }
-                catch (DeviceServiceException e)
-                {
-                    Logger.ErrorFormat("Error when subscribing to device {0} ({1}) commands: {2}",
-                        device.ID, device.Name, e);
+                    try
+                    {
+                        DeviceClient.SubscribeToCommands(device.ID, device.Key);
+                        break;
+                    }
+                    catch (DeviceServiceException e)
+                    {
+                        Logger.ErrorFormat("Error when subscribing to device {0} ({1}) commands: {2}",
+                            device.ID, device.Name, e);
 
-                    // retry operation
-                    Thread.Sleep(100);
-                    SubscribeToCommands(device);
+                        // retry with small wait
+                        Thread.Sleep(100);
+                    }
                 }
             }
         }

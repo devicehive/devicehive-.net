@@ -29,7 +29,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
             catch (Exception e)
             {
                 LogManager.GetLogger(typeof(Router)).Error("WebSocket request error", e);
-            }            
+            }
         }
 
         public void CleanupConnection(WebSocketConnectionBase connection)
