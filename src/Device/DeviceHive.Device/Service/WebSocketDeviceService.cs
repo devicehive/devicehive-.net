@@ -46,7 +46,12 @@ namespace DeviceHive.Device
             _webSocket = new WebSocket(serviceUrl) { EnableAutoSendPing = false };
             _webSocket.MessageReceived += (s, e) => Task.Factory.StartNew(() => HandleMessage(e.Message));
             _webSocket.Opened += (s, e) => Task.Factory.StartNew(() => Authenticate(deviceGuid, deviceKey));
-            _webSocket.Closed += (s, e) => _cancelWaitHandle.Set();
+            _webSocket.Closed += (s, e) =>
+            {
+                _cancelWaitHandle.Set();
+                _isConnected = _isAuthenticated = false;
+                OnConnectionClosed();
+            };
         }
         
         #endregion
@@ -63,6 +68,18 @@ namespace DeviceHive.Device
             var handler = CommandInserted;
             if (handler != null)
                 handler(this, eventArgs);
+        }
+
+        /// <summary>
+        /// Fires when connection is closed
+        /// </summary>
+        public event EventHandler ConnectionClosed;
+
+        protected void OnConnectionClosed()
+        {
+            var handler = ConnectionClosed;
+            if (handler != null)
+                handler(this, EventArgs.Empty);
         }
 
         #endregion
@@ -87,13 +104,19 @@ namespace DeviceHive.Device
             _isAuthenticated = false;
             _isConnected = false;
 
-            if (_webSocket.State != WebSocketState.Closed &&
-                _webSocket.State != WebSocketState.None)
+            if (_webSocket.State == WebSocketState.Closing)
+            {
+                WaitHandle.WaitAny(new WaitHandle[] {_cancelWaitHandle});
+            }
+            else if (_webSocket.State == WebSocketState.Open)
             {
                 _cancelWaitHandle.Reset();
                 _webSocket.Close();
                 WaitHandle.WaitAny(new WaitHandle[] {_cancelWaitHandle});
             }
+
+            _cancelWaitHandle.Reset();
+            _authWaitHandle.Reset();
 
             _webSocket.Open();
             WaitHandle.WaitAny(new WaitHandle[] {_authWaitHandle, _cancelWaitHandle}, Timeout);
