@@ -101,7 +101,7 @@
 
                     <ListView
                         x:Name="notificationsListView"
-                	    Grid.Row="1"
+                        Grid.Row="1"
                         ItemsSource="{Binding Notifications}"
                         ItemTemplate="{StaticResource NotificationsItemTemplate}"
                         ItemContainerStyle="{StaticResource FullWidthListViewItemStyle}"
@@ -118,7 +118,7 @@
 
                     <ListView
                         x:Name="commandsListView"
-                	    Grid.Row="1"
+                        Grid.Row="1"
                         ItemsSource="{Binding Commands}"
                         ItemTemplate="{StaticResource CommandsItemTemplate}"
                         ItemContainerStyle="{StaticResource FullWidthListViewItemStyle}"
@@ -135,7 +135,7 @@
 
                     <ListView
                         x:Name="equipmentListView"
-                	    Grid.Row="1"
+                        Grid.Row="1"
                         ItemsSource="{Binding Equipment}"
                         ItemTemplate="{StaticResource EquipmentItemTemplate}"
                         ItemContainerStyle="{StaticResource FullWidthListViewItemStyle}"
