@@ -163,13 +163,16 @@ namespace DeviceHive.Client
             }
             while (true)
             {
-                var url = string.Format("/device/{0}/notification/poll", deviceId);
-                if (timestamp != null)
-                {
-                    url += "?timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff");
-                }
                 try
                 {
+                    var url = string.Format("/device/{0}/notification/poll", deviceId);
+                    if (timestamp == null)
+                    {
+                        var apiInfo = await GetApiInfoAsync();
+                        timestamp = apiInfo.ServerTimestamp;
+                    }
+                    url += "?timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff");
+
                     var notifications = await GetAsync<List<Notification>>(url, token);
                     if (notifications != null && notifications.Any())
                     {
@@ -207,19 +210,23 @@ namespace DeviceHive.Client
             }
             while (true)
             {
-                var url = "/device/notification/poll";
-                var parameters = new[]
-                {
-                    (timestamp == null) ? null :
-                        "timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff"),
-                    (deviceIds == null || deviceIds.Length == 0) ? null :
-                        "deviceGuids=" + (string.Join(",", deviceIds))
-                };
-                if (parameters.Any())
-                    url += "?" + string.Join("&", parameters);
-
                 try
                 {
+                    var url = "/device/notification/poll";
+                    if (timestamp == null)
+                    {
+                        var apiInfo = await GetApiInfoAsync();
+                        timestamp = apiInfo.ServerTimestamp;
+                    }
+                    var parameters = new[]
+                    {
+                        "timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff"),
+                        (deviceIds == null || deviceIds.Length == 0) ? null :
+                            "deviceGuids=" + (string.Join(",", deviceIds))
+                    };
+                    if (parameters.Any())
+                        url += "?" + string.Join("&", parameters);
+
                     var notifications = await GetAsync<List<DeviceNotification>>(url, token);
                     if (notifications != null && notifications.Any())
                     {
@@ -287,13 +294,16 @@ namespace DeviceHive.Client
             }
             while (true)
             {
-                var url = string.Format("/device/{0}/command/poll", deviceId);
-                if (timestamp != null)
-                {
-                    url += "?timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff");
-                }
                 try
                 {
+                    var url = string.Format("/device/{0}/command/poll", deviceId);
+                    if (timestamp == null)
+                    {
+                        var apiInfo = await GetApiInfoAsync();
+                        timestamp = apiInfo.ServerTimestamp;
+                    }
+                    url += "?timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff");
+
                     var commands = await GetAsync<List<Command>>(url, token);
                     if (commands != null && commands.Any())
                     {
