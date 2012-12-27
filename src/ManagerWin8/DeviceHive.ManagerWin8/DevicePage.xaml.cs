@@ -337,7 +337,7 @@ namespace DeviceHive.ManagerWin8
                 {
                     NotificationsObservable.Insert(0, notification);
                 }
-            }, deviceId, NotificationsObservable.Any() ? (DateTime?)NotificationsObservable.Max(n => n.Timestamp.Value) : DateTime.UtcNow, notificationsCancellationSource.Token);
+            }, deviceId, NotificationsObservable.Any() ? (DateTime?)NotificationsObservable.Max(n => n.Timestamp.Value) : filterNotificationsStart, notificationsCancellationSource.Token);
             Debug.WriteLine("NTF POLL END");
         }
 
@@ -378,7 +378,7 @@ namespace DeviceHive.ManagerWin8
                 {
                     CommandsObservable.Insert(0, command);
                 }
-            }, deviceId, CommandsObservable.Any() ? (DateTime?)CommandsObservable.Max(n => n.Timestamp.Value) : DateTime.UtcNow, commandsCancellationSource.Token);
+            }, deviceId, CommandsObservable.Any() ? (DateTime?)CommandsObservable.Max(n => n.Timestamp.Value) : filterCommandsStart, commandsCancellationSource.Token);
             Debug.WriteLine("CMD POLL END");
         }
 
