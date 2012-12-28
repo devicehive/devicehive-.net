@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
@@ -30,7 +29,7 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets or sets notification parameters.
         /// </summary>
-        public Dictionary<string, string> Parameters { get; set; }
+        public JToken Parameters { get; set; }
 
         #endregion
 
@@ -48,90 +47,10 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="name">Notification name.</param>
         /// <param name="parameters">Notification parameters.</param>
-        public Notification(string name, Dictionary<string, string> parameters)
+        public Notification(string name, JToken parameters)
         {
             Name = name;
             Parameters = parameters;
-        }
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Sets a value of notification parameter with specified name.
-        /// </summary>
-        /// <param name="name">Parameter name.</param>
-        /// <param name="value">Parameter value to set.</param>
-        public void Parameter(string name, string value)
-        {
-            if (name == null)
-                throw new ArgumentNullException("name");
-
-            if (Parameters == null)
-                Parameters = new Dictionary<string, string>();
-
-            Parameters[name] = value;
-        }
-
-        /// <summary>
-        /// Sets a value of notification parameter with specified name.
-        /// </summary>
-        /// <typeparam name="TValue">Type of the value.</typeparam>
-        /// <param name="name">Parameter name.</param>
-        /// <param name="value">Parameter value to set.</param>
-        public void Parameter<TValue>(string name, TValue value)
-        {
-            string stringValue = null;
-            if (value != null)
-            {
-                if (typeof(TValue) == typeof(byte[]))
-                {
-                    stringValue = Convert.ToBase64String(value as byte[]);
-                }
-                else
-                {
-                    stringValue = value.ToString();
-                }
-            }
-            Parameter(name, stringValue);
-        }
-
-        /// <summary>
-        /// Gets a value of notification parameter with specified name.
-        /// </summary>
-        /// <param name="name">Parameter name.</param>
-        /// <returns>Parameter value.</returns>
-        public string GetParameter(string name)
-        {
-            if (name == null)
-                throw new ArgumentNullException("name");
-
-            if (Parameters == null)
-                return null;
-
-            string value = null;
-            Parameters.TryGetValue(name, out value);
-            return value;
-        }
-
-        /// <summary>
-        /// Gets a value of notification parameter with specified name.
-        /// </summary>
-        /// <typeparam name="TValue">Type of the value.</typeparam>
-        /// <param name="name">Parameter name.</param>
-        /// <returns>Parameter value.</returns>
-        public TValue GetParameter<TValue>(string name)
-        {
-            string stringValue = GetParameter(name);
-            if (stringValue == null)
-            {
-                return default(TValue);
-            }
-            if (typeof(TValue) == typeof(byte[]))
-            {
-                return (TValue)(object)Convert.FromBase64String(stringValue);
-            }
-            return TypeConverter.Parse<TValue>(stringValue);
         }
         #endregion
     }

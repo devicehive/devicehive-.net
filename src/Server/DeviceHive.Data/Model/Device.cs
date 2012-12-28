@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using DeviceHive.Data.Validation;
 
 namespace DeviceHive.Data.Model
 {
@@ -20,7 +21,7 @@ namespace DeviceHive.Data.Model
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes device global identifier
         /// </summary>
         /// <param name="guid">Device global identifier</param>
         public Device(Guid guid)
@@ -32,7 +33,7 @@ namespace DeviceHive.Data.Model
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="guid">Device global identifier</param>
         /// <param name="key">Device key</param>
@@ -40,19 +41,15 @@ namespace DeviceHive.Data.Model
         /// <param name="network">Associated network object</param>
         /// <param name="deviceClass">Associated device class object</param>
         public Device(Guid guid, string key, string name, Network network, DeviceClass deviceClass)
+            : this(guid)
         {
-            if (guid == Guid.Empty)
-                throw new ArgumentException("GUID is empty!", "guid");
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException("Key is null or empty!", "key");
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Name is null or empty!", "name");
-            if (network == null)
-                throw new ArgumentNullException("network");
             if (deviceClass == null)
                 throw new ArgumentNullException("deviceClass");
 
-            this.GUID = guid;
             this.Key = key;
             this.Name = name;
             this.Network = network;
@@ -98,14 +95,19 @@ namespace DeviceHive.Data.Model
         public string Status { get; set; }
 
         /// <summary>
+        /// Device data, a JSON object with an arbitrary structure.
+        /// </summary>
+        [JsonField]
+        public string Data { get; set; }
+
+        /// <summary>
         /// Associated network identifier.
         /// </summary>
-        public int NetworkID { get; set; }
+        public int? NetworkID { get; set; }
 
         /// <summary>
         /// Associated network object.
         /// </summary>
-        [Required]
         public Network Network { get; set; }
 
         /// <summary>

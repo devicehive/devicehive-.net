@@ -68,6 +68,9 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Poll()
         {
+            // create resource
+            var resource1 = Create(new { command = "_ut1" }, auth: Admin);
+
             // task to poll new resources
             var poll = new Task(() =>
                 {
@@ -80,8 +83,7 @@ namespace DeviceHive.Test.ApiTest
                     Expect(result[0], Matches(new { command = "_ut2" }));
                 });
 
-            // create resource, start poll, wait, then create another resource
-            var resource1 = Create(new { command = "_ut1" }, auth: Admin);
+            // start poll, wait, then create another resource
             poll.Start();
             Thread.Sleep(100);
             var resource2 = Create(new { command = "_ut2" }, auth: Admin);
@@ -90,12 +92,58 @@ namespace DeviceHive.Test.ApiTest
         }
 
         [Test]
+        public void Poll_NoWait()
+        {
+            // task to poll new resources
+            var poll = Task.Factory.StartNew(() =>
+                {
+                    var response = Client.Get(ResourceUri + "/poll?waitTimeout=0", auth: Device(DeviceGUID, "key"));
+                    Expect(response.Status, Is.EqualTo(200));
+                    Expect(response.Json, Is.InstanceOf<JArray>());
+                    Expect(response.Json.Count(), Is.EqualTo(0));
+                });
+
+            Expect(poll.Wait(2000), Is.True); // task should complete immediately
+        }
+
+        [Test]
+        public void Poll_ByID()
+        {
+            // create resource
+            var resource = Create(new { command = "_ut1" }, auth: Admin);
+
+            // task to poll command update
+            var poll = new Task(() =>
+            {
+                var response = Client.Get(ResourceUri + "/" + GetResourceId(resource) + "/poll", auth: Admin);
+                Expect(response.Status, Is.EqualTo(200));
+                Expect(response.Json, Is.InstanceOf<JObject>());
+
+                var result = (JObject)response.Json;
+                Expect(result, Matches(new { command = "_ut1", status = "Done", result = "OK" }));
+            });
+
+            // start poll, wait, then update resource
+            poll.Start();
+            Thread.Sleep(100);
+            Update(resource, new { status = "Done", result = "OK" }, auth: Admin);
+
+            Expect(poll.Wait(2000), Is.True); // task should complete
+        }
+
+        [Test]
         public void Create()
         {
-            var resource = Create(new { command = "_ut" }, auth: Admin);
+            // create user
+            var userResponse = Client.Post("/user", new { login = "_ut_u", password = "x", role = 0, status = 0 }, auth: Admin);
+            Assert.That(userResponse.Status, Is.EqualTo(ExpectedCreatedStatus));
+            var userId = (int)userResponse.Json["id"];
+            RegisterForDeletion("/user/" + userId);
 
-            Expect(resource, Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp }));
-            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp }));
+            var resource = Create(new { command = "_ut" }, auth: User("_ut_u", "x"));
+
+            Expect(resource, Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = userId }));
+            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = userId }));
         }
 
         [Test]

@@ -4,13 +4,13 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Web;
 using System.Web.Http;
 using System.Web.Http.Description;
-using DeviceHive.Data.Model;
 using DeviceHive.API.Filters;
-using DeviceHive.API.Mapping;
 using DeviceHive.API.Models;
+using DeviceHive.Core.Mapping;
+using DeviceHive.Data;
+using DeviceHive.Data.Model;
 using Ninject;
 
 namespace DeviceHive.API.Controllers
@@ -50,7 +50,7 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
         }
 
-        protected bool IsNetworkAccessible(int networkId)
+        protected bool IsNetworkAccessible(int? networkId)
         {
             if (RequestContext.CurrentUser == null)
                 return true;
@@ -58,8 +58,13 @@ namespace DeviceHive.API.Controllers
             if (RequestContext.CurrentUser.Role == (int)UserRole.Administrator)
                 return true;
 
-            var userNetworks = DataContext.UserNetwork.GetByUser(RequestContext.CurrentUser.ID);
-            return userNetworks.Any(un => un.NetworkID == networkId);
+            if (networkId == null)
+                return false;
+
+            if (RequestContext.CurrentUserNetworks == null)
+                RequestContext.CurrentUserNetworks = DataContext.UserNetwork.GetByUser(RequestContext.CurrentUser.ID);
+
+            return RequestContext.CurrentUserNetworks.Any(un => un.NetworkID == networkId);
         }
 
         protected IJsonMapper<T> GetMapper<T>()

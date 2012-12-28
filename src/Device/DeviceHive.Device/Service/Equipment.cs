@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
@@ -32,6 +33,11 @@ namespace DeviceHive.Device
         /// </summary>
         public string Type { get; set; }
 
+        /// <summary>
+        /// Gets or sets associated equipment data.
+        /// </summary>
+        public JToken Data { get; set; }
+
         #endregion
 
         #region Constructor
@@ -44,7 +50,7 @@ namespace DeviceHive.Device
         }
 
         /// <summary>
-        /// Initializes all equipment properties.
+        /// Initializes equipment name, code and type properties.
         /// </summary>
         /// <param name="name">Equipment name</param>
         /// <param name="code">Equipment code. The code is usually used in DeviceHive messages in order to refer to specific equipment.</param>
@@ -54,6 +60,19 @@ namespace DeviceHive.Device
             Name = name;
             Code = code;
             Type = type;
+        }
+
+        /// <summary>
+        /// Initializes all equipment properties.
+        /// </summary>
+        /// <param name="name">Equipment name</param>
+        /// <param name="code">Equipment code. The code is usually used in DeviceHive messages in order to refer to specific equipment.</param>
+        /// <param name="type">Equipment type. The type is arbitrary string, and client may use it to make some decisions about equipment capabilities.</param>
+        /// <param name="data">Equipment data, an optional json token used to describe additional equipment information.</param>
+        public Equipment(string name, string code, string type, JToken data)
+            : this(name, code, type)
+        {
+            Data = data;
         }
         #endregion
     }

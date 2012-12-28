@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Client
 {
@@ -23,6 +24,11 @@ namespace DeviceHive.Client
         /// Gets or sets device status.
         /// </summary>
         public string Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets associated device data.
+        /// </summary>
+        public JToken Data { get; set; }
 
         /// <summary>
         /// Gets or sets associated device network object.

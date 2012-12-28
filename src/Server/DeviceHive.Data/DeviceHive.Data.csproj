@@ -45,7 +45,7 @@
       <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.9\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataContext.cs" />
     <Compile Include="EF\DeviceClassRepository.cs" />
     <Compile Include="EF\DeviceCommandRepository.cs" />
     <Compile Include="EF\DeviceEquipmentRepository.cs" />
@@ -65,13 +66,40 @@
     <Compile Include="EF\DeviceRepository.cs" />
     <Compile Include="EF\EquipmentRepository.cs" />
     <Compile Include="EF\NetworkRepository.cs" />
+    <Compile Include="EF\TimestampRepository.cs" />
     <Compile Include="EF\UserNetworkRepository.cs" />
     <Compile Include="EF\UserRepository.cs" />
     <Compile Include="Migrations\201208020910522_6.1.cs" />
     <Compile Include="Migrations\201208020910522_6.1.Designer.cs">
       <DependentUpon>201208020910522_6.1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201211271726121_7.0.cs" />
+    <Compile Include="Migrations\201211271726121_7.0.Designer.cs">
+      <DependentUpon>201211271726121_7.0.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201211271736196_7.1.cs" />
+    <Compile Include="Migrations\201211271736196_7.1.Designer.cs">
+      <DependentUpon>201211271736196_7.1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201212021916148_7.2.cs" />
+    <Compile Include="Migrations\201212021916148_7.2.Designer.cs">
+      <DependentUpon>201212021916148_7.2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201212071109516_7.3.cs" />
+    <Compile Include="Migrations\201212071109516_7.3.Designer.cs">
+      <DependentUpon>201212071109516_7.3.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201212111857162_7.4.cs" />
+    <Compile Include="Migrations\201212111857162_7.4.Designer.cs">
+      <DependentUpon>201212111857162_7.4.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201212281308163_7.5.cs" />
+    <Compile Include="Migrations\201212281308163_7.5.Designer.cs">
+      <DependentUpon>201212281308163_7.5.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Migrator.cs" />
+    <Compile Include="Model\ApiInfo.cs" />
+    <Compile Include="Repositories\ITimestampRepository.cs" />
     <Compile Include="Validation\JsonFieldAttribute.cs" />
     <Compile Include="Migrations\201205191537489_5.cs" />
     <Compile Include="Migrations\201205191537489_5.Designer.cs">

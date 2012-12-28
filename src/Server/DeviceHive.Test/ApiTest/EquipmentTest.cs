@@ -42,10 +42,10 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             var resource = Create(new { name = "_ut", code = "code", type = "type" }, auth: Admin);
-            var update = Update(resource, new { name = "_ut2", code = "code2", type = "type2" }, auth: Admin);
+            var update = Update(resource, new { name = "_ut2", code = "code2", type = "type2", data = new { a = "b" } }, auth: Admin);
 
-            Expect(update, Matches(new { name = "_ut2", code = "code2", type = "type2" }));
-            Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2", code = "code2", type = "type2" }));
+            Expect(update, Matches(new { name = "_ut2", code = "code2", type = "type2", data = new { a = "b" } }));
+            Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2", code = "code2", type = "type2", data = new { a = "b" } }));
         }
 
         [Test]

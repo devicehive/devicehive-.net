@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using DeviceHive.Data.Validation;
 
 namespace DeviceHive.Data.Model
 {
@@ -20,7 +21,7 @@ namespace DeviceHive.Data.Model
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="name">Equipment name</param>
         /// <param name="code">Equipment code</param>
@@ -76,7 +77,13 @@ namespace DeviceHive.Data.Model
         public string Type { get; set; }
 
         /// <summary>
-        /// Gets associated device class identifier
+        /// Equipment data, a JSON object with an arbitrary structure.
+        /// </summary>
+        [JsonField]
+        public string Data { get; set; }
+        
+        /// <summary>
+        /// Gets associated device class identifier.
         /// </summary>
         public int DeviceClassID { get; set; }
 

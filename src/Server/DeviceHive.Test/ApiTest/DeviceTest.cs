@@ -40,23 +40,43 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Get_Client()
         {
-            var user1 = CreateUser(1);
-            var user2 = CreateUser(1, NetworkID);
+            var user1 = CreateUser(1); // create a client user
+            var user2 = CreateUser(1, NetworkID); // create a client user with access to network
             var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             Expect(() => Get(resource, auth: user1), FailsWith(404)); // should fail with 404
-            Get(resource, auth: user2); // should succeed
+            var device = Get(resource, auth: user2); // should succeed
+            Expect(device["network"]["key"], Is.Null); // verify that network does not include key
+        }
+
+        [Test]
+        public void Get_Device()
+        {
+            var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID }, auth: Admin);
+            RegisterForDeletion(ResourceUri + "/" + ID);
+
+            Expect(() => Get(resource, auth: Device(ID, "wrong_key")), FailsWith(401)); // should fail with 401
+            var device = Get(resource, auth: Device(ID, "key")); // should succeed
+            Expect(device["network"]["key"], Is.Null); // verify that network does not include key
         }
 
         [Test]
         public void Create()
         {
+            // create new device
             var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID });
             RegisterForDeletion(ResourceUri + "/" + ID);
 
+            // expect valid server response
             Expect(resource, Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
             Expect(Get(resource, auth: Admin), Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
+            
+            // verify device-add notification
+            var notificationResponse = Client.Get("/device/" + ID + "/notification", auth: Admin);
+            Expect(notificationResponse.Json.Count(), Is.EqualTo(1));
+            Expect(notificationResponse.Json[0], Matches(new { notification = "$device-add", parameters =
+                new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } } }));
         }
 
         [Test]
@@ -76,27 +96,13 @@ namespace DeviceHive.Test.ApiTest
             // set a key to the network
             Client.Put("/network/" + NetworkID, new { key = "network_key" }, auth: Admin);
 
-            // network matches by name, device class matches by name and version
-            var resource = Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n", key = "network_key" }, deviceClass = DeviceClassID });
-            RegisterForDeletion(ResourceUri + "/" + ID);
-
-            Expect(resource, Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
-            Expect(Get(resource, auth: Admin), Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
-        }
-
-        [Test]
-        public void Create_RefByKey()
-        {
-            // set a key to the network
-            Client.Put("/network/" + NetworkID, new { key = "network_key" }, auth: Admin);
-
             // referencing network without key is not allowed
             RegisterForDeletion(ResourceUri + "/" + ID);
             Expect(() => Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID }), FailsWith(403));
             Expect(() => Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }), FailsWith(403));
 
-            // network matches by its key
-            var resource = Update(ID, new { key = "key", name = "_ut", network = "network_key", deviceClass = DeviceClassID });
+            // network matches by name, device class matches by name and version
+            var resource = Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n", key = "network_key" }, deviceClass = DeviceClassID });
 
             Expect(resource, Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
             Expect(Get(resource, auth: Admin), Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
@@ -147,13 +153,17 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create_Permanent()
         {
+            // make device class permanent
             Client.Put("/device/class/" + DeviceClassID, new { isPermanent = true }, auth: Admin);
-            var resource = Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" },
+            
+            var resource = Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" },
+                deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 },
                 equipment = new[] { new { name = "eq1", code = "eq1_code", type = "eq1_type" }}});
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             var dcResponse = Client.Get("/device/class/" + DeviceClassID, auth: Admin);
             var equipment = (JArray)dcResponse.Json["equipment"];
+            Expect(dcResponse.Json, Matches(new { offlineTimeout = (int?)null }));
             Expect(equipment.Count, Is.EqualTo(0)); // permanent device classes should not change
         }
 
@@ -164,14 +174,21 @@ namespace DeviceHive.Test.ApiTest
             var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID });
             RegisterForDeletion(ResourceUri + "/" + ID);
 
-            var obj = new { name = "_ut2", status = "status",
+            // modify device
+            var obj = new { name = "_ut2", status = "status", data = new { a = "b" },
                 network = new { name = "_ut_n2", description = "desc" }, deviceClass = new { name = "_ut_dc", version = "2" } };
             var update = Update(resource, obj, auth: Admin);
             RegisterForDeletion("/network/" + update["network"]["id"]);
             RegisterForDeletion("/device/class/" + update["deviceClass"]["id"]);
 
+            // expect valid server response
             Expect(update, Matches(obj));
             Expect(Get(resource, auth: Admin), Matches(obj));
+
+            // verify device-update notification
+            var notificationResponse = Client.Get("/device/" + ID + "/notification", auth: Admin);
+            Expect(notificationResponse.Json.Count(), Is.GreaterThan(0));
+            Expect(notificationResponse.Json.Last(), Matches(new { notification = "$device-update", parameters = obj }));
         }
 
         [Test]
@@ -180,6 +197,7 @@ namespace DeviceHive.Test.ApiTest
             var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID });
             RegisterForDeletion(ResourceUri + "/" + ID);
 
+            // modify device status only
             var update = Update(resource, new { status = "status" }, auth: Admin);
 
             Expect(update, Matches(new { id = ID, name = "_ut", status = "status",
@@ -191,15 +209,17 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Update_DeviceAuth()
         {
-            var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID }, auth: Admin);
+            var resource = Update(ID, new { key = "key", name = "_ut", deviceClass = DeviceClassID }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + ID);
 
-            var update = Update(resource, new { status = "status" }, auth: Device(ID, "key"));
+            // modify device properties (device authentication)
+            var update = Update(resource, new { status = "status", data = new { a = "b" }, network = NetworkID,
+                deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }, auth: Device(ID, "key"));
 
-            Expect(update, Matches(new { id = ID, name = "_ut", status = "status",
-                network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
-            Expect(Get(resource, auth: Admin), Matches(new { id = ID, name = "_ut", status = "status",
-                network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
+            Expect(update, Matches(new { id = ID, name = "_ut", status = "status", data = new { a = "b" },
+                network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }));
+            Expect(Get(resource, auth: Admin), Matches(new { id = ID, name = "_ut", status = "status", data = new { a = "b" },
+                network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }));
         }
 
         [Test]
@@ -229,6 +249,7 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             // no authorization
+            Expect(() => Get(), FailsWith(401));
             Expect(() => Get(ID), FailsWith(401));
             Expect(() => Update(ID, new { status = "status" }), FailsWith(401));
             Expect(() => { Delete(ID); return false; }, FailsWith(401));

@@ -64,7 +64,10 @@ namespace DeviceHive.Data.EF
 
             using (var context = new DeviceHiveContext())
             {
-                context.Networks.Attach(device.Network);
+                if (device.Network != null)
+                {
+                    context.Networks.Attach(device.Network);
+                }
                 context.DeviceClasses.Attach(device.DeviceClass);
                 context.Devices.Add(device);
                 if (device.ID > 0)
@@ -90,7 +93,6 @@ namespace DeviceHive.Data.EF
 
         public List<Device> GetOfflineDevices()
         {
-            var timestamp = DateTime.UtcNow;
             using (var context = new DeviceHiveContext())
             {
                 return context.Devices
@@ -98,7 +100,7 @@ namespace DeviceHive.Data.EF
                     .Include(e => e.DeviceClass)
                     .Where(e => e.DeviceClass.OfflineTimeout != null)
                     .Where(d => !context.DeviceNotifications.Any(n => n.Device == d &&
-                        EntityFunctions.AddSeconds(n.Timestamp, d.DeviceClass.OfflineTimeout) >= timestamp))
+                        EntityFunctions.AddSeconds(n.Timestamp, d.DeviceClass.OfflineTimeout) >= DateTime.UtcNow))
                     .ToList();
             }
         }

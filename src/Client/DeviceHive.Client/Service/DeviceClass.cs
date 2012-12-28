@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Client
 {
@@ -30,6 +31,11 @@ namespace DeviceHive.Client
         /// Gets or sets offline timeout in seconds, after which the DeviceHive framework sets device status to Offline.
         /// </summary>
         public int? OfflineTimeout { get; set; }
+
+        /// <summary>
+        /// Gets or sets associated device class data.
+        /// </summary>
+        public JToken Data { get; set; }
 
         /// <summary>
         /// Gets or sets the list of device class equipment.

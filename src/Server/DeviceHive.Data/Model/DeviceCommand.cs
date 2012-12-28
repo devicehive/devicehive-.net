@@ -18,11 +18,10 @@ namespace DeviceHive.Data.Model
         /// </summary>
         public DeviceCommand()
         {
-            this.Timestamp = DateTime.UtcNow;
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="command">Command text</param>
         /// <param name="device">Associated device object</param>
@@ -33,7 +32,6 @@ namespace DeviceHive.Data.Model
             if (device == null)
                 throw new ArgumentNullException("device");
 
-            this.Timestamp = DateTime.UtcNow;
             this.Command = command;
             this.Device = device;
         }
@@ -83,7 +81,7 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// Command execution result, and optional value that could be provided by device.
         /// </summary>
-        [StringLength(1024)]
+        [JsonField]
         public string Result { get; set; }
 
         /// <summary>
@@ -96,6 +94,11 @@ namespace DeviceHive.Data.Model
         /// </summary>
         [Required]
         public Device Device { get; set; }
+
+        /// <summary>
+        /// Associated user identifier.
+        /// </summary>
+        public int? UserID { get; set; }
 
         #endregion
     }

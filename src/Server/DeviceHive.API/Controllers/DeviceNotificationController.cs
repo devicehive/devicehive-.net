@@ -2,27 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Web.Http;
-using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
-using DeviceHive.API.Mapping;
+using DeviceHive.Core.Mapping;
+using DeviceHive.Core.MessageLogic;
+using DeviceHive.Core.Messaging;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
-using Ninject;
 
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="DeviceNotification" />
     public class DeviceNotificationController : BaseController
     {
-        private ObjectWaiter<DeviceNotification> _notificationWaiter;
-        private INotificationManager _notificationManager;
+        private readonly IMessageManager _messageManager;
+        private readonly MessageBus _messageBus;
 
-        public DeviceNotificationController(ObjectWaiter<DeviceNotification> notificationWaiter, INotificationManager notificationManager)
+        public DeviceNotificationController(IMessageManager messageManager, MessageBus messageBus)
         {
-            _notificationWaiter = notificationWaiter;
-            _notificationManager = notificationManager;
+            _messageManager = messageManager;
+            _messageBus = messageBus;
         }
 
         /// <name>query</name>
@@ -86,8 +84,8 @@ namespace DeviceHive.API.Controllers
             Validate(notification);
 
             DataContext.DeviceNotification.Save(notification);
-            _notificationManager.ProcessNotification(notification);
-            _notificationWaiter.NotifyChanges(device.ID);
+            _messageManager.ProcessNotification(notification);
+            _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
             return Mapper.Map(notification);
         }
 

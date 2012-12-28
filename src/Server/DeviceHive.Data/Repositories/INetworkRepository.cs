@@ -9,6 +9,5 @@ namespace DeviceHive.Data.Repositories
         List<Network> GetAll();
         List<Network> GetByUser(int userId);
         Network Get(string name);
-        Network GetByKey(string key);
     }
 }

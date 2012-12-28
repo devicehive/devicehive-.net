@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
@@ -30,6 +31,11 @@ namespace DeviceHive.Device
         /// </summary>
         public int? OfflineTimeout { get; set; }
 
+        /// <summary>
+        /// Gets or sets associated device class data.
+        /// </summary>
+        public JToken Data { get; set; }
+
         #endregion
 
         #region Constructor
@@ -58,10 +64,12 @@ namespace DeviceHive.Device
         /// <param name="name">Device class name.</param>
         /// <param name="version">Device class version.</param>
         /// <param name="offlineTimeout">Device class offline timeout, after which the DeviceHive framework sets device status to Offline.</param>
-        public DeviceClass(string name, string version, int? offlineTimeout)
+        /// <param name="data">Device class data, an optional json token used to describe additional device class information.</param>
+        public DeviceClass(string name, string version, int? offlineTimeout, JToken data)
             : this(name, version)
         {
             OfflineTimeout = offlineTimeout;
+            Data = data;
         }
         #endregion
     }

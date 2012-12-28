@@ -18,11 +18,10 @@ namespace DeviceHive.Data.Model
         /// </summary>
         public DeviceNotification()
         {
-            this.Timestamp = DateTime.UtcNow;
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="notification">Notification text</param>
         /// <param name="device">Associated device object</param>
@@ -33,7 +32,6 @@ namespace DeviceHive.Data.Model
             if (device == null)
                 throw new ArgumentNullException("device");
 
-            this.Timestamp = DateTime.UtcNow;
             this.Notification = notification;
             this.Device = device;
         }

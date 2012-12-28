@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
     /// <summary>
-    /// Represents a notification sent to <see cref="DeviceBase"/> descendants.
+    /// Represents a command sent to <see cref="DeviceBase"/> descendants.
     /// </summary>
     /// <remarks>
-    /// This is the base class for commands received by devices.
-    /// Derive from this class to define strongly typed properties
-    /// that use <see cref="GetParameter"/> method to read from the parameters dictionary.
+    /// This is the generic class which uses a raw json token to hold command parameters.
+    /// Alternatively, declare a custom strongly-typed class and use json mapping attributes to specify command parameters.
     /// </remarks>
     public class DeviceCommand
     {
@@ -21,9 +20,9 @@ namespace DeviceHive.Device
         public string Name { get; private set; }
 
         /// <summary>
-        /// Gets a dictionary of command parameters.
+        /// Gets command parameters in the raw json format.
         /// </summary>
-        public Dictionary<string, string> Parameters { get; private set; }
+        public JToken Parameters { get; private set; }
 
         #endregion
 
@@ -33,33 +32,18 @@ namespace DeviceHive.Device
         /// Initializes device command name and parameters.
         /// </summary>
         /// <param name="name">Command name.</param>
-        /// <param name="parameters">Dictionary of command parameters.</param>
-        public DeviceCommand(string name, Dictionary<string, string> parameters)
+        /// <param name="parameters">Command parameters in the raw json format.</param>
+        public DeviceCommand(string name, JToken parameters)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Name is null or empty!", "name");
 
             Name = name;
-            Parameters = parameters ?? new Dictionary<string, string>();
+            Parameters = parameters;
         }
         #endregion
 
         #region Public Methods
-
-        /// <summary>
-        /// Gets a value of command parameter with specified name.
-        /// </summary>
-        /// <param name="name">Parameter name.</param>
-        /// <returns>Parameter value.</returns>
-        public string GetParameter(string name)
-        {
-            if (name == null)
-                throw new ArgumentNullException("name");
-
-            string value = null;
-            Parameters.TryGetValue(name, out value);
-            return value;
-        }
 
         /// <summary>
         /// Gets a value of command parameter with specified name.
@@ -69,16 +53,16 @@ namespace DeviceHive.Device
         /// <returns>Parameter value.</returns>
         public TValue GetParameter<TValue>(string name)
         {
-            string stringValue = GetParameter(name);
-            if (stringValue == null)
-            {
+            if (name == null)
+                throw new ArgumentNullException("name");
+
+            if (Parameters == null)
                 return default(TValue);
-            }
-            if (typeof(TValue) == typeof(byte[]))
-            {
-                return (TValue)(object)Convert.FromBase64String(stringValue);
-            }
-            return TypeConverter.Parse<TValue>(stringValue);
+
+            if (Parameters.Type != JTokenType.Object || Parameters[name] == null)
+                return default(TValue);
+
+            return Parameters[name].ToObject<TValue>();
         }
         #endregion
     }

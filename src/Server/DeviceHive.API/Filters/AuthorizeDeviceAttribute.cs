@@ -12,13 +12,10 @@ namespace DeviceHive.API.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     public class AuthorizeDeviceAttribute : AuthorizationFilterAttribute
     {
-        protected DataContext DataContext { get; private set; }
-
         public override void OnAuthorization(HttpActionContext actionContext)
         {
             // initialize current filter
             var controller = (BaseController)actionContext.ControllerContext.Controller;
-            DataContext = controller.DataContext;
 
             // check if device is authenticated
             if (controller.RequestContext.CurrentDevice == null)

@@ -15,15 +15,12 @@ namespace DeviceHive.API.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     public class AuthorizeUserAttribute : AuthorizationFilterAttribute
     {
-        protected DataContext DataContext { get; private set; }
-
         public string Roles { get; set; }
 
         public override void OnAuthorization(HttpActionContext actionContext)
         {
             // initialize current filter
             var controller = (BaseController)actionContext.ControllerContext.Controller;
-            DataContext = controller.DataContext;
 
             // check if user is authenticated
             if (controller.RequestContext.CurrentUser == null)

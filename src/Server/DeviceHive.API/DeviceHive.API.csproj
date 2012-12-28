@@ -50,7 +50,7 @@
       <HintPath>..\..\..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.9\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Ninject, Version=3.0.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <HintPath>..\..\..\packages\Ninject.3.0.1.10\lib\net40\Ninject.dll</HintPath>
@@ -83,13 +83,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\FilterConfig.cs" />
-    <Compile Include="App_Start\NInjectDependencyResolver.cs" />
+    <Compile Include="App_Start\MessageBusConfig.cs" />
+    <Compile Include="App_Start\NinjectWebApi.cs" />
     <Compile Include="App_Start\NinjectWebCommon.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="Business\NotificationHandlers\DeviceStatusNotificationHandler.cs" />
-    <Compile Include="Business\NotificationHandlers\EquipmentNotificationHandler.cs" />
-    <Compile Include="Business\INotificationHandler.cs" />
-    <Compile Include="Business\NotificationManager.cs" />
     <Compile Include="Business\ObjectWaiter.cs" />
     <Compile Include="Business\XmlCommentReader.cs" />
     <Compile Include="Controllers\CronController.cs" />
@@ -100,10 +97,10 @@
     <Compile Include="Controllers\DeviceNotificationController.cs" />
     <Compile Include="Controllers\DeviceNotificationPollController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ApiInfoController.cs" />
     <Compile Include="Controllers\MetadataController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\UserNetworkController.cs" />
-    <Compile Include="DataContext.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\DeviceClassController.cs" />
     <Compile Include="Controllers\EquipmentController.cs" />
@@ -119,14 +116,12 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Controllers\NetworkController.cs" />
-    <Compile Include="Mapping\IJsonMapper.cs" />
     <Compile Include="App_Start\JsonMapperConfig.cs" />
-    <Compile Include="Mapping\JsonMapper.cs" />
-    <Compile Include="Mapping\JsonMapperManager.cs" />
     <Compile Include="Models\ErrorDetail.cs" />
     <Compile Include="Models\Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestContext.cs" />
+    <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
@@ -137,6 +132,10 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DeviceHive.Core\DeviceHive.Core.csproj">
+      <Project>{20C669F5-66EF-4C45-A40A-4C2441879645}</Project>
+      <Name>DeviceHive.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DeviceHive.Data\DeviceHive.Data.csproj">
       <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>
       <Name>DeviceHive.Data</Name>

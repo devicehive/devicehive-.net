@@ -45,17 +45,6 @@ namespace DeviceHive.Data.EF
             }
         }
 
-        public Network GetByKey(string key)
-        {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException("key");
-
-            using (var context = new DeviceHiveContext())
-            {
-                return context.Networks.SingleOrDefault(u => u.Key == key);
-            }
-        }
-
         public void Save(Network network)
         {
             if (network == null)

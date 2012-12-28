@@ -48,9 +48,21 @@ namespace DeviceHive.API
             );
 
             routes.MapHttpRoute(
+                name: "DeviceNotificationPollMany",
+                routeTemplate: "device/notification/poll",
+                defaults: new { controller = "DeviceNotificationPoll" }
+            );
+
+            routes.MapHttpRoute(
                 name: "DeviceNotification",
                 routeTemplate: "device/{deviceGuid}/notification/{id}",
                 defaults: new { controller = "DeviceNotification", id = RouteParameter.Optional }
+            );
+
+            routes.MapHttpRoute(
+                name: "DeviceCommandIdPoll",
+                routeTemplate: "device/{deviceGuid}/command/{id}/poll",
+                defaults: new { controller = "DeviceCommandPoll" }
             );
 
             routes.MapHttpRoute(
@@ -75,6 +87,12 @@ namespace DeviceHive.API
                 name: "Device",
                 routeTemplate: "device/{id}",
                 defaults: new { controller = "Device", id = RouteParameter.Optional }
+            );
+
+            routes.MapHttpRoute(
+                name: "Info",
+                routeTemplate: "info",
+                defaults: new { controller = "ApiInfo" }
             );
 
             routes.MapHttpRoute(

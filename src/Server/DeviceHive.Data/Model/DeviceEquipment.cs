@@ -21,7 +21,7 @@ namespace DeviceHive.Data.Model
         }
 
         /// <summary>
-        /// Default constructor
+        /// Initializes all required properties
         /// </summary>
         /// <param name="code">Equipment code</param>
         /// <param name="timestamp">Equipment state timestamp</param>

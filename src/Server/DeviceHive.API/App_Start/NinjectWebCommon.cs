@@ -1,15 +1,19 @@
 using System;
+using System.Reflection;
 using System.Web;
-using System.Web.Http;
-using Ninject;
-using Ninject.Web.Common;
-using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using DeviceHive.API.Business;
-using DeviceHive.API.Business.NotificationHandlers;
-using DeviceHive.API.Mapping;
+using DeviceHive.Core.Mapping;
+using DeviceHive.Core.MessageLogic;
+using DeviceHive.Core.MessageLogic.NotificationHandlers;
+using DeviceHive.Core.Messaging;
+using DeviceHive.Core.Services;
+using DeviceHive.Data;
 using DeviceHive.Data.EF;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
+using Microsoft.Web.Infrastructure.DynamicModuleHelper;
+using Ninject;
+using Ninject.Web.Common;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(DeviceHive.API.NinjectWebCommon), "Start")]
 [assembly: WebActivator.ApplicationShutdownMethodAttribute(typeof(DeviceHive.API.NinjectWebCommon), "Stop")]
@@ -49,7 +53,6 @@ namespace DeviceHive.API
             kernel.Bind<IHttpModule>().To<HttpApplicationInitializationHttpModule>();
 
             RegisterServices(kernel);
-            GlobalConfiguration.Configuration.DependencyResolver = new NinjectDependencyResolver(kernel);
             return kernel;
         }
 
@@ -59,7 +62,11 @@ namespace DeviceHive.API
         /// <param name="kernel">The kernel.</param>
         private static void RegisterServices(IKernel kernel)
         {
+            // load assembly modules
+            kernel.Load(Assembly.GetExecutingAssembly());
+
             // bind repositories
+            kernel.Bind<ITimestampRepository>().To<TimestampRepository>();
             kernel.Bind<IUserRepository, ISimpleRepository<User>>().To<UserRepository>();
             kernel.Bind<IUserNetworkRepository, ISimpleRepository<UserNetwork>>().To<UserNetworkRepository>();
             kernel.Bind<INetworkRepository, ISimpleRepository<Network>>().To<NetworkRepository>();
@@ -70,23 +77,30 @@ namespace DeviceHive.API
             kernel.Bind<IDeviceCommandRepository, ISimpleRepository<DeviceCommand>>().To<DeviceCommandRepository>();
             kernel.Bind<IDeviceEquipmentRepository, ISimpleRepository<DeviceEquipment>>().To<DeviceEquipmentRepository>();
 
-            // bind JSON mapper
-            kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
-
             // bind data context
             kernel.Bind<DataContext>().ToSelf().InSingletonScope();
 
-            // bind request context
-            kernel.Bind<RequestContext>().ToSelf().InRequestScope();
+            // bind services
+            kernel.Bind<DeviceService>().ToSelf();
+
+            // bind json mapper
+            kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
+
+            // bind message bus
+            kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope().OnActivation(MessageBusConfig.ConfigureSubscriptions);
 
             // bind object waiters
-            kernel.Bind<ObjectWaiter<DeviceNotification>>().ToSelf().InSingletonScope();
-            kernel.Bind<ObjectWaiter<DeviceCommand>>().ToSelf().InSingletonScope();
+            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceNotification.DeviceID");
+            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand.DeviceID");
+            kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand.CommandID");
 
-            // bind notification handlers
-            kernel.Bind<INotificationManager>().To<NotificationManager>().InSingletonScope();
+            // bind message logic handlers
+            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();
             kernel.Bind<INotificationHandler>().To<DeviceStatusNotificationHandler>();
             kernel.Bind<INotificationHandler>().To<EquipmentNotificationHandler>();
+
+            // bind request context
+            kernel.Bind<RequestContext>().ToSelf().InRequestScope();
 
             // bind API XML reader
             kernel.Bind<XmlCommentReader>().ToSelf().InSingletonScope().Named("Data").WithConstructorArgument("fileName", "DeviceHive.Data.xml");

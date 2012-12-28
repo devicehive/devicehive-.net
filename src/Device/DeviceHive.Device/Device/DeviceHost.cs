@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Device
 {
@@ -14,7 +15,7 @@ namespace DeviceHive.Device
     /// The class is capable of hosting one or several devices, which could be added via <see cref="AddDevice"/> method.
     /// When started, the host runs all devices and performs the following two actions:
     /// 1. Routes incomings DeviceHive commands to the corresponding devices.
-    /// 2. Allows devices to dispatch notifications using <see cref="IDeviceServiceChannel.SendNotification"/> method.
+    /// 2. Allows devices to dispatch notifications using <see cref="SendNotification"/> method.
     /// </remarks>
     public class DeviceHost
     {
@@ -52,13 +53,11 @@ namespace DeviceHive.Device
         /// Default constructor.
         /// </summary>
         /// <param name="client">Associated DeviceHive device client. Use any custom or default <see cref="RestfulDeviceService"/> implementation.</param>
-        /// <param name="network">Associated DeviceHive network object. If specified network is not found in the DeviceHive service, it will be automatically created.</param>
+        /// <param name="network">Associated DeviceHive network object (optional). If specified network is not found in the DeviceHive service, it will be automatically created.</param>
         public DeviceHost(IDeviceService client, Network network)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
-            if (network == null)
-                throw new ArgumentNullException("network");
 
             DeviceClient = client;
             Network = network;
@@ -100,17 +99,24 @@ namespace DeviceHive.Device
             _tasks = new List<Task>();
             _cancellationSource = new CancellationTokenSource();
             var token = _cancellationSource.Token;
+
+            DeviceClient.CommandInserted += (s, e) =>
+            {
+                var device = Devices.FirstOrDefault(d => d.ID == e.DeviceGuid);
+                if (device != null)
+                    Task.Factory.StartNew(() => DispatchCommandTask(device, e.Command));
+            };
+
+            DeviceClient.ConnectionClosed += (s, e) => SubscribeToCommands();
+
             foreach (var device in Devices)
             {
                 Logger.InfoFormat("Staring device {0} ({1})", device.ID, device.Name);
-
                 var deviceCopy = device;
                 _tasks.Add(Task.Factory.StartNew(() => MainDeviceTask(deviceCopy), token, TaskCreationOptions.LongRunning, TaskScheduler.Default));
-                if (device.ListenCommands)
-                {
-                    _tasks.Add(Task.Factory.StartNew(() => PollCommandsTask(deviceCopy), token, TaskCreationOptions.LongRunning, TaskScheduler.Default));
-                }
             }
+
+            SubscribeToCommands();
 
             Logger.Info("Device host is now running");
         }
@@ -126,6 +132,12 @@ namespace DeviceHive.Device
 
             Logger.Info("Stopping device host");
 
+            // stop all devices
+            foreach (var device in Devices)
+            {
+                device.Stop();
+            }
+
             // cancel all tasks
             _cancellationSource.Cancel();
             try
@@ -135,12 +147,45 @@ namespace DeviceHive.Device
             catch (AggregateException)
             {
             }
+
+            // unsubscribe from commands
+            foreach (var device in Devices)
+            {
+                DeviceClient.UnsubscribeFromCommands(device.ID, device.Key);
+            }
             
             // reset the properties
             _tasks = null;
             _cancellationSource = null;
 
             Logger.Info("Device host is now stopped");
+        }
+
+        /// <summary>
+        /// Sends a device status update.
+        /// </summary>
+        /// <param name="sender">Sender <see cref="DeviceBase"/> object.</param>
+        /// <param name="status">New device status.</param>
+        public void SendStatusUpdate(DeviceBase sender, string status)
+        {
+            if (sender == null)
+                throw new ArgumentNullException("sender");
+            if (string.IsNullOrEmpty(status))
+                throw new ArgumentException("Status is null or empty!", "status");
+
+            Logger.InfoFormat("Updating device {1} ({2}) status to '{0}'", status, sender.ID, sender.Name);
+
+            try
+            {
+                var cDevice = new Device(sender.ID, sender.Key) { Status = status };
+                DeviceClient.UpdateDevice(cDevice);
+            }
+            catch (Exception ex)
+            {
+                // critical error - log and fault the service
+                Logger.Error(string.Format("Exception while updating device {1} ({2}) status to '{0}'", status, sender.ID, sender.Name), ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -159,7 +204,8 @@ namespace DeviceHive.Device
 
             try
             {
-                var cNotification = new Notification(notification.Name, new Dictionary<string, string>(notification.Parameters));
+                var cNotification = new Notification(notification.Name.Trim(),
+                    notification.Parameters == null ? null : notification.Parameters.DeepClone());
                 DeviceClient.SendNotification(sender.ID, sender.Key, cNotification);
             }
             catch (Exception ex)
@@ -172,6 +218,36 @@ namespace DeviceHive.Device
         #endregion
 
         #region Private Methods
+
+        private void SubscribeToCommands()
+        {
+            foreach (var device in Devices)
+                SubscribeToCommands(device);
+        }
+
+        private void SubscribeToCommands(DeviceBase device)
+        {
+            Logger.InfoFormat("Subscribe to device {0} ({1}) commands", device.ID, device.Name);
+            if (device.ListenCommands)
+            {
+                while (true)
+                {
+                    try
+                    {
+                        DeviceClient.SubscribeToCommands(device.ID, device.Key);
+                        break;
+                    }
+                    catch (DeviceServiceException e)
+                    {
+                        Logger.ErrorFormat("Error when subscribing to device {0} ({1}) commands: {2}",
+                            device.ID, device.Name, e);
+
+                        // retry with small wait
+                        Thread.Sleep(100);
+                    }
+                }
+            }
+        }
         
         private void RegisterDevice(DeviceBase device)
         {
@@ -179,9 +255,12 @@ namespace DeviceHive.Device
 
             try
             {
-                var cDevice = new Device(device.ID, device.Key, device.Name, device.Status, Network,
-                    new DeviceClass(device.ClassName, device.ClassVersion, device.ClassOfflineTimeout));
-                cDevice.Equipment = device.EquipmentInfo.Select(e => new Equipment(e.Name, e.Code, e.Type)).ToList();
+                var cDeviceClass = new DeviceClass(device.ClassName, device.ClassVersion, device.ClassOfflineTimeout,
+                    device.ClassData == null ? null : JToken.FromObject(device.ClassData, device.JsonSerializer));
+                var cDevice = new Device(device.ID, device.Key, device.Name, device.Status,
+                    device.Data == null ? null : JToken.FromObject(device.Data, device.JsonSerializer), Network, cDeviceClass);
+                cDevice.Equipment = device.EquipmentInfo.Select(e => new Equipment(
+                    e.Name, e.Code, e.Type, e.Data == null ? null : JToken.FromObject(e.Data, device.JsonSerializer))).ToList();
                 DeviceClient.RegisterDevice(cDevice);
             }
             catch (Exception ex)
@@ -211,49 +290,14 @@ namespace DeviceHive.Device
             }
         }
 
-        private void PollCommandsTask(DeviceBase device)
-        {
-            var timestamp = DateTime.UtcNow;
-            var token = _cancellationSource.Token;
-            while (true)
-            {
-                // poll commands
-                List<Command> cCommands;
-                try
-                {
-                    cCommands = DeviceClient.PollCommands(device.ID, device.Key, timestamp, token);
-                }
-                catch (OperationCanceledException)
-                {
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    // not critical - will retry
-                    Logger.Error(string.Format("Exception while polling commands for device {0} ({1})", device.ID, device.Name), ex);
-                    token.WaitHandle.WaitOne(1000);
-                    continue;
-                }
-
-                // dispatch comands to device
-                timestamp = cCommands.Max(c => c.Timestamp.Value);
-                foreach (var cCommand in cCommands)
-                {
-                    Logger.InfoFormat("Dispatching command '{0}' to device {1} ({2})", cCommand.Name, device.ID, device.Name);
-
-                    var cCommandCopy = cCommand;
-                    _tasks.Add(Task.Factory.StartNew(() => DispatchCommandTask(device, cCommandCopy), token));
-                }
-            }
-        }
-
         private void DispatchCommandTask(DeviceBase device, Command cCommand)
         {
             // invoke device
             DeviceCommandResult result;
             try
             {
-                var command = new DeviceCommand(cCommand.Name, cCommand.Parameters == null ? null : new Dictionary<string, string>(cCommand.Parameters));
+                var command = new DeviceCommand(cCommand.Name.Trim(),
+                    cCommand.Parameters == null ? null : cCommand.Parameters.DeepClone());
                 result = device.HandleCommand(command, _cancellationSource.Token);
             }
             catch (OperationCanceledException)
@@ -269,7 +313,7 @@ namespace DeviceHive.Device
                     
             // send command result
             cCommand.Status = result.Status;
-            cCommand.Result = result.Result;
+            cCommand.Result = result.Result == null ? null : JToken.FromObject(result.Result, device.JsonSerializer);
             SendCommandResult(device, cCommand);
         }
 
@@ -317,12 +361,31 @@ namespace DeviceHive.Device
 
             #region IDeviceServiceChannel Members
 
+            public void SendStatusUpdate(string status)
+            {
+                _host.SendStatusUpdate(_device, status);
+            }
+
             public void SendNotification(DeviceNotification notification)
             {
-                if (notification == null)
-                    throw new ArgumentNullException("notification");
-
                 _host.SendNotification(_device, notification);
+            }
+
+            public void SendNotification(string notification, object parameters)
+            {
+                SendNotification(new DeviceNotification(notification,
+                    parameters == null ? null : JToken.FromObject(parameters, _device.JsonSerializer)));
+            }
+
+            public void SendEquipmentNotification(string equipment, object parameters)
+            {
+                if (string.IsNullOrEmpty(equipment))
+                    throw new ArgumentException("Equipment is null or empty!", "equipment");
+
+                var notificationParameters = parameters == null ?
+                    new JObject() : JObject.FromObject(parameters, _device.JsonSerializer);
+                notificationParameters["equipment"] = equipment;
+                SendNotification(new DeviceNotification("equipment", notificationParameters));
             }
             #endregion
         }

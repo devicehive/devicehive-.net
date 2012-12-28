@@ -7,38 +7,20 @@ namespace VirtualLed
     /// <summary>
     /// Represents a command requesting to change LED state
     /// </summary>
-    public class UpdateLedStateCommand : DeviceCommand
+    public class UpdateLedStateCommand
     {
         #region Public Properties
 
         /// <summary>
         /// Gets LED equipment code.
         /// </summary>
-        public string Equipment
-        {
-            get { return GetParameter("equipment"); }
-        }
+        public string Equipment { get; set; }
 
         /// <summary>
         /// Gets new LED state.
         /// </summary>
-        public int? State
-        {
-            get { return GetParameter<int?>("state"); }
-        }
-        #endregion
+        public int? State { get; set; }
 
-        #region Constructor
-
-        /// <summary>
-        /// Default constructor.
-        /// </summary>
-        /// <param name="name">Command name.</param>
-        /// <param name="parameters">Dictionary of command parameters.</param>
-        public UpdateLedStateCommand(string name, Dictionary<string, string> parameters)
-            : base(name, parameters)
-        {
-        }
         #endregion
     }
 }

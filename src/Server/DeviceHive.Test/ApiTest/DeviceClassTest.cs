@@ -67,10 +67,10 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             var resource = Create(new { name = "_ut", version = "1" }, auth: Admin);
-            var update = Update(resource, new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600 }, auth: Admin);
+            var update = Update(resource, new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" } }, auth: Admin);
 
-            Expect(update, Matches(new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600 }));
-            Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600 }));
+            Expect(update, Matches(new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" } }));
+            Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" } }));
         }
 
         [Test]

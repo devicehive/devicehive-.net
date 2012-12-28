@@ -15,9 +15,9 @@ namespace DeviceHive.Device
         public string Status { get; private set; }
 
         /// <summary>
-        /// Gets command execution result (optional).
+        /// Gets a custom strongly-typed object with the command execution result (optional).
         /// </summary>
-        public string Result { get; private set; }
+        public object Result { get; private set; }
 
         #endregion
 
@@ -39,8 +39,8 @@ namespace DeviceHive.Device
         /// Initializes device command status and result.
         /// </summary>
         /// <param name="status">Command execution status.</param>
-        /// <param name="result">Command execution result (optional).</param>
-        public DeviceCommandResult(string status, string result)
+        /// <param name="result">A custom strongly-typed object with the command execution result (optional).</param>
+        public DeviceCommandResult(string status, object result)
             : this(status)
         {
             Result = result;
