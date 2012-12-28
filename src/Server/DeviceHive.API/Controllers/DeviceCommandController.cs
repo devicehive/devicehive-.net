@@ -84,6 +84,7 @@ namespace DeviceHive.API.Controllers
 
             var command = Mapper.Map(json);
             command.Device = device;
+            command.UserID = RequestContext.CurrentUser.ID;
             Validate(command);
 
             DataContext.DeviceCommand.Save(command);

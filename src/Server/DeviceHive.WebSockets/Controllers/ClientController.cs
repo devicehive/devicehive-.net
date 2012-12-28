@@ -66,7 +66,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Methods        
+        #region Methods
 
         #region Actions
 
@@ -109,6 +109,7 @@ namespace DeviceHive.WebSockets.Controllers
 
             var commandEntity = CommandMapper.Map(command);
             commandEntity.Device = device;
+            commandEntity.UserID = CurrentUser.ID;
             Validate(commandEntity);
 
             DataContext.DeviceCommand.Save(commandEntity);

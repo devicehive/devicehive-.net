@@ -93,6 +93,10 @@
     <Compile Include="Migrations\201212111857162_7.4.Designer.cs">
       <DependentUpon>201212111857162_7.4.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201212281308163_7.5.cs" />
+    <Compile Include="Migrations\201212281308163_7.5.Designer.cs">
+      <DependentUpon>201212281308163_7.5.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Migrator.cs" />
     <Compile Include="Model\ApiInfo.cs" />
     <Compile Include="Repositories\ITimestampRepository.cs" />

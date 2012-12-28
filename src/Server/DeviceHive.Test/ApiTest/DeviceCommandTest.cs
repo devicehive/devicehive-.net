@@ -134,10 +134,16 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create()
         {
-            var resource = Create(new { command = "_ut" }, auth: Admin);
+            // create user
+            var userResponse = Client.Post("/user", new { login = "_ut_u", password = "x", role = 0, status = 0 }, auth: Admin);
+            Assert.That(userResponse.Status, Is.EqualTo(ExpectedCreatedStatus));
+            var userId = (int)userResponse.Json["id"];
+            RegisterForDeletion("/user/" + userId);
 
-            Expect(resource, Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp }));
-            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp }));
+            var resource = Create(new { command = "_ut" }, auth: User("_ut_u", "x"));
+
+            Expect(resource, Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = userId }));
+            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = userId }));
         }
 
         [Test]

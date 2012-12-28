@@ -95,6 +95,11 @@ namespace DeviceHive.Data.Model
         [Required]
         public Device Device { get; set; }
 
+        /// <summary>
+        /// Associated user identifier.
+        /// </summary>
+        public int? UserID { get; set; }
+
         #endregion
     }
 }

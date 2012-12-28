@@ -22,6 +22,11 @@ namespace DeviceHive.Device
         public DateTime? Timestamp { get; set; }
 
         /// <summary>
+        /// Gets or sets creator user identifier.
+        /// </summary>
+        public int? UserId { get; set; }
+
+        /// <summary>
         /// Gets or sets command name.
         /// </summary>
         public string Name { get; set; }

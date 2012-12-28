@@ -62,6 +62,7 @@ namespace DeviceHive.API
             context.Kernel.ConfigureMapping<DeviceCommand>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.OneWay)
+                .Property(e => e.UserID, "userId", JsonMapperEntryMode.OneWay)
                 .Property(e => e.Command, "command")
                 .RawJsonProperty(e => e.Parameters, "parameters")
                 .Property(e => e.Lifetime, "lifetime")
