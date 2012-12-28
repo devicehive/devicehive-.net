@@ -1,0 +1,37 @@
+﻿<Application
+    x:Class="DeviceHive.ManagerWin8.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DeviceHive.ManagerWin8"
+    xmlns:localData="using:DeviceHive.ManagerWin8.Data"
+    xmlns:localCommon="using:DeviceHive.ManagerWin8.Common">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+
+                <!-- 
+                    Styles that define common aspects of the platform look and feel
+                    Required by Visual Studio project and item templates
+                 -->
+                <ResourceDictionary Source="Common/StandardStyles.xaml"/>
+                <ResourceDictionary Source="Common/CustomStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Application-specific resources -->
+
+            <x:String x:Key="AppName">DeviceHive</x:String>
+
+            <!-- Converters-->
+
+            <localCommon:NotEmptyToVisibilityConverter x:Key="NotEmptyToVisibilityConverter" />
+            <localCommon:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <localCommon:BooleanNegationToVisibilityConverter x:Key="BooleanNegationToVisibilityConverter" />
+            <localCommon:BooleanNegationConverter x:Key="BooleanNegationConverter" />
+            <localCommon:OnlineHideConverter x:Key="OnlineHideConverter" />
+            <localCommon:ObjectToJsonStringConverter x:Key="ObjectToJsonStringConverter" />
+            <localCommon:ObjectToStringConverter x:Key="ObjectToStringConverter" />
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -3,6 +3,7 @@
 [Bb]in
 [Oo]bj
 PrecompiledWeb
+AppPackages
 *.suo
 *.user
 log*.txt*

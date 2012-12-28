@@ -32,22 +32,37 @@ namespace DeviceHive.Core.Messaging
     /// </summary>
     public class NamedPipeElementCollection : ConfigurationElementCollection
     {
+        /// <summary>
+        /// Creates new element
+        /// </summary>
+        /// <returns>ConfigurationElement object</returns>
         protected override ConfigurationElement CreateNewElement()
         {
             return new NamedPipeElement();
         }
 
+        /// <summary>
+        /// Gets element get
+        /// </summary>
+        /// <param name="element">ConfigurationElement object</param>
+        /// <returns>Element key</returns>
         protected override object GetElementKey(ConfigurationElement element)
         {
             var pipeElement = (NamedPipeElement) element;
             return string.Format("{0}\\{1}", pipeElement.ServerName, pipeElement.Name);
         }
 
+        /// <summary>
+        /// Gets element name
+        /// </summary>
         protected override string ElementName
         {
             get { return "pipe"; }
         }
 
+        /// <summary>
+        /// Gets collection type
+        /// </summary>
         public override ConfigurationElementCollectionType CollectionType
         {
             get { return ConfigurationElementCollectionType.BasicMap; }

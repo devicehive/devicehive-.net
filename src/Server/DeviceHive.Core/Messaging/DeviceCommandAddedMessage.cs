@@ -33,7 +33,7 @@ namespace DeviceHive.Core.Messaging
         /// <summary>
         /// Specifies device and command identifiers
         /// </summary>
-        /// <param name="DeviceId">Device identifier</param>
+        /// <param name="deviceId">Device identifier</param>
         /// <param name="commandId">Command identifier</param>
         public DeviceCommandAddedMessage(int deviceId, int commandId)
         {
