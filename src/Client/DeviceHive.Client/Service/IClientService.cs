@@ -106,6 +106,11 @@ namespace DeviceHive.Client
         /// Subscription can be created through <see cref="SubscribeToNotifications"/> method.
         /// </remarks>
         event EventHandler<NotificationEventArgs> NotificationInserted;
+
+        /// <summary>
+        /// Fires when underlying connection is closed
+        /// </summary>
+        event EventHandler ConnectionClosed;
             
         /// <summary>
         /// Gets a list of commands sent to the device.

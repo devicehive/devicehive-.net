@@ -107,17 +107,16 @@ namespace DeviceHive.Device
                     Task.Factory.StartNew(() => DispatchCommandTask(device, e.Command));
             };
 
+            DeviceClient.ConnectionClosed += (s, e) => SubscribeToCommands();
+
             foreach (var device in Devices)
             {
                 Logger.InfoFormat("Staring device {0} ({1})", device.ID, device.Name);
-
                 var deviceCopy = device;
                 _tasks.Add(Task.Factory.StartNew(() => MainDeviceTask(deviceCopy), token, TaskCreationOptions.LongRunning, TaskScheduler.Default));
-                if (device.ListenCommands)
-                {
-                    DeviceClient.SubscribeToCommands(device.ID, device.Key);
-                }
             }
+
+            SubscribeToCommands();
 
             Logger.Info("Device host is now running");
         }
@@ -219,6 +218,36 @@ namespace DeviceHive.Device
         #endregion
 
         #region Private Methods
+
+        private void SubscribeToCommands()
+        {
+            foreach (var device in Devices)
+                SubscribeToCommands(device);
+        }
+
+        private void SubscribeToCommands(DeviceBase device)
+        {
+            Logger.InfoFormat("Subscribe to device {0} ({1}) commands", device.ID, device.Name);
+            if (device.ListenCommands)
+            {
+                while (true)
+                {
+                    try
+                    {
+                        DeviceClient.SubscribeToCommands(device.ID, device.Key);
+                        break;
+                    }
+                    catch (DeviceServiceException e)
+                    {
+                        Logger.ErrorFormat("Error when subscribing to device {0} ({1}) commands: {2}",
+                            device.ID, device.Name, e);
+
+                        // retry with small wait
+                        Thread.Sleep(100);
+                    }
+                }
+            }
+        }
         
         private void RegisterDevice(DeviceBase device)
         {

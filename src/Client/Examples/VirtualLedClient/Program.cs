@@ -44,6 +44,25 @@ namespace VirtualLedClient
                 // subscribe to device notifications
                 service.NotificationInserted += (s, e) => HandleNotification(e.Notification);
                 service.SubscribeToNotifications(deviceGuid);
+                
+                service.ConnectionClosed += (s, e) =>
+                {
+                    if (service == null)
+                        return;
+
+                    while (true)
+                    {
+                        try
+                        {
+                            service.SubscribeToNotifications(deviceGuid);
+                            break;
+                        }
+                        catch (ClientServiceException)
+                        {
+                            Thread.Sleep(100);
+                        }
+                    }                    
+                };
 
                 // read user input to send corresponding commands to the VirtualLed device
                 Console.WriteLine("\nPlease enter a desired state of the led (either 0 or 1) or ESC to exit\n");
@@ -65,6 +84,7 @@ namespace VirtualLedClient
 
                 // unsubscribe from notifications
                 service.Dispose();
+                service = null;
             }
             catch (Exception ex)
             {

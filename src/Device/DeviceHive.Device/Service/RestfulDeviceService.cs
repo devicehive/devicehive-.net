@@ -209,6 +209,11 @@ namespace DeviceHive.Device
         public event EventHandler<CommandEventArgs> CommandInserted;
 
         /// <summary>
+        /// Fires when underlying connection is closed
+        /// </summary>
+        public event EventHandler ConnectionClosed;
+
+        /// <summary>
         /// Subscribe to device commands
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
@@ -308,6 +313,16 @@ namespace DeviceHive.Device
                 handler(this, e);
         }
 
+        /// <summary>
+        /// Fires <see cref="ConnectionClosed"/> event
+        /// </summary>
+        protected void OnConnectionClosed()
+        {
+            var handler = ConnectionClosed;
+            if (handler != null)
+                handler(this, EventArgs.Empty);
+        }
+
         #endregion
 
         #region Private Methods
@@ -336,6 +351,7 @@ namespace DeviceHive.Device
                 webSocketDeviceService.CommandInserted += (s, e) => OnCommandInserted(e);
                 
                 _webSocketDeviceService = webSocketDeviceService;
+                _webSocketDeviceService.ConnectionClosed += (s, e) => OnConnectionClosed();
 
                 return true;
             }

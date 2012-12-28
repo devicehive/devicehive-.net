@@ -60,6 +60,11 @@ namespace DeviceHive.Device
         event EventHandler<CommandEventArgs> CommandInserted;
 
         /// <summary>
+        /// Fires when underlying connection is closed
+        /// </summary>
+        event EventHandler ConnectionClosed;
+
+        /// <summary>
         /// Subscribe to device commands
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
