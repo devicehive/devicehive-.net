@@ -154,7 +154,7 @@ namespace DeviceHive.Client
         /// </summary>
         public void Close()
         {
-            if (_webSocket.State != WebSocketState.Closed && _webSocket.State != WebSocketState.Closing)
+            if (_webSocket.State == WebSocketState.Open)
                 _webSocket.Close();
         }
 

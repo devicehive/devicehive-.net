@@ -623,7 +623,11 @@ namespace DeviceHive.Device
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            _webSocketDeviceService.Dispose();
+            if (_webSocketDeviceService != null)
+                _webSocketDeviceService.Dispose();
+
+            foreach (var commandSubscriptionTask in _commandSubscriptionTasks.Values)
+                commandSubscriptionTask.Cancel();
         }
 
         #endregion

@@ -601,6 +601,8 @@ namespace DeviceHive.Client
         {
             if (_webSocketsClientService != null)
                 _webSocketsClientService.Dispose();
+
+            _notificationPollCancellationTokenSource.Cancel();
         }
 
         #endregion

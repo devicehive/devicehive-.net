@@ -40,7 +40,7 @@ namespace DeviceHive.WebSockets.Network.Fleck
 
         public override void Stop()
         {
-            _webSocketServer.Dispose();           
+            _webSocketServer.Dispose();
         }
     }
 }
