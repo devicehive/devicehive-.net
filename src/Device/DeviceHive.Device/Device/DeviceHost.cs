@@ -297,7 +297,8 @@ namespace DeviceHive.Device
             try
             {
                 var command = new DeviceCommand(cCommand.Name.Trim(),
-                    cCommand.Parameters == null ? null : cCommand.Parameters.DeepClone());
+                    cCommand.Parameters == null ? null : cCommand.Parameters.DeepClone(),
+                    cCommand.UserId);
                 result = device.HandleCommand(command, _cancellationSource.Token);
             }
             catch (OperationCanceledException)
