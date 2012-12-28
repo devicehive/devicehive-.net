@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Net;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
@@ -15,6 +16,7 @@ namespace DeviceHive.Core.Services
     public class DeviceService : ServiceBase
     {
         private readonly MessageBus _messageBus;
+        private static bool _allowNetworkAutoCreate = !string.Equals(ConfigurationManager.AppSettings["AllowNetworkAutoCreate"], "false", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Initialize instance of <see cref="DeviceService"/>
@@ -98,6 +100,9 @@ namespace DeviceHive.Core.Services
                 network = DataContext.Network.Get((string)jNetworkObj["name"]);
                 if (network == null)
                 {
+                    if (!_allowNetworkAutoCreate)
+                        throw new UnauthroizedNetworkException("Automatic network creation is not allowed, please specify an existing network!");
+
                     // auto-create network
                     network = new Network();
                     GetMapper<Network>().Apply(network, jNetworkObj);
