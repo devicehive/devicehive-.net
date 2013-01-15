@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{CD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Binary", "DeviceHive.Binary\DeviceHive.Binary.csproj", "{2125C7E3-AA56-4DE2-A0F8-7551D6198BDE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway", "Gateway\Gateway.csproj", "{5121CC24-FBA9-439F-BAB5-8D8C0994F685}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,11 +58,22 @@ Global
 		{2125C7E3-AA56-4DE2-A0F8-7551D6198BDE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{2125C7E3-AA56-4DE2-A0F8-7551D6198BDE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{2125C7E3-AA56-4DE2-A0F8-7551D6198BDE}.Release|x86.ActiveCfg = Release|Any CPU
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Debug|x86.ActiveCfg = Debug|x86
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Debug|x86.Build.0 = Debug|x86
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Release|Any CPU.ActiveCfg = Release|x86
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Release|Mixed Platforms.Build.0 = Release|x86
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Release|x86.ActiveCfg = Release|x86
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D814742F-05CB-4BC9-A232-4196B6A6C9FE} = {CD09A2F9-7931-4C47-832E-40604D8AF5B6}
+		{5121CC24-FBA9-439F-BAB5-8D8C0994F685} = {CD09A2F9-7931-4C47-832E-40604D8AF5B6}
 	EndGlobalSection
 EndGlobal

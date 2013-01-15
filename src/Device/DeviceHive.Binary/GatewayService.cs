@@ -11,7 +11,7 @@ namespace DeviceHive.Binary
 	/// DeviceHive gateway service implementation
 	/// </summary>
 	public class GatewayService : IDisposable
-	{
+	{	    
 	    private readonly IDeviceService _deviceService;
 		private readonly IList<IBinaryConnection> _deviceConnectionList;
 
@@ -28,19 +28,14 @@ namespace DeviceHive.Binary
 	    /// Initialize instance of <see cref="GatewayService"/>
 	    /// </summary>
 	    /// <param name="deviceService">Service for interaction with DeviceHive server</param>
-	    /// <param name="networkName">DeviceHive network name</param>
-	    /// <param name="networkKey">DeviceHive network key</param>
-	    /// <param name="networkDescription">DeviceHive network description</param>
-	    public GatewayService(IDeviceService deviceService,
-            string networkName = null, string networkKey = null, string networkDescription = null)
+	    /// <param name="network">DeviceHive network</param>
+	    public GatewayService(IDeviceService deviceService, Network network)
 		{	        
 	        _deviceService = deviceService;
 			_deviceConnectionList = new BinaryConnectionList(OnAddConnection, OnRemoveConnection);
 			_logger = LogManager.GetLogger(GetType());
 
-            NetworkName = networkName;
-            NetworkKey = networkKey;
-            NetworkDescription = networkDescription;
+            Network = network;
 
 			_deviceService.CommandInserted += OnCommandInserted;
 			_deviceService.ConnectionClosed += OnConnectionClosed;
@@ -56,19 +51,9 @@ namespace DeviceHive.Binary
 		}
 
         /// <summary>
-        /// Gets DeviceHive network name
+        /// Gets DeviceHive network
         /// </summary>
-        public string NetworkName { get; private set; }
-
-        /// <summary>
-        /// Gets DeviceHive network key
-        /// </summary>
-        public string NetworkKey { get; private set; }
-
-        /// <summary>
-        /// Gets DeviceHive network description
-        /// </summary>
-        public string NetworkDescription { get; private set; }
+        public Network Network { get; private set; }
 
 
 		private void OnAddConnection(IBinaryConnection binaryConnection)
@@ -143,8 +128,6 @@ namespace DeviceHive.Binary
 				base(connection)
 			{
 				_gatewayService = gatewayService;
-
-				RequestRegistration();
 			}
 
 			public Guid DeviceGuid
@@ -184,8 +167,7 @@ namespace DeviceHive.Binary
 				device.DeviceClass = new DeviceClass(registrationInfo.ClassName, registrationInfo.ClassVersion);
 				device.Equipment = registrationInfo.Equipment
                     .Select(e => new Equipment(e.Name, e.Code, e.TypeName)).ToList();
-                device.Network = new Network(_gatewayService.NetworkName,
-                    _gatewayService.NetworkDescription, _gatewayService.NetworkKey);
+                device.Network = _gatewayService.Network;
 
 				DeviceService.RegisterDevice(device);
 				_gatewayService.RegisterDevice(this);
@@ -220,6 +202,9 @@ namespace DeviceHive.Binary
 	    {
 	        _deviceService.CommandInserted -= OnCommandInserted;
 	        _deviceService.ConnectionClosed -= OnConnectionClosed;
+
+	        foreach (var deviceGatewayService in _deviceGatewayServicesByConnection.Values)
+	            deviceGatewayService.Dispose();
 	    }
 
 	    #endregion

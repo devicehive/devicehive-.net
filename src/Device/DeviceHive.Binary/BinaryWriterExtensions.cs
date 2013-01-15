@@ -30,13 +30,13 @@ namespace DeviceHive.Binary
 
 		public static void WriteUtfString(this BinaryWriter writer, string str)
 		{
-			writer.Write((uint) str.Length);
+			writer.Write((ushort) str.Length);
 			writer.Write(Encoding.UTF8.GetBytes(str));
 		}
 
 		public static void WriteBinary(this BinaryWriter writer, byte[] data)
 		{
-			writer.Write((uint) data.Length);
+            writer.Write((ushort)data.Length);
 			writer.Write(data);
 		}
 	}

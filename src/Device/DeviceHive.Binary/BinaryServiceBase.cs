@@ -83,7 +83,7 @@ namespace DeviceHive.Binary
         /// </summary>
 		protected void RequestRegistration()
 		{
-			SendMessage(Intents.RequestRegistration, new byte[0]);
+            SendMessage(Intents.RequestRegistration, new byte[0]);
 		}
 
         /// <summary>
@@ -605,7 +605,11 @@ namespace DeviceHive.Binary
 
 		#region Implementation of IDisposable
 
-		public void Dispose()
+	    /// <summary>
+	    /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+	    /// </summary>
+	    /// <filterpriority>2</filterpriority>
+	    public void Dispose()
 		{
 			_connection.Dispose();
 		}

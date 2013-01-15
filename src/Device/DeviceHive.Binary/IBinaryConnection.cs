@@ -8,13 +8,13 @@ namespace DeviceHive.Binary
 	public interface IBinaryConnection : IDisposable
 	{
 		/// <summary>
-		/// Read <see cref="length"/> bytes from device
+        /// Read <c>length</c> bytes from device
 		/// and returns them as byte array
 		/// </summary>
 		byte[] Read(int length);
 
         /// <summary>
-        /// Write <see cref="data"/> to device
+        /// Write <c>data</c> to device
         /// </summary>
 		void Write(byte[] data);
 

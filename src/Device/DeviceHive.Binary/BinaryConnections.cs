@@ -10,13 +10,13 @@ namespace DeviceHive.Binary
 	public abstract class BinaryConnectionBase : IBinaryConnection
 	{
 	    /// <summary>
-	    /// Read <see cref="length"/> bytes from device
+        /// Read <c>length</c> bytes from device
 	    /// and returns them as byte array
 	    /// </summary>
 	    public abstract byte[] Read(int length);
 
 	    /// <summary>
-	    /// Write <see cref="data"/> to device
+        /// Write <c>data</c> to device
 	    /// </summary>
 	    public abstract void Write(byte[] data);
 
@@ -68,7 +68,7 @@ namespace DeviceHive.Binary
 		}
 
 	    /// <summary>
-	    /// Read <see cref="length"/> bytes from device
+        /// Read <c>length</c> bytes from device
 	    /// and returns them as byte array
 	    /// </summary>
 	    public override byte[] Read(int length)
@@ -83,7 +83,7 @@ namespace DeviceHive.Binary
 		}
 
 	    /// <summary>
-	    /// Write <see cref="data"/> to device
+        /// Write <c>data</c> to device
 	    /// </summary>
 	    public override void Write(byte[] data)
 		{
@@ -132,7 +132,7 @@ namespace DeviceHive.Binary
 		}
 
 	    /// <summary>
-	    /// Read <see cref="length"/> bytes from device
+	    /// Read length bytes from device
 	    /// and returns them as byte array
 	    /// </summary>
 	    public override byte[] Read(int length)
@@ -143,7 +143,7 @@ namespace DeviceHive.Binary
 		}
 
 	    /// <summary>
-	    /// Write <see cref="data"/> to device
+	    /// Write data to device
 	    /// </summary>
 	    public override void Write(byte[] data)
 		{

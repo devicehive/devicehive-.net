@@ -11,7 +11,7 @@ namespace DeviceHive.Binary
 
 		private static readonly byte[] _messageSignature = new byte[] {0xC5, 0xC3};
 
-		private const int _headerSize = 64;
+		private const int _headerSize = 8;
 
 		#endregion
 
