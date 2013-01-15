@@ -22,8 +22,8 @@ namespace DeviceHive.Binary
 		private readonly MessageReaderWriter _messageReaderWriter;
 		private readonly ILog _logger;
 
-		private IDictionary<ushort, NotificationInfo> _notificationMapping;
-		private IDictionary<string, CommandInfo> _commandMapping; 
+		private IDictionary<ushort, NotificationMetadata> _notificationMapping;
+		private IDictionary<string, CommandMetadata> _commandMapping; 
 
 		#endregion
 
@@ -58,25 +58,41 @@ namespace DeviceHive.Binary
 
 		#region Abstract methods (handle messages)
 
+        /// <summary>
+        /// Override it to handle device registration in the service specific way
+        /// </summary>
 		protected abstract void RegisterDevice(DeviceRegistrationInfo registrationInfo);
 
+        /// <summary>
+        /// Override it to handle notification from device about commandexecution result in the
+        /// service specific way
+        /// </summary>
 		protected abstract void NotifyCommandResult(int commandId, string status, string result);
 
+        /// <summary>
+        /// Override it to handle device custom notification in the service specific way
+        /// </summary>
 		protected abstract void HandleHotification(Notification notification);
 
 		#endregion
 
 		#region Send messages
 
+        /// <summary>
+        /// Send "Request registration" command to the device
+        /// </summary>
 		protected void RequestRegistration()
 		{
 			SendMessage(Intents.RequestRegistration, new byte[0]);
 		}
 
+        /// <summary>
+        /// Send custom DeviceHive command to the device
+        /// </summary>
 		protected void SendCommand(Command command)
 		{
-			CommandInfo commandInfo;
-			if (!_commandMapping.TryGetValue(command.Name, out commandInfo))
+			CommandMetadata commandMetadata;
+			if (!_commandMapping.TryGetValue(command.Name, out commandMetadata))
 				throw new InvalidOperationException(string.Format("Command {0} is not registered", command.Name));
 
 			byte[] data;
@@ -85,14 +101,11 @@ namespace DeviceHive.Binary
 			using (var writer = new BinaryWriter(stream))
 			{
 				writer.Write(command.Id.Value);
-
-				foreach (var parameterInfo in commandInfo.Parameters)
-					WriteParameterValue(writer, parameterInfo, command.Parameters);
-
+                WriteParameterValue(writer, commandMetadata.Parameters, command.Parameters);
 				data = stream.ToArray();
 			}
 
-			SendMessage(commandInfo.Intent, data);
+			SendMessage(commandMetadata.Intent, data);
 		}
 
 		#endregion
@@ -108,23 +121,27 @@ namespace DeviceHive.Binary
 			if (message.Version != _version)
 				throw new InvalidOperationException("Invalid message version: " + message.Version);
 
-			if (message.Intent == Intents.Register)
-			{
-				RegisterDevice(message.Data);
-				return;
-			}
+		    switch (message.Intent)
+		    {
+		        case Intents.Register:
+                    RegisterDevice(message.Data);
+		            break;
 
-			if (message.Intent == Intents.NotifyCommandResult)
-			{
-				NotifyCommandResult(message.Data);
-				return;
-			}
+                case Intents.Register2:
+                    RegisterDevice2(message.Data);
+                    break;
 
-			// in other case message should be custom notification message
-			HandleNotification(message.Intent, message.Data);
+                case Intents.NotifyCommandResult:
+                    NotifyCommandResult(message.Data);
+		            break;
+
+                default: // in other case message should be custom notification message
+                    HandleNotification(message.Intent, message.Data);
+		            break;
+		    }
 		}
 
-		private void RegisterDevice(byte[] data)
+	    private void RegisterDevice(byte[] data)
 		{
 			var registrationInfo = new DeviceRegistrationInfo();
 
@@ -147,6 +164,77 @@ namespace DeviceHive.Binary
 			RegisterDevice(registrationInfo);
 		}
 
+        private void RegisterDevice2(byte[] data)
+        {
+            JObject jsonData;
+
+            using (var stream = new MemoryStream(data))
+            using (var reader = new BinaryReader(stream))
+                jsonData = JObject.Parse(reader.ReadUtfString());
+
+            var registrationInfo = new DeviceRegistrationInfo();
+            registrationInfo.Id = (Guid) jsonData["id"];
+            registrationInfo.Key = (string) jsonData["key"];
+            registrationInfo.Name = (string) jsonData["name"];
+
+            var deviceClassJson = (JObject) jsonData["deviceClass"];
+            registrationInfo.ClassName = (string) deviceClassJson["name"];
+            registrationInfo.ClassVersion = (string) deviceClassJson["version"];
+
+            var equipmentJson = (JArray) jsonData["equipment"];
+            if (equipmentJson == null || equipmentJson.Count == 0)
+            {
+                registrationInfo.Equipment = new EquipmentInfo[0];
+            }
+            else
+            {
+                registrationInfo.Equipment = equipmentJson
+                    .Select(e => new EquipmentInfo()
+                    {
+                        Code = (string) e["code"],
+                        Name = (string) e["name"],
+                        TypeName = (string) e["type"]
+                    })
+                    .ToArray();
+            }
+
+            var commandsJson = (JArray) jsonData["commands"];
+            if (commandsJson == null || commandsJson.Count == 0)
+            {
+                registrationInfo.Commands = new CommandMetadata[0];
+            }
+            else
+            {
+                registrationInfo.Commands = commandsJson
+                    .Select(c => new CommandMetadata()
+                    {
+                        Intent = (ushort) c["intent"],
+                        Name = (string) c["name"],
+                        Parameters = ParseParameterMetadata(null, c["params"])
+                    })
+                    .ToArray();
+            }
+
+            var notificationsJson = (JArray)jsonData["notifications"];
+            if (notificationsJson == null || notificationsJson.Count == 0)
+            {
+                registrationInfo.Notifications = new NotificationMetadata[0];
+            }
+            else
+            {
+                registrationInfo.Notifications = notificationsJson
+                    .Select(c => new NotificationMetadata()
+                    {
+                        Intent = (ushort) c["intent"],
+                        Name = (string) c["name"],
+                        Parameters = ParseParameterMetadata(null, c["params"])
+                    })
+                    .ToArray();
+            }
+
+            RegisterDevice(registrationInfo);
+        }
+
 		private void NotifyCommandResult(byte[] data)
 		{
 			int commandId;
@@ -166,21 +254,17 @@ namespace DeviceHive.Binary
 
 		private void HandleNotification(ushort intent, byte[] data)
 		{
-			NotificationInfo notificationInfo;
-			if (!_notificationMapping.TryGetValue(intent, out notificationInfo))
+			NotificationMetadata notificationMetadata;
+			if (!_notificationMapping.TryGetValue(intent, out notificationMetadata))
 				throw new InvalidOperationException("Unsupported intent: " + intent);
 
 			JToken parameters;
 
 			using (var stream = new MemoryStream(data))
 			using (var reader = new BinaryReader(stream))
-			{
-				parameters = new JObject(notificationInfo.Parameters
-					.Select(p => ReadParameterValue(reader, p))
-					.ToArray());
-			}
+			    parameters = ReadParameterValue(reader, notificationMetadata.Parameters);
 
-			var notification = new Notification(notificationInfo.Name, parameters);
+		    var notification = new Notification(notificationMetadata.Name, parameters);
 			HandleHotification(notification);
 		}
 
@@ -208,44 +292,43 @@ namespace DeviceHive.Binary
 			};
 		}
 
-		private static NotificationInfo ReadNotificationInfo(BinaryReader reader)
+		private static NotificationMetadata ReadNotificationInfo(BinaryReader reader)
 		{
-			return new NotificationInfo()
+			return new NotificationMetadata()
 			{
 				Intent = reader.ReadUInt16(),
 				Name = reader.ReadUtfString(),
-				Parameters = reader.ReadArray(ReadParameterInfo)
+				Parameters = ReadParameterList(reader)
 			};
 		}
 
-		private static CommandInfo ReadCommandInfo(BinaryReader reader)
+		private static CommandMetadata ReadCommandInfo(BinaryReader reader)
 		{
-			return new CommandInfo()
+			return new CommandMetadata()
 			{
 				Intent = reader.ReadUInt16(),
 				Name = reader.ReadUtfString(),
-				Parameters = reader.ReadArray(ReadParameterInfo)
+				Parameters = ReadParameterList(reader)
 			};
 		}
 
-		private static ParameterInfo ReadParameterInfo(BinaryReader reader)
-		{
-			return new ParameterInfo()
-			{
-				DataType = (DataType) reader.ReadByte(),
-				Name = reader.ReadUtfString()
-			};
-		}
+        private static ParameterMetadata ReadParameterList(BinaryReader reader)
+        {
+            return new ParameterMetadata(null, DataType.Object,
+                reader.ReadArray(r => new ParameterMetadata(
+                    reader.ReadUtfString(),
+                    (DataType) reader.ReadByte())));
+        }
 
-		private static object ReadParameterValue(BinaryReader reader, ParameterInfo parameterInfo)
+		private static JToken ReadParameterValue(BinaryReader reader, ParameterMetadata parameterMetadata)
 		{
-			switch (parameterInfo.DataType)
+			switch (parameterMetadata.DataType)
 			{
 				case DataType.Null:
 					return null;
 
 				case DataType.Byte:
-					return reader.ReadByte();
+					return (int) reader.ReadByte();
 				
 				case DataType.Word:
 					return reader.ReadUInt16();
@@ -286,88 +369,235 @@ namespace DeviceHive.Binary
 				case DataType.Binary:
 					return reader.ReadBinary();
 
+                case DataType.Array:
+			        return new JArray(reader
+                        .ReadArray(r => ReadParameterValue(r, parameterMetadata.Children[0]))
+                        .Cast<object>()
+                        .ToArray());
+
+                case DataType.Object:
+			        return new JObject(parameterMetadata.Children
+			            .Select(p => new JProperty(p.Name, ReadParameterValue(reader, p)))
+                        .Cast<object>()
+			            .ToArray());
+
 				default:
-					throw new NotSupportedException(parameterInfo.DataType + " is not supported for parameters");
+					throw new NotSupportedException(parameterMetadata.DataType + " is not supported for parameters");
 			}
 		}
 
 		#endregion
 
-		#region Write data
+        #region Parsing data
 
-		private static void WriteParameterValue(BinaryWriter writer, ParameterInfo parameterInfo, JToken parameters)
+        private static ParameterMetadata ParseParameterMetadata(string name, JToken token)
+        {
+            if (token == null)
+                return new ParameterMetadata(name, DataType.Null);
+
+            switch (token.Type)
+            {
+                case JTokenType.None:
+                case JTokenType.Null:
+                    return new ParameterMetadata(name, DataType.Null);
+
+                case JTokenType.Object:
+                    return new ParameterMetadata(name, DataType.Object, ((JObject) token)
+                        .Properties()
+                        .Select(p => ParseParameterMetadata(p.Name, p.Value))
+                        .ToArray());
+
+                case JTokenType.Array:
+                    var array = (JArray) token;
+                    if (array.Count != 1)
+                        throw new InvalidOperationException("Invalid size of array metadata (should be 1)");
+
+                    return new ParameterMetadata(name, DataType.Array,
+                        new[] {ParseParameterMetadata(null, array[0])});
+
+                case JTokenType.String:
+                    return new ParameterMetadata(name, ParsePrimitiveDataType((string) token));
+                
+                default:
+                    throw new InvalidOperationException("Can't parse ParameterMetadata from " + token.Type);
+            }
+        }
+
+        private static DataType ParsePrimitiveDataType(string dataType)
+        {
+            switch (dataType)
+            {
+                case "bool":
+                    return DataType.Boolean;
+
+                case "u8":
+                case "uint8":
+                    return DataType.Byte;
+
+                case "i8":
+                case "int8":
+                    return DataType.SignedByte;
+
+                case "u16":
+                case "uint16":
+                    return DataType.Word;
+
+                case "i16":
+                case "int16":
+                    return DataType.SignedWord;
+
+                case "u32":
+                case "uint32":
+                    return DataType.Dword;
+
+                case "i32":
+                case "int32":
+                    return DataType.SignedDword;
+
+                case "u64":
+                case "uint64":
+                    return DataType.Qword;
+
+                case "i64":
+                case "int64":
+                    return DataType.SignedQword;
+
+                case "f":
+                case "single":
+                    return DataType.Single;
+
+                case "ff":
+                case "double":
+                    return DataType.Double;
+
+                case "uuid":
+                case "guid":
+                    return DataType.Guid;
+
+                case "s":
+                case "str":
+                case "string":
+                    return DataType.UtfString;
+
+                case "b":
+                case "bin":
+                case "binary":
+                    return DataType.Binary;
+
+                default:
+                    throw new InvalidOperationException("Unknown primitive type: " + dataType);
+            }
+        }
+
+        #endregion
+
+        #region Write data
+
+        private static void WriteParameterValue(BinaryWriter writer,
+            ParameterMetadata parameterMetadata, JToken parameter)
 		{
-			JToken value = null;
-
-			if (parameters != null && parameters.Type == JTokenType.Object)
-				value = parameters[parameterInfo.Name];
-
-			switch (parameterInfo.DataType)
+			switch (parameterMetadata.DataType)
 			{
 				case DataType.Null:
 					break;
 
-				case DataType.Byte:
-					writer.Write((byte) (value ?? 0));
-					break;
+			    case DataType.Byte:
+			        writer.Write((byte) (parameter ?? 0));
+			        break;
 
-				case DataType.Word:
-					writer.Write((ushort) (value ?? 0));
-					break;
+			    case DataType.Word:
+			        writer.Write((ushort) (parameter ?? 0));
+			        break;
 
-				case DataType.Dword:
-					writer.Write((uint) (value ?? 0));
-					break;
+			    case DataType.Dword:
+			        writer.Write((uint) (parameter ?? 0));
+			        break;
 
-				case DataType.Qword:
-					writer.Write((ulong) (value ?? 0));
-					break;
+			    case DataType.Qword:
+			        writer.Write((ulong) (parameter ?? 0));
+			        break;
 
-				case DataType.SignedByte:
-					writer.Write((sbyte) (value ?? 0));
-					break;
+			    case DataType.SignedByte:
+			        writer.Write((sbyte) (parameter ?? 0));
+			        break;
 
-				case DataType.SignedWord:
-					writer.Write((short) (value ?? 0));
-					break;
+			    case DataType.SignedWord:
+			        writer.Write((short) (parameter ?? 0));
+			        break;
 
-				case DataType.SignedDword:
-					writer.Write((int) (value ?? 0));
-					break;
+			    case DataType.SignedDword:
+			        writer.Write((int) (parameter ?? 0));
+			        break;
 
-				case DataType.SignedQword:
-					writer.Write((long) (value ?? 0));
-					break;
+			    case DataType.SignedQword:
+			        writer.Write((long) (parameter ?? 0));
+			        break;
 
-				case DataType.Single:
-					writer.Write((float) (value ?? 0));
-					break;
+			    case DataType.Single:
+			        writer.Write((float) (parameter ?? 0));
+			        break;
 
-				case DataType.Double:
-					writer.Write((double) (value ?? 0));
-					break;
+			    case DataType.Double:
+			        writer.Write((double) (parameter ?? 0));
+			        break;
 
-				case DataType.Boolean:
-					var boolValue = (bool) (value ?? false);
-					writer.Write((byte) (boolValue ? 1 : 0));
-					break;
+			    case DataType.Boolean:
+			        var boolValue = (bool) (parameter ?? false);
+			        writer.Write((byte) (boolValue ? 1 : 0));
+			        break;
 
-				case DataType.Guid:
-					writer.WriteGuid((Guid) (value ?? Guid.Empty));
-					break;
+			    case DataType.Guid:
+			        writer.WriteGuid((Guid) (parameter ?? Guid.Empty));
+			        break;
 
-				case DataType.UtfString:
-					writer.Write((string) (value ?? string.Empty));
-					break;
+			    case DataType.UtfString:
+			        writer.WriteUtfString((string) (parameter ?? string.Empty));
+			        break;
 
-				case DataType.Binary:
-					writer.Write((ushort) (value ?? new byte[0]));
-					break;
+			    case DataType.Binary:
+			        writer.WriteBinary((byte[]) (parameter ?? new byte[0]));
+			        break;
 
-				default:
-					throw new NotSupportedException(parameterInfo.DataType + " is not supported for parameters");
+                case DataType.Array:
+			        WriteArrayParameterValue(writer, parameterMetadata, parameter);
+			        break;
+
+                case DataType.Object:
+			        WriteObjectParameterValue(writer, parameterMetadata, parameter);
+			        break;
+
+			    default:
+					throw new NotSupportedException(parameterMetadata.DataType + " is not supported for parameters");
 			}
 		}
+	    
+	    private static void WriteArrayParameterValue(BinaryWriter writer,
+            ParameterMetadata parameterMetadata, JToken parameter)
+	    {
+            if (parameter == null)
+            {
+                writer.Write(0);
+                return;
+            }
+
+	        var array = (JArray) parameter;
+	        writer.Write(array.Count);
+
+	        foreach (var item in array)
+	            WriteParameterValue(writer, parameterMetadata.Children[0], item);
+	    }
+
+        private static void WriteObjectParameterValue(BinaryWriter writer,
+            ParameterMetadata parameterMetadata, JToken parameter)
+        {
+            var obj = (JObject) (parameter ?? new JObject());
+            foreach (var childParameterMetadata in parameterMetadata.Children)
+            {
+                var childParameter = obj[childParameterMetadata.Name];
+                WriteParameterValue(writer, childParameterMetadata, childParameter);
+            }
+        }
+
 
 		#endregion
 

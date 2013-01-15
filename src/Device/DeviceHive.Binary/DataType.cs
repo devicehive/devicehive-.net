@@ -83,6 +83,11 @@
         /// <summary>
         /// Array of custom data
         /// </summary>
-		Array = 15
+		Array = 15,
+
+        /// <summary>
+        /// Object with custom data
+        /// </summary>
+        Object = 16,
 	}
 }

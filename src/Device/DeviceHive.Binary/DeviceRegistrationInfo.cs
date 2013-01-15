@@ -40,12 +40,12 @@ namespace DeviceHive.Binary
         /// <summary>
         /// Gets or sets supported device notification list
         /// </summary>
-		public NotificationInfo[] Notifications { get; set; }
+		public NotificationMetadata[] Notifications { get; set; }
 
         /// <summary>
         /// Gets or sets supported device command list
         /// </summary>
-		public CommandInfo[] Commands { get; set; }
+		public CommandMetadata[] Commands { get; set; }
 	}
 
 	/// <summary>
@@ -70,9 +70,9 @@ namespace DeviceHive.Binary
 	}
 
 	/// <summary>
-    /// Represent information about supported device notification
+    /// Represent notification metadata
 	/// </summary>
-	public class NotificationInfo
+	public class NotificationMetadata
 	{
 		/// <summary>
 		/// Gets or sets intent value that will be used in binary protocol messages
@@ -87,13 +87,13 @@ namespace DeviceHive.Binary
 		/// <summary>
 		/// Gets or sets supported notification parameters list
 		/// </summary>
-		public ParameterInfo[] Parameters { get; set; }
+		public ParameterMetadata Parameters { get; set; }
 	}
 
     /// <summary>
-    /// Represent information about supported device command
+    /// Represent command metadata
     /// </summary>
-	public class CommandInfo
+	public class CommandMetadata
 	{
         /// <summary>
         /// Gets or sets intent value that will be used in binary protocol messages
@@ -106,17 +106,27 @@ namespace DeviceHive.Binary
 		public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets supported command parameters list
+        /// Gets or sets command parameters metadata
         /// </summary>
-		public ParameterInfo[] Parameters { get; set; }
+		public ParameterMetadata Parameters { get; set; }
 	}
 
 	/// <summary>
-	/// Represent information about parameters for device command or notification
+	/// Represent metadata information about parameters for device command or notification
 	/// </summary>
-	public class ParameterInfo
+	public class ParameterMetadata
 	{
-		/// <summary>
+	    /// <summary>
+	    /// Initialize new instance of <see cref="ParameterMetadata"/>
+	    /// </summary>
+	    public ParameterMetadata(string name, DataType dataType, ParameterMetadata[] children = null)
+	    {
+	        Name = name;
+	        Children = children;
+	        DataType = dataType;
+	    }
+
+	    /// <summary>
 		/// Gets or sets parameter data type
 		/// </summary>
 		public DataType DataType { get; set; }
@@ -125,5 +135,11 @@ namespace DeviceHive.Binary
 		/// Gets or sets parameter name
 		/// </summary>
 		public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets child parameters metadata.
+        /// Used for object and array parameters (arrays have only one child).
+        /// </summary>
+        public ParameterMetadata[] Children { get; set; }
 	}
 }

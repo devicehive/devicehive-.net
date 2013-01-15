@@ -21,6 +21,11 @@
 		public const ushort NotifyCommandResult = 2;
 
         /// <summary>
+        /// Register device in the DeviceHive (JSON request)
+        /// </summary>
+        public const ushort Register2 = 3;
+
+        /// <summary>
         /// Start value for custom intents
         /// </summary>
         public const ushort User = 256;
