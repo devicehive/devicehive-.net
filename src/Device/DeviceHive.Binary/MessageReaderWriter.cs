@@ -110,7 +110,7 @@ namespace DeviceHive.Binary
 
 		private static byte CalculateChecksum(IEnumerable<byte> bytes)
 		{
-			return bytes.Aggregate((b1, b2) => unchecked((byte) (b1 + b2)));
+			return (byte) (0xFF - bytes.Aggregate((b1, b2) => unchecked((byte) (b1 + b2))));
 		}
 	}
 }
