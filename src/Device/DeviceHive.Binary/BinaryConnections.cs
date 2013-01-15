@@ -62,6 +62,9 @@ namespace DeviceHive.Binary
 		{
 			_serialPort = serialPort;
 			_serialPort.DataReceived += (s, e) => OnDataAvailable();
+
+            if (!_serialPort.IsOpen)
+                _serialPort.Open();
 		}
 
 	    /// <summary>

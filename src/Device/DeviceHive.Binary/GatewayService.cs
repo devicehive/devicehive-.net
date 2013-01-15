@@ -10,7 +10,7 @@ namespace DeviceHive.Binary
 	/// <summary>
 	/// DeviceHive gateway service implementation
 	/// </summary>
-	public class GatewayService
+	public class GatewayService : IDisposable
 	{
 	    private readonly IDeviceService _deviceService;
 		private readonly IList<IBinaryConnection> _deviceConnectionList;
@@ -209,6 +209,16 @@ namespace DeviceHive.Binary
 		}
 
 		#endregion
+
+	    #region Implementation of IDisposable
+
+	    public void Dispose()
+	    {
+	        _deviceService.CommandInserted -= OnCommandInserted;
+	        _deviceService.ConnectionClosed -= OnConnectionClosed;
+	    }
+
+	    #endregion
 	}
 
     internal class BinaryConnectionList : Collection<IBinaryConnection>
