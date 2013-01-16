@@ -50,6 +50,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\DeviceHive.Binary\DeviceHive.Binary.csproj">
       <Project>{2125C7E3-AA56-4DE2-A0F8-7551D6198BDE}</Project>
       <Name>DeviceHive.Binary</Name>
@@ -58,10 +62,6 @@
       <Project>{58E2ACDB-877F-4C0E-B24E-B11A95E502F5}</Project>
       <Name>DeviceHive.Device</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
