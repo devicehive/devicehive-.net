@@ -31,9 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DeviceHive.Device">
-      <HintPath>..\..\..\main\DeviceHive\devicehive-.net\bin\Device\DeviceHive.Device.dll</HintPath>
-    </Reference>
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
@@ -64,6 +61,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DeviceHive.Device\DeviceHive.Device.csproj">
+      <Project>{58E2ACDB-877F-4C0E-B24E-B11A95E502F5}</Project>
+      <Name>DeviceHive.Device</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
