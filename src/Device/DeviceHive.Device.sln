@@ -16,7 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{CD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Binary", "DeviceHive.Binary\DeviceHive.Binary.csproj", "{2125C7E3-AA56-4DE2-A0F8-7551D6198BDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway", "Gateway\Gateway.csproj", "{5121CC24-FBA9-439F-BAB5-8D8C0994F685}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway", "Examples\Gateway\Gateway.csproj", "{5121CC24-FBA9-439F-BAB5-8D8C0994F685}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

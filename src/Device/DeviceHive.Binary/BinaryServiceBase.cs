@@ -84,31 +84,6 @@ namespace DeviceHive.Binary
 		protected void RequestRegistration()
 		{
             SendMessage(Intents.RequestRegistration, new byte[0]);
-            //var json = "{" +
-            //    "id:\"b125698d-61bd-40d7-b65e-e1f86852a166\"," +
-            //    "key:\"test key\"," +
-            //    "name:\"test name\"," +
-            //    "deviceClass:{" +
-            //    "name:\"test class\"," +
-            //    "version:\"1.0\"}," +
-            //    "equipment:[]," +
-            //    "commands:[" +
-            //    "   {intent: 257,name:\"cmd1\",params:{X:\"s\",Y:\"i32\"}}," +
-            //    "   {intent: 258,name:\"cmd2\",params:[\"guid\"]}" +
-            //    "]," +
-            //    "notifications:[]" +
-            //    "}";
-
-            //byte[] data;
-
-            //using (var stream = new MemoryStream())
-            //using (var writer = new BinaryWriter(stream))
-            //{
-            //    writer.WriteUtfString(json);
-            //    data = stream.ToArray();
-            //}
-
-            //SendMessage(Intents.Register2, data);
 		}
 
         /// <summary>

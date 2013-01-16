@@ -11,7 +11,8 @@
     <RootNamespace>Gateway</RootNamespace>
     <AssemblyName>Gateway</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -35,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net">
-      <HintPath>..\packages\log4net.2.0.0\lib\net40-client\log4net.dll</HintPath>
+      <HintPath>..\..\..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -54,11 +55,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DeviceHive.Binary\DeviceHive.Binary.csproj">
+    <ProjectReference Include="..\..\DeviceHive.Binary\DeviceHive.Binary.csproj">
       <Project>{2125C7E3-AA56-4DE2-A0F8-7551D6198BDE}</Project>
       <Name>DeviceHive.Binary</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DeviceHive.Device\DeviceHive.Device.csproj">
+    <ProjectReference Include="..\..\DeviceHive.Device\DeviceHive.Device.csproj">
       <Project>{58E2ACDB-877F-4C0E-B24E-B11A95E502F5}</Project>
       <Name>DeviceHive.Device</Name>
     </ProjectReference>
