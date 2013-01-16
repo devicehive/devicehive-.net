@@ -10,6 +10,11 @@ namespace DeviceHive.Binary
 	public abstract class BinaryConnectionBase : IBinaryConnection
 	{
 	    /// <summary>
+	    /// Setup binary connection to device
+	    /// </summary>
+	    public abstract void Connect();
+
+	    /// <summary>
         /// Read <c>length</c> bytes from device
 	    /// and returns them as byte array
 	    /// </summary>
@@ -61,11 +66,17 @@ namespace DeviceHive.Binary
 		public SerialPortBinaryConnection(SerialPort serialPort)
 		{
 			_serialPort = serialPort;
-			_serialPort.DataReceived += (s, e) => OnDataAvailable();
+			_serialPort.DataReceived += (s, e) => OnDataAvailable();            
+		}
 
+	    /// <summary>
+	    /// Setup binary connection to device through COM port
+	    /// </summary>
+	    public override void Connect()
+	    {
             if (!_serialPort.IsOpen)
                 _serialPort.Open();
-		}
+	    }
 
 	    /// <summary>
         /// Read <c>length</c> bytes from device
@@ -130,6 +141,13 @@ namespace DeviceHive.Binary
 					OnDataAvailable();
 			}
 		}
+
+	    /// <summary>
+	    /// Setup binary connection to device (do nothing in <see cref="StubBinaryConnection"/>)
+	    /// </summary>
+	    public override void Connect()
+	    {
+	    }
 
 	    /// <summary>
 	    /// Read length bytes from device

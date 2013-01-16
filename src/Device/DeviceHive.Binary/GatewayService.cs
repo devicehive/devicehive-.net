@@ -11,7 +11,9 @@ namespace DeviceHive.Binary
 	/// DeviceHive gateway service implementation
 	/// </summary>
 	public class GatewayService : IDisposable
-	{	    
+	{
+        private readonly object _lock = new object();
+
 	    private readonly IDeviceService _deviceService;
 		private readonly IList<IBinaryConnection> _deviceConnectionList;
 
@@ -35,10 +37,7 @@ namespace DeviceHive.Binary
 			_deviceConnectionList = new BinaryConnectionList(OnAddConnection, OnRemoveConnection);
 			_logger = LogManager.GetLogger(GetType());
 
-            Network = network;
-
-			_deviceService.CommandInserted += OnCommandInserted;
-			_deviceService.ConnectionClosed += OnConnectionClosed;
+            Network = network;			
 		}
 
 		
@@ -56,17 +55,73 @@ namespace DeviceHive.Binary
         public Network Network { get; private set; }
 
 
+        /// <summary>
+        /// Gets flag indicating that gateway is started
+        /// </summary>
+        public bool IsStarted { get; private set; }
+
+        /// <summary>
+        /// Starts gateway
+        /// </summary>
+        public void Start()
+        {
+            if (IsStarted)
+                return;
+
+            lock (_lock)
+            {
+                if (IsStarted)
+                    return;
+
+                _deviceService.CommandInserted += OnCommandInserted;
+                _deviceService.ConnectionClosed += OnConnectionClosed;
+
+                foreach (var deviceGatewayService in _deviceGatewayServicesByConnection.Values)
+                    deviceGatewayService.Start();
+
+                IsStarted = true;
+            }
+        }
+
+        /// <summary>
+        /// Stops gateway
+        /// </summary>
+        public void Stop()
+        {
+            if (!IsStarted)
+                return;
+
+            lock (_lock)
+            {
+                if (!IsStarted)
+                    return;
+
+                _deviceService.CommandInserted -= OnCommandInserted;
+                _deviceService.ConnectionClosed -= OnConnectionClosed;
+
+                foreach (var deviceGatewayService in _deviceGatewayServicesByConnection.Values)
+                    deviceGatewayService.Stop();
+            }
+        }
+
+
 		private void OnAddConnection(IBinaryConnection binaryConnection)
 		{
 			var deviceGatewayService = new DeviceGatewayService(binaryConnection, this);
 			_deviceGatewayServicesByConnection.Add(binaryConnection, deviceGatewayService);
-			deviceGatewayService.RequestRegistration();
+
+            if (IsStarted)
+                deviceGatewayService.Start();
 		}
 
 		private void OnRemoveConnection(IBinaryConnection binaryConnection)
 		{
 			DeviceGatewayService deviceGatewayService;			
-			if (_deviceGatewayServicesByConnection.TryGetValue(binaryConnection, out deviceGatewayService))
+			if (!_deviceGatewayServicesByConnection.TryGetValue(binaryConnection, out deviceGatewayService))
+			{
+			    binaryConnection.Dispose();
+			}
+            else
 			{
 				var deviceGuid = deviceGatewayService.DeviceGuid;
 				if (deviceGuid != Guid.Empty)
@@ -74,6 +129,8 @@ namespace DeviceHive.Binary
 					_deviceService.UnsubscribeFromCommands(deviceGuid, deviceGatewayService.DeviceKey);
 					_deviceGatewayServicesByDevice.Remove(deviceGuid);
 				}
+
+                deviceGatewayService.Stop();
 			}
 
 			_deviceGatewayServicesByConnection.Remove(binaryConnection);
@@ -140,10 +197,11 @@ namespace DeviceHive.Binary
 				get { return _deviceKey; }
 			}
 
-			public new void RequestRegistration()
-			{
-				base.RequestRegistration();
-			}
+            public override void Start()
+            {
+                base.Start();
+                RequestRegistration();
+            }
 
 			public void HandleCommand(Command command)
 			{
@@ -193,6 +251,7 @@ namespace DeviceHive.Binary
 
 		#endregion
 
+
 	    #region Implementation of IDisposable
 
 	    /// <summary>
@@ -201,11 +260,7 @@ namespace DeviceHive.Binary
 	    /// <filterpriority>2</filterpriority>
 	    public void Dispose()
 	    {
-	        _deviceService.CommandInserted -= OnCommandInserted;
-	        _deviceService.ConnectionClosed -= OnConnectionClosed;
-
-	        foreach (var deviceGatewayService in _deviceGatewayServicesByConnection.Values)
-	            deviceGatewayService.Dispose();
+	        Stop();
 	    }
 
 	    #endregion

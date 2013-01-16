@@ -30,10 +30,13 @@ namespace Gateway
                     var serialPortConnection = new SerialPortBinaryConnection(serialPort);
                     gatewayService.DeviceConnectionList.Add(serialPortConnection);
 
+                    // start gateway
+                    gatewayService.Start();
+
                     // wait for console key press and then dispose gateway service
                     Console.WriteLine("Gateway is now running, press any key to stop...");
                     Console.ReadKey();
-                    gatewayService.Dispose();
+                    gatewayService.Stop();
                 }
             }
             catch (Exception ex)

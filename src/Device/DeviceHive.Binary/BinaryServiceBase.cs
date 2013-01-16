@@ -13,14 +13,15 @@ namespace DeviceHive.Binary
 	/// </summary>
 	public abstract class BinaryServiceBase : IDisposable
 	{
-		private readonly IBinaryConnection _connection;
-
 		#region Private fields
 
 		private const byte _version = 1;
 
+	    private readonly object _lock = new object();
+
 		private readonly MessageReaderWriter _messageReaderWriter;
 		private readonly ILog _logger;
+        private readonly IBinaryConnection _connection;
 
 		private IDictionary<ushort, NotificationMetadata> _notificationMapping;
 		private IDictionary<string, CommandMetadata> _commandMapping; 
@@ -36,27 +37,61 @@ namespace DeviceHive.Binary
 		{
 			_connection = connection;
 			_messageReaderWriter = new MessageReaderWriter(connection);
-			_logger = LogManager.GetLogger(GetType());
+			_logger = LogManager.GetLogger(GetType());			
+		}	    
 
-			connection.DataAvailable += (s, e) =>
-			{
-				try
-				{
-					var message = _messageReaderWriter.ReadMessage();
-					HandleMessage(message);
-				}
-				catch (Exception ex)
-				{
-					_logger.Error("Message handle error", ex);
-				}
-			};
-		}
+	    #endregion
 
-		#endregion		
+        #region Public methods and properties
 
-		#region Protected methods
+        /// <summary>
+        /// Gets flag indicating that service is started
+        /// </summary>
+        public bool IsStarted { get; private set; }
 
-		#region Abstract methods (handle messages)
+        /// <summary>
+        /// Start listening messages from device
+        /// </summary>
+        public virtual void Start()
+        {
+            if (IsStarted)
+                return;
+
+            lock (_lock)
+            {
+                if (IsStarted)
+                    return;
+
+                _connection.DataAvailable += OnDeviceDataAvailable;
+                _connection.Connect();
+                IsStarted = true;
+            }
+        }
+
+        /// <summary>
+        /// Stop listening messages from device
+        /// </summary>
+        public virtual void Stop()
+        {
+            if (!IsStarted)
+                return;
+
+            lock (_lock)
+            {
+                if (!IsStarted)
+                    return;
+
+                _connection.DataAvailable -= OnDeviceDataAvailable;
+                _connection.Dispose();
+                IsStarted = false;
+            }
+        }
+        
+        #endregion
+
+        #region Protected methods
+
+        #region Abstract methods (handle messages)
 
         /// <summary>
         /// Override it to handle device registration in the service specific way
@@ -115,6 +150,19 @@ namespace DeviceHive.Binary
 		#region Private methods
 
 		#region Handle messages
+
+        private void OnDeviceDataAvailable(object sender, EventArgs eventArgs)
+        {
+            try
+            {
+                var message = _messageReaderWriter.ReadMessage();
+                HandleMessage(message);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Message handle error", ex);
+            }
+        }
 
 		private void HandleMessage(Message message)
 		{

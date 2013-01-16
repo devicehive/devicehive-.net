@@ -7,6 +7,11 @@ namespace DeviceHive.Binary
 	/// </summary>
 	public interface IBinaryConnection : IDisposable
 	{
+        /// <summary>
+        /// Setup binary connection to device
+        /// </summary>
+	    void Connect();
+
 		/// <summary>
         /// Read <c>length</c> bytes from device
 		/// and returns them as byte array
