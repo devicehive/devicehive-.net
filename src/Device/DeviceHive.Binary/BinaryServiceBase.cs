@@ -84,6 +84,31 @@ namespace DeviceHive.Binary
 		protected void RequestRegistration()
 		{
             SendMessage(Intents.RequestRegistration, new byte[0]);
+            //var json = "{" +
+            //    "id:\"b125698d-61bd-40d7-b65e-e1f86852a166\"," +
+            //    "key:\"test key\"," +
+            //    "name:\"test name\"," +
+            //    "deviceClass:{" +
+            //    "name:\"test class\"," +
+            //    "version:\"1.0\"}," +
+            //    "equipment:[]," +
+            //    "commands:[" +
+            //    "   {intent: 257,name:\"cmd1\",params:{X:\"s\",Y:\"i32\"}}," +
+            //    "   {intent: 258,name:\"cmd2\",params:[\"guid\"]}" +
+            //    "]," +
+            //    "notifications:[]" +
+            //    "}";
+
+            //byte[] data;
+
+            //using (var stream = new MemoryStream())
+            //using (var writer = new BinaryWriter(stream))
+            //{
+            //    writer.WriteUtfString(json);
+            //    data = stream.ToArray();
+            //}
+
+            //SendMessage(Intents.Register2, data);
 		}
 
         /// <summary>
@@ -158,10 +183,7 @@ namespace DeviceHive.Binary
 				registrationInfo.Commands = reader.ReadArray(ReadCommandInfo);
 			}
 
-			_notificationMapping = registrationInfo.Notifications.ToDictionary(n => n.Intent);
-			_commandMapping = registrationInfo.Commands.ToDictionary(c => c.Name);
-
-			RegisterDevice(registrationInfo);
+            RegisterDeviceCore(registrationInfo);
 		}
 
         private void RegisterDevice2(byte[] data)
@@ -232,7 +254,14 @@ namespace DeviceHive.Binary
                     .ToArray();
             }
 
-            RegisterDevice(registrationInfo);
+            RegisterDeviceCore(registrationInfo);
+        }
+
+        private void RegisterDeviceCore(DeviceRegistrationInfo deviceRegistrationInfo)
+        {
+            _notificationMapping = deviceRegistrationInfo.Notifications.ToDictionary(n => n.Intent);
+            _commandMapping = deviceRegistrationInfo.Commands.ToDictionary(c => c.Name);
+            RegisterDevice(deviceRegistrationInfo);
         }
 
 		private void NotifyCommandResult(byte[] data)
@@ -274,8 +303,15 @@ namespace DeviceHive.Binary
 
 		private void SendMessage(ushort intent, byte[] data)
 		{
-			var message = new Message(_version, 0, intent, data);
-			_messageReaderWriter.WriteMessage(message);
+            try
+            {
+                var message = new Message(_version, 0, intent, data);
+                _messageReaderWriter.WriteMessage(message);
+            }
+            catch (Exception e)
+            {
+                _logger.Error("Error occurred on message sending", e);
+            }
 		}
 
 		#endregion
@@ -581,7 +617,7 @@ namespace DeviceHive.Binary
             }
 
 	        var array = (JArray) parameter;
-	        writer.Write(array.Count);
+	        writer.Write((ushort) array.Count);
 
 	        foreach (var item in array)
 	            WriteParameterValue(writer, parameterMetadata.Children[0], item);
