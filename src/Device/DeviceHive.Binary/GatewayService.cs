@@ -175,6 +175,7 @@ namespace DeviceHive.Binary
 
 			protected override void NotifyCommandResult(int commandId, string status, string result)
 			{
+                // todo: check if command.Name is really required in DeviceService.UpdateCommand (now this call doesn't work)
 				DeviceService.UpdateCommand(_deviceGuid, _deviceKey,
 					new Command() { Id = commandId, Status = status, Result = result });
 			}
