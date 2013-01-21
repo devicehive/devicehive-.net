@@ -210,7 +210,7 @@ namespace DeviceHive.Device
 
             SendRequest("command/update", deviceGuid, deviceKey,
                 new JProperty("commandId", command.Id),
-                new JProperty("command", Serialize(command)));
+                new JProperty("command", Serialize(command, NullValueHandling.Ignore)));
         }
 
         /// <summary>

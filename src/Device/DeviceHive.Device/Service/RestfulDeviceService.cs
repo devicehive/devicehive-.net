@@ -284,18 +284,17 @@ namespace DeviceHive.Device
                 throw new ArgumentNullException("command");
             if (command.Id == null)
                 throw new ArgumentNullException("command.ID");
-            if (string.IsNullOrEmpty(command.Name))
-                throw new ArgumentNullException("Command name is null or empty", "command.Name");
 
-            var c = new Command(command.Name, command.Parameters, command.Status, command.Result);
+            var c = new Command(null, null, command.Status, command.Result);
 
             if (InitWebSocketsService())
             {
-                _webSocketDeviceService.UpdateCommand(command, deviceId, deviceKey);
+                _webSocketDeviceService.UpdateCommand(c, deviceId, deviceKey);
             }
             else
             {
-                Put(string.Format("/device/{0}/command/{1}", deviceId, command.Id), deviceId, deviceKey, c);
+                Put(string.Format("/device/{0}/command/{1}", deviceId, command.Id),
+                    deviceId, deviceKey, c, NullValueHandling.Ignore);
             }
         }
         #endregion
