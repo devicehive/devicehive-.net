@@ -285,7 +285,7 @@ namespace DeviceHive.Device
             if (command.Id == null)
                 throw new ArgumentNullException("command.ID");
 
-            var c = new Command(null, null, command.Status, command.Result);
+            var c = new Command(null, null, command.Status, command.Result) {Id = command.Id};
 
             if (InitWebSocketsService())
             {
