@@ -586,9 +586,9 @@ namespace DeviceHive.Device
 
                 Task.Factory.StartNew(() =>
                 {
-                    try
+                    while (true)
                     {
-                        while (true)
+                        try
                         {
                             var сommands = restfulDeviceService.PollCommands(deviceId, deviceKey,
                                 timestamp, _cancellationTokenSource.Token);
@@ -601,9 +601,16 @@ namespace DeviceHive.Device
 
                             timestamp = сommands.Max(c => c.Timestamp ?? timestamp);
                         }
-                    }
-                    catch (OperationCanceledException)
-                    {
+                        catch (OperationCanceledException)
+                        {
+                            return;
+                        }
+                        catch (Exception e)
+                        {
+                            LogManager.GetLogger(typeof(RestfulDeviceService))
+                                .Error("Error on command polling. Restart polling", e);
+                            Thread.Sleep(1000); // retry with small wait
+                        }
                     }
                 });
             }
