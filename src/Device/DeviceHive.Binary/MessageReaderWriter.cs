@@ -75,6 +75,11 @@ namespace DeviceHive.Binary
         }
 
 
+        /// <summary>
+        /// Read header bytes from underlying connection. If header doesn't start with correct
+        /// signature then these bytes will be skipped until correct signature will be found.
+        /// </summary>
+        /// <returns>Array of header bytes</returns>
         private byte[] ReadHeaderBytes()
         {
             var bytes = _connection.Read(_headerSize);
@@ -88,10 +93,15 @@ namespace DeviceHive.Binary
 
                 var remainingByteCount = (signatureStart == -1) ? _headerSize : signatureStart;
                 var remainingBytes = _connection.Read(remainingByteCount);
-                bytes = bytes.Skip(signatureStart).Concat(remainingBytes).ToArray();
+                bytes = bytes.Skip(remainingByteCount).Concat(remainingBytes).ToArray();
             }
         }
 
+        /// <summary>
+        /// Find index of signature (0xC5, 0xC3) start in the given <paramref name="bytes"/>.
+        /// Returns -1 if signture can not be found in <paramref name="bytes"/>.
+        /// If signature starts (possibly) in the last byte (only 0xC5 is found) returns index of it.
+        /// </summary>
         private static int FindSignatureStart(byte[] bytes)
         {
             var index = -1;
