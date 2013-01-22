@@ -33,6 +33,19 @@ namespace DeviceHive.Data.EF
             }
         }
 
+        public List<Device> GetByUser(int userId)
+        {
+            using (var context = new DeviceHiveContext())
+            {
+                return context.Devices
+                    .Include(e => e.Network)
+                    .Include(e => e.DeviceClass)
+                    .Where(e => context.UserNetworks
+                        .Any(n => n.UserID == userId && n.NetworkID == e.NetworkID))
+                    .ToList();
+            }
+        }
+
         public Device Get(int id)
         {
             using (var context = new DeviceHiveContext())

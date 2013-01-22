@@ -121,9 +121,14 @@ namespace DeviceHive.WebSockets.Controllers
         }
 
         [Action("notification/subscribe", NeedAuthentication = true)]
-        public void SubsrcibeToDeviceNotifications()
+        public void SubsrcibeToDeviceNotifications(DateTime? timestamp)
         {
-            var deviceIds = GetSubscriptionDeviceIds().ToArray();
+            var devices = GetSubscriptionDevices().ToArray();
+
+            if (timestamp != null)
+                SendInitialNotifications(devices, timestamp);
+
+            var deviceIds = GetSubscriptionDeviceIds(devices);
             foreach (var deviceId in deviceIds)
                 _subscriptionManager.Subscribe(Connection, deviceId);
 
@@ -159,11 +164,37 @@ namespace DeviceHive.WebSockets.Controllers
             _subscriptionManager.Cleanup(connection);
         }
 
-        private void Notify(WebSocketConnectionBase connection, DeviceNotification notification, Device device)
+        private void SendInitialNotifications(Device[] devices, DateTime? timestamp)
         {
-            var user = (User) connection.Session["user"];
-            if (user == null || !IsNetworkAccessible(device.NetworkID, user))
-                return;
+            var initialNotificationList = GetInitialNotificationList(Connection);
+
+            if (devices.Length == 0 && devices[0] == null)
+                devices = DataContext.Device.GetByUser(CurrentUser.ID).ToArray();
+
+            lock (initialNotificationList)
+            {
+                var initialNotifications = DataContext.DeviceNotification.GetByDevices(
+                    devices.Select(d => d.ID).ToArray(), timestamp.Value.AddTicks(10), null);
+
+                foreach (var notification in initialNotifications)
+                {
+                    initialNotificationList.Add(notification.ID);
+
+                    foreach (var device in devices)
+                        Notify(Connection, notification, device, validateAccess: false);
+                }
+            }
+        }
+
+        private void Notify(WebSocketConnectionBase connection, DeviceNotification notification, Device device,
+            bool validateAccess = true)
+        {
+            if (validateAccess)
+            {
+                var user = (User) connection.Session["user"];
+                if (user == null || !IsNetworkAccessible(device.NetworkID, user))
+                    return;
+            }
 
             connection.SendResponse("notification/insert",
                 new JProperty("deviceGuid", device.GUID),
@@ -220,7 +251,25 @@ namespace DeviceHive.WebSockets.Controllers
             DataContext.User.Save(user);
         }
 
-        private IEnumerable<int?> GetSubscriptionDeviceIds()
+        private IEnumerable<int?> GetSubscriptionDeviceIds(IEnumerable<Device> devices = null)
+        {
+            if (devices == null)
+                devices = GetSubscriptionDevices();
+
+            foreach (var device in devices)
+            {
+                if (device == null)
+                {
+                    yield return null;
+                }
+                else
+                {
+                    yield return device.ID;
+                }
+            }
+        }
+
+        private IEnumerable<Device> GetSubscriptionDevices()
         {
             var deviceGuids = ParseDeviceGuids();
             if (deviceGuids == null)
@@ -235,7 +284,7 @@ namespace DeviceHive.WebSockets.Controllers
                 if (device == null || !IsNetworkAccessible(device.NetworkID))
                     throw new WebSocketRequestException("Invalid deviceGuid: " + deviceGuid);
 
-                yield return device.ID;
+                yield return device;
             }
         }
 
@@ -253,6 +302,11 @@ namespace DeviceHive.WebSockets.Controllers
                 return deviceGuidsArray.Select(t => (Guid) t).ToArray();
 
             return new[] {(Guid) deviceGuids};
+        }
+
+        private ISet<int> GetInitialNotificationList(WebSocketConnectionBase connection)
+        {
+            return (ISet<int>)connection.Session.GetOrAdd("InitialNotifications", () => new HashSet<int>());
         }
 
         #endregion

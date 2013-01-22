@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.Messaging;
@@ -146,8 +147,25 @@ namespace DeviceHive.WebSockets.Controllers
         }
 
         [Action("command/subscribe", NeedAuthentication = true)]
-        public void SubsrcibeToDeviceCommands()
+        public void SubsrcibeToDeviceCommands(DateTime? timestamp)
         {
+            if (timestamp != null)
+            {
+                var initialCommandList = GetInitialCommandList(Connection);
+
+                lock (initialCommandList)
+                {
+                    var initialCommands = DataContext.DeviceCommand.GetByDevice(
+                        CurrentDevice.ID, timestamp.Value.AddTicks(10), null);
+
+                    foreach (var command in initialCommands)
+                    {
+                        initialCommandList.Add(command.ID);
+                        Notify(Connection, CurrentDevice, command, isInitialCommand: true);
+                    }
+                }
+            }
+            
             _subscriptionManager.Subscribe(Connection, CurrentDevice.ID);
             SendSuccessResponse();
         }
@@ -218,8 +236,19 @@ namespace DeviceHive.WebSockets.Controllers
             _subscriptionManager.Cleanup(connection);
         }
 
-        private void Notify(WebSocketConnectionBase connection, Device device, DeviceCommand command)
+        private void Notify(WebSocketConnectionBase connection, Device device, DeviceCommand command,
+            bool isInitialCommand = false)
         {
+            if (!isInitialCommand)
+            {
+                var initialCommandList = GetInitialCommandList(connection);
+                lock (initialCommandList)
+                {
+                    if (initialCommandList.Contains(command.ID))
+                        return;
+                }
+            }
+
             connection.SendResponse("command/insert",
                 new JProperty("deviceGuid", device.GUID),
                 new JProperty("command", CommandMapper.Map(command)));
@@ -249,6 +278,11 @@ namespace DeviceHive.WebSockets.Controllers
 
             RequestDevice = device;
             return true;
+        }
+
+        private ISet<int> GetInitialCommandList(WebSocketConnectionBase connection)
+        {
+            return (ISet<int>) connection.Session.GetOrAdd("InitialCommands", () => new HashSet<int>());
         }
 
         #endregion
