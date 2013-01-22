@@ -8,39 +8,39 @@ using log4net;
 
 namespace DeviceHive.Binary
 {
-	/// <summary>
-	/// Base class for services that work with device using binary DeviceHive protocol
-	/// </summary>
-	public abstract class BinaryServiceBase : IDisposable
-	{
-		#region Private fields
+    /// <summary>
+    /// Base class for services that work with device using binary DeviceHive protocol
+    /// </summary>
+    public abstract class BinaryServiceBase : IDisposable
+    {
+        #region Private fields
 
-		private const byte _version = 1;
+        private const byte _version = 1;
 
-	    private readonly object _lock = new object();
+        private readonly object _lock = new object();
 
-		private readonly MessageReaderWriter _messageReaderWriter;
-		private readonly ILog _logger;
+        private readonly MessageReaderWriter _messageReaderWriter;
+        private readonly ILog _logger;
         private readonly IBinaryConnection _connection;
 
-		private IDictionary<ushort, NotificationMetadata> _notificationMapping;
-		private IDictionary<string, CommandMetadata> _commandMapping; 
+        private IDictionary<ushort, NotificationMetadata> _notificationMapping;
+        private IDictionary<string, CommandMetadata> _commandMapping; 
 
-		#endregion
+        #endregion
 
-		#region Constructor
+        #region Constructor
 
         /// <summary>
         /// Initialize new instance of <see cref="BinaryServiceBase"/>
         /// </summary>
-		protected BinaryServiceBase(IBinaryConnection connection)
-		{
-			_connection = connection;
-			_messageReaderWriter = new MessageReaderWriter(connection);
-			_logger = LogManager.GetLogger(GetType());			
-		}	    
+        protected BinaryServiceBase(IBinaryConnection connection)
+        {
+            _connection = connection;
+            _messageReaderWriter = new MessageReaderWriter(connection);
+            _logger = LogManager.GetLogger(GetType());            
+        }        
 
-	    #endregion
+        #endregion
 
         #region Public methods and properties
 
@@ -96,60 +96,60 @@ namespace DeviceHive.Binary
         /// <summary>
         /// Override it to handle device registration in the service specific way
         /// </summary>
-		protected abstract void RegisterDevice(DeviceRegistrationInfo registrationInfo);
+        protected abstract void RegisterDevice(DeviceRegistrationInfo registrationInfo);
 
         /// <summary>
         /// Override it to handle notification from device about commandexecution result in the
         /// service specific way
         /// </summary>
-		protected abstract void NotifyCommandResult(int commandId, string status, string result);
+        protected abstract void NotifyCommandResult(int commandId, string status, string result);
 
         /// <summary>
         /// Override it to handle device custom notification in the service specific way
         /// </summary>
-		protected abstract void HandleHotification(Notification notification);
+        protected abstract void HandleHotification(Notification notification);
 
-		#endregion
+        #endregion
 
-		#region Send messages
+        #region Send messages
 
         /// <summary>
         /// Send "Request registration" command to the device
         /// </summary>
-		protected void RequestRegistration()
-		{
+        protected void RequestRegistration()
+        {
             SendMessage(Intents.RequestRegistration, new byte[0]);
-		}
+        }
 
         /// <summary>
         /// Send custom DeviceHive command to the device
         /// </summary>
-		protected void SendCommand(Command command)
-		{
-			CommandMetadata commandMetadata;
-			if (!_commandMapping.TryGetValue(command.Name, out commandMetadata))
-				throw new InvalidOperationException(string.Format("Command {0} is not registered", command.Name));
+        protected void SendCommand(Command command)
+        {
+            CommandMetadata commandMetadata;
+            if (!_commandMapping.TryGetValue(command.Name, out commandMetadata))
+                throw new InvalidOperationException(string.Format("Command {0} is not registered", command.Name));
 
-			byte[] data;
+            byte[] data;
 
-			using (var stream = new MemoryStream())
-			using (var writer = new BinaryWriter(stream))
-			{
-				writer.Write(command.Id.Value);
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream))
+            {
+                writer.Write(command.Id.Value);
                 WriteParameterValue(writer, commandMetadata.Parameters, command.Parameters);
-				data = stream.ToArray();
-			}
+                data = stream.ToArray();
+            }
 
-			SendMessage(commandMetadata.Intent, data);
-		}
+            SendMessage(commandMetadata.Intent, data);
+        }
 
-		#endregion
+        #endregion
 
-		#endregion
+        #endregion
 
-		#region Private methods
+        #region Private methods
 
-		#region Handle messages
+        #region Handle messages
 
         private void OnDeviceDataAvailable(object sender, EventArgs eventArgs)
         {
@@ -164,16 +164,16 @@ namespace DeviceHive.Binary
             }
         }
 
-		private void HandleMessage(Message message)
-		{
-			if (message.Version != _version)
-				throw new InvalidOperationException("Invalid message version: " + message.Version);
+        private void HandleMessage(Message message)
+        {
+            if (message.Version != _version)
+                throw new InvalidOperationException("Invalid message version: " + message.Version);
 
-		    switch (message.Intent)
-		    {
-		        case Intents.Register:
+            switch (message.Intent)
+            {
+                case Intents.Register:
                     RegisterDevice(message.Data);
-		            break;
+                    break;
 
                 case Intents.Register2:
                     RegisterDevice2(message.Data);
@@ -181,33 +181,33 @@ namespace DeviceHive.Binary
 
                 case Intents.NotifyCommandResult:
                     NotifyCommandResult(message.Data);
-		            break;
+                    break;
 
                 default: // in other case message should be custom notification message
                     HandleNotification(message.Intent, message.Data);
-		            break;
-		    }
-		}
+                    break;
+            }
+        }
 
-	    private void RegisterDevice(byte[] data)
-		{
-			var registrationInfo = new DeviceRegistrationInfo();
+        private void RegisterDevice(byte[] data)
+        {
+            var registrationInfo = new DeviceRegistrationInfo();
 
-			using (var stream = new MemoryStream(data))
-			using (var reader = new BinaryReader(stream))
-			{
-				registrationInfo.Id = reader.ReadGuid();
-				registrationInfo.Key = reader.ReadUtfString();
-				registrationInfo.Name = reader.ReadUtfString();
-				registrationInfo.ClassName = reader.ReadUtfString();
-				registrationInfo.ClassVersion = reader.ReadUtfString();
-				registrationInfo.Equipment = reader.ReadArray(ReadEquipmentInfo);
-				registrationInfo.Notifications = reader.ReadArray(ReadNotificationInfo);
-				registrationInfo.Commands = reader.ReadArray(ReadCommandInfo);
-			}
+            using (var stream = new MemoryStream(data))
+            using (var reader = new BinaryReader(stream))
+            {
+                registrationInfo.Id = reader.ReadGuid();
+                registrationInfo.Key = reader.ReadUtfString();
+                registrationInfo.Name = reader.ReadUtfString();
+                registrationInfo.ClassName = reader.ReadUtfString();
+                registrationInfo.ClassVersion = reader.ReadUtfString();
+                registrationInfo.Equipment = reader.ReadArray(ReadEquipmentInfo);
+                registrationInfo.Notifications = reader.ReadArray(ReadNotificationInfo);
+                registrationInfo.Commands = reader.ReadArray(ReadCommandInfo);
+            }
 
             RegisterDeviceCore(registrationInfo);
-		}
+        }
 
         private void RegisterDevice2(byte[] data)
         {
@@ -287,45 +287,45 @@ namespace DeviceHive.Binary
             RegisterDevice(deviceRegistrationInfo);
         }
 
-		private void NotifyCommandResult(byte[] data)
-		{
-			int commandId;
-			string status;
-			string result;
+        private void NotifyCommandResult(byte[] data)
+        {
+            int commandId;
+            string status;
+            string result;
 
-			using (var stream = new MemoryStream(data))
-			using (var reader = new BinaryReader(stream))
-			{
-				commandId = reader.ReadInt32();
-				status = reader.ReadUtfString();
-				result = reader.ReadUtfString();
-			}
+            using (var stream = new MemoryStream(data))
+            using (var reader = new BinaryReader(stream))
+            {
+                commandId = reader.ReadInt32();
+                status = reader.ReadUtfString();
+                result = reader.ReadUtfString();
+            }
 
-			NotifyCommandResult(commandId, status, result);
-		}
+            NotifyCommandResult(commandId, status, result);
+        }
 
-		private void HandleNotification(ushort intent, byte[] data)
-		{
-			NotificationMetadata notificationMetadata;
-			if (!_notificationMapping.TryGetValue(intent, out notificationMetadata))
-				throw new InvalidOperationException("Unsupported intent: " + intent);
+        private void HandleNotification(ushort intent, byte[] data)
+        {
+            NotificationMetadata notificationMetadata;
+            if (!_notificationMapping.TryGetValue(intent, out notificationMetadata))
+                throw new InvalidOperationException("Unsupported intent: " + intent);
 
-			JToken parameters;
+            JToken parameters;
 
-			using (var stream = new MemoryStream(data))
-			using (var reader = new BinaryReader(stream))
-			    parameters = ReadParameterValue(reader, notificationMetadata.Parameters);
+            using (var stream = new MemoryStream(data))
+            using (var reader = new BinaryReader(stream))
+                parameters = ReadParameterValue(reader, notificationMetadata.Parameters);
 
-		    var notification = new Notification(notificationMetadata.Name, parameters);
-			HandleHotification(notification);
-		}
+            var notification = new Notification(notificationMetadata.Name, parameters);
+            HandleHotification(notification);
+        }
 
-		#endregion
+        #endregion
 
-		#region Send messages
+        #region Send messages
 
-		private void SendMessage(ushort intent, byte[] data)
-		{
+        private void SendMessage(ushort intent, byte[] data)
+        {
             try
             {
                 var message = new Message(_version, 0, intent, data);
@@ -335,41 +335,41 @@ namespace DeviceHive.Binary
             {
                 _logger.Error("Error occurred on message sending", e);
             }
-		}
+        }
 
-		#endregion
+        #endregion
 
-		#region Read data
+        #region Read data
 
-		private static EquipmentInfo ReadEquipmentInfo(BinaryReader reader)
-		{
-			return new EquipmentInfo()
-			{
-				Name = reader.ReadUtfString(),
-				Code = reader.ReadUtfString(),
-				TypeName = reader.ReadUtfString()
-			};
-		}
+        private static EquipmentInfo ReadEquipmentInfo(BinaryReader reader)
+        {
+            return new EquipmentInfo()
+            {
+                Name = reader.ReadUtfString(),
+                Code = reader.ReadUtfString(),
+                TypeName = reader.ReadUtfString()
+            };
+        }
 
-		private static NotificationMetadata ReadNotificationInfo(BinaryReader reader)
-		{
-			return new NotificationMetadata()
-			{
-				Intent = reader.ReadUInt16(),
-				Name = reader.ReadUtfString(),
-				Parameters = ReadParameterList(reader)
-			};
-		}
+        private static NotificationMetadata ReadNotificationInfo(BinaryReader reader)
+        {
+            return new NotificationMetadata()
+            {
+                Intent = reader.ReadUInt16(),
+                Name = reader.ReadUtfString(),
+                Parameters = ReadParameterList(reader)
+            };
+        }
 
-		private static CommandMetadata ReadCommandInfo(BinaryReader reader)
-		{
-			return new CommandMetadata()
-			{
-				Intent = reader.ReadUInt16(),
-				Name = reader.ReadUtfString(),
-				Parameters = ReadParameterList(reader)
-			};
-		}
+        private static CommandMetadata ReadCommandInfo(BinaryReader reader)
+        {
+            return new CommandMetadata()
+            {
+                Intent = reader.ReadUInt16(),
+                Name = reader.ReadUtfString(),
+                Parameters = ReadParameterList(reader)
+            };
+        }
 
         private static ParameterMetadata ReadParameterList(BinaryReader reader)
         {
@@ -381,73 +381,73 @@ namespace DeviceHive.Binary
             }));
         }
 
-		private static JToken ReadParameterValue(BinaryReader reader, ParameterMetadata parameterMetadata)
-		{
-			switch (parameterMetadata.DataType)
-			{
-				case DataType.Null:
-					return null;
+        private static JToken ReadParameterValue(BinaryReader reader, ParameterMetadata parameterMetadata)
+        {
+            switch (parameterMetadata.DataType)
+            {
+                case DataType.Null:
+                    return null;
 
-				case DataType.Byte:
-					return (int) reader.ReadByte();
-				
-				case DataType.Word:
-					return reader.ReadUInt16();
+                case DataType.Byte:
+                    return (int) reader.ReadByte();
+                
+                case DataType.Word:
+                    return reader.ReadUInt16();
 
-				case DataType.Dword:
-					return reader.ReadUInt32();
+                case DataType.Dword:
+                    return reader.ReadUInt32();
 
-				case DataType.Qword:
-					return reader.ReadUInt64();
+                case DataType.Qword:
+                    return reader.ReadUInt64();
 
-				case DataType.SignedByte:
-					return reader.ReadSByte();
+                case DataType.SignedByte:
+                    return reader.ReadSByte();
 
-				case DataType.SignedWord:
-					return reader.ReadInt16();
+                case DataType.SignedWord:
+                    return reader.ReadInt16();
 
-				case DataType.SignedDword:
-					return reader.ReadInt32();
-				
-				case DataType.SignedQword:
-					return reader.ReadInt64();
+                case DataType.SignedDword:
+                    return reader.ReadInt32();
+                
+                case DataType.SignedQword:
+                    return reader.ReadInt64();
 
-				case DataType.Single:
-					return reader.ReadSingle();
+                case DataType.Single:
+                    return reader.ReadSingle();
 
-				case DataType.Double:
-					return reader.ReadDouble();
+                case DataType.Double:
+                    return reader.ReadDouble();
 
-				case DataType.Boolean:
-					return reader.ReadByte() != 0;
+                case DataType.Boolean:
+                    return reader.ReadByte() != 0;
 
-				case DataType.Guid:
-					return reader.ReadGuid();
+                case DataType.Guid:
+                    return reader.ReadGuid();
 
-				case DataType.UtfString:
-					return reader.ReadUtfString();
+                case DataType.UtfString:
+                    return reader.ReadUtfString();
 
-				case DataType.Binary:
-					return reader.ReadBinary();
+                case DataType.Binary:
+                    return reader.ReadBinary();
 
                 case DataType.Array:
-			        return new JArray(reader
+                    return new JArray(reader
                         .ReadArray(r => ReadParameterValue(r, parameterMetadata.Children[0]))
                         .Cast<object>()
                         .ToArray());
 
                 case DataType.Object:
-			        return new JObject(parameterMetadata.Children
-			            .Select(p => new JProperty(p.Name, ReadParameterValue(reader, p)))
+                    return new JObject(parameterMetadata.Children
+                        .Select(p => new JProperty(p.Name, ReadParameterValue(reader, p)))
                         .Cast<object>()
-			            .ToArray());
+                        .ToArray());
 
-				default:
-					throw new NotSupportedException(parameterMetadata.DataType + " is not supported for parameters");
-			}
-		}
+                default:
+                    throw new NotSupportedException(parameterMetadata.DataType + " is not supported for parameters");
+            }
+        }
 
-		#endregion
+        #endregion
 
         #region Parsing data
 
@@ -556,97 +556,97 @@ namespace DeviceHive.Binary
 
         private static void WriteParameterValue(BinaryWriter writer,
             ParameterMetadata parameterMetadata, JToken parameter)
-		{
-			switch (parameterMetadata.DataType)
-			{
-				case DataType.Null:
-					break;
+        {
+            switch (parameterMetadata.DataType)
+            {
+                case DataType.Null:
+                    break;
 
-			    case DataType.Byte:
-			        writer.Write((byte) (parameter ?? 0));
-			        break;
+                case DataType.Byte:
+                    writer.Write((byte) (parameter ?? 0));
+                    break;
 
-			    case DataType.Word:
-			        writer.Write((ushort) (parameter ?? 0));
-			        break;
+                case DataType.Word:
+                    writer.Write((ushort) (parameter ?? 0));
+                    break;
 
-			    case DataType.Dword:
-			        writer.Write((uint) (parameter ?? 0));
-			        break;
+                case DataType.Dword:
+                    writer.Write((uint) (parameter ?? 0));
+                    break;
 
-			    case DataType.Qword:
-			        writer.Write((ulong) (parameter ?? 0));
-			        break;
+                case DataType.Qword:
+                    writer.Write((ulong) (parameter ?? 0));
+                    break;
 
-			    case DataType.SignedByte:
-			        writer.Write((sbyte) (parameter ?? 0));
-			        break;
+                case DataType.SignedByte:
+                    writer.Write((sbyte) (parameter ?? 0));
+                    break;
 
-			    case DataType.SignedWord:
-			        writer.Write((short) (parameter ?? 0));
-			        break;
+                case DataType.SignedWord:
+                    writer.Write((short) (parameter ?? 0));
+                    break;
 
-			    case DataType.SignedDword:
-			        writer.Write((int) (parameter ?? 0));
-			        break;
+                case DataType.SignedDword:
+                    writer.Write((int) (parameter ?? 0));
+                    break;
 
-			    case DataType.SignedQword:
-			        writer.Write((long) (parameter ?? 0));
-			        break;
+                case DataType.SignedQword:
+                    writer.Write((long) (parameter ?? 0));
+                    break;
 
-			    case DataType.Single:
-			        writer.Write((float) (parameter ?? 0));
-			        break;
+                case DataType.Single:
+                    writer.Write((float) (parameter ?? 0));
+                    break;
 
-			    case DataType.Double:
-			        writer.Write((double) (parameter ?? 0));
-			        break;
+                case DataType.Double:
+                    writer.Write((double) (parameter ?? 0));
+                    break;
 
-			    case DataType.Boolean:
-			        var boolValue = (bool) (parameter ?? false);
-			        writer.Write((byte) (boolValue ? 1 : 0));
-			        break;
+                case DataType.Boolean:
+                    var boolValue = (bool) (parameter ?? false);
+                    writer.Write((byte) (boolValue ? 1 : 0));
+                    break;
 
-			    case DataType.Guid:
-			        writer.WriteGuid((Guid) (parameter ?? Guid.Empty));
-			        break;
+                case DataType.Guid:
+                    writer.WriteGuid((Guid) (parameter ?? Guid.Empty));
+                    break;
 
-			    case DataType.UtfString:
-			        writer.WriteUtfString((string) (parameter ?? string.Empty));
-			        break;
+                case DataType.UtfString:
+                    writer.WriteUtfString((string) (parameter ?? string.Empty));
+                    break;
 
-			    case DataType.Binary:
-			        writer.WriteBinary((byte[]) (parameter ?? new byte[0]));
-			        break;
+                case DataType.Binary:
+                    writer.WriteBinary((byte[]) (parameter ?? new byte[0]));
+                    break;
 
                 case DataType.Array:
-			        WriteArrayParameterValue(writer, parameterMetadata, parameter);
-			        break;
+                    WriteArrayParameterValue(writer, parameterMetadata, parameter);
+                    break;
 
                 case DataType.Object:
-			        WriteObjectParameterValue(writer, parameterMetadata, parameter);
-			        break;
+                    WriteObjectParameterValue(writer, parameterMetadata, parameter);
+                    break;
 
-			    default:
-					throw new NotSupportedException(parameterMetadata.DataType + " is not supported for parameters");
-			}
-		}
-	    
-	    private static void WriteArrayParameterValue(BinaryWriter writer,
+                default:
+                    throw new NotSupportedException(parameterMetadata.DataType + " is not supported for parameters");
+            }
+        }
+        
+        private static void WriteArrayParameterValue(BinaryWriter writer,
             ParameterMetadata parameterMetadata, JToken parameter)
-	    {
+        {
             if (parameter == null)
             {
                 writer.Write(0);
                 return;
             }
 
-	        var array = (JArray) parameter;
-	        writer.Write((ushort) array.Count);
+            var array = (JArray) parameter;
+            writer.Write((ushort) array.Count);
 
-	        foreach (var item in array)
-	            WriteParameterValue(writer, parameterMetadata.Children[0], item);
-	    }
+            foreach (var item in array)
+                WriteParameterValue(writer, parameterMetadata.Children[0], item);
+        }
 
         private static void WriteObjectParameterValue(BinaryWriter writer,
             ParameterMetadata parameterMetadata, JToken parameter)
@@ -660,21 +660,21 @@ namespace DeviceHive.Binary
         }
 
 
-		#endregion
+        #endregion
 
-		#endregion
+        #endregion
 
-		#region Implementation of IDisposable
+        #region Implementation of IDisposable
 
-	    /// <summary>
-	    /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-	    /// </summary>
-	    /// <filterpriority>2</filterpriority>
-	    public void Dispose()
-		{
-			_connection.Dispose();
-		}
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
+        {
+            _connection.Dispose();
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }
