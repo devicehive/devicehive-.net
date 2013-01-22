@@ -436,9 +436,9 @@ namespace DeviceHive.Client
 
             _notificationPollThread = new Thread(() =>
             {
-                try
+                while (true)
                 {
-                    while (true)
+                    try
                     {
                         var notifications = PollNotifications(_notificationSubscriptionDeviceIds,
                             timestamp, _notificationPollCancellationTokenSource.Token);
@@ -452,9 +452,15 @@ namespace DeviceHive.Client
 
                         timestamp = notifications.Max(n => n.Notification.Timestamp ?? timestamp);
                     }
-                }
-                catch (OperationCanceledException)
-                {
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error("Error on notification polling. Restart polling", e);
+                        Thread.Sleep(1000); // retry with small wait
+                    }
                 }
             });
 
