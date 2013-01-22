@@ -47,6 +47,7 @@ namespace DeviceHive.Device
         /// Default constructor.
         /// </summary>
         /// <param name="serviceUrl">URL of the DeviceHive service.</param>
+        /// <param name="useWebSockets">Whether to use WebSockets protocol if possible.</param>
         public RestfulDeviceService(string serviceUrl, bool useWebSockets = true)
         {
             if (serviceUrl == null)

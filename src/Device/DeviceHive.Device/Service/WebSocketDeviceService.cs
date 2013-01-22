@@ -63,6 +63,10 @@ namespace DeviceHive.Device
         /// </summary>
         public event EventHandler<CommandEventArgs> CommandInserted;
 
+        /// <summary>
+        /// Fires <see cref="CommandInserted"/> event.
+        /// </summary>
+        /// <param name="eventArgs">CommandEventArgs object.</param>
         protected void OnCommandInserted(CommandEventArgs eventArgs)
         {
             var handler = CommandInserted;
@@ -75,6 +79,9 @@ namespace DeviceHive.Device
         /// </summary>
         public event EventHandler ConnectionClosed;
 
+        /// <summary>
+        /// Fires <see cref="ConnectionClosed"/> event.
+        /// </summary>
         protected void OnConnectionClosed()
         {
             var handler = ConnectionClosed;
@@ -137,6 +144,8 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets device from the DeviceHive network.
         /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="deviceKey">Device private key.</param>
         /// <returns><see cref="Device"/> object from DeviceHive.</returns>
         public Device GetDevice(Guid deviceGuid, string deviceKey)
         {
@@ -149,8 +158,11 @@ namespace DeviceHive.Device
         }
 
         /// <summary>
-        /// Registers new device
+        /// Registers a device.
         /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="device">Device object.</param>
+        /// <returns><see cref="Device"/> object from DeviceHive.</returns>
         public Device RegisterDevice(Guid? deviceGuid, Device device)
         {
             if (!_isConnected)
@@ -164,8 +176,12 @@ namespace DeviceHive.Device
         }
 
         /// <summary>
-        /// Update existing device
+        /// Update a existing device.
         /// </summary>
+        /// <param name="device">Device object.</param>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="deviceKey">Device private key.</param>
+        /// <returns><see cref="Device"/> object from DeviceHive.</returns>
         public Device UpdateDevice(Device device, Guid deviceGuid, string deviceKey = null)
         {
             if (!_isConnected)

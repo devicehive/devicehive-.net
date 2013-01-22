@@ -12,7 +12,7 @@ The API provides access to information about registered components in the system
 <img src="{image-path}/Images/UseCases.png" alt="Use Cases" />
 
 <h3>Device</h3>
-<p>Device is a unit that runs microcode, and it communicates with the API for in following cases:</p>
+<p>Device is a unit that runs microcode, and it communicates with the API in the following cases:</p>
 <ul>
     <li>When started, device registers within the framework by passing unique identifier, display name and other meta-information.</li>
     <li>Device sends notifications with an arbitrary content format to notify other components about the changes in the device's environment.</li>
@@ -42,7 +42,6 @@ Commonly, administrators will need to use this API in the following cases:</p>
 <p>The DeviceHive API is a RESTful service, which operates on several resource types.
 The diagram below reflects all used resource types and their relationships:</p>
 <img src="{image-path}/Images/DataModel.png" alt="Data Model" />
-
 <ul>
     <li><a href="#Reference/User">User</a>: represents a user with credentials and API access rights (client or administrator).</li>
     <li><a href="#Reference/Network">Network</a>: represents an isolation entity that encapsulates multiple devices with controlled access.</li>
@@ -52,6 +51,39 @@ The diagram below reflects all used resource types and their relationships:</p>
     <li><a href="#Reference/DeviceNotification">Device Notification</a>: represents a message dispatched by devices for clients.</li>
     <li><a href="#Reference/DeviceCommand">Device Command</a>: represents a message dispatched by clients for devices.</li>
 </ul>
+
+<h2>Server Processes</h2>
+<p>Besides the CRUD access to all resources listed above, the API includes several business features implemented on the server side. The sections below provide more information about their implementation.</p>
+
+<h3>Message routing</h3>
+<p>One of the primary features of the service is to connect devices with clients in real-time. This is achieved on the server-side by routing new commands and notification to their recipients with minimal delays.</p>
+<p>There are three methods for API clients to receive incoming messages:</p>
+<ol>
+    <li><strong>Polling</strong>: The client periodically requests the server to retrieve new <a href="#Reference/DeviceCommand/poll">commands</a> or <a href="#Reference/DeviceNotification/poll">notifications</a>. The request must include the <em>waitTimeout=0</em> parameter to disable waiting on the server.</li>
+    <li><strong>Long Polling</strong>: The client makes request to the server, but the server responds only when a new message is available, or if the waiting timeout is expired (specified in the <em>waitTimeout</em> parameter). That approach is generally more efficient and minimizes message receive delays.</li>
+    <li><strong>WebSocket</strong>: A separate WebSocket API allows clients to open persistent connections with the server, subscribe to particular commands or notifications and then receive messages from the server. The URL of the WebSocket endpoint could be retrieved using the <a href="#Reference/ApiInfo/get">ApiInfo: get</a> call.</li>
+</ol>
+<p>In all three methods it's possible to specify the <em>timestamp</em> parameter as starting date/time (non-inclusive) for incoming messages. If that parameter is omitted, the server's current timestamp is taken instead.</p>
+<p>In order to receive all messages in the right order, the clients should always pass the timestamp of the last received message when polling or subscribing. If no messages were ever received, the client should get the server's current timestamp using the <a href="#Reference/ApiInfo/get">ApiInfo: get</a> call and use it until a new message is received.</p>
+
+<h3>Tracking device equipment state</h3>
+<p>One of the useful features provided by the server is tracking the most recent state of device equipment (e.g. sensors, meters, etc.). The API clients may use the <a href="#Reference/Device/equipment">Device: equipment</a> operation to receive the current state of the device equipment.</p>
+<p>In order to support that functionality, devices must send properly formatted <a href="#Reference/DeviceNotification/insert">notifications</a> about changes in the current equipment state. The notification resource must include the following properties:</p>
+<ul>
+    <li><strong>notification</strong>: Must be 'equipment'.</li>
+    <li><strong>parameters</strong>: Must be a JSON object with the 'equipment' property containing the corresponding equipment code. Other properties in the JSON object should reflect the equipment state.</li>
+</ul>
+
+<h3>Server-originated notifications</h3>
+<p>Devices are not the only source of notifications in the system: the server also generates special notifications about various device events. The list below includes all such notifications with their description:</p>
+<ul>
+    <li><strong>$device-add</strong>: Dispatched once for newly registered device. The notification includes all device properties specified during registration.</li>
+    <li><strong>$device-update</strong>: Dispatched every time device properties are updated (e.g. device name, status, etc.). The notification includes only the changed properties. If no properties were changed, the notification parameters property is an empty object.</li>
+</ul>
+
+<h3>Automatic Offline device status</h3>
+<p>The server provides a capability to auto-update the device status to Offline after certain period of inactivity. A device is considered to be inactive when it does not send any notifications for a specified period of time. Please note the status is not currently reverted to the original value when a device is brought back online.</p>
+<p>The feature is enabled, if a corresponding <a href="#Reference/DeviceClass">device class</a> includes a positive offlineTimeout property.</p>
 
 <h2>Authentication</h2>
 <p>The API supports two types of authentication: User and Device.</p>
@@ -67,3 +99,18 @@ The diagram below reflects all used resource types and their relationships:</p>
     <li><strong>Auth-DeviceKey</strong>: Device authentication key.</li>
 </ul>
 <p>Both device unique identifier and authentication key are specified during <a href="#Reference/Device/register">device registration</a>.</p>
+
+<h2>Response Codes</h2>
+<p>The API uses HTTP Status Codes to notify clients about the status of requested operation. As usual, the 2xx codes indicate the operation has been completed successfully, the 4xx codes indicate client errors, and 5xx codes reflect server errors.</p>
+<p>The list below provides some additional information about common status codes returned by API operations:</p>
+<ul>
+    <li><strong>200 OK</strong>: Requested operation completed successfully. The response body includes a resource object as specified in the API reference.</li>
+    <li><strong>201 Created</strong>: Requested operation completed successfully and a new resource has been created (typically for POST operations). The HTTP Location header includes the URL of created resource. The response body includes created resource object as specified in the API reference.</li>
+    <li><strong>204 No Content</strong>: Requested operation completed successfully and there is no resource in the response body (typically for DELETE operations).</li>
+    <li><strong>400 Bad Request</strong>: The client did not specify all required parameters or some parameters passed are invalid. The response body includes a JSON object with the 'message' property describing the error details.</li>
+    <li><strong>401 Unauthorized</strong>: The client did not specify authentication headers or access to the requested resource is not allowed for the current identity. The response body includes a JSON object with the 'message' property describing the error details.</li>
+    <li><strong>403 Forbidden</strong>: The server could not complete the requested operation with the specified parameters (e.g. network with such name already exists). The response body includes a JSON object with the 'message' property describing the error details.</li>
+    <li><strong>404 Not Found</strong>: The specified resource is not found. The response body includes a JSON object with the 'message' property describing the error details.</li>
+    <li><strong>405 Method Not Allowed</strong>: The specified operation for the current resource is not allowed. The response body includes a JSON object with the 'message' property describing the error details.</li>
+    <li><strong>500 Internal Server Error</strong>: The server error occurred while processing requested operation. The expected response format is not documented.</li>
+</ul>
