@@ -86,7 +86,8 @@ namespace DeviceHive.Binary
 				if (signatureStart == 0)
 					return bytes;
 
-				var remainingBytes = _connection.Read(signatureStart);
+			    var remainingByteCount = (signatureStart == -1) ? _headerSize : signatureStart;
+                var remainingBytes = _connection.Read(remainingByteCount);
 				bytes = bytes.Skip(signatureStart).Concat(remainingBytes).ToArray();
 			}
 		}

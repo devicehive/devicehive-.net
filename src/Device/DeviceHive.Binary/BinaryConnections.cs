@@ -123,6 +123,7 @@ namespace DeviceHive.Binary
 		public Action<byte[]> WriteHandler { get; set; }
 
 		private byte[] _dataToRead;
+	    private int _dataReadByteCount = 0;
 
 		/// <summary>
 		/// Gets or sets data that will be read on <see cref="Read"/> call
@@ -138,7 +139,10 @@ namespace DeviceHive.Binary
 				_dataToRead = value;
 
 				if (_dataToRead != null && _dataToRead.Length > 0)
-					OnDataAvailable();
+				{
+				    _dataReadByteCount = 0;
+                    OnDataAvailable();
+				}					
 			}
 		}
 
@@ -155,8 +159,8 @@ namespace DeviceHive.Binary
 	    /// </summary>
 	    public override byte[] Read(int length)
 		{
-			var data = DataToRead.Take(length).ToArray();
-			DataToRead = DataToRead.Skip(length).ToArray();
+			var data = DataToRead.Skip(_dataReadByteCount).Take(length).ToArray();
+	        _dataReadByteCount += data.Length;
 			return data;
 		}
 

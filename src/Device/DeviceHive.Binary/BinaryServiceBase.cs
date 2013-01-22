@@ -373,10 +373,12 @@ namespace DeviceHive.Binary
 
         private static ParameterMetadata ReadParameterList(BinaryReader reader)
         {
-            return new ParameterMetadata(null, DataType.Object,
-                reader.ReadArray(r => new ParameterMetadata(
-                    reader.ReadUtfString(),
-                    (DataType) reader.ReadByte())));
+            return new ParameterMetadata(null, DataType.Object, reader.ReadArray(r =>
+            {
+                var type = (DataType) r.ReadByte();
+                var name = r.ReadUtfString();
+                return new ParameterMetadata(name, type);
+            }));
         }
 
 		private static JToken ReadParameterValue(BinaryReader reader, ParameterMetadata parameterMetadata)

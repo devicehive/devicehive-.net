@@ -14,7 +14,7 @@ namespace DeviceHive.Device
     /// <summary>
     /// Provides access for devices to WebSockets DeviceHive API (/device endpoint)
     /// </summary>
-    public class WebSocketDeviceService
+    public class WebSocketDeviceService : IDisposable
     {
         #region Private fields
 
