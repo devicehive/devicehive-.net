@@ -10,9 +10,9 @@ namespace DeviceHive.Binary
         {
             var bytes = reader.ReadBytes(16);
             
-            var a = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[0];
+            var a = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
             var b = (short) ((bytes[4] << 8) | bytes[5]);
-            var c = (short)((bytes[6] << 8) | bytes[7]);
+            var c = (short) ((bytes[6] << 8) | bytes[7]);
             
             var d = new byte[8];
             Array.Copy(bytes, 8, d, 0, 8);
