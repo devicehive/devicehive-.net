@@ -116,6 +116,21 @@ namespace DeviceHive.API.Models
         public MetadataParameter[] ResponseParameters { get; set; }
 
         #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Gets the method URI without query string
+        /// </summary>
+        /// <returns>Method URI without query string</returns>
+        public string UriNoQuery()
+        {
+            if (Uri == null || Uri.IndexOf('?') < 0)
+                return Uri;
+
+            return Uri.Substring(0, Uri.IndexOf('?'));
+        }
+        #endregion
     }
 
     /// <summary>

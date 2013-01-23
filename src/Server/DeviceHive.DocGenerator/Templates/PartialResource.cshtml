@@ -23,7 +23,7 @@
     <tr>
         <td><a href="#Reference/@Html.Encode(Resource.Name)/@Html.Encode(method.Name)">@Html.Encode(method.Name)</a></td>
         <td>@Html.Encode(method.Authorization)</td>
-        <td>@Html.Encode(method.Verb) @Html.Encode(method.Uri)</td>
+        <td>@Html.Encode(method.Verb) @Html.Encode(method.UriNoQuery())</td>
         <td>@Html.Documentation(method.Documentation)</td>
     </tr>
     }
