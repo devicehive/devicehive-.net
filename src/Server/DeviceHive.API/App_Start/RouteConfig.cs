@@ -102,12 +102,6 @@ namespace DeviceHive.API
             );
 
             routes.MapHttpRoute(
-                name: "Metadata",
-                routeTemplate: "metadata",
-                defaults: new { controller = "Metadata" }
-            );
-
-            routes.MapHttpRoute(
                 name: "Home",
                 routeTemplate: "",
                 defaults: new { controller = "Home" }

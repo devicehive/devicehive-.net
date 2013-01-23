@@ -1,8 +1,8 @@
 ﻿@* Generator : Template *@
+@using DeviceHive.DocGenerator
 @using DeviceHive.DocGenerator.Templates
-@using DeviceHive.API.Models
 @functions  {
-    public Metadata Doc { get; set; }
+    public Metadata ApiMetadata { get; set; }
 }
 <!DOCTYPE html>
 <html>
@@ -14,7 +14,7 @@
 <body>
 <div id="wrap">
     <h1 id="page-title" class="title">RESTful</h1>
-    @(new PartialApi { Doc = Doc }.TransformText())
+    @(new PartialApi { ApiMetadata = ApiMetadata }.TransformText())
 </div>
 </body>
 </html>

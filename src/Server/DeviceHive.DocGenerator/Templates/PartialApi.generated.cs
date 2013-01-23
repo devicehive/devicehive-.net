@@ -16,13 +16,13 @@ namespace DeviceHive.DocGenerator.Templates
     using System.Linq;
     using System.Text;
     
-    #line 3 "..\..\Templates\PartialApi.cshtml"
-    using DeviceHive.API.Models;
+    #line 2 "..\..\Templates\PartialApi.cshtml"
+    using DeviceHive.DocGenerator;
     
     #line default
     #line hidden
     
-    #line 2 "..\..\Templates\PartialApi.cshtml"
+    #line 3 "..\..\Templates\PartialApi.cshtml"
     using DeviceHive.DocGenerator.Templates;
     
     #line default
@@ -35,7 +35,7 @@ namespace DeviceHive.DocGenerator.Templates
 
         #line 4 "..\..\Templates\PartialApi.cshtml"
 
-    public Metadata Doc { get; set; }
+    public Metadata ApiMetadata { get; set; }
 
         #line default
         #line hidden
@@ -55,7 +55,7 @@ WriteLiteral("\r\n<div id=\"sidebar\">\r\n    <ul>\r\n        <li><a href=\"#Get
 
             
             #line 12 "..\..\Templates\PartialApi.cshtml"
-             foreach (var resource in Doc.Resources)
+             foreach (var resource in ApiMetadata.Resources)
             {
 
             
@@ -168,7 +168,7 @@ WriteLiteral("\r\n    </div>\r\n    <div id=\"Reference\">\r\n        <h1>Refere
 
             
             #line 33 "..\..\Templates\PartialApi.cshtml"
-         foreach (var resource in Doc.Resources)
+         foreach (var resource in ApiMetadata.Resources)
         {
 
             
@@ -339,7 +339,7 @@ WriteLiteral("    </div>\r\n");
 
             
             #line 57 "..\..\Templates\PartialApi.cshtml"
-     foreach (var resource in Doc.Resources)
+     foreach (var resource in ApiMetadata.Resources)
     {
 
             

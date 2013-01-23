@@ -4,13 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Web;
-using System.Web.Http.Controllers;
-using System.Web.Http.Description;
 using System.Xml.Linq;
 using System.Xml.XPath;
 
-namespace DeviceHive.API.Business
+namespace DeviceHive.DocGenerator
 {
     public class XmlCommentReader
     {
@@ -21,8 +18,7 @@ namespace DeviceHive.API.Business
 
         public XmlCommentReader(string fileName)
         {
-            var path = HttpContext.Current.Server.MapPath("~/Bin/" + fileName);
-            using (var reader = new StreamReader(path))
+            using (var reader = new StreamReader(fileName))
             {
                 _xml = XDocument.Load(reader);
             }

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
-namespace DeviceHive.API.Models
+namespace DeviceHive.DocGenerator
 {
     /// <summary>
     /// Represents the service metadata

@@ -101,10 +101,6 @@ namespace DeviceHive.API
 
             // bind request context
             kernel.Bind<RequestContext>().ToSelf().InRequestScope();
-
-            // bind API XML reader
-            kernel.Bind<XmlCommentReader>().ToSelf().InSingletonScope().Named("Data").WithConstructorArgument("fileName", "DeviceHive.Data.xml");
-            kernel.Bind<XmlCommentReader>().ToSelf().InSingletonScope().Named("API").WithConstructorArgument("fileName", "DeviceHive.API.xml");
         }
     }
 }

@@ -9,62 +9,72 @@ using System.Web.Http.Controllers;
 using System.Web.Http.Description;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using DeviceHive.API.Business;
+using DeviceHive.API;
 using DeviceHive.API.Filters;
-using DeviceHive.API.Models;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Validation;
 using Ninject;
 
-namespace DeviceHive.API.Controllers
+namespace DeviceHive.DocGenerator
 {
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public class MetadataController : BaseController
+    public class ApiMetadataGenerator
     {
+        private HttpConfiguration HttpConfiguration { get; set; }
+        private JsonMapperManager JsonMapperManager { get; set; }
         private XmlCommentReader DataXmlCommentReader { get; set; }
         private XmlCommentReader ApiXmlCommentReader { get; set; }
 
-        public MetadataController([Named("Data")] XmlCommentReader dataXmlCommentReader, [Named("API")] XmlCommentReader apiXmlCommentReader)
+        public ApiMetadataGenerator()
         {
-            DataXmlCommentReader = dataXmlCommentReader;
-            ApiXmlCommentReader = apiXmlCommentReader;
+            var kernel = new StandardKernel();
+            kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
+            JsonMapperManager = kernel.Get<JsonMapperManager>();
+
+            HttpConfiguration = new HttpConfiguration();
+            RouteConfig.RegisterRoutes(HttpConfiguration.Routes);
+
+            DataXmlCommentReader = new XmlCommentReader("DeviceHive.Data.xml");
+            ApiXmlCommentReader = new XmlCommentReader("DeviceHive.API.xml");
         }
 
-        public Metadata Get()
+        public Metadata Generate()
         {
-            var apiExplorer = GlobalConfiguration.Configuration.Services.GetApiExplorer();
+            var apiExplorer = HttpConfiguration.Services.GetApiExplorer();
             var metadata = new Metadata
-                {
-                    Resources = apiExplorer.ApiDescriptions
-                        .OrderBy(d => d.ActionDescriptor.ControllerDescriptor.ControllerName)
-                        .Select(d => new { Resource = GetResourceType(d), Method = d })
-                        .Where(d => d.Resource != null)
-                        .GroupBy(d => d.Resource, d => d.Method)
-                        .Select(g => new { Resource = g.Key, Methods = g.GroupBy(m =>
-                            GetMethodName((ReflectedHttpActionDescriptor)m.ActionDescriptor)).Select(m => m.First()).ToList(), })
-                        .Select(cd => new MetadataResource
+            {
+                Resources = apiExplorer.ApiDescriptions
+                    .OrderBy(d => d.ActionDescriptor.ControllerDescriptor.ControllerName)
+                    .Select(d => new { Resource = GetResourceType(d), Method = d })
+                    .Where(d => d.Resource != null)
+                    .GroupBy(d => d.Resource, d => d.Method)
+                    .Select(g => new
+                    {
+                        Resource = g.Key,
+                        Methods = g.GroupBy(m =>
+                            GetMethodName((ReflectedHttpActionDescriptor)m.ActionDescriptor)).Select(m => m.First()).ToList(),
+                    })
+                    .Select(cd => new MetadataResource
+                    {
+                        Name = cd.Resource == null ? null : cd.Resource.Name,
+                        Documentation = GetTypeDocumentation(cd.Resource),
+                        Properties = cd.Resource == null ? null : GetTypeParameters(cd.Resource),
+                        Methods = cd.Methods
+                            .Where(m => GetMethodName((ReflectedHttpActionDescriptor)m.ActionDescriptor) != null)
+                            .Select(m => new MetadataMethod
                             {
-                                Name = cd.Resource == null ? null : cd.Resource.Name,
-                                Documentation = GetTypeDocumentation(cd.Resource),
-                                Properties = cd.Resource == null ? null : GetTypeParameters(cd.Resource),
-                                Methods = cd.Methods
-                                    .Where(m => GetMethodName((ReflectedHttpActionDescriptor)m.ActionDescriptor) != null)
-                                    .Select(m => new MetadataMethod
-                                        {
-                                            Name = GetMethodName((ReflectedHttpActionDescriptor)m.ActionDescriptor),
-                                            Documentation = GetMethodDocumentation((ReflectedHttpActionDescriptor)m.ActionDescriptor),
-                                            Verb = m.HttpMethod.Method,
-                                            Uri = "/" + m.RelativePath,
-                                            UriParameters = GetUrlParameters(m),
-                                            Authorization = GetAuthorization(m.ActionDescriptor),
-                                            RequestDocumentation = GetRequestDocumentation((ReflectedHttpActionDescriptor)m.ActionDescriptor),
-                                            RequestParameters = GetRequestParameters((ReflectedHttpActionDescriptor)m.ActionDescriptor),
-                                            ResponseDocumentation = GetResponseDocumentation((ReflectedHttpActionDescriptor)m.ActionDescriptor),
-                                            ResponseParameters = GetResponseParameters((ReflectedHttpActionDescriptor)m.ActionDescriptor),
-                                        }).ToArray(),
+                                Name = GetMethodName((ReflectedHttpActionDescriptor)m.ActionDescriptor),
+                                Documentation = GetMethodDocumentation((ReflectedHttpActionDescriptor)m.ActionDescriptor),
+                                Verb = m.HttpMethod.Method,
+                                Uri = "/" + m.RelativePath,
+                                UriParameters = GetUrlParameters(m),
+                                Authorization = GetAuthorization(m.ActionDescriptor),
+                                RequestDocumentation = GetRequestDocumentation((ReflectedHttpActionDescriptor)m.ActionDescriptor),
+                                RequestParameters = GetRequestParameters((ReflectedHttpActionDescriptor)m.ActionDescriptor),
+                                ResponseDocumentation = GetResponseDocumentation((ReflectedHttpActionDescriptor)m.ActionDescriptor),
+                                ResponseParameters = GetResponseParameters((ReflectedHttpActionDescriptor)m.ActionDescriptor),
                             }).ToArray(),
-                };
-
+                    }).ToArray(),
+            };
 
             return metadata;
         }
@@ -116,18 +126,18 @@ namespace DeviceHive.API.Controllers
             var parameters = method.ParameterDescriptions
                 .Where(p => p.Source == ApiParameterSource.FromUri)
                 .Select(p =>
+                {
+                    var parameterElement = ApiXmlCommentReader.GetMethodParameterElement(descriptor.MethodInfo, p.Name);
+                    return new MetadataParameter
                     {
-                        var parameterElement = ApiXmlCommentReader.GetMethodParameterElement(descriptor.MethodInfo, p.Name);
-                        return new MetadataParameter
-                            {
-                                Name = p.Name,
-                                Type = ToJsonType(p.ParameterDescriptor.ParameterType),
-                                Documentation = parameterElement.Contents(),
-                                IsRequred = !p.ParameterDescriptor.IsOptional &&
-                                    !(p.ParameterDescriptor.ParameterType.IsGenericType &&
-                                    p.ParameterDescriptor.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)),
-                            };
-                    }).ToList();
+                        Name = p.Name,
+                        Type = ToJsonType(p.ParameterDescriptor.ParameterType),
+                        Documentation = parameterElement.Contents(),
+                        IsRequred = !p.ParameterDescriptor.IsOptional &&
+                            !(p.ParameterDescriptor.ParameterType.IsGenericType &&
+                            p.ParameterDescriptor.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)),
+                    };
+                }).ToList();
 
             // adjust URL parameters from the XML query element
             var methodElement = ApiXmlCommentReader.GetMethodElement(descriptor.MethodInfo);
@@ -299,12 +309,12 @@ namespace DeviceHive.API.Controllers
                 // add parameter that corresponds to the mapped property
                 var isJsonObject = parameter.EntityProperty.IsDefined(typeof(JsonFieldAttribute), false);
                 var param = new MetadataParameter
-                    {
-                        Name = (prefix == null ? null : prefix + ".") + parameter.JsonProperty,
-                        Type = isJsonObject ? "object" : ToJsonType(parameter.EntityProperty.PropertyType),
-                        IsRequred = IsRequired(parameter.EntityProperty),
-                        Documentation = DataXmlCommentReader.GetPropertyElement(parameter.EntityProperty).ElementContents("summary"),
-                    };
+                {
+                    Name = (prefix == null ? null : prefix + ".") + parameter.JsonProperty,
+                    Type = isJsonObject ? "object" : ToJsonType(parameter.EntityProperty.PropertyType),
+                    IsRequred = IsRequired(parameter.EntityProperty),
+                    Documentation = DataXmlCommentReader.GetPropertyElement(parameter.EntityProperty).ElementContents("summary"),
+                };
                 parameters.Add(param);
 
                 // add child object parameters

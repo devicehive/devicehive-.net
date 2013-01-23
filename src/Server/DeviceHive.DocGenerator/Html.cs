@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml.Linq;
-using DeviceHive.API.Models;
 
 namespace DeviceHive.DocGenerator
 {

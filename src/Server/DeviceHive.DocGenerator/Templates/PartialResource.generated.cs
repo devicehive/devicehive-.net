@@ -17,7 +17,7 @@ namespace DeviceHive.DocGenerator.Templates
     using System.Text;
     
     #line 2 "..\..\Templates\PartialResource.cshtml"
-    using DeviceHive.API.Models;
+    using DeviceHive.DocGenerator;
     
     #line default
     #line hidden

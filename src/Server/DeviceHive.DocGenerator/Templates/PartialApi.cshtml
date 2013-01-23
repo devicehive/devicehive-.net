@@ -1,15 +1,15 @@
 ﻿@* Generator : Template *@
+@using DeviceHive.DocGenerator
 @using DeviceHive.DocGenerator.Templates
-@using DeviceHive.API.Models
 @functions  {
-    public Metadata Doc { get; set; }
+    public Metadata ApiMetadata { get; set; }
 }
 <div id="sidebar">
     <ul>
         <li><a href="#GetStarted">Get Started</a></li>
         <li><a href="#Reference">Reference</a>
             <ul>
-            @foreach (var resource in Doc.Resources)
+            @foreach (var resource in ApiMetadata.Resources)
             {
                 <li><a href="#Reference/@Html.Encode(resource.Name)">@Html.Encode(resource.Name)</a>
                     <ul id="nav-Reference-@Html.Encode(resource.Name)">
@@ -30,7 +30,7 @@
     </div>
     <div id="Reference">
         <h1>Reference</h1>
-        @foreach (var resource in Doc.Resources)
+        @foreach (var resource in ApiMetadata.Resources)
         {
             <h2>@Html.Encode(resource.Name)</h2>
             <p>@Html.Documentation(resource.Documentation)</p>
@@ -54,7 +54,7 @@
             </table>
         }
     </div>
-    @foreach (var resource in Doc.Resources)
+    @foreach (var resource in ApiMetadata.Resources)
     {
     <div id="Reference-@Html.Encode(resource.Name)">
         @(new PartialResource{ Resource = resource }.TransformText())
