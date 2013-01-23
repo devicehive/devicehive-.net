@@ -168,7 +168,7 @@ namespace DeviceHive.WebSockets.Controllers
         {
             var initialNotificationList = GetInitialNotificationList(Connection);
 
-            if (devices.Length == 0 && devices[0] == null)
+            if (devices.Length == 1 && devices[0] == null)
                 devices = DataContext.Device.GetByUser(CurrentUser.ID).ToArray();
 
             lock (initialNotificationList)
@@ -179,18 +179,23 @@ namespace DeviceHive.WebSockets.Controllers
                 foreach (var notification in initialNotifications)
                 {
                     initialNotificationList.Add(notification.ID);
-
-                    foreach (var device in devices)
-                        Notify(Connection, notification, device, validateAccess: false);
+                    Notify(Connection, notification, notification.Device, isInitialNotification: true);
                 }
             }
         }
 
         private void Notify(WebSocketConnectionBase connection, DeviceNotification notification, Device device,
-            bool validateAccess = true)
+            bool isInitialNotification = false)
         {
-            if (validateAccess)
+            if (!isInitialNotification)
             {
+                var initialNotificationList = GetInitialNotificationList(connection);
+                lock (initialNotificationList)
+                {
+                    if (initialNotificationList.Contains(notification.ID))
+                        return;
+                }
+
                 var user = (User) connection.Session["user"];
                 if (user == null || !IsNetworkAccessible(device.NetworkID, user))
                     return;
