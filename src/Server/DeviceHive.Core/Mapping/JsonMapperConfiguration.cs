@@ -69,60 +69,42 @@ namespace DeviceHive.Core.Mapping
             var entityProperty = GetProperty(entityPropertyExpression);
 
             // create MapToJson action
+            var entityGetValue = (Expression)Expression.Invoke(entityPropertyExpression, entity);
+            if (entityProperty.PropertyType == typeof(Guid))
+            {
+                entityGetValue = Expression.Call(Expression.Convert(entityGetValue, typeof(Guid)),
+                    typeof(Guid).GetMethod("ToString", new Type[] { }));
+            }
             var jsonAddProperty = Expression.Call(json,
                 typeof(JObject).GetMethod("Add", new[] { typeof(JProperty) }),
                 Expression.New(typeof(JProperty).GetConstructor(new[] { typeof(string), typeof(object) }),
-                    Expression.Constant(jsonProperty),
-                    Expression.Invoke(entityPropertyExpression, entity)));
+                    Expression.Constant(jsonProperty), entityGetValue));
             var mapToJsonLabmda = Expression.Lambda<Action<T, JObject>>(jsonAddProperty, entity, json);
 
             // create MapToEntity action
             var jsonPropertyCall = Expression.Call(json, typeof(JObject).GetMethod("Property"), Expression.Constant(jsonProperty));
+            var jsonParseValue = (Expression)null;
+            if (entityProperty.PropertyType == typeof(Guid))
+            {
+                jsonParseValue = Expression.Call(null, typeof(Guid).GetMethod("Parse", BindingFlags.Public | BindingFlags.Static),
+                    Expression.Convert(Expression.Property(jsonPropertyCall, "Value"), typeof(string)));
+            }
+            else if (entityProperty.PropertyType.IsEnum)
+            {
+                jsonParseValue = Expression.Convert(
+                    Expression.Call(null, typeof(Enum).GetMethod("Parse", new[] { typeof(Type), typeof(string), typeof(bool) }),
+                        Expression.Constant(entityProperty.PropertyType),
+                        Expression.Convert(Expression.Property(jsonPropertyCall, "Value"), typeof(string)),
+                        Expression.Constant(true)),
+                    entityProperty.PropertyType);
+            }
+            else
+            {
+                jsonParseValue = Expression.Convert(Expression.Property(jsonPropertyCall, "Value"), entityProperty.PropertyType);
+            }
             var entityAssign = Expression.IfThen(
                 Expression.NotEqual(jsonPropertyCall, Expression.Constant(null, typeof(JProperty))),
-                Expression.Assign(
-                    Expression.Property(entity, entityProperty),
-                    Expression.Convert(Expression.Property(jsonPropertyCall, "Value"), entityProperty.PropertyType)));
-            var mapToEntityLabmda = Expression.Lambda<Action<JObject, T>>(entityAssign, json, entity);
-
-            Entries.Add(new JsonMapperEntry<T>(mode, jsonProperty, entityProperty, mapToJsonLabmda.Compile(), mapToEntityLabmda.Compile()));
-            return this;
-        }
-
-        /// <summary>
-        /// Configures GUID property mapping
-        /// </summary>
-        /// <param name="entityPropertyExpression">Property access expression</param>
-        /// <param name="jsonProperty">Json property name</param>
-        /// <param name="mode">Mapping mode</param>
-        /// <returns>Current configuration object</returns>
-        public JsonMapperConfiguration<T> Property(Expression<Func<T, Guid>> entityPropertyExpression, string jsonProperty, JsonMapperEntryMode mode = JsonMapperEntryMode.TwoWay)
-        {
-            if (entityPropertyExpression == null)
-                throw new ArgumentNullException("entityPropertyExpression");
-            if (string.IsNullOrEmpty(jsonProperty))
-                throw new ArgumentException("jsonProperty is null or empty!", "jsonProperty");
-
-            var entity = Expression.Parameter(typeof(T), "entity");
-            var json = Expression.Parameter(typeof(JObject), "json");
-            var entityProperty = GetProperty(entityPropertyExpression);
-
-            // create MapToJson action
-            var jsonAddProperty = Expression.Call(json,
-                typeof(JObject).GetMethod("Add", new[] { typeof(JProperty) }),
-                Expression.New(typeof(JProperty).GetConstructor(new[] { typeof(string), typeof(object) }),
-                    Expression.Constant(jsonProperty),
-                    Expression.Call(Expression.Invoke(entityPropertyExpression, entity), typeof(Guid).GetMethod("ToString", new Type[] { }))));
-            var mapToJsonLabmda = Expression.Lambda<Action<T, JObject>>(jsonAddProperty, entity, json);
-
-            // create MapToEntity action
-            var jsonPropertyCall = Expression.Call(json, typeof(JObject).GetMethod("Property"), Expression.Constant(jsonProperty));
-            var entityAssign = Expression.IfThen(
-                Expression.NotEqual(jsonPropertyCall, Expression.Constant(null, typeof(JProperty))),
-                Expression.Assign(
-                    Expression.Property(entity, entityProperty),
-                    Expression.Call(null, typeof(Guid).GetMethod("Parse", BindingFlags.Public | BindingFlags.Static),
-                        Expression.Convert(Expression.Property(jsonPropertyCall, "Value"), typeof(string)))));
+                Expression.Assign(Expression.Property(entity, entityProperty), jsonParseValue));
             var mapToEntityLabmda = Expression.Lambda<Action<JObject, T>>(entityAssign, json, entity);
 
             Entries.Add(new JsonMapperEntry<T>(mode, jsonProperty, entityProperty, mapToJsonLabmda.Compile(), mapToEntityLabmda.Compile()));

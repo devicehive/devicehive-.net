@@ -34,17 +34,46 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void GetAll()
         {
-            Get(auth: Admin);
+            // create new device
+            var user = CreateUser(1, NetworkID);
+            var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID }, auth: Admin);
+            RegisterForDeletion(ResourceUri + "/" + ID);
+
+            // admin: get device by name
+            var devices = Get(new Dictionary<string, string> { { "name", "_ut" } }, auth: Admin);
+            Expect(devices.Count, Is.EqualTo(1));
+            Expect(devices[0], Matches(new { id = ID }));
+
+            // admin: get device by network
+            devices = Get(new Dictionary<string, string> { { "networkId", NetworkID.ToString() } }, auth: Admin);
+            Expect(devices.Count, Is.EqualTo(1));
+            Expect(devices[0], Matches(new { id = ID }));
+
+            // admin: get device by device class
+            devices = Get(new Dictionary<string, string> { { "deviceClassId", DeviceClassID.ToString() } }, auth: Admin);
+            Expect(devices.Count, Is.EqualTo(1));
+            Expect(devices[0], Matches(new { id = ID }));
+
+            // user: get all devices
+            devices = Get(auth: user);
+            Expect(devices.Count, Is.EqualTo(1));
+            Expect(devices[0], Matches(new { id = ID }));
+
+            // user: get non-existing device by name
+            devices = Get(new Dictionary<string, string> { { "name", "nonexist" } }, auth: user);
+            Expect(devices.Count, Is.EqualTo(0));
         }
 
         [Test]
         public void Get_Client()
         {
+            // create new device
             var user1 = CreateUser(1); // create a client user
             var user2 = CreateUser(1, NetworkID); // create a client user with access to network
             var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + ID);
 
+            // clients can receive device resource when associated with the network
             Expect(() => Get(resource, auth: user1), FailsWith(404)); // should fail with 404
             var device = Get(resource, auth: user2); // should succeed
             Expect(device["network"]["key"], Is.Null); // verify that network does not include key
@@ -53,9 +82,11 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Get_Device()
         {
+            // create new device
             var resource = Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + ID);
 
+            // devices can receive device resource when specify a valid key
             Expect(() => Get(resource, auth: Device(ID, "wrong_key")), FailsWith(401)); // should fail with 401
             var device = Get(resource, auth: Device(ID, "key")); // should succeed
             Expect(device["network"]["key"], Is.Null); // verify that network does not include key
@@ -256,7 +287,6 @@ namespace DeviceHive.Test.ApiTest
 
             // user authorization
             var user = CreateUser(1, NetworkID);
-            Expect(() => Get(auth: user), FailsWith(401));
             Expect(() => Update(ID, new { status = "status" }, auth: user), FailsWith(401));
             Expect(() => { Delete(ID, auth: user); return false; }, FailsWith(401));
         }

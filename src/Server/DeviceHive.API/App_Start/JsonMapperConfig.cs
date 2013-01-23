@@ -79,6 +79,20 @@ namespace DeviceHive.API
                 .Property(e => e.ApiVersion, "apiVersion")
                 .Property(e => e.ServerTimestamp, "serverTimestamp")
                 .Property(e => e.WebSocketServerUrl, "webSocketServerUrl");
+
+            context.Kernel.ConfigureMapping<DeviceFilter>()
+                .Property(e => e.Name, "name")
+                .Property(e => e.NamePattern, "namePattern")
+                .Property(e => e.Status, "status")
+                .Property(e => e.NetworkID, "networkId")
+                .Property(e => e.NetworkName, "networkName")
+                .Property(e => e.DeviceClassID, "deviceClassId")
+                .Property(e => e.DeviceClassName, "deviceClassName")
+                .Property(e => e.DeviceClassVersion, "deviceClassVersion")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
         }
     }
 

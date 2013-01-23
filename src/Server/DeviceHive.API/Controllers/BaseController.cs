@@ -12,6 +12,7 @@ using DeviceHive.Core.Mapping;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
 using Ninject;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.API.Controllers
 {
@@ -70,6 +71,12 @@ namespace DeviceHive.API.Controllers
         protected IJsonMapper<T> GetMapper<T>()
         {
             return JsonMapperManager.GetMapper<T>();
+        }
+
+        protected T MapObjectFromQuery<T>()
+        {
+            var json = new JObject(Request.GetQueryNameValuePairs().Select(p => new JProperty(p.Key, p.Value)));
+            return GetMapper<T>().Map(json);
         }
 
         protected void Validate(object entity)

@@ -29,11 +29,17 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets list of devices.
         /// </summary>
+        /// <query cref="DeviceFilter" />
         /// <returns cref="Device">If successful, this method returns array of <see cref="Device"/> resources in the response body.</returns>
-        [AuthorizeUser(Roles = "Administrator")]
+        [AuthorizeUser]
         public JArray Get()
         {
-            return new JArray(DataContext.Device.GetAll().Select(n => Mapper.Map(n)));
+            var filter = MapObjectFromQuery<DeviceFilter>();
+            var devices = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
+                DataContext.Device.GetAll(filter) :
+                DataContext.Device.GetByUser(RequestContext.CurrentUser.ID, filter);
+
+            return new JArray(devices.Select(n => Mapper.Map(n)));
         }
 
         /// <name>get</name>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
@@ -112,7 +113,7 @@ namespace DeviceHive.API.Controllers
         {
             // get list of URL parameters for specified method
             var descriptor = method.ActionDescriptor as ReflectedHttpActionDescriptor;
-            return method.ParameterDescriptions
+            var parameters = method.ParameterDescriptions
                 .Where(p => p.Source == ApiParameterSource.FromUri)
                 .Select(p =>
                     {
@@ -126,7 +127,28 @@ namespace DeviceHive.API.Controllers
                                     !(p.ParameterDescriptor.ParameterType.IsGenericType &&
                                     p.ParameterDescriptor.ParameterType.GetGenericTypeDefinition() == typeof(Nullable<>)),
                             };
-                    }).ToArray();
+                    }).ToList();
+
+            // adjust URL parameters from the XML query element
+            var methodElement = ApiXmlCommentReader.GetMethodElement(descriptor.MethodInfo);
+            if (methodElement != null)
+            {
+                var queryElement = methodElement.Element("query");
+                if (queryElement != null)
+                {
+                    // read cref type on the XML query element
+                    var resourceType = GetCrefType(queryElement);
+                    if (resourceType != null)
+                    {
+                        parameters.AddRange(GetTypeParameters(resourceType, JsonMapperEntryMode.OneWay));
+                    }
+
+                    // adjust URL parameters according to the XML query element
+                    AdjustParameters(parameters, queryElement, JsonMapperEntryMode.OneWay);
+                }
+            }
+
+            return parameters.ToArray();
         }
 
         private string GetRequestDocumentation(ReflectedHttpActionDescriptor descriptor)
@@ -155,48 +177,11 @@ namespace DeviceHive.API.Controllers
                 }
             }
 
-            // read XML request element
+            // adjust parameters according to the XML request element
             var requestElement = methodElement.Element("request");
             if (requestElement != null)
             {
-                foreach (var parameterElement in requestElement.Elements("parameter")
-                    .Where(p => p.Attribute("name") != null))
-                {
-                    var name = (string)parameterElement.Attribute("name");
-                    var type = (string)parameterElement.Attribute("type");
-                    var mode = (string)parameterElement.Attribute("mode");
-                    var required = (bool?)parameterElement.Attribute("required");
-
-                    // remove an existing parameter
-                    if (mode == "remove")
-                    {
-                        parameters.RemoveAll(p => p.Name.StartsWith(name));
-                        continue;
-                    }
-
-                    // add or update an existing parameter
-                    var param = parameters.FirstOrDefault(p => p.Name == name);
-                    if (param == null)
-                    {
-                        param = new MetadataParameter { Name = name, Type = type };
-                        parameters.Add(param);
-                    }
-                    if (!string.IsNullOrEmpty(parameterElement.Contents()))
-                    {
-                        param.Documentation = parameterElement.Contents();
-                    }
-                    if (required != null)
-                    {
-                        param.IsRequred = required.Value;
-                    }
-
-                    // if element includes cref - parse the specified type and add parameters from it
-                    var cref = GetCrefType(parameterElement);
-                    if (cref != null)
-                    {
-                        parameters.AddRange(GetTypeParameters(cref, JsonMapperEntryMode.OneWay, param.Name + (type == "array" ? "[]" : null)));
-                    }
-                }
+                AdjustParameters(parameters, requestElement, JsonMapperEntryMode.OneWay);
             }
 
             return parameters.ToArray();
@@ -228,45 +213,11 @@ namespace DeviceHive.API.Controllers
                 }
             }
 
-            // read XML response element
+            // adjust parameters according to the XML response element
             var responseElement = methodElement.Element("response");
             if (responseElement != null)
             {
-                foreach (var parameterElement in responseElement.Elements("parameter")
-                    .Where(p => p.Attribute("name") != null))
-                {
-                    var name = (string)parameterElement.Attribute("name");
-                    var type = (string)parameterElement.Attribute("type");
-                    var mode = (string)parameterElement.Attribute("mode");
-
-                    // remove an existing parameter
-                    if (mode == "remove")
-                    {
-                        parameters.RemoveAll(p => p.Name.StartsWith(name));
-                        continue;
-                    }
-
-                    // add or update an existing parameter
-                    var param = parameters.FirstOrDefault(p => p.Name == name);
-                    if (param == null)
-                    {
-                        param = new MetadataParameter { Name = name, Type = type };
-                        parameters.Add(param);
-                    }
-                    if (!string.IsNullOrEmpty(parameterElement.Contents()))
-                    {
-                        param.Documentation = parameterElement.Contents();
-                    }
-                    
-                    // if element includes cref - parse the specified type and add parameters from it
-                    var cref = GetCrefType(parameterElement);
-                    if (cref != null)
-                    {
-                        if (param.Type == null)
-                            param.Type = "object";
-                        parameters.AddRange(GetTypeParameters(cref, JsonMapperEntryMode.OneWayToSource, param.Name + (type == "array" ? "[]" : null)));
-                    }
-                }
+                AdjustParameters(parameters, responseElement, JsonMapperEntryMode.OneWayToSource);
             }
 
             return parameters.ToArray();
@@ -288,6 +239,50 @@ namespace DeviceHive.API.Controllers
             }
 
             return type;
+        }
+
+        private void AdjustParameters(List<MetadataParameter> parameters, XElement adjustElement, JsonMapperEntryMode? exclude = null)
+        {
+            foreach (var parameterElement in adjustElement.Elements("parameter")
+                .Where(p => p.Attribute("name") != null))
+            {
+                var name = (string)parameterElement.Attribute("name");
+                var type = (string)parameterElement.Attribute("type");
+                var mode = (string)parameterElement.Attribute("mode");
+                var required = (bool?)parameterElement.Attribute("required");
+
+                // remove an existing parameter
+                if (mode == "remove")
+                {
+                    parameters.RemoveAll(p => p.Name.StartsWith(name));
+                    continue;
+                }
+
+                // add or update an existing parameter
+                var param = parameters.FirstOrDefault(p => p.Name == name);
+                if (param == null)
+                {
+                    param = new MetadataParameter { Name = name, Type = type };
+                    parameters.Add(param);
+                }
+                if (!string.IsNullOrEmpty(parameterElement.Contents()))
+                {
+                    param.Documentation = parameterElement.Contents();
+                }
+                if (required != null)
+                {
+                    param.IsRequred = required.Value;
+                }
+
+                // if element includes cref - parse the specified type and add parameters from it
+                var cref = GetCrefType(parameterElement);
+                if (cref != null)
+                {
+                    if (param.Type == null)
+                        param.Type = "object";
+                    parameters.AddRange(GetTypeParameters(cref, exclude, param.Name + (type == "array" ? "[]" : null)));
+                }
+            }
         }
 
         private MetadataParameter[] GetTypeParameters(Type type, JsonMapperEntryMode? exclude = null, string prefix = null)
@@ -342,12 +337,16 @@ namespace DeviceHive.API.Controllers
 
         private bool IsRequired(PropertyInfo property)
         {
-            if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                return false;
-            if (property.PropertyType.IsValueType)
+            if (property.IsDefined(typeof(RequiredAttribute), true))
                 return true;
 
-            return property.GetCustomAttributes(typeof(RequiredAttribute), true).Any();
+            if (property.IsDefined(typeof(DefaultValueAttribute), true))
+                return false;
+
+            if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                return false;
+
+            return property.PropertyType.IsValueType;
         }
 
         private string ToJsonType(Type type)
@@ -357,6 +356,9 @@ namespace DeviceHive.API.Controllers
 
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 type = type.GetGenericArguments().First();
+
+            if (type.IsEnum)
+                return "string";
 
             if (type == typeof(Guid))
                 return "guid";

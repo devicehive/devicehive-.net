@@ -7,9 +7,9 @@ namespace DeviceHive.Data.Repositories
     public interface IDeviceRepository : ISimpleRepository<Device>
     {
         Device Get(Guid guid);
-        List<Device> GetAll();
-        List<Device> GetByNetwork(int networkId);
-        List<Device> GetByUser(int userId);
+        List<Device> GetAll(DeviceFilter filter = null);
+        List<Device> GetByNetwork(int networkId, DeviceFilter filter = null);
+        List<Device> GetByUser(int userId, DeviceFilter filter = null);
         List<Device> GetOfflineDevices();
     }
 }
