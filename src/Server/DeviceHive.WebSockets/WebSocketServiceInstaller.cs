@@ -19,9 +19,9 @@ namespace DeviceHive.WebSockets
                 },
                 new ServiceInstaller()
                 {
-                    ServiceName = "DeviceHive.WebSockets",
-                    DisplayName = "DeviceHive WebSockets Service",
-                    Description = "DeviceHive WebSockets Service",
+                    ServiceName = "DeviceHive.WebSockets 1.2",
+                    DisplayName = "DeviceHive WebSockets Service 1.2",
+                    Description = "DeviceHive WebSockets Service 1.2",
                     StartType = ServiceStartMode.Automatic
                 }
             });
