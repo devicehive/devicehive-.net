@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Fleck;
+using log4net;
 
 namespace DeviceHive.WebSockets.Network.Fleck
 {
@@ -32,6 +33,13 @@ namespace DeviceHive.WebSockets.Network.Fleck
                 c.OnMessage = msg =>
                 {
                     var fc = GetConnection(c.ConnectionInfo.Id);
+                    if (fc == null)
+                    {                        
+                        LogManager.GetLogger(GetType())
+                            .ErrorFormat("Connection {0} isn't registered", c.ConnectionInfo.Id);
+                        return;
+                    }
+
                     var e = new WebSocketMessageEventArgs(fc, msg);
                     OnMessageReceived(e);
                 };

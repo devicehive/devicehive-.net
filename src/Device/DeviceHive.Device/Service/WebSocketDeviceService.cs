@@ -14,7 +14,7 @@ namespace DeviceHive.Device
     /// <summary>
     /// Provides access for devices to WebSockets DeviceHive API (/device endpoint)
     /// </summary>
-    public class WebSocketDeviceService
+    public class WebSocketDeviceService : IDisposable
     {
         #region Private fields
 
@@ -226,7 +226,7 @@ namespace DeviceHive.Device
 
             SendRequest("command/update", deviceGuid, deviceKey,
                 new JProperty("commandId", command.Id),
-                new JProperty("command", Serialize(command)));
+                new JProperty("command", Serialize(command, NullValueHandling.Ignore)));
         }
 
         /// <summary>
