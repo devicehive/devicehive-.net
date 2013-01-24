@@ -53,7 +53,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Protected methods               
+        #region Protected methods
 
         protected void Validate(object entity)
         {

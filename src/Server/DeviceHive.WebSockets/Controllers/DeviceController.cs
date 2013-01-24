@@ -14,6 +14,23 @@ using Ninject;
 
 namespace DeviceHive.WebSockets.Controllers
 {
+    /// <summary>
+    /// <para>
+    /// The service allows devices to exchange messages with the DeviceHive server using a single persistent connection.
+    /// </para>
+    /// <para>
+    /// After connection is eshtablished, devices need to register using the device/save message,
+    /// perform authentication and then start sending notifications using the notification/insert message.
+    /// </para>
+    /// <para>
+    /// Devices may also subscribe to commands using the command/subscrive message
+    /// and then start receiving server-originated messages about new commands.
+    /// </para>
+    /// <para>
+    /// It is also possible not to authenticate as concrete device, but rather send device identifier and key in each request.
+    /// That scenario is common for gateways which typically proxy multiple devices and use a single connection to the server.
+    /// </para>
+    /// </summary>
     public class DeviceController : ControllerBase
     {
         #region Private fields
@@ -91,6 +108,10 @@ namespace DeviceHive.WebSockets.Controllers
 
         #region Actions
 
+        /// <summary>
+        /// Authenticates a device.
+        /// After successful authentication, all subsequent messages may exclude deviceId and deviceKey parameters.
+        /// </summary>
         [Action("authenticate")]
         public void Authenticate()
         {
@@ -104,6 +125,13 @@ namespace DeviceHive.WebSockets.Controllers
             throw new WebSocketRequestException("Please specify valid authentication data");
         }
 
+        /// <summary>
+        /// Creates new device notification.
+        /// </summary>
+        /// <param name="notification" cref="DeviceNotification">A <see cref="DeviceNotification"/> resource to create.</param>
+        /// <response>
+        ///     <parameter name="notification" cref="DeviceNotification">An inserted <see cref="DeviceNotification"/> resource.</parameter>
+        /// </response>
         [Action("notification/insert", NeedAuthentication = true)]
         public void InsertDeviceNotification(JObject notification)
         {
@@ -122,6 +150,14 @@ namespace DeviceHive.WebSockets.Controllers
             SendResponse(new JProperty("notification", notification));
         }
 
+        /// <summary>
+        /// Updates an existing device command.
+        /// </summary>
+        /// <param name="commandId">Device command identifier.</param>
+        /// <param name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource to update.</param>
+        /// <response>
+        ///     <parameter name="command" cref="DeviceCommand">An updated <see cref="DeviceCommand"/> resource.</parameter>
+        /// </response>
         [Action("command/update", NeedAuthentication = true)]
         public void UpdateDeviceCommand(int commandId, JObject command)
         {
@@ -146,6 +182,11 @@ namespace DeviceHive.WebSockets.Controllers
             SendResponse(new JProperty("command", command));
         }
 
+        /// <summary>
+        /// Subscribes the device to commands.
+        /// After subscription is completed, the server will start to send command/insert messages to the connected device.
+        /// </summary>
+        /// <param name="timestamp">Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.</param>
         [Action("command/subscribe", NeedAuthentication = true)]
         public void SubsrcibeToDeviceCommands(DateTime? timestamp)
         {
@@ -170,6 +211,9 @@ namespace DeviceHive.WebSockets.Controllers
             SendSuccessResponse();
         }
 
+        /// <summary>
+        /// Unsubscribes the device from commands.
+        /// </summary>
         [Action("command/unsubscribe", NeedAuthentication = true)]
         public void UnsubsrcibeFromDeviceCommands()
         {
@@ -177,6 +221,12 @@ namespace DeviceHive.WebSockets.Controllers
             SendSuccessResponse();
         }
 
+        /// <summary>
+        /// Gets information about the current device.
+        /// </summary>
+        /// <response>
+        ///     <parameter name="device" cref="Device">The <see cref="Device"/> resource representing the current device.</parameter>
+        /// </response>
         [Action("device/get", NeedAuthentication = true)]
         public void GetDevice()
         {
@@ -184,6 +234,33 @@ namespace DeviceHive.WebSockets.Controllers
             SendResponse(new JProperty("device", _deviceMapper.Map(device)));
         }
 
+        /// <summary>
+        /// Registers or updates a device.
+        /// A valid device key is required in the deviceKey parameter in order to update an existing device.
+        /// </summary>
+        /// <param name="deviceId">Device unique identifier.</param>
+        /// <param name="device" cref="Device">A <see cref="Device"/> resource to register or update.</param>
+        /// <request>
+        ///     <parameter name="device.network" mode="remove" />
+        ///     <parameter name="device.deviceClass" mode="remove" />
+        ///     <parameter name="device.network" type="integer or object" required="false">
+        ///         <para>Network identifier or <see cref="Network"/> object.</para>
+        ///         <para>If object is passed, the target network will be searched by name and automatically created if not found.</para>
+        ///         <para>In case when existing network is protected with the key, the key value must be included.</para>
+        ///     </parameter>
+        ///     <parameter name="device.deviceClass" type="integer or object" required="true">
+        ///         <para>Device class identifier or <see cref="DeviceClass"/> object.</para>
+        ///         <para>If object is passed, the target device class will be searched by name and version, and automatically created if not found.</para>
+        ///         <para>The device class object will be also updated accordingly unless the DeviceClass.IsPermanent flag is set.</para>
+        ///     </parameter>
+        ///     <parameter name="device.equipment" type="array" required="false" cref="Equipment">
+        ///         <para>Array of <see cref="Equipment"/> objects to be associated with the device class. If specified, all existing values will be replaced.</para>
+        ///         <para>In case when device class is permanent, this value is ignored.</para>
+        ///     </parameter>
+        /// </request>
+        /// <response>
+        ///     <parameter name="device" cref="Device">The <see cref="Device"/> resource representing the registered/updated device.</parameter>
+        /// </response>
         [Action("device/save", NeedAuthentication = false)]
         public void SaveDevice(Guid deviceId, JObject device)
         {
@@ -236,6 +313,14 @@ namespace DeviceHive.WebSockets.Controllers
             _subscriptionManager.Cleanup(connection);
         }
 
+        /// <summary>
+        /// Notifies the device about new command.
+        /// </summary>
+        /// <action>command/insert</action>
+        /// <response>
+        ///     <parameter name="deviceGuid" type="guid">Device unique identifier.</parameter>
+        ///     <parameter name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource representing the command.</parameter>
+        /// </response>
         private void Notify(WebSocketConnectionBase connection, Device device, DeviceCommand command,
             bool isInitialCommand = false)
         {

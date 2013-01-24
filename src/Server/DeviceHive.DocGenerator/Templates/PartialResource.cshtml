@@ -6,11 +6,9 @@
 }
 
 <h1>@Html.Encode(Resource.Name)</h1>
-
 <p>@Html.Documentation(Resource.Documentation)</p>
 
 <h2>Methods</h2>
-
 <table>
     <tr>
         <th style="width:120px">Method</th>
@@ -29,10 +27,8 @@
     }
 </table>
 
-
 <h2>Resource Representation</h2>
-
-@Html.Resource(Resource)
+@Html.JsonRepresentation(Resource.Properties)
 
 <table>
     <tr>

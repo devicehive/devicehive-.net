@@ -35,7 +35,8 @@ namespace DeviceHive.DocGenerator.Templates
 
         #line 4 "..\..\Templates\DeviceHiveAPI.cshtml"
 
-    public Metadata ApiMetadata { get; set; }
+    public Metadata Metadata { get; set; }
+    public Metadata WsMetadata { get; set; }
 
         #line default
         #line hidden
@@ -64,8 +65,8 @@ WriteLiteral(@"
 
 
             
-            #line 17 "..\..\Templates\DeviceHiveAPI.cshtml"
-Write(new PartialApi { ApiMetadata = ApiMetadata }.TransformText());
+            #line 18 "..\..\Templates\DeviceHiveAPI.cshtml"
+Write(new PartialApi { Metadata = Metadata, WsMetadata = WsMetadata }.TransformText());
 
             
             #line default

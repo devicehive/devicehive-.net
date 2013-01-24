@@ -84,7 +84,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="deviceClass" type="integer or object" required="true">
         ///         <para>Device class identifier or <see cref="DeviceClass"/> object.</para>
         ///         <para>If object is passed, the target device class will be searched by name and version, and automatically created if not found.</para>
-        ///         <para>The device class object will be also updated accordingly unless the <see cref="DeviceClass.IsPermanent"/> flag is set.</para>
+        ///         <para>The device class object will be also updated accordingly unless the DeviceClass.IsPermanent flag is set.</para>
         ///     </parameter>
         ///     <parameter name="equipment" type="array" required="false" cref="Equipment">
         ///         <para>Array of <see cref="Equipment"/> objects to be associated with the device class. If specified, all existing values will be replaced.</para>

@@ -54,24 +54,24 @@ Write(Html.Encode(Resource.Name));
             
             #line default
             #line hidden
-WriteLiteral("</h1>\r\n\r\n<p>");
+WriteLiteral("</h1>\r\n<p>");
 
 
             
-            #line 10 "..\..\Templates\PartialResource.cshtml"
+            #line 9 "..\..\Templates\PartialResource.cshtml"
 Write(Html.Documentation(Resource.Documentation));
 
             
             #line default
             #line hidden
-WriteLiteral("</p>\r\n\r\n<h2>Methods</h2>\r\n\r\n<table>\r\n    <tr>\r\n        <th style=\"width:120px\">Me" +
-"thod</th>\r\n        <th style=\"width:150px\">Authorization</th>\r\n        <th style" +
-"=\"width:300px\">Uri</th>\r\n        <th style=\"width:400px\">Description</th>\r\n    <" +
-"/tr>\r\n");
+WriteLiteral("</p>\r\n\r\n<h2>Methods</h2>\r\n<table>\r\n    <tr>\r\n        <th style=\"width:120px\">Meth" +
+"od</th>\r\n        <th style=\"width:150px\">Authorization</th>\r\n        <th style=\"" +
+"width:300px\">Uri</th>\r\n        <th style=\"width:400px\">Description</th>\r\n    </t" +
+"r>\r\n");
 
 
             
-            #line 21 "..\..\Templates\PartialResource.cshtml"
+            #line 19 "..\..\Templates\PartialResource.cshtml"
      foreach (var method in Resource.Methods)
     {
 
@@ -82,7 +82,7 @@ WriteLiteral("    <tr>\r\n        <td><a href=\"#Reference/");
 
 
             
-            #line 24 "..\..\Templates\PartialResource.cshtml"
+            #line 22 "..\..\Templates\PartialResource.cshtml"
                            Write(Html.Encode(Resource.Name));
 
             
@@ -92,7 +92,7 @@ WriteLiteral("/");
 
 
             
-            #line 24 "..\..\Templates\PartialResource.cshtml"
+            #line 22 "..\..\Templates\PartialResource.cshtml"
                                                        Write(Html.Encode(method.Name));
 
             
@@ -102,7 +102,7 @@ WriteLiteral("\">");
 
 
             
-            #line 24 "..\..\Templates\PartialResource.cshtml"
+            #line 22 "..\..\Templates\PartialResource.cshtml"
                                                                                   Write(Html.Encode(method.Name));
 
             
@@ -112,7 +112,7 @@ WriteLiteral("</a></td>\r\n        <td>");
 
 
             
-            #line 25 "..\..\Templates\PartialResource.cshtml"
+            #line 23 "..\..\Templates\PartialResource.cshtml"
        Write(Html.Encode(method.Authorization));
 
             
@@ -122,7 +122,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 26 "..\..\Templates\PartialResource.cshtml"
+            #line 24 "..\..\Templates\PartialResource.cshtml"
        Write(Html.Encode(method.Verb));
 
             
@@ -132,7 +132,7 @@ WriteLiteral(" ");
 
 
             
-            #line 26 "..\..\Templates\PartialResource.cshtml"
+            #line 24 "..\..\Templates\PartialResource.cshtml"
                                  Write(Html.Encode(method.UriNoQuery()));
 
             
@@ -142,7 +142,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 27 "..\..\Templates\PartialResource.cshtml"
+            #line 25 "..\..\Templates\PartialResource.cshtml"
        Write(Html.Documentation(method.Documentation));
 
             
@@ -152,18 +152,18 @@ WriteLiteral("</td>\r\n    </tr>\r\n");
 
 
             
-            #line 29 "..\..\Templates\PartialResource.cshtml"
+            #line 27 "..\..\Templates\PartialResource.cshtml"
     }
 
             
             #line default
             #line hidden
-WriteLiteral("</table>\r\n\r\n\r\n<h2>Resource Representation</h2>\r\n\r\n");
+WriteLiteral("</table>\r\n\r\n<h2>Resource Representation</h2>\r\n");
 
 
             
-            #line 35 "..\..\Templates\PartialResource.cshtml"
-Write(Html.Resource(Resource));
+            #line 31 "..\..\Templates\PartialResource.cshtml"
+Write(Html.JsonRepresentation(Resource.Properties));
 
             
             #line default
@@ -174,7 +174,7 @@ WriteLiteral("\r\n\r\n<table>\r\n    <tr>\r\n        <th style=\"width:200px\">P
 
 
             
-            #line 43 "..\..\Templates\PartialResource.cshtml"
+            #line 39 "..\..\Templates\PartialResource.cshtml"
      foreach (var property in Resource.Properties)
     {
 
@@ -185,7 +185,7 @@ WriteLiteral("    <tr>\r\n        <td>");
 
 
             
-            #line 46 "..\..\Templates\PartialResource.cshtml"
+            #line 42 "..\..\Templates\PartialResource.cshtml"
        Write(Html.Encode(property.Name));
 
             
@@ -195,7 +195,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 47 "..\..\Templates\PartialResource.cshtml"
+            #line 43 "..\..\Templates\PartialResource.cshtml"
        Write(Html.Encode(property.Type));
 
             
@@ -205,7 +205,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 48 "..\..\Templates\PartialResource.cshtml"
+            #line 44 "..\..\Templates\PartialResource.cshtml"
        Write(Html.Documentation(property.Documentation));
 
             
@@ -215,7 +215,7 @@ WriteLiteral("</td>\r\n    </tr>\r\n");
 
 
             
-            #line 50 "..\..\Templates\PartialResource.cshtml"
+            #line 46 "..\..\Templates\PartialResource.cshtml"
     }
 
             

@@ -2,7 +2,8 @@
 @using DeviceHive.DocGenerator
 @using DeviceHive.DocGenerator.Templates
 @functions  {
-    public Metadata ApiMetadata { get; set; }
+    public Metadata Metadata { get; set; }
+    public Metadata WsMetadata { get; set; }
 }
 <!DOCTYPE html>
 <html>
@@ -14,7 +15,7 @@
 <body>
 <div id="wrap">
     <h1 id="page-title" class="title">RESTful</h1>
-    @(new PartialApi { ApiMetadata = ApiMetadata }.TransformText())
+    @(new PartialApi { Metadata = Metadata, WsMetadata = WsMetadata }.TransformText())
 </div>
 </body>
 </html>

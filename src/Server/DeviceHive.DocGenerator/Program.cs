@@ -10,13 +10,14 @@ namespace DeviceHive.DocGenerator
         {
             try
             {
-                var apiMetadata = new ApiMetadataGenerator().Generate();
+                var metadata = new MetadataGenerator().Generate();
+                var wsMetadata = new WsMetadataGenerator().Generate();
 
-                var html = new DeviceHiveAPI { ApiMetadata = apiMetadata }.TransformText().Trim();
+                var html = new DeviceHiveAPI { Metadata = metadata, WsMetadata = wsMetadata }.TransformText().Trim();
                 html = html.Replace("{image-path}/", "");
                 File.WriteAllText(@"DeviceHiveAPI.html", html);
 
-                var htmlForDrupal = new PartialApi { ApiMetadata = apiMetadata }.TransformText().Trim();
+                var htmlForDrupal = new PartialApi { Metadata = metadata, WsMetadata = wsMetadata }.TransformText().Trim();
                 htmlForDrupal = htmlForDrupal.Replace("{image-path}", "<?php print $doc_dir; ?>");
                 File.WriteAllText(@"DeviceHiveAPI_ForDrupal.html", htmlForDrupal);
 

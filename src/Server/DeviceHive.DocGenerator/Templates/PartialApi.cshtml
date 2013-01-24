@@ -2,20 +2,36 @@
 @using DeviceHive.DocGenerator
 @using DeviceHive.DocGenerator.Templates
 @functions  {
-    public Metadata ApiMetadata { get; set; }
+    public Metadata Metadata { get; set; }
+    public Metadata WsMetadata { get; set; }
 }
 <div id="sidebar">
     <ul>
         <li><a href="#GetStarted">Get Started</a></li>
-        <li><a href="#Reference">Reference</a>
+        <li><a href="#Reference">REST API Reference</a>
             <ul>
-            @foreach (var resource in ApiMetadata.Resources)
+            @foreach (var resource in Metadata.Resources)
             {
                 <li><a href="#Reference/@Html.Encode(resource.Name)">@Html.Encode(resource.Name)</a>
                     <ul id="nav-Reference-@Html.Encode(resource.Name)">
                     @foreach (var method in resource.Methods)
                     {
                         <li><a href="#Reference/@Html.Encode(resource.Name)/@Html.Encode(method.Name)">@Html.Encode(method.Name)</a></li>
+                    }
+                    </ul>
+                </li>
+            }
+            </ul>
+        </li>
+        <li><a href="#WsReference">WebSocket API Reference</a>
+            <ul>
+            @foreach (var service in WsMetadata.Services)
+            {
+                <li><a href="#WsReference/@Html.Encode(service.Name)">@Html.Encode(service.Name)</a>
+                    <ul id="nav-WsReference-@Html.Encode(service.Name)">
+                    @foreach (var method in service.Methods)
+                    {
+                        <li><a href="#WsReference/@Html.Encode(service.Name)/@Html.Encode(method.ID())">@Html.Encode(method.Name)</a></li>
                     }
                     </ul>
                 </li>
@@ -29,8 +45,9 @@
         @(new PartialGetStarted().TransformText())
     </div>
     <div id="Reference">
-        <h1>Reference</h1>
-        @foreach (var resource in ApiMetadata.Resources)
+        <h1>REST API Reference</h1>
+        <p>The DeviceHive REST API exposes the following resources:</p>
+        @foreach (var resource in Metadata.Resources)
         {
             <h2>@Html.Encode(resource.Name)</h2>
             <p>@Html.Documentation(resource.Documentation)</p>
@@ -54,18 +71,56 @@
             </table>
         }
     </div>
-    @foreach (var resource in ApiMetadata.Resources)
+    <div id="WsReference">
+        <h1>WebSocket API Reference</h1>
+        <p>The DeviceHive WebSocket API exposes the following services:</p>
+        @foreach (var service in WsMetadata.Services)
+        {
+            <h2>@Html.Encode(service.Name)</h2>
+            <p>@Html.Documentation(service.Documentation)</p>
+            <p>For the @Html.Encode(service.Name) service details, see the <a href="#WsReference/@Html.Encode(service.Name)">service information</a> page.</p>
+            <table>
+                <tr>
+                    <th style="width:150px">Message</th>
+                    <th style="width:80px">Originator</th>
+                    <th style="width:100px">Authorization</th>
+                    <th style="width:400px">Description</th>
+                </tr>
+                @foreach (var method in service.Methods)
+                {
+                <tr>
+                    <td><a href="#WsReference/@Html.Encode(service.Name)/@Html.Encode(method.ID())">@Html.Encode(method.Name)</a></td>
+                    <td>@Html.Encode(method.Originator)</td>
+                    <td>@Html.Encode(method.Authorization)</td>
+                    <td>@Html.Documentation(method.Documentation)</td>
+                </tr>
+                }
+            </table>
+        }
+    </div>
+    @foreach (var resource in Metadata.Resources)
     {
     <div id="Reference-@Html.Encode(resource.Name)">
-        @(new PartialResource{ Resource = resource }.TransformText())
+        @(new PartialResource { Resource = resource }.TransformText())
     </div>
-    foreach (var method in resource.Methods)
-    {
+        foreach (var method in resource.Methods)
+        {
     <div id="Reference-@Html.Encode(resource.Name)-@Html.Encode(method.Name)">
-        @(new PartialMethod{ Resource = resource, Method = method }.TransformText())
+        @(new PartialMethod { Resource = resource, Method = method }.TransformText())
     </div>
+        }
     }
-}
+    @foreach (var service in WsMetadata.Services)
+    {
+    <div id="WsReference-@Html.Encode(service.Name)">
+        @(new PartialWsService { Service = service }.TransformText())
+    </div>
+        foreach (var method in service.Methods)
+        {
+    <div id="WsReference-@Html.Encode(service.Name)-@Html.Encode(method.ID())">
+        @(new PartialWsMethod { Service = service, Method = method }.TransformText())
+    </div>
+    }}
 </div>
 <script type="text/javascript">
     jQuery(function () {

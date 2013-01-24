@@ -81,86 +81,86 @@ WriteLiteral("\r\n\r\n<h1>Get Started</h1>\r\n\r\n<p>The DeviceHive API is the c
 "nds only when a new message is available, or if the waiting timeout is expired (" +
 "specified in the <em>waitTimeout</em> parameter). That approach is generally mor" +
 "e efficient and minimizes message receive delays.</li>\r\n    <li><strong>WebSocke" +
-"t</strong>: A separate WebSocket API allows clients to open persistent connectio" +
-"ns with the server, subscribe to particular commands or notifications and then r" +
-"eceive messages from the server. The URL of the WebSocket endpoint could be retr" +
-"ieved using the <a href=\"#Reference/ApiInfo/get\">ApiInfo: get</a> call.</li>\r\n</" +
-"ol>\r\n<p>In all three methods it\'s possible to specify the <em>timestamp</em> par" +
-"ameter as starting date/time (non-inclusive) for incoming messages. If that para" +
-"meter is omitted, the server\'s current timestamp is taken instead.</p>\r\n<p>In or" +
-"der to receive all messages in the right order, the clients should always pass t" +
-"he timestamp of the last received message when polling or subscribing. If no mes" +
-"sages were ever received, the client should get the server\'s current timestamp u" +
-"sing the <a href=\"#Reference/ApiInfo/get\">ApiInfo: get</a> call and use it until" +
-" a new message is received.</p>\r\n\r\n<h3>Tracking device equipment state</h3>\r\n<p>" +
-"One of the useful features provided by the server is tracking the most recent st" +
-"ate of device equipment (e.g. sensors, meters, etc.). The API clients may use th" +
-"e <a href=\"#Reference/Device/equipment\">Device: equipment</a> operation to recei" +
-"ve the current state of the device equipment.</p>\r\n<p>In order to support that f" +
-"unctionality, devices must send properly formatted <a href=\"#Reference/DeviceNot" +
-"ification/insert\">notifications</a> about changes in the current equipment state" +
-". The notification resource must include the following properties:</p>\r\n<ul>\r\n  " +
-"  <li><strong>notification</strong>: Must be \'equipment\'.</li>\r\n    <li><strong>" +
-"parameters</strong>: Must be a JSON object with the \'equipment\' property contain" +
-"ing the corresponding equipment code. Other properties in the JSON object should" +
-" reflect the equipment state.</li>\r\n</ul>\r\n\r\n<h3>Server-originated notifications" +
-"</h3>\r\n<p>Devices are not the only source of notifications in the system: the se" +
-"rver also generates special notifications about various device events. The list " +
-"below includes all such notifications with their description:</p>\r\n<ul>\r\n    <li" +
-"><strong>$device-add</strong>: Dispatched once for newly registered device. The " +
-"notification includes all device properties specified during registration.</li>\r" +
-"\n    <li><strong>$device-update</strong>: Dispatched every time device propertie" +
-"s are updated (e.g. device name, status, etc.). The notification includes only t" +
-"he changed properties. If no properties were changed, the notification parameter" +
-"s property is an empty object.</li>\r\n</ul>\r\n\r\n<h3>Automatic Offline device statu" +
-"s</h3>\r\n<p>The server provides a capability to auto-update the device status to " +
-"Offline after certain period of inactivity. A device is considered to be inactiv" +
-"e when it does not send any notifications for a specified period of time. Please" +
-" note the status is not currently reverted to the original value when a device i" +
-"s brought back online.</p>\r\n<p>The feature is enabled, if a corresponding <a hre" +
-"f=\"#Reference/DeviceClass\">device class</a> includes a positive offlineTimeout p" +
-"roperty.</p>\r\n\r\n<h2>Authentication</h2>\r\n<p>The API supports two types of authen" +
-"tication: User and Device.</p>\r\n\r\n<h3>User</h3>\r\n<p>The users are authenticated " +
-"using <a href=\"http://en.wikipedia.org/wiki/Basic_access_authentication\" target=" +
-"\"_blank\">HTTP Basic Authentication</a>.</p>\r\n<p>The access is provided based on " +
-"authenticated user role (Client or Administrator), please refer to the <a href=\"" +
-"#Reference\">Reference</a> for the list of available resources and methods for ea" +
-"ch user role.</p>\r\n\r\n<h3>Device</h3>\r\n<p>Devices are authenticated by passing tw" +
-"o custom HTTP headers:</p>\r\n<ul>\r\n    <li><strong>Auth-DeviceID</strong>: Device" +
-" unique identifier.</li>\r\n    <li><strong>Auth-DeviceKey</strong>: Device authen" +
-"tication key.</li>\r\n</ul>\r\n<p>Both device unique identifier and authentication k" +
-"ey are specified during <a href=\"#Reference/Device/register\">device registration" +
-"</a>.</p>\r\n\r\n<h2>Response Codes</h2>\r\n<p>The API uses HTTP Status Codes to notif" +
-"y clients about the status of requested operation. As usual, the 2xx codes indic" +
-"ate the operation has been completed successfully, the 4xx codes indicate client" +
-" errors, and 5xx codes reflect server errors.</p>\r\n<p>The list below provides so" +
-"me additional information about common status codes returned by API operations:<" +
-"/p>\r\n<ul>\r\n    <li><strong>200 OK</strong>: Requested operation completed succes" +
-"sfully. The response body includes a resource object as specified in the API ref" +
-"erence.</li>\r\n    <li><strong>201 Created</strong>: Requested operation complete" +
-"d successfully and a new resource has been created (typically for POST operation" +
-"s). The HTTP Location header includes the URL of created resource. The response " +
-"body includes created resource object as specified in the API reference.</li>\r\n " +
-"   <li><strong>204 No Content</strong>: Requested operation completed successful" +
-"ly and there is no resource in the response body (typically for DELETE operation" +
-"s).</li>\r\n    <li><strong>400 Bad Request</strong>: The client did not specify a" +
-"ll required parameters or some parameters passed are invalid. The response body " +
-"includes a JSON object with the \'message\' property describing the error details." +
-"</li>\r\n    <li><strong>401 Unauthorized</strong>: The client did not specify aut" +
-"hentication headers or access to the requested resource is not allowed for the c" +
-"urrent identity. The response body includes a JSON object with the \'message\' pro" +
-"perty describing the error details.</li>\r\n    <li><strong>403 Forbidden</strong>" +
-": The server could not complete the requested operation with the specified param" +
-"eters (e.g. network with such name already exists). The response body includes a" +
-" JSON object with the \'message\' property describing the error details.</li>\r\n   " +
-" <li><strong>404 Not Found</strong>: The specified resource is not found. The re" +
-"sponse body includes a JSON object with the \'message\' property describing the er" +
-"ror details.</li>\r\n    <li><strong>405 Method Not Allowed</strong>: The specifie" +
-"d operation for the current resource is not allowed. The response body includes " +
-"a JSON object with the \'message\' property describing the error details.</li>\r\n  " +
-"  <li><strong>500 Internal Server Error</strong>: The server error occurred whil" +
-"e processing requested operation. The expected response format is not documented" +
-".</li>\r\n</ul>");
+"t</strong>: A separate <a href=\"#WsReference\">WebSocket API</a> allows clients t" +
+"o open persistent connections with the server, subscribe to particular commands " +
+"or notifications and then receive messages from the server. The URL of the WebSo" +
+"cket endpoint could be retrieved using the <a href=\"#Reference/ApiInfo/get\">ApiI" +
+"nfo: get</a> call.</li>\r\n</ol>\r\n<p>In all three methods it\'s possible to specify" +
+" the <em>timestamp</em> parameter as starting date/time (non-inclusive) for inco" +
+"ming messages. If that parameter is omitted, the server\'s current timestamp is t" +
+"aken instead.</p>\r\n<p>In order to receive all messages in the right order, the c" +
+"lients should always pass the timestamp of the last received message when pollin" +
+"g or subscribing. If no messages were ever received, the client should get the s" +
+"erver\'s current timestamp using the <a href=\"#Reference/ApiInfo/get\">ApiInfo: ge" +
+"t</a> call and use it until a new message is received.</p>\r\n\r\n<h3>Tracking devic" +
+"e equipment state</h3>\r\n<p>One of the useful features provided by the server is " +
+"tracking the most recent state of device equipment (e.g. sensors, meters, etc.)." +
+" The API clients may use the <a href=\"#Reference/Device/equipment\">Device: equip" +
+"ment</a> operation to receive the current state of the device equipment.</p>\r\n<p" +
+">In order to support that functionality, devices must send properly formatted <a" +
+" href=\"#Reference/DeviceNotification/insert\">notifications</a> about changes in " +
+"the current equipment state. The notification resource must include the followin" +
+"g properties:</p>\r\n<ul>\r\n    <li><strong>notification</strong>: Must be \'equipme" +
+"nt\'.</li>\r\n    <li><strong>parameters</strong>: Must be a JSON object with the \'" +
+"equipment\' property containing the corresponding equipment code. Other propertie" +
+"s in the JSON object should reflect the equipment state.</li>\r\n</ul>\r\n\r\n<h3>Serv" +
+"er-originated notifications</h3>\r\n<p>Devices are not the only source of notifica" +
+"tions in the system: the server also generates special notifications about vario" +
+"us device events. The list below includes all such notifications with their desc" +
+"ription:</p>\r\n<ul>\r\n    <li><strong>$device-add</strong>: Dispatched once for ne" +
+"wly registered device. The notification includes all device properties specified" +
+" during registration.</li>\r\n    <li><strong>$device-update</strong>: Dispatched " +
+"every time device properties are updated (e.g. device name, status, etc.). The n" +
+"otification includes only the changed properties. If no properties were changed," +
+" the notification parameters property is an empty object.</li>\r\n</ul>\r\n\r\n<h3>Aut" +
+"omatic Offline device status</h3>\r\n<p>The server provides a capability to auto-u" +
+"pdate the device status to Offline after certain period of inactivity. A device " +
+"is considered to be inactive when it does not send any notifications for a speci" +
+"fied period of time. Please note the status is not currently reverted to the ori" +
+"ginal value when a device is brought back online.</p>\r\n<p>The feature is enabled" +
+", if a corresponding <a href=\"#Reference/DeviceClass\">device class</a> includes " +
+"a positive offlineTimeout property.</p>\r\n\r\n<h2>Authentication</h2>\r\n<p>The API s" +
+"upports two types of authentication: User and Device.</p>\r\n\r\n<h3>User</h3>\r\n<p>T" +
+"he users are authenticated using <a href=\"http://en.wikipedia.org/wiki/Basic_acc" +
+"ess_authentication\" target=\"_blank\">HTTP Basic Authentication</a>.</p>\r\n<p>The a" +
+"ccess is provided based on authenticated user role (Client or Administrator), pl" +
+"ease refer to the <a href=\"#Reference\">Reference</a> for the list of available r" +
+"esources and methods for each user role.</p>\r\n\r\n<h3>Device</h3>\r\n<p>Devices are " +
+"authenticated by passing two custom HTTP headers:</p>\r\n<ul>\r\n    <li><strong>Aut" +
+"h-DeviceID</strong>: Device unique identifier.</li>\r\n    <li><strong>Auth-Device" +
+"Key</strong>: Device authentication key.</li>\r\n</ul>\r\n<p>Both device unique iden" +
+"tifier and authentication key are specified during <a href=\"#Reference/Device/re" +
+"gister\">device registration</a>.</p>\r\n\r\n<h2>Response Codes</h2>\r\n<p>The API uses" +
+" HTTP Status Codes to notify clients about the status of requested operation. As" +
+" usual, the 2xx codes indicate the operation has been completed successfully, th" +
+"e 4xx codes indicate client errors, and 5xx codes reflect server errors.</p>\r\n<p" +
+">The list below provides some additional information about common status codes r" +
+"eturned by API operations:</p>\r\n<ul>\r\n    <li><strong>200 OK</strong>: Requested" +
+" operation completed successfully. The response body includes a resource object " +
+"as specified in the API reference.</li>\r\n    <li><strong>201 Created</strong>: R" +
+"equested operation completed successfully and a new resource has been created (t" +
+"ypically for POST operations). The HTTP Location header includes the URL of crea" +
+"ted resource. The response body includes created resource object as specified in" +
+" the API reference.</li>\r\n    <li><strong>204 No Content</strong>: Requested ope" +
+"ration completed successfully and there is no resource in the response body (typ" +
+"ically for DELETE operations).</li>\r\n    <li><strong>400 Bad Request</strong>: T" +
+"he client did not specify all required parameters or some parameters passed are " +
+"invalid. The response body includes a JSON object with the \'message\' property de" +
+"scribing the error details.</li>\r\n    <li><strong>401 Unauthorized</strong>: The" +
+" client did not specify authentication headers or access to the requested resour" +
+"ce is not allowed for the current identity. The response body includes a JSON ob" +
+"ject with the \'message\' property describing the error details.</li>\r\n    <li><st" +
+"rong>403 Forbidden</strong>: The server could not complete the requested operati" +
+"on with the specified parameters (e.g. network with such name already exists). T" +
+"he response body includes a JSON object with the \'message\' property describing t" +
+"he error details.</li>\r\n    <li><strong>404 Not Found</strong>: The specified re" +
+"source is not found. The response body includes a JSON object with the \'message\'" +
+" property describing the error details.</li>\r\n    <li><strong>405 Method Not All" +
+"owed</strong>: The specified operation for the current resource is not allowed. " +
+"The response body includes a JSON object with the \'message\' property describing " +
+"the error details.</li>\r\n    <li><strong>500 Internal Server Error</strong>: The" +
+" server error occurred while processing requested operation. The expected respon" +
+"se format is not documented.</li>\r\n</ul>");
 
 
         }

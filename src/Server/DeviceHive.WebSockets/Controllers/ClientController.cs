@@ -13,6 +13,19 @@ using Ninject;
 
 namespace DeviceHive.WebSockets.Controllers
 {
+    /// <summary>
+    /// <para>
+    /// The service allows clients to exchange messages with the DeviceHive server using a single persistent connection.
+    /// </para>
+    /// <para>
+    /// After connection is eshtablished, clients need to authenticate using their login and password,
+    /// and then start sending commands to devices using the command/insert message.
+    /// </para>
+    /// <para>
+    /// Clients may also subscribe to device notifications using the notification/subscrive message
+    /// and then start receiving server-originated messages about new device notifications.
+    /// </para>
+    /// </summary>
     public class ClientController : ControllerBase
     {        
         #region Private fields
@@ -70,6 +83,11 @@ namespace DeviceHive.WebSockets.Controllers
 
         #region Actions
 
+        /// <summary>
+        /// Authenticates a user.
+        /// </summary>
+        /// <param name="login">User login.</param>
+        /// <param name="password">User password.</param>
         [Action("authenticate")]
         public void Authenticate(string login, string password)
         {
@@ -94,6 +112,14 @@ namespace DeviceHive.WebSockets.Controllers
             SendSuccessResponse();
         }
 
+        /// <summary>
+        /// Creates new device command.
+        /// </summary>
+        /// <param name="deviceGuid">Target device unique identifier.</param>
+        /// <param name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource to create.</param>
+        /// <response>
+        ///     <parameter name="command" cref="DeviceCommand">An inserted <see cref="DeviceCommand"/> resource.</parameter>
+        /// </response>
         [Action("command/insert", NeedAuthentication = true)]
         public void InsertDeviceCommand(Guid deviceGuid, JObject command)
         {
@@ -120,6 +146,14 @@ namespace DeviceHive.WebSockets.Controllers
             SendResponse(new JProperty("command", command));
         }
 
+        /// <summary>
+        /// Subscribes to device notifications.
+        /// After subscription is completed, the server will start to send notification/insert messages to the connected user.
+        /// </summary>
+        /// <param name="timestamp">Timestamp of the last received notification (UTC). If not specified, the server's timestamp is taken instead.</param>
+        /// <request>
+        ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to subscribe to. If not specified, the subscription is made to all accessible devices.</parameter>
+        /// </request>
         [Action("notification/subscribe", NeedAuthentication = true)]
         public void SubsrcibeToDeviceNotifications(DateTime? timestamp)
         {
@@ -135,6 +169,12 @@ namespace DeviceHive.WebSockets.Controllers
             SendSuccessResponse();
         }
 
+        /// <summary>
+        /// Unsubscribes from device commands.
+        /// </summary>
+        /// <request>
+        ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to unsubscribe from. Keep null to unsubscribe from previously made subscription to all accessible devices.</parameter>
+        /// </request>
         [Action("notification/unsubscribe", NeedAuthentication = true)]
         public void UnsubsrcibeFromDeviceNotifications()
         {
@@ -184,6 +224,14 @@ namespace DeviceHive.WebSockets.Controllers
             }
         }
 
+        /// <summary>
+        /// Notifies the user about new device notification.
+        /// </summary>
+        /// <action>notification/insert</action>
+        /// <response>
+        ///     <parameter name="deviceGuid" type="guid">Device unique identifier.</parameter>
+        ///     <parameter name="notification" cref="DeviceNotification">A <see cref="DeviceNotification"/> resource representing the notification.</parameter>
+        /// </response>
         private void Notify(WebSocketConnectionBase connection, DeviceNotification notification, Device device,
             bool isInitialNotification = false)
         {

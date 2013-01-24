@@ -89,7 +89,6 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// Device operation status.
         /// The status is optional and it can be set to an arbitrary value, if applicable.
-        /// <para>To change their status, devices should send 'deviceStatus' notification with the corresponding 'status' parameter.</para>
         /// <para>If device status monitoring feature is enabled, the framework will set status value to 'Offline' after defined period of inactivity.</para>
         /// </summary>
         [StringLength(128)]

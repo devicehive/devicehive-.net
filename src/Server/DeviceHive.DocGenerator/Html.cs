@@ -10,18 +10,18 @@ namespace DeviceHive.DocGenerator
 {
     public static class Html
     {
-        public static string Resource(MetadataResource resource)
+        public static string JsonRepresentation(MetadataParameter[] parameters)
         {
             var builder = new StringBuilder();
             builder.AppendLine("<pre>");
             builder.AppendLine("{");
-            ResourceBlock(builder, resource.Properties, 1);
+            JsonRepresentationBlock(builder, parameters, 1);
             builder.AppendLine("}");
             builder.AppendLine("</pre>");
             return builder.ToString();
         }
 
-        private static void ResourceBlock(StringBuilder builder, MetadataParameter[] parameters, int indent)
+        private static void JsonRepresentationBlock(StringBuilder builder, MetadataParameter[] parameters, int indent)
         {
             var isFirstProperty = true;
             var processed = new List<MetadataParameter>();
@@ -39,7 +39,7 @@ namespace DeviceHive.DocGenerator
                 {
                     var innerParams = innerObject.Select(o => new MetadataParameter { Name = o.Name.Substring(parameter.Name.Length + 1), Type = o.Type }).ToArray();
                     builder.AppendFormat("{0}<span class=\"green\">&quot;{1}&quot;</span>: {{\n", new string(' ', 4 * indent), Encode(parameter.Name));
-                    ResourceBlock(builder, innerParams, indent + 1);
+                    JsonRepresentationBlock(builder, innerParams, indent + 1);
                     builder.AppendFormat("{0}}}", new string(' ', 4 * indent));
                     processed.AddRange(innerObject);
                     continue;
@@ -51,7 +51,7 @@ namespace DeviceHive.DocGenerator
                     var innerParams = innerArray.Select(o => new MetadataParameter { Name = o.Name.Substring(parameter.Name.Length + 3), Type = o.Type }).ToArray();
                     builder.AppendFormat("{0}<span class=\"green\">&quot;{1}&quot;</span>: [\n", new string(' ', 4 * indent), Encode(parameter.Name));
                     builder.AppendFormat("{0}{{\n", new string(' ', 4 * (indent + 1)));
-                    ResourceBlock(builder, innerParams, indent + 2);
+                    JsonRepresentationBlock(builder, innerParams, indent + 2);
                     builder.AppendFormat("{0}}}\n", new string(' ', 4 * (indent + 1)));
                     builder.AppendFormat("{0}]", new string(' ', 4 * indent));
                     processed.AddRange(innerArray);

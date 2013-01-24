@@ -65,11 +65,11 @@ WriteLiteral(": ");
             
             #line default
             #line hidden
-WriteLiteral("</h1>\r\n\r\n<p>");
+WriteLiteral("</h1>\r\n<p>");
 
 
             
-            #line 11 "..\..\Templates\PartialMethod.cshtml"
+            #line 10 "..\..\Templates\PartialMethod.cshtml"
 Write(Html.Documentation(Method.Documentation));
 
             
@@ -79,7 +79,7 @@ WriteLiteral("</p>\r\n\r\n<h2>Request</h2>\r\n    \r\n<h3>HTTP Request</h3>\r\n<
 
 
             
-            #line 16 "..\..\Templates\PartialMethod.cshtml"
+            #line 15 "..\..\Templates\PartialMethod.cshtml"
             Write(Html.Encode(Method.Verb));
 
             
@@ -89,7 +89,7 @@ WriteLiteral(" ");
 
 
             
-            #line 16 "..\..\Templates\PartialMethod.cshtml"
+            #line 15 "..\..\Templates\PartialMethod.cshtml"
                                       Write(Html.Encode(Method.Uri));
 
             
@@ -99,7 +99,7 @@ WriteLiteral("</pre>\r\n    \r\n");
 
 
             
-            #line 18 "..\..\Templates\PartialMethod.cshtml"
+            #line 17 "..\..\Templates\PartialMethod.cshtml"
  if (Method.UriParameters != null && Method.UriParameters.Any())
 {
 
@@ -116,7 +116,7 @@ WriteLiteral("<table>\r\n    <tr>\r\n        <th style=\"width:200px\">Parameter
 
 
             
-            #line 28 "..\..\Templates\PartialMethod.cshtml"
+            #line 27 "..\..\Templates\PartialMethod.cshtml"
      foreach (var parameter in Method.UriParameters)
     {
 
@@ -127,7 +127,7 @@ WriteLiteral("    <tr>\r\n        <td>");
 
 
             
-            #line 31 "..\..\Templates\PartialMethod.cshtml"
+            #line 30 "..\..\Templates\PartialMethod.cshtml"
        Write(Html.Encode(parameter.Name));
 
             
@@ -137,7 +137,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 32 "..\..\Templates\PartialMethod.cshtml"
+            #line 31 "..\..\Templates\PartialMethod.cshtml"
         Write(parameter.IsRequred ? "Yes" : "No");
 
             
@@ -147,7 +147,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 33 "..\..\Templates\PartialMethod.cshtml"
+            #line 32 "..\..\Templates\PartialMethod.cshtml"
        Write(Html.Encode(parameter.Type));
 
             
@@ -157,7 +157,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 34 "..\..\Templates\PartialMethod.cshtml"
+            #line 33 "..\..\Templates\PartialMethod.cshtml"
        Write(Html.Documentation(parameter.Documentation));
 
             
@@ -167,7 +167,7 @@ WriteLiteral("</td>\r\n    </tr>\r\n");
 
 
             
-            #line 36 "..\..\Templates\PartialMethod.cshtml"
+            #line 35 "..\..\Templates\PartialMethod.cshtml"
     }
 
             
@@ -177,7 +177,7 @@ WriteLiteral("</table>\r\n");
 
 
             
-            #line 38 "..\..\Templates\PartialMethod.cshtml"
+            #line 37 "..\..\Templates\PartialMethod.cshtml"
 }
 
             
@@ -187,7 +187,7 @@ WriteLiteral("    \r\n<h3>Authorization</h3>\r\n<p>");
 
 
             
-            #line 41 "..\..\Templates\PartialMethod.cshtml"
+            #line 40 "..\..\Templates\PartialMethod.cshtml"
 Write(Html.Encode(Method.Authorization));
 
             
@@ -197,7 +197,7 @@ WriteLiteral("</p>\r\n\r\n");
 
 
             
-            #line 43 "..\..\Templates\PartialMethod.cshtml"
+            #line 42 "..\..\Templates\PartialMethod.cshtml"
  if (Method.RequestDocumentation != null)
 {
 
@@ -212,7 +212,7 @@ WriteLiteral("<p>");
 
 
             
-            #line 46 "..\..\Templates\PartialMethod.cshtml"
+            #line 45 "..\..\Templates\PartialMethod.cshtml"
 Write(Html.Documentation(Method.RequestDocumentation));
 
             
@@ -222,7 +222,7 @@ WriteLiteral("</p>\r\n");
 
 
             
-            #line 47 "..\..\Templates\PartialMethod.cshtml"
+            #line 46 "..\..\Templates\PartialMethod.cshtml"
 
 if (Method.RequestParameters != null && Method.RequestParameters.Any())
 {
@@ -236,7 +236,7 @@ WriteLiteral("<table>\r\n    <tr>\r\n        <th style=\"width:200px\">Property 
 
 
             
-            #line 57 "..\..\Templates\PartialMethod.cshtml"
+            #line 56 "..\..\Templates\PartialMethod.cshtml"
      foreach (var parameter in Method.RequestParameters)
     {
 
@@ -247,7 +247,7 @@ WriteLiteral("    <tr>\r\n        <td>");
 
 
             
-            #line 60 "..\..\Templates\PartialMethod.cshtml"
+            #line 59 "..\..\Templates\PartialMethod.cshtml"
        Write(Html.Encode(parameter.Name));
 
             
@@ -257,7 +257,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 61 "..\..\Templates\PartialMethod.cshtml"
+            #line 60 "..\..\Templates\PartialMethod.cshtml"
         Write(parameter.IsRequred ? "Yes" : "No");
 
             
@@ -267,7 +267,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 62 "..\..\Templates\PartialMethod.cshtml"
+            #line 61 "..\..\Templates\PartialMethod.cshtml"
        Write(Html.Encode(parameter.Type));
 
             
@@ -277,7 +277,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 63 "..\..\Templates\PartialMethod.cshtml"
+            #line 62 "..\..\Templates\PartialMethod.cshtml"
        Write(Html.Documentation(parameter.Documentation));
 
             
@@ -287,7 +287,7 @@ WriteLiteral("</td>\r\n    </tr>\r\n");
 
 
             
-            #line 65 "..\..\Templates\PartialMethod.cshtml"
+            #line 64 "..\..\Templates\PartialMethod.cshtml"
     }
 
             
@@ -297,7 +297,7 @@ WriteLiteral("</table>\r\n");
 
 
             
-            #line 67 "..\..\Templates\PartialMethod.cshtml"
+            #line 66 "..\..\Templates\PartialMethod.cshtml"
 }
 }
 
@@ -308,7 +308,7 @@ WriteLiteral("    \r\n");
 
 
             
-            #line 70 "..\..\Templates\PartialMethod.cshtml"
+            #line 69 "..\..\Templates\PartialMethod.cshtml"
  if (Method.ResponseDocumentation != null)
 {
 
@@ -323,7 +323,7 @@ WriteLiteral("<p>");
 
 
             
-            #line 73 "..\..\Templates\PartialMethod.cshtml"
+            #line 72 "..\..\Templates\PartialMethod.cshtml"
 Write(Html.Documentation(Method.ResponseDocumentation));
 
             
@@ -333,7 +333,7 @@ WriteLiteral("</p>\r\n");
 
 
             
-            #line 74 "..\..\Templates\PartialMethod.cshtml"
+            #line 73 "..\..\Templates\PartialMethod.cshtml"
     
 if (Method.ResponseParameters != null && Method.ResponseParameters.Any())
 {
@@ -347,7 +347,7 @@ WriteLiteral("<table>\r\n    <tr>\r\n        <th style=\"width:200px\">Property 
 
 
             
-            #line 83 "..\..\Templates\PartialMethod.cshtml"
+            #line 82 "..\..\Templates\PartialMethod.cshtml"
      foreach (var parameter in Method.ResponseParameters)
     {
 
@@ -358,7 +358,7 @@ WriteLiteral("    <tr>\r\n        <td>");
 
 
             
-            #line 86 "..\..\Templates\PartialMethod.cshtml"
+            #line 85 "..\..\Templates\PartialMethod.cshtml"
        Write(Html.Encode(parameter.Name));
 
             
@@ -368,7 +368,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 87 "..\..\Templates\PartialMethod.cshtml"
+            #line 86 "..\..\Templates\PartialMethod.cshtml"
        Write(Html.Encode(parameter.Type));
 
             
@@ -378,7 +378,7 @@ WriteLiteral("</td>\r\n        <td>");
 
 
             
-            #line 88 "..\..\Templates\PartialMethod.cshtml"
+            #line 87 "..\..\Templates\PartialMethod.cshtml"
        Write(Html.Documentation(parameter.Documentation));
 
             
@@ -388,7 +388,7 @@ WriteLiteral("</td>\r\n    </tr>\r\n");
 
 
             
-            #line 90 "..\..\Templates\PartialMethod.cshtml"
+            #line 89 "..\..\Templates\PartialMethod.cshtml"
     }
 
             
@@ -398,7 +398,7 @@ WriteLiteral("</table>\r\n");
 
 
             
-            #line 92 "..\..\Templates\PartialMethod.cshtml"
+            #line 91 "..\..\Templates\PartialMethod.cshtml"
 }
 }
             
