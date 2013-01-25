@@ -54,7 +54,7 @@ namespace DeviceHive.DocGenerator
                 }
 
                 // outbound messages
-                foreach (var action in controller.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance))
+                foreach (var action in controller.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
                     var methodElement = _wsXmlCommentReader.GetMethodElement(action);
                     var actionElement = methodElement == null ? null : methodElement.Element("action");

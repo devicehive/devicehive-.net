@@ -20,9 +20,10 @@ namespace DeviceHive.WebSockets.Controllers
     /// <para>
     /// After connection is eshtablished, clients need to authenticate using their login and password,
     /// and then start sending commands to devices using the command/insert message.
+    /// As soon as a command is processed by a device, the server sends the command/update message.
     /// </para>
     /// <para>
-    /// Clients may also subscribe to device notifications using the notification/subscrive message
+    /// Clients may also subscribe to device notifications using the notification/subscribe message
     /// and then start receiving server-originated messages about new device notifications.
     /// </para>
     /// </summary>
@@ -258,6 +259,14 @@ namespace DeviceHive.WebSockets.Controllers
 
         #region Command update handle
 
+        /// <summary>
+        /// Notifies the user about a command has been processed by a device.
+        /// These messages are sent only for commands created by the current user within the current connection.
+        /// </summary>
+        /// <action>command/update</action>
+        /// <response>
+        ///     <parameter name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource representing the processed command.</parameter>
+        /// </response>
         public void HandleCommandUpdate(int commandId)
         {
             var command = DataContext.DeviceCommand.Get(commandId);
