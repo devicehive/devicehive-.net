@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using DeviceHive.Device;
 using log4net;
 
@@ -181,6 +182,8 @@ namespace DeviceHive.Binary
             private Guid _deviceGuid;
             private string _deviceKey;
 
+            private bool _deviceRegistered = false;
+
             public DeviceGatewayService(IBinaryConnection connection, GatewayService gatewayService) :
                 base(connection)
             {
@@ -208,6 +211,7 @@ namespace DeviceHive.Binary
                 try
                 {
                     SendCommand(command);
+                    LogManager.GetLogger(GetType()).InfoFormat("Command sent: {0}", command.Name);
                 }
                 catch (Exception e)
                 {
@@ -237,17 +241,29 @@ namespace DeviceHive.Binary
 
                 DeviceService.RegisterDevice(device);
                 _gatewayService.RegisterDevice(this);
+
+                _deviceRegistered = true;
+
+                LogManager.GetLogger(GetType()).InfoFormat("Device {0} registered", _deviceGuid);
             }
 
             protected override void NotifyCommandResult(int commandId, string status, string result)
             {
+                if (!_deviceRegistered)
+                    return;
+
                 DeviceService.UpdateCommand(_deviceGuid, _deviceKey,
                     new Command() { Id = commandId, Status = status, Result = result });
+                LogManager.GetLogger(GetType()).InfoFormat("Command result sent: {0}", commandId);
             }
 
             protected override void HandleHotification(Notification notification)
             {
+                if (!_deviceRegistered)
+                    return;
+
                 DeviceService.SendNotification(_deviceGuid, _deviceKey, notification);
+                LogManager.GetLogger(GetType()).InfoFormat("Notification sent: {0}", notification.Name);
             }
 
             private IDeviceService DeviceService

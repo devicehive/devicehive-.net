@@ -17,6 +17,7 @@ namespace DeviceHive.Binary
 
 
         private readonly IBinaryConnection _connection;
+        private readonly object _lock = new object();
 
         public MessageReaderWriter(IBinaryConnection connection)
         {
@@ -26,36 +27,46 @@ namespace DeviceHive.Binary
 
         public Message ReadMessage()
         {
-            var headerBytes = ReadHeaderBytes();
-
-            byte version;
-            byte flags;
-            ushort dataLength;
-            ushort intent;
-
-            using (var stream = new MemoryStream(headerBytes))
-            using (var reader = new BinaryReader(stream))
+            lock (_lock)
             {
-                reader.ReadBytes(_messageSignature.Length); // skip signature
-                version = reader.ReadByte();
-                flags = reader.ReadByte();
-                dataLength = reader.ReadUInt16();
-                intent = reader.ReadUInt16();
+                try
+                {
+                    var headerBytes = ReadHeaderBytes();
+
+                    byte version;
+                    byte flags;
+                    ushort dataLength;
+                    ushort intent;
+
+                    using (var stream = new MemoryStream(headerBytes))
+                    using (var reader = new BinaryReader(stream))
+                    {
+                        reader.ReadBytes(_messageSignature.Length); // skip signature
+                        version = reader.ReadByte();
+                        flags = reader.ReadByte();
+                        dataLength = reader.ReadUInt16();
+                        intent = reader.ReadUInt16();
+                    }
+
+                    var data = _connection.Read(dataLength);
+
+                    var checksum = _connection.Read(1)[0];
+                    if (checksum != CalculateChecksum(headerBytes.Concat(data)))
+                        throw new InvalidOperationException("Invalid message checksum");
+
+                    return new Message(version, flags, intent, data);
+                }
+                catch (TimeoutException)
+                {
+                    return null;
+                }
             }
-
-            var data = _connection.Read(dataLength);
-
-            var checksum = _connection.Read(1)[0];
-            if (checksum != CalculateChecksum(headerBytes.Concat(data)))
-                throw new InvalidOperationException("Invalid message checksum");
-
-            return new Message(version, flags, intent, data);
         }
 
         public void WriteMessage(Message message)
         {
             var messageLength = message.Data.Length + _headerSize;
-            
+
             using (var memoryStream = new MemoryStream(messageLength))
             using (var writer = new BinaryWriter(memoryStream))
             {
@@ -69,8 +80,11 @@ namespace DeviceHive.Binary
                 var data = memoryStream.ToArray();
                 var checksum = CalculateChecksum(data);
 
-                _connection.Write(data);
-                _connection.Write(new[] {checksum});
+                lock (_lock)
+                {
+                    _connection.Write(data);
+                    _connection.Write(new[] {checksum});
+                }
             }
         }
 

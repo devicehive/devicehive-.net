@@ -126,6 +126,9 @@ namespace DeviceHive.Binary
         /// </summary>
         protected void SendCommand(Command command)
         {
+            if (_commandMapping == null) // device isn't registered yet
+                throw new InvalidOperationException("Device received command but devices isn't registered yet");
+
             CommandMetadata commandMetadata;
             if (!_commandMapping.TryGetValue(command.Name, out commandMetadata))
                 throw new InvalidOperationException(string.Format("Command {0} is not registered", command.Name));
@@ -156,6 +159,9 @@ namespace DeviceHive.Binary
             try
             {
                 var message = _messageReaderWriter.ReadMessage();
+                if (message == null)
+                    return;
+
                 HandleMessage(message);
             }
             catch (Exception ex)
@@ -306,6 +312,9 @@ namespace DeviceHive.Binary
 
         private void HandleNotification(ushort intent, byte[] data)
         {
+            if (_notificationMapping == null) // device isn't registered yet
+                throw new InvalidOperationException("Device sent notification without registration");
+
             NotificationMetadata notificationMetadata;
             if (!_notificationMapping.TryGetValue(intent, out notificationMetadata))
                 throw new InvalidOperationException("Unsupported intent: " + intent);

@@ -26,7 +26,7 @@ namespace Gateway
                     
                     // create connection to device through COM port and add it to the gateway
                     // insert your COM port name here
-                    var serialPort = new SerialPort("COM3") {ReadTimeout = 1000, WriteTimeout = 1000};
+                    var serialPort = new SerialPort("COM3") {ReadTimeout = 1000, WriteTimeout = 1000, BaudRate = 9600};
                     var serialPortConnection = new SerialPortBinaryConnection(serialPort);
                     gatewayService.DeviceConnectionList.Add(serialPortConnection);
 

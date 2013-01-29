@@ -357,6 +357,7 @@ namespace DeviceHive.Device
             }
             catch (DeviceServiceException)
             {
+                Logger.Warn("Fallback to pooling instead of WebSockets");
                 UseWebSockets = false;
                 return false;
             }

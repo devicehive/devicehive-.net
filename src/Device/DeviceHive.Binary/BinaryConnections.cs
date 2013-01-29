@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO.Ports;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DeviceHive.Binary
 {
@@ -66,7 +67,7 @@ namespace DeviceHive.Binary
         public SerialPortBinaryConnection(SerialPort serialPort)
         {
             _serialPort = serialPort;
-            _serialPort.DataReceived += (s, e) => OnDataAvailable();            
+            _serialPort.DataReceived += (s, e) => Task.Factory.StartNew(() => OnDataAvailable());
         }
 
         /// <summary>
