@@ -51,7 +51,8 @@ namespace DeviceHive.API.Controllers
             var start = timestamp != null ? timestamp.Value.AddTicks(10) : _timestampRepository.GetCurrentTimestamp();
             if (waitTimeout <= 0)
             {
-                var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, start, null);
+                var filter = new DeviceNotificationFilter { Start = start };
+                var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, filter);
                 return new JArray(notifications.Select(n => Mapper.Map(n)));
             }
 
@@ -60,7 +61,8 @@ namespace DeviceHive.API.Controllers
             {
                 using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(device.ID))
                 {
-                    var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, start, null);
+                    var filter = new DeviceNotificationFilter { Start = start };
+                    var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, filter);
                     if (notifications != null && notifications.Any())
                         return new JArray(notifications.Select(n => Mapper.Map(n)));
 
@@ -103,7 +105,8 @@ namespace DeviceHive.API.Controllers
             var start = timestamp != null ? timestamp.Value.AddTicks(10) : _timestampRepository.GetCurrentTimestamp();
             if (waitTimeout <= 0)
             {
-                var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, start, null);
+                var filter = new DeviceNotificationFilter { Start = start };
+                var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter);
                 return MapDeviceNotifications(notifications.Where(n => IsNetworkAccessible(n.Device.NetworkID)));
             }
 
@@ -113,7 +116,8 @@ namespace DeviceHive.API.Controllers
                 using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(
                     deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray()))
                 {
-                    var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, start, null)
+                    var filter = new DeviceNotificationFilter { Start = start };
+                    var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter)
                         .Where(n => IsNetworkAccessible(n.Device.NetworkID)).ToArray();
                     if (notifications != null && notifications.Any())
                         return MapDeviceNotifications(notifications);

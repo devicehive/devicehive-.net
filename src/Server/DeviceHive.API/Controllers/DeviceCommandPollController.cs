@@ -56,7 +56,8 @@ namespace DeviceHive.API.Controllers
             var start = timestamp != null ? timestamp.Value.AddTicks(10) : _timestampRepository.GetCurrentTimestamp();
             if (waitTimeout <= 0)
             {
-                var commands = DataContext.DeviceCommand.GetByDevice(device.ID, start, null);
+                var filter = new DeviceCommandFilter { Start = start };
+                var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
                 return new JArray(commands.Select(n => Mapper.Map(n)));
             }
 
@@ -65,7 +66,8 @@ namespace DeviceHive.API.Controllers
             {
                 using (var waiterHandle = _commandByDeviceIdWaiter.BeginWait(device.ID))
                 {
-                    var commands = DataContext.DeviceCommand.GetByDevice(device.ID, start, null);
+                    var filter = new DeviceCommandFilter { Start = start };
+                    var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
                     if (commands != null && commands.Any())
                         return new JArray(commands.Select(n => Mapper.Map(n)));
 

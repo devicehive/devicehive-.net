@@ -197,7 +197,7 @@ namespace DeviceHive.Data.Model
     }
 
     /// <summary>
-    /// Represents device sort fields
+    /// Represents device sort fields.
     /// </summary>
     public enum DeviceSortField
     {

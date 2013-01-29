@@ -16,11 +16,13 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets list of device classes.
         /// </summary>
+        /// <query cref="DeviceClassFilter" />
         /// <returns cref="DeviceClass">If successful, this method returns array of <see cref="DeviceClass"/> resources in the response body.</returns>
         [AuthorizeUser(Roles = "Administrator")]
         public JArray Get()
         {
-            return new JArray(DataContext.DeviceClass.GetAll().Select(dc => Mapper.Map(dc)));
+            var filter = MapObjectFromQuery<DeviceClassFilter>();
+            return new JArray(DataContext.DeviceClass.GetAll(filter).Select(dc => Mapper.Map(dc)));
         }
 
         /// <name>get</name>

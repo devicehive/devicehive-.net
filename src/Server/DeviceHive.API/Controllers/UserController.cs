@@ -17,10 +17,12 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets list of users.
         /// </summary>
+        /// <query cref="UserFilter" />
         /// <returns cref="User">If successful, this method returns array of <see cref="User"/> resources in the response body.</returns>
         public JArray Get()
         {
-            return new JArray(DataContext.User.GetAll().Select(n => Mapper.Map(n)));
+            var filter = MapObjectFromQuery<UserFilter>();
+            return new JArray(DataContext.User.GetAll(filter).Select(n => Mapper.Map(n)));
         }
 
         /// <name>get</name>

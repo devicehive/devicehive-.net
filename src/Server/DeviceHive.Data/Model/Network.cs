@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
@@ -61,5 +62,57 @@ namespace DeviceHive.Data.Model
         public string Description { get; set; }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Represents a network filter.
+    /// </summary>
+    public class NetworkFilter
+    {
+        #region Public Properties
+
+        /// <summary>
+        /// Filter by network name.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Filter by network name pattern.
+        /// </summary>
+        public string NamePattern { get; set; }
+
+        /// <summary>
+        /// Result list sort field. Available values are ID and Name.
+        /// </summary>
+        [DefaultValue(NetworkSortField.None)]
+        public NetworkSortField SortField { get; set; }
+
+        /// <summary>
+        /// Result list sort order. Available values are ASC and DESC.
+        /// </summary>
+        [DefaultValue(SortOrder.ASC)]
+        public SortOrder SortOrder { get; set; }
+
+        /// <summary>
+        /// Number of records to skip from the result list.
+        /// </summary>
+        public int? Skip { get; set; }
+
+        /// <summary>
+        /// Number of records to take from the result list.
+        /// </summary>
+        public int? Take { get; set; }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Represents network sort fields.
+    /// </summary>
+    public enum NetworkSortField
+    {
+        None = 0,
+        ID = 1,
+        Name = 2
     }
 }

@@ -6,7 +6,7 @@ namespace DeviceHive.Data.Repositories
 {
     public interface IDeviceClassRepository : ISimpleRepository<DeviceClass>
     {
-        List<DeviceClass> GetAll();
+        List<DeviceClass> GetAll(DeviceClassFilter filter = null);
         DeviceClass Get(string name, string version);
     }
 }
