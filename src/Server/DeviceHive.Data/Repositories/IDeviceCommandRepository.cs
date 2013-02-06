@@ -6,6 +6,6 @@ namespace DeviceHive.Data.Repositories
 {
     public interface IDeviceCommandRepository : ISimpleRepository<DeviceCommand>
     {
-        List<DeviceCommand> GetByDevice(int deviceId, DateTime? start, DateTime? end);
+        List<DeviceCommand> GetByDevice(int deviceId, DeviceCommandFilter filter = null);
     }
 }

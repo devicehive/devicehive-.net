@@ -297,7 +297,7 @@ namespace DeviceHive.Test
             DeviceNotificationRepository.Save(notification);
 
             // test GetByDevice
-            var notifications = DeviceNotificationRepository.GetByDevice(device.ID, null, null);
+            var notifications = DeviceNotificationRepository.GetByDevice(device.ID);
             Assert.Greater(notifications.Count, 0);
 
             // test Get(id)
@@ -336,7 +336,7 @@ namespace DeviceHive.Test
             DeviceCommandRepository.Save(command);
 
             // test GetByDevice
-            var commands = DeviceCommandRepository.GetByDevice(device.ID, null, null);
+            var commands = DeviceCommandRepository.GetByDevice(device.ID);
             Assert.Greater(commands.Count, 0);
 
             // test Get(id)

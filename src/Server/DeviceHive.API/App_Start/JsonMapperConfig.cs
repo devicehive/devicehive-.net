@@ -80,6 +80,34 @@ namespace DeviceHive.API
                 .Property(e => e.ServerTimestamp, "serverTimestamp")
                 .Property(e => e.WebSocketServerUrl, "webSocketServerUrl");
 
+            // filters
+            context.Kernel.ConfigureMapping<UserFilter>()
+                .Property(e => e.Login, "login")
+                .Property(e => e.LoginPattern, "loginPattern")
+                .Property(e => e.Role, "role")
+                .Property(e => e.Status, "status")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<NetworkFilter>()
+                .Property(e => e.Name, "name")
+                .Property(e => e.NamePattern, "namePattern")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<DeviceClassFilter>()
+                .Property(e => e.Name, "name")
+                .Property(e => e.NamePattern, "namePattern")
+                .Property(e => e.Version, "version")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
             context.Kernel.ConfigureMapping<DeviceFilter>()
                 .Property(e => e.Name, "name")
                 .Property(e => e.NamePattern, "namePattern")
@@ -89,6 +117,25 @@ namespace DeviceHive.API
                 .Property(e => e.DeviceClassID, "deviceClassId")
                 .Property(e => e.DeviceClassName, "deviceClassName")
                 .Property(e => e.DeviceClassVersion, "deviceClassVersion")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<DeviceNotificationFilter>()
+                .Property(e => e.Start, "start")
+                .Property(e => e.End, "end")
+                .Property(e => e.Notification, "notification")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<DeviceCommandFilter>()
+                .Property(e => e.Start, "start")
+                .Property(e => e.End, "end")
+                .Property(e => e.Command, "command")
+                .Property(e => e.Status, "status")
                 .Property(e => e.SortField, "sortField")
                 .Property(e => e.SortOrder, "sortOrder")
                 .Property(e => e.Take, "take")

@@ -6,8 +6,8 @@ namespace DeviceHive.Data.Repositories
 {
     public interface INetworkRepository : ISimpleRepository<Network>
     {
-        List<Network> GetAll();
-        List<Network> GetByUser(int userId);
+        List<Network> GetAll(NetworkFilter filter = null);
+        List<Network> GetByUser(int userId, NetworkFilter filter = null);
         Network Get(string name);
     }
 }

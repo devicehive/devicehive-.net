@@ -17,13 +17,15 @@ namespace DeviceHive.API.Controllers
         /// Gets list of device networks.
         /// <para>If caller belongs to the Client user role, the result list is limited to networks the user has access to.</para>
         /// </summary>
+        /// <query cref="NetworkFilter" />
         /// <returns cref="Network">If successful, this method returns array of <see cref="Network"/> resources in the response body.</returns>
         [AuthorizeUser]
         public JArray Get()
         {
-            var networks = RequestContext.CurrentUser.Role == (int)UserRole.Client ?
-                DataContext.Network.GetByUser(RequestContext.CurrentUser.ID) :
-                DataContext.Network.GetAll();
+            var filter = MapObjectFromQuery<NetworkFilter>();
+            var networks = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
+                DataContext.Network.GetAll(filter) :
+                DataContext.Network.GetByUser(RequestContext.CurrentUser.ID, filter);
 
             return new JArray(networks.Select(n => Mapper.Map(n)));
         }

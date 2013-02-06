@@ -10,16 +10,12 @@ namespace DeviceHive.Data.EF
 {
     public class DeviceCommandRepository : IDeviceCommandRepository
     {
-        public List<DeviceCommand> GetByDevice(int deviceId, DateTime? start, DateTime? end)
+        public List<DeviceCommand> GetByDevice(int deviceId, DeviceCommandFilter filter = null)
         {
             using (var context = new DeviceHiveContext())
             {
                 var query = context.DeviceCommands.Where(e => e.Device.ID == deviceId);
-                if (start != null)
-                    query = query.Where(e => e.Timestamp >= start.Value);
-                if (end != null)
-                    query = query.Where(e => e.Timestamp <= end.Value);
-                return query.OrderBy(e => e.Timestamp).Take(1000).ToList();
+                return query.Filter(filter).ToList();
             }
         }
 
@@ -59,6 +55,49 @@ namespace DeviceHive.Data.EF
                     context.SaveChanges();
                 }
             }
+        }
+    }
+
+    internal static class DeviceCommandRepositoryExtension
+    {
+        public static IQueryable<DeviceCommand> Filter(this IQueryable<DeviceCommand> query, DeviceCommandFilter filter)
+        {
+            if (filter == null)
+                return query;
+
+            if (filter.Start != null)
+                query = query.Where(e => e.Timestamp >= filter.Start.Value);
+
+            if (filter.End != null)
+                query = query.Where(e => e.Timestamp <= filter.End.Value);
+
+            if (filter.Command != null)
+                query = query.Where(e => e.Command == filter.Command);
+
+            if (filter.Status != null)
+                query = query.Where(e => e.Status == filter.Status);
+
+            if (filter.SortField != DeviceCommandSortField.None)
+            {
+                switch (filter.SortField)
+                {
+                    case DeviceCommandSortField.Timestamp:
+                        query = query.OrderBy(e => e.Timestamp, filter.SortOrder);
+                        break;
+                    case DeviceCommandSortField.Command:
+                        query = query.OrderBy(e => e.Command, filter.SortOrder)
+                            .ThenBy(e => e.Timestamp, filter.SortOrder);
+                        break;
+                }
+            }
+
+            if (filter.Skip != null)
+                query = query.Skip(filter.Skip.Value);
+
+            if (filter.Take != null)
+                query = query.Take(filter.Take.Value);
+
+            return query;
         }
     }
 }

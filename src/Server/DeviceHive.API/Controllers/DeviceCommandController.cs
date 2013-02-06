@@ -25,11 +25,10 @@ namespace DeviceHive.API.Controllers
         /// Queries device commands.
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
-        /// <param name="start">Command start date (inclusive, UTC).</param>
-        /// <param name="end">Command end date (inclusive, UTC)</param>
+        /// <query cref="DeviceCommandFilter" />
         /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
         [AuthorizeDeviceOrUser]
-        public JToken Get(Guid deviceGuid, DateTime? start = null, DateTime? end = null)
+        public JToken Get(Guid deviceGuid)
         {
             EnsureDeviceAccess(deviceGuid);
 
@@ -37,7 +36,8 @@ namespace DeviceHive.API.Controllers
             if (device == null || !IsNetworkAccessible(device.NetworkID))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
-            return new JArray(DataContext.DeviceCommand.GetByDevice(device.ID, start, end).Select(n => Mapper.Map(n)));
+            var filter = MapObjectFromQuery<DeviceCommandFilter>();
+            return new JArray(DataContext.DeviceCommand.GetByDevice(device.ID, filter).Select(n => Mapper.Map(n)));
         }
 
         /// <name>get</name>

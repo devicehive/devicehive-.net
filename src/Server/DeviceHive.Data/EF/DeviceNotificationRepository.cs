@@ -10,31 +10,23 @@ namespace DeviceHive.Data.EF
 {
     public class DeviceNotificationRepository : IDeviceNotificationRepository
     {
-        public List<DeviceNotification> GetByDevice(int deviceId, DateTime? start, DateTime? end)
+        public List<DeviceNotification> GetByDevice(int deviceId, DeviceNotificationFilter filter = null)
         {
             using (var context = new DeviceHiveContext())
             {
                 var query = context.DeviceNotifications.Where(e => e.Device.ID == deviceId);
-                if (start != null)
-                    query = query.Where(e => e.Timestamp >= start.Value);
-                if (end != null)
-                    query = query.Where(e => e.Timestamp <= end.Value);
-                return query.OrderBy(e => e.Timestamp).Take(1000).ToList();
+                return query.Filter(filter).ToList();
             }
         }
 
-        public List<DeviceNotification> GetByDevices(int[] deviceIds, DateTime? start, DateTime? end)
+        public List<DeviceNotification> GetByDevices(int[] deviceIds, DeviceNotificationFilter filter = null)
         {
             using (var context = new DeviceHiveContext())
             {
                 var query = context.DeviceNotifications.Include(e => e.Device);
                 if (deviceIds != null)
                     query = query.Where(e => deviceIds.Contains(e.Device.ID));
-                if (start != null)
-                    query = query.Where(e => e.Timestamp >= start.Value);
-                if (end != null)
-                    query = query.Where(e => e.Timestamp <= end.Value);
-                return query.OrderBy(e => e.Timestamp).Take(1000).ToList();
+                return query.Filter(filter).ToList();
             }
         }
 
@@ -74,6 +66,46 @@ namespace DeviceHive.Data.EF
                     context.SaveChanges();
                 }
             }
+        }
+    }
+
+    internal static class DeviceNotificationRepositoryExtension
+    {
+        public static IQueryable<DeviceNotification> Filter(this IQueryable<DeviceNotification> query, DeviceNotificationFilter filter)
+        {
+            if (filter == null)
+                return query;
+
+            if (filter.Start != null)
+                query = query.Where(e => e.Timestamp >= filter.Start.Value);
+
+            if (filter.End != null)
+                query = query.Where(e => e.Timestamp <= filter.End.Value);
+
+            if (filter.Notification != null)
+                query = query.Where(e => e.Notification == filter.Notification);
+
+            if (filter.SortField != DeviceNotificationSortField.None)
+            {
+                switch (filter.SortField)
+                {
+                    case DeviceNotificationSortField.Timestamp:
+                        query = query.OrderBy(e => e.Timestamp, filter.SortOrder);
+                        break;
+                    case DeviceNotificationSortField.Notification:
+                        query = query.OrderBy(e => e.Notification, filter.SortOrder)
+                            .ThenBy(e => e.Timestamp, filter.SortOrder);
+                        break;
+                }
+            }
+
+            if (filter.Skip != null)
+                query = query.Skip(filter.Skip.Value);
+
+            if (filter.Take != null)
+                query = query.Take(filter.Take.Value);
+
+            return query;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using DeviceHive.Data.Validation;
+using System.ComponentModel;
 
 namespace DeviceHive.Data.Model
 {
@@ -101,5 +102,79 @@ namespace DeviceHive.Data.Model
         public int? UserID { get; set; }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Represents a device command filter.
+    /// </summary>
+    public class DeviceCommandFilter
+    {
+        #region Public Properties
+
+        /// <summary>
+        /// Filter by command start timestamp (inclusive, UTC).
+        /// </summary>
+        public DateTime? Start { get; set; }
+
+        /// <summary>
+        /// Filter by command end timestamp (inclusive, UTC).
+        /// </summary>
+        public DateTime? End { get; set; }
+
+        /// <summary>
+        /// Filter by command name.
+        /// </summary>
+        public string Command { get; set; }
+
+        /// <summary>
+        /// Filter by command status.
+        /// </summary>
+        public string Status { get; set; }
+
+        /// <summary>
+        /// Result list sort field. Available values are Timestamp (default) and Command.
+        /// </summary>
+        [DefaultValue(DeviceCommandSortField.Timestamp)]
+        public DeviceCommandSortField SortField { get; set; }
+
+        /// <summary>
+        /// Result list sort order. Available values are ASC and DESC.
+        /// </summary>
+        [DefaultValue(SortOrder.ASC)]
+        public SortOrder SortOrder { get; set; }
+
+        /// <summary>
+        /// Number of records to skip from the result list.
+        /// </summary>
+        public int? Skip { get; set; }
+
+        /// <summary>
+        /// Number of records to take from the result list (default is 1000).
+        /// </summary>
+        public int? Take { get; set; }
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public DeviceCommandFilter()
+        {
+            SortField = DeviceCommandSortField.Timestamp;
+            Take = 1000;
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// Represents device command sort fields.
+    /// </summary>
+    public enum DeviceCommandSortField
+    {
+        None = 0,
+        Timestamp = 1,
+        Command = 2
     }
 }

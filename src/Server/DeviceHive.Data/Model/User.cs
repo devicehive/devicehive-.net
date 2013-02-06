@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Cryptography;
@@ -177,5 +178,67 @@ namespace DeviceHive.Data.Model
             return string.Equals(PasswordHash, Convert.ToBase64String(buffer));
         }
         #endregion
+    }
+
+    /// <summary>
+    /// Represents a user filter.
+    /// </summary>
+    public class UserFilter
+    {
+        #region Public Properties
+
+        /// <summary>
+        /// Filter by user login.
+        /// </summary>
+        public string Login { get; set; }
+
+        /// <summary>
+        /// Filter by user login pattern.
+        /// </summary>
+        public string LoginPattern { get; set; }
+
+        /// <summary>
+        /// Filter by user role. 0 is Administrator, 1 is Client.
+        /// </summary>
+        public int? Role { get; set; }
+
+        /// <summary>
+        /// Filter by user status. 0 is Active, 1 is Locked Out, 2 is Disabled.
+        /// </summary>
+        public int? Status { get; set; }
+
+        /// <summary>
+        /// Result list sort field. Available values are ID and Login.
+        /// </summary>
+        [DefaultValue(UserSortField.None)]
+        public UserSortField SortField { get; set; }
+
+        /// <summary>
+        /// Result list sort order. Available values are ASC and DESC.
+        /// </summary>
+        [DefaultValue(SortOrder.ASC)]
+        public SortOrder SortOrder { get; set; }
+
+        /// <summary>
+        /// Number of records to skip from the result list.
+        /// </summary>
+        public int? Skip { get; set; }
+
+        /// <summary>
+        /// Number of records to take from the result list.
+        /// </summary>
+        public int? Take { get; set; }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Represents user sort fields.
+    /// </summary>
+    public enum UserSortField
+    {
+        None = 0,
+        ID = 1,
+        Login = 2
     }
 }
