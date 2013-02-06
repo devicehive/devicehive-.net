@@ -147,31 +147,30 @@ namespace DeviceHive.Device
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="deviceKey">Device private key.</param>
         /// <returns><see cref="Device"/> object from DeviceHive.</returns>
-        public Device GetDevice(Guid deviceGuid, string deviceKey)
+        public Device GetDevice(Guid? deviceGuid, string deviceKey)
         {
             if (!_isConnected)
                 Open();
 
             var res = SendRequest("device/get", deviceGuid, deviceKey);
-            var deviceJson = (JObject) res["device"];
+            var deviceJson = (JObject)res["device"];
             return Deserialize<Device>(deviceJson);
         }
 
         /// <summary>
         /// Registers a device.
         /// </summary>
-        /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="device">Device object.</param>
         /// <returns><see cref="Device"/> object from DeviceHive.</returns>
-        public Device RegisterDevice(Guid? deviceGuid, Device device)
+        public Device RegisterDevice(Device device)
         {
             if (!_isConnected)
                 Open();
 
             var deviceJson = Serialize(device);
-            var res = SendRequest("device/save", deviceGuid, device.Key,
+            var res = SendRequest("device/save", device.Id, device.Key,
                 new JProperty("device", deviceJson));
-            deviceJson = (JObject) res["device"];
+            deviceJson = (JObject)res["device"];
             return Deserialize<Device>(deviceJson);
         }
 
@@ -179,16 +178,14 @@ namespace DeviceHive.Device
         /// Update a existing device.
         /// </summary>
         /// <param name="device">Device object.</param>
-        /// <param name="deviceGuid">Device unique identifier.</param>
-        /// <param name="deviceKey">Device private key.</param>
         /// <returns><see cref="Device"/> object from DeviceHive.</returns>
-        public Device UpdateDevice(Device device, Guid deviceGuid, string deviceKey = null)
+        public Device UpdateDevice(Device device)
         {
             if (!_isConnected)
                 Open();
 
             var deviceJson = Serialize(device, NullValueHandling.Ignore);
-            var res = SendRequest("device/save", deviceGuid, deviceKey,
+            var res = SendRequest("device/save", device.Id, device.Key,
                 new JProperty("device", deviceJson));
             deviceJson = (JObject)res["device"];
             return Deserialize<Device>(deviceJson);
@@ -209,7 +206,7 @@ namespace DeviceHive.Device
 
             var res = SendRequest("notification/insert", deviceGuid, deviceKey,
                 new JProperty("notification", Serialize(notification)));
-            var notificationJson = (JObject) res["notification"];
+            var notificationJson = (JObject)res["notification"];
             return Deserialize<Notification>(notificationJson);
         }
 
