@@ -12,6 +12,8 @@ namespace DeviceHive.WebSockets.Network
 
         public abstract void Send(string message);
 
+        public abstract void Close();
+
         public SessionContext Session
         {
             get { return _sessionContext; }

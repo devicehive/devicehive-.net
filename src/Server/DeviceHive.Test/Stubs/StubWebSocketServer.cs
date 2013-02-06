@@ -59,6 +59,10 @@ namespace DeviceHive.Test.Stubs
                 SendMessageHandler(message);
         }
 
+        public override void Close()
+        {            
+        }
+
         public void Receive(string message)
         {
             if (ReceiveMessageHandler != null)

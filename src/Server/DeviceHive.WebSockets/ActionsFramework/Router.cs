@@ -15,6 +15,13 @@ namespace DeviceHive.WebSockets.ActionsFramework
             _controllersMapping.Add(path, type);
         }
 
+        public void HandleNewConnection(WebSocketConnectionBase connection)
+        {
+            var controller = GetController(connection, allowNullResult: true);
+            if (controller == null)
+                connection.Close();
+        }
+
         public void RouteRequest(WebSocketConnectionBase connection, string message)
         {
             try
@@ -34,15 +41,21 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
         public void CleanupConnection(WebSocketConnectionBase connection)
         {
-            var controller = GetController(connection);
-            controller.CleanupConnection(connection);
+            var controller = GetController(connection, allowNullResult: true);
+            if (controller != null)
+                controller.CleanupConnection(connection);
         }
 
-        private ControllerBase GetController(WebSocketConnectionBase connection)
+        private ControllerBase GetController(WebSocketConnectionBase connection, bool allowNullResult = false)
         {
             Type controllerType;
             if (!_controllersMapping.TryGetValue(connection.Path, out controllerType))
+            {
+                if (allowNullResult)
+                    return null;
+
                 throw new InvalidOperationException("Can't accept connections on invalid path: " + connection.Path);
+            }
 
             return (ControllerBase) CreateController(controllerType);
         }

@@ -11,6 +11,7 @@ namespace DeviceHive.WebSockets
         public WebSocketServiceImpl(WebSocketServerBase server, Router router)
         {
             _server = server;
+            _server.ConnectionOpened += (s, e) => router.HandleNewConnection(e.Connection);
             _server.MessageReceived += (s, e) => router.RouteRequest(e.Connection, e.Message);
             _server.ConnectionClosed += (s, e) => router.CleanupConnection(e.Connection);
         }        

@@ -29,6 +29,11 @@ namespace DeviceHive.WebSockets.Network.Fleck
             _fleckConnection.Send(message);
         }
 
+        public override void Close()
+        {
+            _fleckConnection.Close();
+        }
+
         #endregion
     }
 }

@@ -28,8 +28,9 @@ namespace DeviceHive.WebSockets.Network
 
 
         protected void RegisterConnection(WebSocketConnectionBase connection)
-        {
+        {            
             _connections[connection.Identity] = connection;
+            OnConnectionOpened(new WebSocketConnectionEventArgs(connection));
         }
 
         protected void UnregisterConnection(Guid connectionIdentity)
@@ -65,9 +66,19 @@ namespace DeviceHive.WebSockets.Network
         }
 
 
+        public event EventHandler<WebSocketConnectionEventArgs> ConnectionOpened;
+
+        protected void OnConnectionOpened(WebSocketConnectionEventArgs e)
+        {
+            var handler = ConnectionOpened;
+            if (handler != null)
+                handler(this, e);
+        }
+
+
         public event EventHandler<WebSocketConnectionEventArgs> ConnectionClosed;
 
-        public void OnConnectionClosed(WebSocketConnectionEventArgs e)
+        protected void OnConnectionClosed(WebSocketConnectionEventArgs e)
         {
             var handler = ConnectionClosed;
             if (handler != null)
