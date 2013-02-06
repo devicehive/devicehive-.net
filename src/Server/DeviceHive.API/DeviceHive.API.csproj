@@ -110,6 +110,7 @@
     <Compile Include="Filters\HandleExceptionAttribute.cs" />
     <Compile Include="Filters\HttpCreatedResponseAttribute.cs" />
     <Compile Include="Filters\HttpNoContentResponseAttribute.cs" />
+    <Compile Include="Filters\XHttpMethodDelegatingHandler.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
