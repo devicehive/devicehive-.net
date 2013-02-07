@@ -155,6 +155,9 @@ namespace DeviceHive.WebSockets.Controllers
         /// </summary>
         /// <param name="commandId">Device command identifier.</param>
         /// <param name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource to update.</param>
+        /// <request>
+        ///     <parameter name="command.command" required="false" />
+        /// </request>
         /// <response>
         ///     <parameter name="command" cref="DeviceCommand">An updated <see cref="DeviceCommand"/> resource.</parameter>
         /// </response>

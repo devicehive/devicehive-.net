@@ -80,7 +80,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">User identifier.</param>
         /// <param name="json" cref="User">In the request body, supply a <see cref="User"/> resource.</param>
-        /// <returns cref="Network">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
+        /// <returns cref="User">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="password" type="string">User password</parameter>
         ///     <parameter name="login" required="false" />
