@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
@@ -45,7 +46,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
         [AuthorizeDeviceOrUser]
-        public JArray Get(Guid deviceGuid, DateTime? timestamp = null, int? waitTimeout = null) 
+        public Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, int? waitTimeout = null) 
         {
             EnsureDeviceAccess(deviceGuid);
 
@@ -53,29 +54,43 @@ namespace DeviceHive.API.Controllers
             if (device == null || !IsNetworkAccessible(device.NetworkID))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
+            var taskSource = new TaskCompletionSource<JArray>();
             var start = timestamp != null ? timestamp.Value.AddTicks(10) : _timestampRepository.GetCurrentTimestamp();
             if (waitTimeout <= 0)
             {
                 var filter = new DeviceCommandFilter { Start = start };
                 var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
-                return new JArray(commands.Select(n => Mapper.Map(n)));
+                taskSource.SetResult(new JArray(commands.Select(n => Mapper.Map(n))));
+                return taskSource.Task;
             }
 
-            var waitUntil = DateTime.UtcNow.AddSeconds(Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
-            while (true)
-            {
-                using (var waiterHandle = _commandByDeviceIdWaiter.BeginWait(device.ID))
+            var delayTask = Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            var waiterHandle = _commandByDeviceIdWaiter.BeginWait(device.ID);
+            taskSource.Task.ContinueWith(t => waiterHandle.Dispose());
+
+            Action<bool> wait = null;
+            Action<bool> wait2 = cancel =>
                 {
+                    if (cancel)
+                    {
+                        taskSource.SetResult(new JArray());
+                        return;
+                    }
+
                     var filter = new DeviceCommandFilter { Start = start };
                     var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
                     if (commands != null && commands.Any())
-                        return new JArray(commands.Select(n => Mapper.Map(n)));
+                    {
+                        taskSource.SetResult(new JArray(commands.Select(n => Mapper.Map(n))));
+                        return;
+                    }
 
-                    var now = DateTime.UtcNow;
-                    if (now >= waitUntil || !waiterHandle.Handle.WaitOne(waitUntil - now))
-                        return new JArray();
-                }
-            }
+                    Task.Factory.ContinueWhenAny(new[] { waiterHandle.Wait(), delayTask }, t => wait(t == delayTask));
+                };
+            wait = wait2;
+            wait(false);
+
+            return taskSource.Task;
         }
 
         /// <name>wait</name>
@@ -92,7 +107,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
         [AuthorizeUser]
-        public JObject Get(Guid deviceGuid, int id, int? waitTimeout = null)
+        public Task<JObject> Get(Guid deviceGuid, int id, int? waitTimeout = null)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsNetworkAccessible(device.NetworkID))
@@ -102,26 +117,44 @@ namespace DeviceHive.API.Controllers
             if (command == null || command.DeviceID != device.ID)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device command not found!");
 
+            var taskSource = new TaskCompletionSource<JObject>();
             if (command.Status != null)
-                return Mapper.Map(command);
-
-            if (waitTimeout <= 0)
-                return null;
-
-            var waitUntil = DateTime.UtcNow.AddSeconds(Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
-            while (true)
             {
-                using (var waiterHandle = _commandByCommandIdWaiter.BeginWait(id))
-                {
-                    command = DataContext.DeviceCommand.Get(id);
-                    if (command != null && command.Status != null)
-                        return Mapper.Map(command);
-
-                    var now = DateTime.UtcNow;
-                    if (now >= waitUntil || !waiterHandle.Handle.WaitOne(waitUntil - now))
-                        return null;
-                }
+                taskSource.SetResult(Mapper.Map(command));
+                return taskSource.Task;
             }
+            if (waitTimeout <= 0)
+            {
+                taskSource.SetResult(null);
+                return taskSource.Task;
+            }
+
+            var delayTask = Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            var waiterHandle = _commandByCommandIdWaiter.BeginWait(id);
+            taskSource.Task.ContinueWith(t => waiterHandle.Dispose());
+
+            Action<bool> wait = null;
+            Action<bool> wait2 = cancel =>
+            {
+                if (cancel)
+                {
+                    taskSource.SetResult(null);
+                    return;
+                }
+
+                command = DataContext.DeviceCommand.Get(id);
+                if (command != null && command.Status != null)
+                {
+                    taskSource.SetResult(Mapper.Map(command));
+                    return;
+                }
+
+                Task.Factory.ContinueWhenAny(new[] { waiterHandle.Wait(), delayTask }, t => wait(t == delayTask));
+            };
+            wait = wait2;
+            wait(false);
+
+            return taskSource.Task;
         }
 
         private IJsonMapper<DeviceCommand> Mapper
