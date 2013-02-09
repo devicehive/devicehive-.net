@@ -54,13 +54,13 @@ WriteLiteral(@"
 <!DOCTYPE html>
 <html>
 <head>
-    <title>RESTful | DeviceHive</title>
+    <title>DeviceHive RESTful API</title>
     <link type=""text/css"" rel=""stylesheet"" href=""Css/Styles.css"" media=""all"" />
     <script src=""http://code.jquery.com/jquery-1.8.2.min.js""></script>
 </head>
 <body>
 <div id=""wrap"">
-    <h1 id=""page-title"" class=""title"">RESTful</h1>
+    <h1 id=""page-title"" class=""title"">DeviceHive RESTful API</h1>
     ");
 
 
