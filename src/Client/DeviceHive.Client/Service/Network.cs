@@ -26,11 +26,6 @@ namespace DeviceHive.Client
         /// </summary>
         public string Description { get; set; }
 
-        /// <summary>
-        /// Gets or sets a list of associated devices.
-        /// </summary>
-        public List<Device> Devices { get; set; }
-
         #endregion
     }
 }

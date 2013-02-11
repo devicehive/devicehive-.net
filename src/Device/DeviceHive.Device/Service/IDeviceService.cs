@@ -52,19 +52,6 @@ namespace DeviceHive.Device
         List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime? timestamp, CancellationToken token);
 
         /// <summary>
-        /// Fires when new command inserted for some active command subscription.
-        /// </summary>
-        /// <remarks>
-        /// Subscription can be created through <see cref="IDeviceService.SubscribeToCommands"/> method.
-        /// </remarks>
-        event EventHandler<CommandEventArgs> CommandInserted;
-
-        /// <summary>
-        /// Fires when underlying connection is closed
-        /// </summary>
-        event EventHandler ConnectionClosed;
-
-        /// <summary>
         /// Subscribe to device commands
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
@@ -88,5 +75,18 @@ namespace DeviceHive.Device
         /// <param name="deviceKey">Device key.</param>
         /// <param name="command">A <see cref="Command"/> object to be updated.</param>
         void UpdateCommand(Guid deviceId, string deviceKey, Command command);
+
+        /// <summary>
+        /// Fires when new command inserted for some active command subscription.
+        /// </summary>
+        /// <remarks>
+        /// Subscription can be created through <see cref="IDeviceService.SubscribeToCommands"/> method.
+        /// </remarks>
+        event EventHandler<CommandEventArgs> CommandInserted;
+
+        /// <summary>
+        /// Fires when underlying connection is closed
+        /// </summary>
+        event EventHandler ConnectionClosed;
     }
 }

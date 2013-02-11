@@ -18,7 +18,7 @@ namespace DeviceHive.Device
     /// </summary>
     public class RestfulDeviceService : IDeviceService, IDisposable
     {
-        #region Private fields
+        #region Private Fields
 
         private WebSocketDeviceService _webSocketDeviceService;
 
@@ -202,19 +202,6 @@ namespace DeviceHive.Device
         }
 
         /// <summary>
-        /// Fires when new command inserted for some active command subscription.
-        /// </summary>
-        /// <remarks>
-        /// Subscription can be created through <see cref="IDeviceService.SubscribeToCommands"/> method.
-        /// </remarks>
-        public event EventHandler<CommandEventArgs> CommandInserted;
-
-        /// <summary>
-        /// Fires when underlying connection is closed
-        /// </summary>
-        public event EventHandler ConnectionClosed;
-
-        /// <summary>
         /// Subscribe to device commands
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
@@ -298,9 +285,39 @@ namespace DeviceHive.Device
                     deviceId, deviceKey, c, NullValueHandling.Ignore);
             }
         }
+
+        /// <summary>
+        /// Fires when new command inserted for some active command subscription.
+        /// </summary>
+        /// <remarks>
+        /// Subscription can be created through <see cref="IDeviceService.SubscribeToCommands"/> method.
+        /// </remarks>
+        public event EventHandler<CommandEventArgs> CommandInserted;
+
+        /// <summary>
+        /// Fires when underlying connection is closed
+        /// </summary>
+        public event EventHandler ConnectionClosed;
+
         #endregion
 
-        #region Protected methods
+        #region IDisposable Members
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
+        {
+            if (_webSocketDeviceService != null)
+                _webSocketDeviceService.Dispose();
+
+            foreach (var commandSubscriptionTask in _commandSubscriptionTasks.Values)
+                commandSubscriptionTask.Cancel();
+        }
+        #endregion
+
+        #region Protected Methods
 
         /// <summary>
         /// Fires <see cref="CommandInserted"/> event
@@ -620,24 +637,6 @@ namespace DeviceHive.Device
                 _cancellationTokenSource.Cancel();
             }
         }
-
-        #endregion
-
-        #region Implementation of IDisposable
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        /// <filterpriority>2</filterpriority>
-        public void Dispose()
-        {
-            if (_webSocketDeviceService != null)
-                _webSocketDeviceService.Dispose();
-
-            foreach (var commandSubscriptionTask in _commandSubscriptionTasks.Values)
-                commandSubscriptionTask.Cancel();
-        }
-
         #endregion
     }
 }

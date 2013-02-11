@@ -132,7 +132,7 @@ namespace DeviceHive.Data.Model
         public string Status { get; set; }
 
         /// <summary>
-        /// Result list sort field. Available values are Timestamp (default) and Command.
+        /// Result list sort field. Available values are Timestamp (default), Command and Status.
         /// </summary>
         [DefaultValue(DeviceCommandSortField.Timestamp)]
         public DeviceCommandSortField SortField { get; set; }
@@ -175,6 +175,7 @@ namespace DeviceHive.Data.Model
     {
         None = 0,
         Timestamp = 1,
-        Command = 2
+        Command = 2,
+        Status = 3
     }
 }

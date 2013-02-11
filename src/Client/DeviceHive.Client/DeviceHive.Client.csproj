@@ -57,9 +57,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Service\ApiInfo.cs" />
+    <Compile Include="Service\CommandEventArgs.cs" />
+    <Compile Include="Service\CommandFilter.cs" />
     <Compile Include="Service\DeviceEquipmentState.cs" />
+    <Compile Include="Service\DeviceFilter.cs" />
     <Compile Include="Service\DeviceNotification.cs" />
-    <Compile Include="Service\EventArgs.cs" />
+    <Compile Include="Service\NotificationEventArgs.cs" />
     <Compile Include="Service\IClientService.cs" />
     <Compile Include="Service\ClientServiceException.cs" />
     <Compile Include="Service\Command.cs">
@@ -77,11 +80,15 @@
     <Compile Include="Service\Network.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Service\NetworkFilter.cs" />
     <Compile Include="Service\Notification.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Service\NotificationFilter.cs" />
     <Compile Include="Service\RestfulClientService.cs" />
+    <Compile Include="Service\SortOrder.cs" />
+    <Compile Include="Service\User.cs" />
     <Compile Include="Service\WebSocketsClientService.cs" />
   </ItemGroup>
   <ItemGroup>

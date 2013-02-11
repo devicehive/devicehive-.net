@@ -75,7 +75,7 @@
     <Compile Include="Service\Device.cs" />
     <Compile Include="Service\DeviceClass.cs" />
     <Compile Include="Service\Equipment.cs" />
-    <Compile Include="Service\EventArgs.cs" />
+    <Compile Include="Service\CommandEventArgs.cs" />
     <Compile Include="Service\IDeviceService.cs" />
     <Compile Include="Service\Network.cs" />
     <Compile Include="Service\Notification.cs" />

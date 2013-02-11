@@ -172,7 +172,7 @@ namespace DeviceHive.Data.Model
         public string DeviceClassVersion { get; set; }
 
         /// <summary>
-        /// Result list sort field. Available values are ID, Name, Status, Network and DeviceClass.
+        /// Result list sort field. Available values are Name, Status, Network and DeviceClass.
         /// </summary>
         [DefaultValue(DeviceSortField.None)]
         public DeviceSortField SortField { get; set; }

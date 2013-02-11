@@ -88,6 +88,10 @@ namespace DeviceHive.Data.EF
                         query = query.OrderBy(e => e.Command, filter.SortOrder)
                             .ThenBy(e => e.Timestamp, filter.SortOrder);
                         break;
+                    case DeviceCommandSortField.Status:
+                        query = query.OrderBy(e => e.Status, filter.SortOrder)
+                            .ThenBy(e => e.Timestamp, filter.SortOrder);
+                        break;
                 }
             }
 
