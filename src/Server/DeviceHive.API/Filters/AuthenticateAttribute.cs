@@ -92,9 +92,13 @@ namespace DeviceHive.API.Filters
 
         private void UpdateUserLastLogin(User user)
         {
-            user.LoginAttempts = 0;
-            user.LastLogin = DateTime.UtcNow;
-            DataContext.User.Save(user);
+            // update LastLogin only if it's too far behind - save database resources
+            if (user.LoginAttempts > 0 || user.LastLogin == null || user.LastLogin.Value.AddHours(1) < DateTime.UtcNow)
+            {
+                user.LoginAttempts = 0;
+                user.LastLogin = DateTime.UtcNow;
+                DataContext.User.Save(user);
+            }
         }
 
         private string GetCustomHeader(HttpActionContext actionContext, string name)
