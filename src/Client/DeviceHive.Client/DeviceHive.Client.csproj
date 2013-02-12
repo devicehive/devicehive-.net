@@ -89,6 +89,7 @@
     <Compile Include="Service\RestfulClientService.cs" />
     <Compile Include="Service\SortOrder.cs" />
     <Compile Include="Service\User.cs" />
+    <Compile Include="Service\UserNetwork.cs" />
     <Compile Include="Service\WebSocketsClientService.cs" />
   </ItemGroup>
   <ItemGroup>

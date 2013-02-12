@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Client
@@ -45,6 +46,11 @@ namespace DeviceHive.Client
         /// Gets or sets user role.
         /// </summary>
         public UserRole Role { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list of associated networks.
+        /// </summary>
+        public List<UserNetwork> Networks { get; set; }
 
         #endregion
     }
