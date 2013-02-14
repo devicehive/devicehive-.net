@@ -29,7 +29,7 @@ namespace DeviceHive.WebSockets.Controllers
     /// </summary>
     public class ClientController : ControllerBase
     {        
-        #region Private fields
+        #region Private Fields
 
         private const int _maxLoginAttempts = 10;
 
@@ -65,7 +65,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Overrides
+        #region ControllerBase Members
 
         public override bool IsAuthenticated
         {
@@ -80,9 +80,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Methods
-
-        #region Actions
+        #region Actions Methods
 
         /// <summary>
         /// Authenticates a user.
@@ -188,16 +186,19 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Notification handling
+        #region Notification Handling
 
         public void HandleDeviceNotification(int deviceId, int notificationId)
         {
-            var notification = DataContext.DeviceNotification.Get(notificationId);
-            var device = DataContext.Device.Get(deviceId);
             var connections = _subscriptionManager.GetConnections(deviceId);
+            if (connections.Any())
+            {
+                var notification = DataContext.DeviceNotification.Get(notificationId);
+                var device = DataContext.Device.Get(deviceId);
 
-            foreach (var connection in connections)
-                Notify(connection, notification, device);
+                foreach (var connection in connections)
+                    Notify(connection, notification, device);
+            }
         }
 
         private void CleanupNotifications(WebSocketConnectionBase connection)
@@ -258,7 +259,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Command update handle
+        #region Command Update Handling
 
         /// <summary>
         /// Notifies the user about a command has been processed by a device.
@@ -270,19 +271,21 @@ namespace DeviceHive.WebSockets.Controllers
         /// </response>
         public void HandleCommandUpdate(int commandId)
         {
-            var command = DataContext.DeviceCommand.Get(commandId);
             var connections = _commandSubscriptionManager.GetConnections(commandId);
-
-            foreach (var connection in connections)
+            if (connections.Any())
             {
-                connection.SendResponse("command/update",
-                    new JProperty("command", CommandMapper.Map(command)));
+                var command = DataContext.DeviceCommand.Get(commandId);
+                foreach (var connection in connections)
+                {
+                    connection.SendResponse("command/update",
+                        new JProperty("command", CommandMapper.Map(command)));
+                }
             }
         }
 
         #endregion
 
-        #region Helper methods
+        #region Private Methods
 
         private bool IsNetworkAccessible(int? networkId, User user = null)
         {
@@ -309,9 +312,13 @@ namespace DeviceHive.WebSockets.Controllers
 
         private void UpdateUserLastLogin(User user)
         {
-            user.LoginAttempts = 0;
-            user.LastLogin = DateTime.UtcNow;
-            DataContext.User.Save(user);
+            // update LastLogin only if it's too far behind - save database resources
+            if (user.LoginAttempts > 0 || user.LastLogin == null || user.LastLogin.Value.AddHours(1) < DateTime.UtcNow)
+            {
+                user.LoginAttempts = 0;
+                user.LastLogin = DateTime.UtcNow;
+                DataContext.User.Save(user);
+            }
         }
 
         private IEnumerable<int?> GetSubscriptionDeviceIds(IEnumerable<Device> devices = null)
@@ -371,8 +378,6 @@ namespace DeviceHive.WebSockets.Controllers
         {
             return (ISet<int>)connection.Session.GetOrAdd("InitialNotifications", () => new HashSet<int>());
         }
-
-        #endregion
 
         #endregion
     }

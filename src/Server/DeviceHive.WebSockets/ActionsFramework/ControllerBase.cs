@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using DeviceHive.WebSockets.Network;
 using Newtonsoft.Json.Linq;
+using log4net;
 
 namespace DeviceHive.WebSockets.ActionsFramework
 {
     public abstract class ControllerBase
     {
-        #region Private fields
+        #region Private Fields
 
+        private readonly ILog _logger;
         private readonly ActionInvoker _actionInvoker;
         private readonly WebSocketServerBase _server;
 
@@ -19,6 +21,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
         protected ControllerBase(ActionInvoker actionInvoker, WebSocketServerBase server)
         {
+            _logger = LogManager.GetLogger(GetType());
             _actionInvoker = actionInvoker;
             _server = server;
         }
@@ -45,7 +48,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
         #endregion
 
-        #region Public methods
+        #region Public Methods
 
         public void InvokeAction(WebSocketConnectionBase connection, string action, JObject args)
         {
@@ -53,6 +56,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
             ActionName = action;
             ActionArgs = args;
 
+            _logger.DebugFormat("Invoking action {0} on connection: {1}", action, connection.Identity);
             try
             {
                 BeforeActionInvoke();
@@ -61,6 +65,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
             }
             catch (WebSocketRequestException e)
             {
+                _logger.Debug("Action resulted in exception, sending error response", e);
                 SendErrorResponse(e.Message);
             }
             catch (Exception)
@@ -89,7 +94,6 @@ namespace DeviceHive.WebSockets.ActionsFramework
             }
         }
 
-
         public virtual void CleanupConnection(WebSocketConnectionBase connection)
         {            
         }
@@ -104,7 +108,7 @@ namespace DeviceHive.WebSockets.ActionsFramework
 
         #endregion
 
-        #region Send responce helpers
+        #region Send Response Helpers
 
         private JProperty[] GetResponseProperties(bool isErrorResponse, params JProperty[] baseProperties)
         {

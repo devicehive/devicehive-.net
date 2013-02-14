@@ -14,16 +14,22 @@ namespace DeviceHive.WebSockets
         private static void Main(string[] args)
         {
             log4net.Config.XmlConfigurator.Configure();
+            System.Net.ServicePointManager.DefaultConnectionLimit = 1000;
+            System.Threading.ThreadPool.SetMinThreads(1000, 1000);
 
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-            {
-                LogManager.GetLogger(typeof (Program)).Fatal(
-                    "Unhandled exception", (Exception) e.ExceptionObject);
-            };
+                {
+                    LogManager.GetLogger(typeof(Program)).Fatal(
+                        "Unhandled exception", (Exception)e.ExceptionObject);
+                };
 
             using (var kernel = NinjectConfig.CreateKernel())
             {
                 var service = kernel.Get<WebSocketServiceImpl>();
+
+                // get controller instances now, otherwise deadlock is possible in Ninject
+                kernel.Get<DeviceHive.WebSockets.Controllers.DeviceController>();
+                kernel.Get<DeviceHive.WebSockets.Controllers.ClientController>();
 
                 if (args.Length > 0 && args[0] == "-console")
                 {

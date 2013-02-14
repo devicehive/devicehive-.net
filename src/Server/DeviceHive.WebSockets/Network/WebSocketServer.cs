@@ -5,54 +5,59 @@ namespace DeviceHive.WebSockets.Network
 {
     public abstract class WebSocketServerBase
     {
-        #region Private fields
-
         private readonly IDictionary<Guid, WebSocketConnectionBase> _connections =
             new Dictionary<Guid, WebSocketConnectionBase>();
 
-        #endregion
-
-        
-        #region Working with connection list
+        #region Connections
 
         public IEnumerable<WebSocketConnectionBase> GetAllConnections()
         {
-            return _connections.Values;
+            lock (_connections)
+            {
+                return _connections.Values;
+            }
         }
 
         public WebSocketConnectionBase GetConnection(Guid identity)
         {
-            WebSocketConnectionBase connection;
-            return _connections.TryGetValue(identity, out connection) ? connection : null;
+            lock (_connections)
+            {
+                WebSocketConnectionBase connection;
+                return _connections.TryGetValue(identity, out connection) ? connection : null;
+            }
         }
 
-
         protected void RegisterConnection(WebSocketConnectionBase connection)
-        {            
-            _connections[connection.Identity] = connection;
-            OnConnectionOpened(new WebSocketConnectionEventArgs(connection));
+        {
+            lock (_connections)
+            {
+                _connections[connection.Identity] = connection;
+                OnConnectionOpened(new WebSocketConnectionEventArgs(connection));
+            }
         }
 
         protected void UnregisterConnection(Guid connectionIdentity)
         {
-            var connection = GetConnection(connectionIdentity);
-            _connections.Remove(connectionIdentity);
+            WebSocketConnectionBase connection;
+            lock (_connections)
+            {
+                connection = GetConnection(connectionIdentity);
+                _connections.Remove(connectionIdentity);
+            }
 
             if (connection != null)
                 OnConnectionClosed(new WebSocketConnectionEventArgs(connection));
         }
-
+        
         #endregion
 
-
-        #region Start / Stop server
+        #region Start and Stop Server
 
         public abstract void Start(string url, string sslCertificateSerialNumber);
 
         public abstract void Stop();
 
         #endregion
-
 
         #region Events
 

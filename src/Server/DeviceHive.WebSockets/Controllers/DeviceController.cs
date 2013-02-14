@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.Messaging;
@@ -33,7 +34,7 @@ namespace DeviceHive.WebSockets.Controllers
     /// </summary>
     public class DeviceController : ControllerBase
     {
-        #region Private fields
+        #region Private Fields
 
         private readonly DeviceSubscriptionManager _subscriptionManager;
         private readonly MessageBus _messageBus;
@@ -80,7 +81,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Overrides
+        #region ControllerBase Members
 
         public override bool IsAuthenticated
         {
@@ -104,9 +105,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Methods
-
-        #region Actions
+        #region Actions Methods
 
         /// <summary>
         /// Authenticates a device.
@@ -300,16 +299,19 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Notification handling
+        #region Notification Handling
 
         public void HandleDeviceCommand(int deviceId, int commandId)
         {
-            var command = DataContext.DeviceCommand.Get(commandId);
-            var device = DataContext.Device.Get(deviceId);
             var connections = _subscriptionManager.GetConnections(deviceId);
+            if (connections.Any())
+            {
+                var command = DataContext.DeviceCommand.Get(commandId);
+                var device = DataContext.Device.Get(deviceId);
 
-            foreach (var connection in connections)
-                Notify(connection, device, command);
+                foreach (var connection in connections)
+                    Notify(connection, device, command);
+            }
         }
 
         private void CleanupNotifications(WebSocketConnectionBase connection)
@@ -345,7 +347,7 @@ namespace DeviceHive.WebSockets.Controllers
 
         #endregion
 
-        #region Helper methods
+        #region Private Methods
 
         private bool AuthenticateImpl()
         {
@@ -358,7 +360,7 @@ namespace DeviceHive.WebSockets.Controllers
             if (deviceIdValue == null || deviceKeyValue == null)
                 return false;
 
-            var deviceId = Guid.Parse((string)deviceIdValue);            
+            var deviceId = Guid.Parse((string)deviceIdValue);
             var deviceKey = (string)deviceKeyValue;
 
             var device = DataContext.Device.Get(deviceId);
@@ -373,8 +375,6 @@ namespace DeviceHive.WebSockets.Controllers
         {
             return (ISet<int>) connection.Session.GetOrAdd("InitialCommands", () => new HashSet<int>());
         }
-
-        #endregion
 
         #endregion
     }

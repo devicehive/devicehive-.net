@@ -11,7 +11,7 @@ namespace DeviceHive.WebSockets.Controllers
 {
     public abstract class ControllerBase : ActionsFramework.ControllerBase
     {
-        #region Private fields
+        #region Private Fields
 
         private readonly DataContext _dataContext;
 
