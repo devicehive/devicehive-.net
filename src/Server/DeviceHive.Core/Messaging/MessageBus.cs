@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 using log4net;
@@ -94,7 +95,10 @@ namespace DeviceHive.Core.Messaging
 
             var handlers = _subscriptions[messageContainer.TypeName];
             foreach (var handler in handlers)
-                handler(messageContainer.Message);
+            {
+                var handler1 = handler;
+                ThreadPool.QueueUserWorkItem(obj => handler1(messageContainer.Message));
+            }
         }
 
         #endregion
