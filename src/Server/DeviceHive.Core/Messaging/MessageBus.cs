@@ -51,7 +51,8 @@ namespace DeviceHive.Core.Messaging
                 data = ms.ToArray();
             }
 
-            _log.DebugFormat("Send message {0}", messageContainer.TypeName);            
+            _log.DebugFormat("Send message {0}", messageContainer.TypeName);
+            HandleMessage(messageContainer); // handle message by current process itself
             SendMessage(data);
         }
 
@@ -73,12 +74,8 @@ namespace DeviceHive.Core.Messaging
                 var serializer = new JsonSerializer();
                 messageContainer = serializer.Deserialize<MessageContainer>(reader);
             }
-
-            _log.DebugFormat("Receive message {0}", messageContainer.TypeName);
-
-            var handlers = _subscriptions[messageContainer.TypeName];
-            foreach (var handler in handlers)
-                handler(messageContainer.Message);
+            
+            HandleMessage(messageContainer);
         }
 
         /// <summary>
@@ -86,6 +83,19 @@ namespace DeviceHive.Core.Messaging
         /// </summary>
         /// <param name="data">Message data</param>
         protected abstract void SendMessage(byte[] data);
+
+        #endregion
+
+        #region Private methods
+
+        private void HandleMessage(MessageContainer messageContainer)
+        {
+            _log.DebugFormat("Receive message {0}", messageContainer.TypeName);
+
+            var handlers = _subscriptions[messageContainer.TypeName];
+            foreach (var handler in handlers)
+                handler(messageContainer.Message);
+        }
 
         #endregion
 
