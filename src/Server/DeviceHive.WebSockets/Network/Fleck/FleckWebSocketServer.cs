@@ -42,30 +42,31 @@ namespace DeviceHive.WebSockets.Network.Fleck
             _webSocketServer.Start(c =>
             {
                 c.OnOpen = () =>
-                    {
-                        _logger.Debug("Opened connection: " + c.ConnectionInfo.Id);
-                        RegisterConnection(new FleckWebSocketConnection(c));
-                    };
+                {
+                    _logger.Debug("Opened connection: " + c.ConnectionInfo.Id);
+                    RegisterConnection(new FleckWebSocketConnection(c));
+                };
+
                 c.OnClose = () =>
-                    {
-                        _logger.Debug("Closed connection: " + c.ConnectionInfo.Id);
-                        UnregisterConnection(c.ConnectionInfo.Id);
-                    };
+                {
+                    _logger.Debug("Closed connection: " + c.ConnectionInfo.Id);
+                    UnregisterConnection(c.ConnectionInfo.Id);
+                };
                 
                 c.OnMessage = msg =>
+                {
+                    _logger.Debug("Received message for connection: " + c.ConnectionInfo.Id);
+
+                    var fc = WaitConnection(c.ConnectionInfo.Id);
+                    if (fc == null)
                     {
-                        _logger.Debug("Received message for connection: " + c.ConnectionInfo.Id);
+                        _logger.ErrorFormat("Connection {0} is not registered", c.ConnectionInfo.Id);
+                        return;
+                    }
 
-                        var fc = WaitConnection(c.ConnectionInfo.Id);
-                        if (fc == null)
-                        {
-                            _logger.ErrorFormat("Connection {0} is not registered", c.ConnectionInfo.Id);
-                            return;
-                        }
-
-                        var e = new WebSocketMessageEventArgs(fc, msg);
-                        OnMessageReceived(e);
-                    };
+                    var e = new WebSocketMessageEventArgs(fc, msg);
+                    OnMessageReceived(e);
+                };
             });
         }
 
@@ -74,6 +75,7 @@ namespace DeviceHive.WebSockets.Network.Fleck
             _logger.Info("Stopping WebSocket server");
             _webSocketServer.Dispose();
         }
+
         #endregion
 
         #region Private Methods
@@ -88,8 +90,10 @@ namespace DeviceHive.WebSockets.Network.Fleck
 
                 Thread.Sleep(50);
             }
+
             return null;
         }
+
         #endregion
     }
 }
