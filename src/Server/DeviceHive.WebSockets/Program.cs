@@ -28,8 +28,8 @@ namespace DeviceHive.WebSockets
                 var service = kernel.Get<WebSocketServiceImpl>();
 
                 // get controller instances now, otherwise deadlock is possible in Ninject
-                kernel.Get<DeviceHive.WebSockets.Controllers.DeviceController>();
-                kernel.Get<DeviceHive.WebSockets.Controllers.ClientController>();
+                kernel.Get<Controllers.DeviceController>();
+                kernel.Get<Controllers.ClientController>();
 
                 if (args.Length > 0 && args[0] == "-console")
                 {
