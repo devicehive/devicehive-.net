@@ -23,24 +23,27 @@ namespace DeviceHive.WebSockets.Host
 
         private readonly string _hostPipeName;
         private readonly string _appPipeName;
+        private readonly int _terminateTimeout;
 
         private ApplicationState _state;
         
-        private MessageBus _messageBus;
+        private NamedPipeMessageBus _messageBus;
         private Process _process;
 
         private readonly Queue<MessageContainer> _messageQueue = new Queue<MessageContainer>();
 
 
         public Application(WebSocketServerBase server,
-            string hostPipeName, string appPipeName,
+            ServiceConfigurationSection configuration,
             string host, string exePath, string commandLineArgs)
         {
             _log = LogManager.GetLogger(GetType());
 
             _server = server;
-            _hostPipeName = hostPipeName;
-            _appPipeName = appPipeName;
+
+            _hostPipeName = string.Format(configuration.HostPipeName, host);
+            _appPipeName = string.Format(configuration.AppPipeName, host);
+            _terminateTimeout = configuration.ApplicationTerminateTimeout;
 
             _host = host;
             _exePath = exePath;
@@ -73,7 +76,11 @@ namespace DeviceHive.WebSockets.Host
 
         public void Stop()
         {
-            
+            lock (_lock)
+            {
+                Shutdown();
+                _state = ApplicationState.Stopped;                
+            }
         }
 
         public void NotifyConnectionOpened(WebSocketConnectionBase connection)
@@ -96,7 +103,7 @@ namespace DeviceHive.WebSockets.Host
         {
             lock (_lock)
             {
-                if (_state == ApplicationState.Stopping || _state == ApplicationState.Stopped)
+                if ( _state == ApplicationState.Stopped)
                 {
                     _log.ErrorFormat("Attempt to send message to stopped app: {0}", _host);
                     return;
@@ -129,9 +136,18 @@ namespace DeviceHive.WebSockets.Host
             {
                 _log.ErrorFormat("Can't start application for host: {0}. Error: {1}", _host, e);
 
-                _messageBus = null;
-                _process = null;
-                _state = ApplicationState.Inactive;
+                lock (_lock)
+                {
+                    if (_messageBus != null)
+                    {
+                        _messageBus.Dispose();
+                        _messageBus = null;
+                    }
+
+                    _messageBus = null;
+                    _process = null;
+                    _state = ApplicationState.Inactive;
+                }
             }
         }       
 
@@ -150,6 +166,26 @@ namespace DeviceHive.WebSockets.Host
             _process.Start();
         }
 
+        public void Shutdown()
+        {
+            if (_process != null)
+            {
+                _messageBus.Notify(new CloseApplicationMessage());
+                _process.WaitForExit();
+
+                //if (!_process.WaitForExit(_terminateTimeout))
+                //    _process.Kill();
+
+                _process = null;
+            }
+
+            if (_messageBus != null)
+            {
+                _messageBus.Dispose();
+                _messageBus = null;
+            }
+        }
+
         private void OnApplicationActivated()
         {
             lock (_lock)
@@ -163,22 +199,28 @@ namespace DeviceHive.WebSockets.Host
 
         private void SendMessage(Guid connectionIdentity, string data)
         {
-            if (_state != ApplicationState.Active)
-                return;
+            lock (_lock)
+            {
+                if (_state != ApplicationState.Active)
+                    return;
 
-            var conn = _server.GetConnection(connectionIdentity);
-            if (conn != null)
-                conn.Send(data);
+                var conn = _server.GetConnection(connectionIdentity);
+                if (conn != null)
+                    conn.Send(data);
+            }
         }
 
         private void CloseConnection(Guid connectionIdentity)
         {
-            if (_state != ApplicationState.Active)
-                return;
+            lock (_lock)
+            {
+                if (_state != ApplicationState.Active)
+                    return;
 
-            var conn = _server.GetConnection(connectionIdentity);
-            if (conn != null)
-                conn.Close();
+                var conn = _server.GetConnection(connectionIdentity);
+                if (conn != null)
+                    conn.Close();
+            }
         }
 
 
@@ -212,8 +254,9 @@ namespace DeviceHive.WebSockets.Host
 
     public enum ApplicationState
     {
-        Stopped, Stopping,
-        Inactive, Deactivating,
-        Active, Activating,        
+        Stopped,
+        Inactive,
+        Activating,
+        Active,
     }
 }

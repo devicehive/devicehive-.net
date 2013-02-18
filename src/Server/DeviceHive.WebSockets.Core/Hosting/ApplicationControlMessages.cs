@@ -3,4 +3,8 @@
     public class ApplicationActivatedMessage
     {        
     }
+
+    public class CloseApplicationMessage
+    {        
+    }
 }

@@ -23,7 +23,7 @@ namespace DeviceHive.Core.Messaging
         private int _connectTimeout = 100;
 
         private readonly Thread _readThread;
-        private readonly EventWaitHandle _cancelConnectionEvent = new AutoResetEvent(false);
+        private readonly EventWaitHandle _cancelConnectionEvent = new ManualResetEvent(false);
         private volatile bool _stopReading = false;        
 
         #region Constructors

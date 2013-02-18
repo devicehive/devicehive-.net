@@ -59,6 +59,16 @@ namespace DeviceHive.WebSockets.Host
             get { return (string) base["appPipeName"]; }
             set { base["appPipeName"] = value; }
         }
+
+        /// <summary>
+        /// Gets or sets time (in milliseconds) for application terminate
+        /// </summary>
+        [ConfigurationProperty("appTerminateTimeout", DefaultValue = 1000)]
+        public int ApplicationTerminateTimeout
+        {
+            get { return (int) base["appTerminateTimeout"]; }
+            set { base["appTerminateTimeout"] = value; }
+        }
     }
 
     public class RuntimeServiceConfiguration

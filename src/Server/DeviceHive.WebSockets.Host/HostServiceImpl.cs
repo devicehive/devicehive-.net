@@ -73,9 +73,7 @@ namespace DeviceHive.WebSockets.Host
 
         private void AddApplication(ApplicationConfiguration appConfig)
         {
-            var app = new Application(_server,
-                string.Format(_configSection.HostPipeName, appConfig.Host),
-                string.Format(_configSection.AppPipeName, appConfig.Host),
+            var app = new Application(_server, _configSection,
                 appConfig.Host, appConfig.ExePath, appConfig.CommandLineArgs);
             _applications.Add(app);
         }

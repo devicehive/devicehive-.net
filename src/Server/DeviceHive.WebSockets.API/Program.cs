@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using DeviceHive.WebSockets.API.Core;
 using Ninject;
 using log4net;
@@ -10,8 +9,6 @@ namespace DeviceHive.WebSockets.API
     {
         private static void Main()
         {
-            Debugger.Launch();
-
             log4net.Config.XmlConfigurator.Configure();
             System.Net.ServicePointManager.DefaultConnectionLimit = 1000;
             System.Threading.ThreadPool.SetMinThreads(1000, 1000);
