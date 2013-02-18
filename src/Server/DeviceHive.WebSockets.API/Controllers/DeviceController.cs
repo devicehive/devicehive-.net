@@ -7,13 +7,13 @@ using DeviceHive.Core.Messaging;
 using DeviceHive.Core.Services;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
-using DeviceHive.WebSockets.ActionsFramework;
-using DeviceHive.WebSockets.Network;
-using DeviceHive.WebSockets.Subscriptions;
+using DeviceHive.WebSockets.API.Subscriptions;
+using DeviceHive.WebSockets.Core.ActionsFramework;
+using DeviceHive.WebSockets.Core.Network;
 using Newtonsoft.Json.Linq;
 using Ninject;
 
-namespace DeviceHive.WebSockets.Controllers
+namespace DeviceHive.WebSockets.API.Controllers
 {
     /// <summary>
     /// <para>

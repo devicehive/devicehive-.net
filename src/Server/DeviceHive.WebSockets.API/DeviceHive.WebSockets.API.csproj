@@ -2,18 +2,20 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{77693053-1DFA-4873-93A9-5405E1800E45}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{500AFF4C-A800-4119-ACA8-07A47E74ADF9}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DeviceHive.WebSockets.Core</RootNamespace>
-    <AssemblyName>DeviceHive.WebSockets.Core</AssemblyName>
+    <RootNamespace>DeviceHive.WebSockets.API</RootNamespace>
+    <AssemblyName>DeviceHive.WebSockets.API</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,7 +24,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -31,16 +34,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Fleck">
-      <HintPath>..\..\..\packages\Fleck.0.9.6.15\lib\net40\Fleck.dll</HintPath>
-    </Reference>
     <Reference Include="log4net">
-      <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
+      <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-client\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject">
+      <HintPath>..\..\..\packages\Ninject.3.0.1.10\lib\net40\Ninject.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -49,34 +54,39 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionsFramework\ActionAttribute.cs" />
-    <Compile Include="ActionsFramework\ActionInfo.cs" />
-    <Compile Include="ActionsFramework\ActionInvoker.cs" />
-    <Compile Include="ActionsFramework\ControllerBase.cs" />
-    <Compile Include="ActionsFramework\Router.cs" />
-    <Compile Include="ActionsFramework\WebSocketConnectionExtensions.cs" />
-    <Compile Include="ActionsFramework\WebSocketRequestException.cs" />
-    <Compile Include="Hosting\ApplicationControlMessages.cs" />
-    <Compile Include="Hosting\ApplicationServiceBase.cs" />
-    <Compile Include="Hosting\ProxyWebSocketConnection.cs" />
-    <Compile Include="Hosting\WebSocketMessages.cs" />
-    <Compile Include="Network\Fleck\FleckWebSocketConnection.cs" />
-    <Compile Include="Network\Fleck\FleckWebSocketServer.cs" />
-    <Compile Include="Network\SessionContext.cs" />
-    <Compile Include="Network\WebSocketConnection.cs" />
-    <Compile Include="Network\WebSocketConnectionEventArgs.cs" />
-    <Compile Include="Network\WebSocketMessageEventArgs.cs" />
-    <Compile Include="Network\WebSocketServer.cs" />
+    <Compile Include="Controllers\ClientController.cs" />
+    <Compile Include="Controllers\ControllerBase.cs" />
+    <Compile Include="Controllers\DeviceController.cs" />
+    <Compile Include="Core\JsonMapperConfig.cs" />
+    <Compile Include="Core\MessageBusConfig.cs" />
+    <Compile Include="Core\NinjectConfig.cs" />
+    <Compile Include="Core\NinjectRouter.cs" />
+    <Compile Include="Core\RoutesConfig.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <Compile Include="ServiceImpl.cs" />
+    <Compile Include="Subscriptions\CommandSubscriptionManager.cs" />
+    <Compile Include="Subscriptions\DeviceSubscriptionManager.cs" />
+    <Compile Include="Subscriptions\Subscription.cs" />
+    <Compile Include="Subscriptions\SubscriptionManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DeviceHive.Core\DeviceHive.Core.csproj">
       <Project>{20C669F5-66EF-4C45-A40A-4C2441879645}</Project>
       <Name>DeviceHive.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.Data\DeviceHive.Data.csproj">
+      <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>
+      <Name>DeviceHive.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.WebSockets.Core\DeviceHive.WebSockets.Core.csproj">
+      <Project>{77693053-1DFA-4873-93A9-5405E1800E45}</Project>
+      <Name>DeviceHive.WebSockets.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

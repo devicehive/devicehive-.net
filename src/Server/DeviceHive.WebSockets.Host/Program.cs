@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ServiceProcess;
 using log4net;
 
 namespace DeviceHive.WebSockets.Host
@@ -19,6 +20,36 @@ namespace DeviceHive.WebSockets.Host
                 LogManager.GetLogger(typeof(Program)).Fatal(
                     "Unhandled exception", (Exception)e.ExceptionObject);
             };
+
+            // todo: maybe do it more configurable - which server implementation we need to use
+            var server = new Core.Network.Fleck.FleckWebSocketServer();
+            var service = new HostServiceImpl(server);
+
+            if (args.Length > 0 && args[0] == "-console")
+            {
+                Console.WriteLine("Press 'q' to quit");
+                service.Start();
+
+                while (true)
+                {
+                    try
+                    {
+                        var key = Console.ReadKey().KeyChar;
+                        if (key == 'q' || key == 'Q')
+                            break;
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // ignore error if console isn't attached to process now
+                    }
+                }
+
+                service.Stop();
+            }
+            else
+            {
+                ServiceBase.Run(new WebSocketService(service));
+            }
         }
     }
 }

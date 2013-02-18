@@ -39,7 +39,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -49,17 +51,32 @@
   <ItemGroup>
     <Compile Include="Application.cs" />
     <Compile Include="ApplicationCollection.cs" />
+    <Compile Include="Configuration.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HostServiceImpl.cs" />
+    <Compile Include="WebSocketService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="WebSocketServiceInstaller.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DeviceHive.Core\DeviceHive.Core.csproj">
+      <Project>{20C669F5-66EF-4C45-A40A-4C2441879645}</Project>
+      <Name>DeviceHive.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DeviceHive.WebSockets.Core\DeviceHive.WebSockets.Core.csproj">
       <Project>{77693053-1DFA-4873-93A9-5405E1800E45}</Project>
       <Name>DeviceHive.WebSockets.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
+    <None Include="DeviceHive.WebSockets.Host.Runtime.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

@@ -13,27 +13,20 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
 
         private readonly ILog _logger;
         private readonly ActionInvoker _actionInvoker;
-        private readonly WebSocketServerBase _server;
 
         #endregion
 
         #region Constructor
 
-        protected ControllerBase(ActionInvoker actionInvoker, WebSocketServerBase server)
+        protected ControllerBase(ActionInvoker actionInvoker)
         {
             _logger = LogManager.GetLogger(GetType());
             _actionInvoker = actionInvoker;
-            _server = server;
         }
 
         #endregion
 
         #region Properties
-
-        protected WebSocketServerBase Server
-        {
-            get { return _server; }
-        }
         
         protected WebSocketConnectionBase Connection { get; private set; }
 

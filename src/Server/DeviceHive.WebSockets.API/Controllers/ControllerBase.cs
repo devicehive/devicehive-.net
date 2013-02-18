@@ -4,11 +4,11 @@ using System.Linq;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
-using DeviceHive.WebSockets.ActionsFramework;
+using DeviceHive.WebSockets.Core.ActionsFramework;
 
-namespace DeviceHive.WebSockets.Controllers
+namespace DeviceHive.WebSockets.API.Controllers
 {
-    public abstract class ControllerBase : ActionsFramework.ControllerBase
+    public abstract class ControllerBase : WebSockets.Core.ActionsFramework.ControllerBase
     {
         #region Private Fields
 

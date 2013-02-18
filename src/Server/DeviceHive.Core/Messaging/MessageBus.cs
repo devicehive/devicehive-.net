@@ -35,9 +35,19 @@ namespace DeviceHive.Core.Messaging
         /// <param name="message">Message object</param>
         public void Notify<TMessage>(TMessage message) where TMessage : class
         {
+            Notify(message, typeof (TMessage));
+        }
+
+        /// <summary>
+        /// Notifies other listening clients about new message
+        /// </summary>        
+        /// <param name="message">Message object</param>
+        /// /// <param name="messageType">Message type</param>
+        public void Notify(object message, Type messageType)
+        {
             var messageContainer = new MessageContainer()
             {
-                TypeName = typeof (TMessage).FullName,
+                TypeName = messageType.FullName,
                 Message = message
             };
 
@@ -51,7 +61,7 @@ namespace DeviceHive.Core.Messaging
                 data = ms.ToArray();
             }
 
-            _log.DebugFormat("Send message {0}", messageContainer.TypeName);            
+            _log.DebugFormat("Send message {0}", messageContainer.TypeName);
             SendMessage(data);
         }
 

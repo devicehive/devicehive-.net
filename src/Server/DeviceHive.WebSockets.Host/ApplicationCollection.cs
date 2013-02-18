@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using DeviceHive.WebSockets.Core.Hosting;
 
 namespace DeviceHive.WebSockets.Host
 {
@@ -7,20 +6,30 @@ namespace DeviceHive.WebSockets.Host
     {
         private readonly object _lock = new object();
 
-        private readonly Dictionary<string, ApplicationInfo> _applicationsByHost =
-            new Dictionary<string, ApplicationInfo>();
+        private readonly Dictionary<string, Application> _applicationsByHost = new Dictionary<string, Application>();
 
 
-        public void SendMessage<TMessage>(string host, TMessage message)
+        public void Add(Application app)
         {
             lock (_lock)
             {
-                ApplicationInfo applicationInfo;
-                if (!_applicationsByHost.TryGetValue(host, out applicationInfo))
-                    return;
-
-                //if (applicationInfo.State)
+                _applicationsByHost.Add(app.Host.ToLower(), app);
             }
+        }
+
+        public Application GetApplicationByHost(string host)
+        {
+            lock (_lock)
+            {
+                Application app;
+                return _applicationsByHost.TryGetValue(host.ToLower(), out app) ? app : null;
+            }
+        }
+
+        public IEnumerable<Application> GetAllApplications()
+        {
+            lock (_lock)
+                return _applicationsByHost.Values;
         }
     }
 }

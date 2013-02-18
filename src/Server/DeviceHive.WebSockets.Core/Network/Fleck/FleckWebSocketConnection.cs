@@ -28,7 +28,16 @@ namespace DeviceHive.WebSockets.Core.Network.Fleck
 
         public override string Host
         {
-            get { return _fleckConnection.ConnectionInfo.Host; }
+            get
+            {
+                var host = _fleckConnection.ConnectionInfo.Host;
+                
+                var portSeparatorIndex = host.LastIndexOf(':');
+                if (portSeparatorIndex != -1)
+                    host = host.Substring(0, portSeparatorIndex);
+
+                return host;
+            }
         }
 
         public override string Path
