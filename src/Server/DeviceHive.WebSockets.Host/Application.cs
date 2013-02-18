@@ -26,6 +26,8 @@ namespace DeviceHive.WebSockets.Host
         private readonly int _terminateTimeout;
 
         private ApplicationState _state;
+        private DateTime _inactiveStartTime;
+        private ulong _connectionCount;
         
         private NamedPipeMessageBus _messageBus;
         private Process _process;
@@ -50,6 +52,8 @@ namespace DeviceHive.WebSockets.Host
             _commandLineArgs = commandLineArgs;
 
             _state = ApplicationState.Inactive;
+            _inactiveStartTime = DateTime.MaxValue;
+            _connectionCount = 0;
         }
 
 
@@ -73,6 +77,16 @@ namespace DeviceHive.WebSockets.Host
             get { return _state; }
         }
 
+        public DateTime InactiveStartTime
+        {
+            get { return _inactiveStartTime; }
+        }
+
+        public ulong ConnectionCount
+        {
+            get { return _connectionCount; }
+        }
+
 
         public void Stop()
         {
@@ -85,12 +99,22 @@ namespace DeviceHive.WebSockets.Host
 
         public void NotifyConnectionOpened(WebSocketConnectionBase connection)
         {
-            SendMessage(new ConnectionOpenedMessage(connection));
+            lock (_lock)
+            {
+                _connectionCount++;
+                SendMessage(new ConnectionOpenedMessage(connection));
+            }
         }
 
         public void NotifyConnectionClosed(WebSocketConnectionBase connection)
         {
-            SendMessage(new ConnectionClosedMessage(connection.Identity));
+            lock (_lock)
+            {
+                if (--_connectionCount == 0)
+                    _inactiveStartTime = DateTime.Now;
+
+                SendMessage(new ConnectionClosedMessage(connection.Identity));
+            }
         }
 
         public void NotifyMessageReceived(WebSocketConnectionBase connection, string message)
@@ -98,6 +122,23 @@ namespace DeviceHive.WebSockets.Host
             SendMessage(new DataReceivedMessage(connection.Identity, message));
         }
 
+        public void TryDeactivate(DateTime minAccessTime)
+        {
+            if (_state != ApplicationState.Active || ConnectionCount > 0)
+                return;
+
+            lock (_lock)
+            {
+                if (_state != ApplicationState.Active || ConnectionCount > 0)
+                    return;
+
+                if (_inactiveStartTime >= minAccessTime)
+                    return;
+                
+                Shutdown();
+                _state = ApplicationState.Inactive;
+            }
+        }
 
         private void SendMessage<TMessage>(TMessage message) where TMessage : class
         {
@@ -182,6 +223,8 @@ namespace DeviceHive.WebSockets.Host
                 _messageBus.Dispose();
                 _messageBus = null;
             }
+
+            _connectionCount = 0;
         }
 
         private void OnApplicationActivated()
@@ -227,7 +270,7 @@ namespace DeviceHive.WebSockets.Host
             private readonly Type _type;
             private readonly object _message;
 
-            public MessageContainer(Type type, object message)
+            private MessageContainer(Type type, object message)
             {
                 _type = type;
                 _message = message;

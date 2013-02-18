@@ -1,4 +1,6 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
+using System.Threading;
 using DeviceHive.WebSockets.Core.Network;
 
 namespace DeviceHive.WebSockets.Host
@@ -10,6 +12,8 @@ namespace DeviceHive.WebSockets.Host
         
         private readonly ServiceConfigurationSection _configSection;
         private readonly RuntimeServiceConfiguration _runtimeConfig;
+
+        private Timer _inactiveAppCheckTimer;
 
         
         public HostServiceImpl(WebSocketServerBase server)
@@ -32,10 +36,16 @@ namespace DeviceHive.WebSockets.Host
             var sslCertificateSerialNumber = _configSection.CertificateSerialNumber;
 
             _server.Start(url, sslCertificateSerialNumber);
+
+            _inactiveAppCheckTimer = new Timer(state => CheckInactiveApplications());
+            var applicationInactiveCheckInterval = _configSection.ApplicationInactiveCheckInterval * 60 * 1000;
+            _inactiveAppCheckTimer.Change(applicationInactiveCheckInterval, applicationInactiveCheckInterval);
         }
 
         public void Stop()
         {
+            _inactiveAppCheckTimer.Dispose();
+
             _server.Stop();
 
             foreach (var app in _applications.GetAllApplications())
@@ -76,6 +86,16 @@ namespace DeviceHive.WebSockets.Host
             var app = new Application(_server, _configSection,
                 appConfig.Host, appConfig.ExePath, appConfig.CommandLineArgs);
             _applications.Add(app);
+        }
+    
+        
+        private void CheckInactiveApplications()
+        {
+            var apps = _applications.GetAllApplications();
+            var minAccessTime = DateTime.Now.AddMinutes(-_configSection.ApplicationInactiveTimeout);
+
+            foreach (var app in apps)
+                app.TryDeactivate(minAccessTime);
         }
     }
 }

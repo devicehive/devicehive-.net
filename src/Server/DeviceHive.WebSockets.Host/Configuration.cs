@@ -69,6 +69,26 @@ namespace DeviceHive.WebSockets.Host
             get { return (int) base["appTerminateTimeout"]; }
             set { base["appTerminateTimeout"] = value; }
         }
+
+        /// <summary>
+        /// Gets or sets max time (in minutes) when application can be inactive
+        /// </summary>
+        [ConfigurationProperty("appInactiveTimeout", DefaultValue = 20)]
+        public int ApplicationInactiveTimeout
+        {
+            get { return (int) base["appInactiveTimeout"]; }
+            set { base["appInactiveTimeout"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets штеукмфд (in minutes) to check inactvie applications
+        /// </summary>
+        [ConfigurationProperty("appInactiveCheckInterval", DefaultValue = 10)]
+        public int ApplicationInactiveCheckInterval
+        {
+            get { return (int)base["appInactiveCheckInterval"]; }
+            set { base["appInactiveCheckInterval"] = value; }
+        }
     }
 
     public class RuntimeServiceConfiguration
