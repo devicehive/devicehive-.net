@@ -171,10 +171,8 @@ namespace DeviceHive.WebSockets.Host
             if (_process != null)
             {
                 _messageBus.Notify(new CloseApplicationMessage());
-                _process.WaitForExit();
-
-                //if (!_process.WaitForExit(_terminateTimeout))
-                //    _process.Kill();
+                if (!_process.WaitForExit(_terminateTimeout))
+                    _process.Kill();
 
                 _process = null;
             }
