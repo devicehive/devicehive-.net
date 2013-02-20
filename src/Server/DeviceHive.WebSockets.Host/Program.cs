@@ -21,7 +21,6 @@ namespace DeviceHive.WebSockets.Host
                     "Unhandled exception", (Exception)e.ExceptionObject);
             };
 
-            // todo: maybe do it more configurable - which server implementation we need to use
             var server = new Core.Network.Fleck.FleckWebSocketServer();
             var service = new HostServiceImpl(server);
 

@@ -7,8 +7,14 @@ namespace DeviceHive.WebSockets.API
 {
     internal class Program
     {
-        private static void Main()
+        private static void Main(string[] args)
         {
+            if (args.Length > 0)
+            {
+                // load app.config from command line specified path
+                AppConfigLoader.Load(args[1]);
+            }
+
             log4net.Config.XmlConfigurator.Configure();
             System.Net.ServicePointManager.DefaultConnectionLimit = 1000;
             System.Threading.ThreadPool.SetMinThreads(1000, 1000);
