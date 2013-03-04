@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DeviceHive.Core.Mapping;
-using DeviceHive.WebSockets.Core.ActionsFramework;
 using DeviceHive.WebSockets.API.Core;
+using DeviceHive.WebSockets.Core.ActionsFramework;
 using Newtonsoft.Json.Linq;
 using Ninject;
+using ControllerBase = DeviceHive.WebSockets.API.Controllers.ControllerBase;
 
 namespace DeviceHive.DocGenerator
 {
@@ -22,7 +23,7 @@ namespace DeviceHive.DocGenerator
             kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
 
             _dataXmlCommentReader = new XmlCommentReader("DeviceHive.Data.xml");
-            _wsXmlCommentReader = new XmlCommentReader("DeviceHive.WebSockets.xml");
+            _wsXmlCommentReader = new XmlCommentReader("DeviceHive.WebSockets.API.xml");
 
             _helper = new GeneratorHelper(kernel.Get<JsonMapperManager>(), _dataXmlCommentReader);
         }
