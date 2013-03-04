@@ -10,6 +10,8 @@ using DeviceHive.Data.Repositories;
 using DeviceHive.WebSockets.API.Controllers;
 using DeviceHive.WebSockets.API.Subscriptions;
 using DeviceHive.WebSockets.Core.ActionsFramework;
+using DeviceHive.WebSockets.Core.Network;
+using DeviceHive.WebSockets.Core.Network.Fleck;
 using Ninject;
 
 namespace DeviceHive.WebSockets.API.Core
@@ -56,6 +58,9 @@ namespace DeviceHive.WebSockets.API.Core
             // bind message bus
             kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope()
                 .OnActivation(MessageBusConfig.ConfigureMessageBus);
+
+            // bind web socket server
+            kernel.Bind<WebSocketServerBase>().To<FleckWebSocketServer>();
 
             // bind subscription managers
             kernel.Bind<DeviceSubscriptionManager>().ToSelf().InSingletonScope().Named("DeviceCommand");
