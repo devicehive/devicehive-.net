@@ -2,11 +2,11 @@
 using DeviceHive.WebSockets.Core.ActionsFramework;
 using DeviceHive.WebSockets.Core.Hosting;
 
-namespace DeviceHive.WebSockets.API
+namespace DeviceHive.WebSockets.API.Service
 {
-    internal class ServiceImpl : ApplicationServiceBase
+    internal class HostedAppServiceImpl : ApplicationServiceBase
     {
-        public ServiceImpl(Router router) : base(
+        public HostedAppServiceImpl(Router router) : base(
             ConfigurationManager.AppSettings["webSocketsHostPipeName"],
             ConfigurationManager.AppSettings["webSocketsAppPipeName"])
         {

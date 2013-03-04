@@ -66,10 +66,10 @@
     <Compile Include="Network\Fleck\FleckWebSocketConnection.cs" />
     <Compile Include="Network\Fleck\FleckWebSocketServer.cs" />
     <Compile Include="Network\SessionContext.cs" />
-    <Compile Include="Network\WebSocketConnection.cs" />
+    <Compile Include="Network\WebSocketConnectionBase.cs" />
     <Compile Include="Network\WebSocketConnectionEventArgs.cs" />
     <Compile Include="Network\WebSocketMessageEventArgs.cs" />
-    <Compile Include="Network\WebSocketServer.cs" />
+    <Compile Include="Network\WebSocketServerBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

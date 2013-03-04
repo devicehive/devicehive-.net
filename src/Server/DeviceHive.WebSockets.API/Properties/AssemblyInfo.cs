@@ -8,11 +8,12 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("DeviceHive.WebSockets.API")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("DeviceHive.WebSockets.API")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
+[assembly: AssemblyCompany("DataArt Apps")]
+[assembly: AssemblyProduct("DeviceHive")]
+[assembly: AssemblyCopyright("Copyright © DataArt Apps 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
