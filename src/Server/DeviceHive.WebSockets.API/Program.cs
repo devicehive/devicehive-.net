@@ -13,7 +13,7 @@ namespace DeviceHive.WebSockets.API
         private static void Main(string[] args)
         {
             // parse command line
-            var options = new Dictionary<string, string>(args.Length / 2);
+            var options = new Dictionary<string, string>(args.Length / 2, StringComparer.OrdinalIgnoreCase);
 
             for (var i = 0; i < args.Length / 2; i++)
             {
