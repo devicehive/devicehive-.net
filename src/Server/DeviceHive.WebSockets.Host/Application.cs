@@ -32,10 +32,14 @@ namespace DeviceHive.WebSockets.Host
 
         private ApplicationState _state;
         private DateTime _inactiveStartTime;
-        private ulong _connectionCount;
         
         private NamedPipeMessageBus _messageBus;
         private Process _process;
+
+        private bool _handleProcessExit = true;
+        private bool _handleConnectionClose = true;
+
+        private readonly IList<WebSocketConnectionBase> _connections = new List<WebSocketConnectionBase>();
 
         private readonly Queue<MessageContainer> _messageQueue = new Queue<MessageContainer>();
 
@@ -60,7 +64,6 @@ namespace DeviceHive.WebSockets.Host
 
             _state = ApplicationState.Inactive;
             _inactiveStartTime = DateTime.MaxValue;
-            _connectionCount = 0;
         }
 
 
@@ -117,16 +120,20 @@ namespace DeviceHive.WebSockets.Host
         {
             lock (_lock)
             {
-                _connectionCount++;
+                _connections.Add(connection);
                 SendMessage(new ConnectionOpenedMessage(connection));
             }
         }
 
         public void NotifyConnectionClosed(WebSocketConnectionBase connection)
         {
+            if (!_handleConnectionClose)
+                return;
+
             lock (_lock)
             {
-                if (--_connectionCount == 0)
+                _connections.Remove(connection);
+                if (_connections.Count == 0)
                     _inactiveStartTime = DateTime.Now;
 
                 SendMessage(new ConnectionClosedMessage(connection.Identity));
@@ -140,12 +147,12 @@ namespace DeviceHive.WebSockets.Host
 
         public void TryDeactivate(DateTime minAccessTime)
         {
-            if (_state != ApplicationState.Active || _connectionCount > 0)
+            if (_state != ApplicationState.Active || _connections.Count > 0)
                 return;
 
             lock (_lock)
             {
-                if (_state != ApplicationState.Active || _connectionCount > 0)
+                if (_state != ApplicationState.Active || _connections.Count > 0)
                     return;
 
                 if (_inactiveStartTime >= minAccessTime)
@@ -223,6 +230,7 @@ namespace DeviceHive.WebSockets.Host
             _process.StartInfo = new ProcessStartInfo(ExePath, CommandLineArgs);
             _process.StartInfo.UseShellExecute = false;
             _process.StartInfo.WorkingDirectory = Path.GetDirectoryName(ExePath);
+            _process.EnableRaisingEvents = true;
 
             if (!string.IsNullOrEmpty(UserName))
             {
@@ -231,29 +239,63 @@ namespace DeviceHive.WebSockets.Host
                 _process.StartInfo.Password = new SecureString();
                 foreach (var passwordChar in UserPassword)
                     _process.StartInfo.Password.AppendChar(passwordChar);
-            }
+            }            
+            
+            _process.Exited += OnProcessExited;
+            _handleProcessExit = true;
 
             _process.Start();
         }
 
+        private void OnProcessExited(object sender, EventArgs eventArgs)
+        {
+            if (!_handleProcessExit)
+                return;
+
+            lock (_lock)
+            {
+                if (!_handleProcessExit)
+                    return;
+
+                _process = null;
+                Shutdown();
+                _state = ApplicationState.Inactive;
+            }
+        }
+
         private void Shutdown()
         {
+            // close process
             if (_process != null)
             {
+                _handleProcessExit = false;
+
                 _messageBus.Notify(new CloseApplicationMessage());
                 if (!_process.WaitForExit(_terminateTimeout))
                     _process.Kill();
 
                 _process = null;
+
+                _handleProcessExit = true;
             }
 
+            // close message bus
             if (_messageBus != null)
             {
                 _messageBus.Dispose();
                 _messageBus = null;
             }
 
-            _connectionCount = 0;
+            // close web socket connections
+            if (_connections.Count > 0)
+            {
+                _handleConnectionClose = false;
+                
+                foreach (var connection in _connections)
+                    connection.Close();
+
+                _handleConnectionClose = true;
+            }
         }
 
         private void OnApplicationActivated()
