@@ -306,6 +306,8 @@ namespace DeviceHive.WebSockets.Host
 
                 foreach (var messageContainer in _messageQueue)
                     _messageBus.Notify(messageContainer.Message, messageContainer.Type);
+
+                _messageQueue.Clear();
             }
         }
 
