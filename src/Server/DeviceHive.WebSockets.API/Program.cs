@@ -83,7 +83,7 @@ namespace DeviceHive.WebSockets.API
 
         private static void RunSelfHostApp(IKernel kernel)
         {
-            var service = kernel.Get<HostServiceImpl>();
+            var service = kernel.Get<SelfHostServiceImpl>();
 
             Console.WriteLine("Press 'q' to quit");
             service.Start();
@@ -107,7 +107,7 @@ namespace DeviceHive.WebSockets.API
 
         private static void RunWindowsService(IKernel kernel)
         {
-            var service = kernel.Get<HostServiceImpl>();
+            var service = kernel.Get<SelfHostServiceImpl>();
             ServiceBase.Run(new WindowsService(service));
         }
 

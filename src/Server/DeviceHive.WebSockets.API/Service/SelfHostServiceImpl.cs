@@ -4,11 +4,11 @@ using DeviceHive.WebSockets.Core.Network;
 
 namespace DeviceHive.WebSockets.API.Service
 {
-    internal class HostServiceImpl
+    internal class SelfHostServiceImpl
     {
         private readonly WebSocketServerBase _server;
 
-        public HostServiceImpl(WebSocketServerBase server, Router router)
+        public SelfHostServiceImpl(WebSocketServerBase server, Router router)
         {
             _server = server;
             _server.ConnectionOpened += (s, e) => router.HandleNewConnection(e.Connection);

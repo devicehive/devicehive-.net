@@ -68,7 +68,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service\HostedAppServiceImpl.cs" />
-    <Compile Include="Service\HostServiceImpl.cs" />
+    <Compile Include="Service\SelfHostServiceImpl.cs" />
     <Compile Include="Service\WindowsServiceInstaller.cs">
       <SubType>Component</SubType>
     </Compile>

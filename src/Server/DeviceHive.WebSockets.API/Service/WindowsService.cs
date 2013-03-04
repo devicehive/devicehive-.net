@@ -4,9 +4,9 @@ namespace DeviceHive.WebSockets.API.Service
 {
     internal class WindowsService : ServiceBase
     {
-        private readonly HostServiceImpl _impl;
+        private readonly SelfHostServiceImpl _impl;
 
-        public WindowsService(HostServiceImpl impl)
+        public WindowsService(SelfHostServiceImpl impl)
         {            
             _impl = impl;
 
