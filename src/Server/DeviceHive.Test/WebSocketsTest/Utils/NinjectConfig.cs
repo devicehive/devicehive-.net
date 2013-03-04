@@ -7,11 +7,12 @@ using DeviceHive.Data.EF;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
 using DeviceHive.WebSockets;
-using DeviceHive.WebSockets.ActionsFramework;
-using DeviceHive.WebSockets.Controllers;
-using DeviceHive.WebSockets.Core;
-using DeviceHive.WebSockets.Network;
-using DeviceHive.WebSockets.Subscriptions;
+using DeviceHive.WebSockets.API.Service;
+using DeviceHive.WebSockets.Core.ActionsFramework;
+using DeviceHive.WebSockets.API.Controllers;
+using DeviceHive.WebSockets.API.Core;
+using DeviceHive.WebSockets.Core.Network;
+using DeviceHive.WebSockets.API.Subscriptions;
 using Ninject;
 
 namespace DeviceHive.Test.WebSocketsTest.Utils
@@ -63,7 +64,7 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
 
             // bind web socket server
             kernel.Bind<WebSocketServerBase>().To<Stubs.StubWebSocketServer>().InSingletonScope();
-            kernel.Bind<WebSocketServiceImpl>().ToSelf().InSingletonScope();
+            kernel.Bind<SelfHostServiceImpl>().ToSelf().InSingletonScope();
 
             // bind notification handlers
             kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();

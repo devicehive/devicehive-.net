@@ -4,7 +4,7 @@ using DeviceHive.WebSockets.Core.Network;
 
 namespace DeviceHive.WebSockets.API.Service
 {
-    internal class SelfHostServiceImpl
+    public class SelfHostServiceImpl
     {
         private readonly WebSocketServerBase _server;
 

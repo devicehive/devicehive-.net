@@ -1,5 +1,5 @@
 ﻿using DeviceHive.Test.Stubs;
-using DeviceHive.WebSockets.ActionsFramework;
+using DeviceHive.WebSockets.Core.ActionsFramework;
 using Newtonsoft.Json.Linq;
 using Ninject;
 

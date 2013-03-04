@@ -97,9 +97,13 @@
       <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>
       <Name>DeviceHive.Data</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DeviceHive.WebSockets\DeviceHive.WebSockets.csproj">
-      <Project>{240E0349-322C-4DCF-B968-CE6554F76D3A}</Project>
-      <Name>DeviceHive.WebSockets</Name>
+    <ProjectReference Include="..\DeviceHive.WebSockets.API\DeviceHive.WebSockets.API.csproj">
+      <Project>{500AFF4C-A800-4119-ACA8-07A47E74ADF9}</Project>
+      <Name>DeviceHive.WebSockets.API</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.WebSockets.Core\DeviceHive.WebSockets.Core.csproj">
+      <Project>{77693053-1DFA-4873-93A9-5405E1800E45}</Project>
+      <Name>DeviceHive.WebSockets.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

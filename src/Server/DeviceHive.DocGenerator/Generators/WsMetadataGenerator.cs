@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DeviceHive.Core.Mapping;
-using DeviceHive.WebSockets.ActionsFramework;
-using DeviceHive.WebSockets.Core;
+using DeviceHive.WebSockets.Core.ActionsFramework;
+using DeviceHive.WebSockets.API.Core;
 using Newtonsoft.Json.Linq;
 using Ninject;
 

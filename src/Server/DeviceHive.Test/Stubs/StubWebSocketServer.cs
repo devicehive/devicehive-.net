@@ -1,5 +1,5 @@
 ﻿using System;
-using DeviceHive.WebSockets.Network;
+using DeviceHive.WebSockets.Core.Network;
 
 namespace DeviceHive.Test.Stubs
 {
@@ -42,6 +42,11 @@ namespace DeviceHive.Test.Stubs
         public override Guid Identity
         {
             get { return _identity; }
+        }
+
+        public override string Host
+        {
+            get { return string.Empty; }
         }
 
         public override string Path
