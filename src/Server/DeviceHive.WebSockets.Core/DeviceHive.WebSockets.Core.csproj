@@ -42,6 +42,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,7 +59,9 @@
     <Compile Include="ActionsFramework\WebSocketRequestException.cs" />
     <Compile Include="Hosting\ApplicationControlMessages.cs" />
     <Compile Include="Hosting\ApplicationServiceBase.cs" />
+    <Compile Include="Hosting\IWebSocketApplicationManager.cs" />
     <Compile Include="Hosting\ProxyWebSocketConnection.cs" />
+    <Compile Include="Hosting\WebSocketApplicationManagerClient.cs" />
     <Compile Include="Hosting\WebSocketMessages.cs" />
     <Compile Include="Network\Fleck\FleckWebSocketConnection.cs" />
     <Compile Include="Network\Fleck\FleckWebSocketServer.cs" />

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Security;
 using System.Threading;
 using DeviceHive.Core.Messaging;
 using DeviceHive.WebSockets.Core.Hosting;
@@ -19,6 +21,9 @@ namespace DeviceHive.WebSockets.Host
         private readonly string _exePath;
         private readonly string _commandLineArgs;
 
+        private readonly string _userName;
+        private readonly string _userPassword;
+
         private readonly WebSocketServerBase _server;
 
         private readonly string _hostPipeName;
@@ -36,20 +41,22 @@ namespace DeviceHive.WebSockets.Host
 
 
         public Application(WebSocketServerBase server,
-            ServiceConfigurationSection configuration,
-            string host, string exePath, string commandLineArgs)
+            ServiceConfigurationSection configuration, ApplicationConfiguration appConfig)
         {
             _log = LogManager.GetLogger(GetType());
 
             _server = server;
 
-            _hostPipeName = string.Format(configuration.HostPipeName, host);
-            _appPipeName = string.Format(configuration.AppPipeName, host);
+            _hostPipeName = string.Format(configuration.HostPipeName, appConfig.Host);
+            _appPipeName = string.Format(configuration.AppPipeName, appConfig.Host);
             _terminateTimeout = configuration.ApplicationTerminateTimeout;
 
-            _host = host;
-            _exePath = exePath;
-            _commandLineArgs = commandLineArgs;
+            _host = appConfig.Host;
+            _exePath = appConfig.ExePath;
+            _commandLineArgs = appConfig.CommandLineArgs;
+
+            _userName = appConfig.UserName;
+            _userPassword = appConfig.UserPassword;
 
             _state = ApplicationState.Inactive;
             _inactiveStartTime = DateTime.MaxValue;
@@ -72,21 +79,30 @@ namespace DeviceHive.WebSockets.Host
             get { return _commandLineArgs; }
         }
 
-        public ApplicationState State
+        public string UserName
         {
-            get { return _state; }
+            get { return _userName; }
         }
 
-        public DateTime InactiveStartTime
+        public string UserPassword
         {
-            get { return _inactiveStartTime; }
+            get { return _userPassword; }
         }
 
-        public ulong ConnectionCount
-        {
-            get { return _connectionCount; }
-        }
 
+        public void Start()
+        {
+            if (_state != ApplicationState.Stopped)
+                return;
+
+            lock (_lock)
+            {
+                if (_state != ApplicationState.Stopped)
+                    return;
+
+                _state = ApplicationState.Inactive;
+            }
+        }
 
         public void Stop()
         {
@@ -124,12 +140,12 @@ namespace DeviceHive.WebSockets.Host
 
         public void TryDeactivate(DateTime minAccessTime)
         {
-            if (_state != ApplicationState.Active || ConnectionCount > 0)
+            if (_state != ApplicationState.Active || _connectionCount > 0)
                 return;
 
             lock (_lock)
             {
-                if (_state != ApplicationState.Active || ConnectionCount > 0)
+                if (_state != ApplicationState.Active || _connectionCount > 0)
                     return;
 
                 if (_inactiveStartTime >= minAccessTime)
@@ -139,6 +155,7 @@ namespace DeviceHive.WebSockets.Host
                 _state = ApplicationState.Inactive;
             }
         }
+
 
         private void SendMessage<TMessage>(TMessage message) where TMessage : class
         {
@@ -203,11 +220,23 @@ namespace DeviceHive.WebSockets.Host
         private void StartProcess()
         {
             _process = new Process();
-            _process.StartInfo = new ProcessStartInfo(ExePath, CommandLineArgs) { UseShellExecute = false };
+            _process.StartInfo = new ProcessStartInfo(ExePath, CommandLineArgs);
+            _process.StartInfo.UseShellExecute = false;
+            _process.StartInfo.WorkingDirectory = Path.GetDirectoryName(ExePath);
+
+            if (!string.IsNullOrEmpty(UserName))
+            {
+                _process.StartInfo.UserName = UserName;
+                
+                _process.StartInfo.Password = new SecureString();
+                foreach (var passwordChar in UserPassword)
+                    _process.StartInfo.Password.AppendChar(passwordChar);
+            }
+
             _process.Start();
         }
 
-        public void Shutdown()
+        private void Shutdown()
         {
             if (_process != null)
             {

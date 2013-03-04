@@ -136,5 +136,9 @@ namespace DeviceHive.WebSockets.Host
         public string ExePath { get; set; }
 
         public string CommandLineArgs { get; set; }
+
+        public string UserName { get; set; }
+
+        public string UserPassword { get; set; }
     }
 }

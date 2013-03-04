@@ -12,9 +12,13 @@ namespace DeviceHive.WebSockets.Host
         public void Add(Application app)
         {
             lock (_lock)
-            {
                 _applicationsByHost.Add(app.Host.ToLower(), app);
-            }
+        }
+
+        public bool Remove(string host)
+        {
+            lock (_lock)
+                return _applicationsByHost.Remove(host);
         }
 
         public Application GetApplicationByHost(string host)

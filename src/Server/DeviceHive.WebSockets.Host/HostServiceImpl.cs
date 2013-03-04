@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
+using System.ServiceModel;
 using System.Threading;
+using DeviceHive.WebSockets.Core.Hosting;
 using DeviceHive.WebSockets.Core.Network;
 
 namespace DeviceHive.WebSockets.Host
 {
-    internal class HostServiceImpl
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
+    internal class HostServiceImpl : IWebSocketApplicationManager
     {
         private readonly ApplicationCollection _applications = new ApplicationCollection();
         private readonly WebSocketServerBase _server;
@@ -14,6 +19,8 @@ namespace DeviceHive.WebSockets.Host
         private readonly RuntimeServiceConfiguration _runtimeConfig;
 
         private Timer _inactiveAppCheckTimer;
+
+        private readonly ServiceHost _managerServiceHost;
 
         
         public HostServiceImpl(WebSocketServerBase server)
@@ -27,8 +34,12 @@ namespace DeviceHive.WebSockets.Host
             _runtimeConfig = RuntimeServiceConfiguration.Load(_configSection.RuntimeConfigPath);
 
             LoadApplications();
+
+            _managerServiceHost = new ServiceHost(this);
         }
-   
+
+
+        #region Public methods
 
         public void Start()
         {
@@ -40,18 +51,77 @@ namespace DeviceHive.WebSockets.Host
             _inactiveAppCheckTimer = new Timer(state => CheckInactiveApplications());
             var applicationInactiveCheckInterval = _configSection.ApplicationInactiveCheckInterval * 60 * 1000;
             _inactiveAppCheckTimer.Change(applicationInactiveCheckInterval, applicationInactiveCheckInterval);
+
+            _managerServiceHost.Open();
         }
 
         public void Stop()
         {
+            _managerServiceHost.Close();
+
             _inactiveAppCheckTimer.Dispose();
 
             _server.Stop();
 
             foreach (var app in _applications.GetAllApplications())
-                app.Stop();
+                app.Stop();            
         }
 
+
+        #region Implementation of IWebSocketApplicationManager
+
+        public void AddApplication(string host, string exePath, string commandLineArgs,
+            string userName, string userPassword)
+        {
+            var appConfig = new ApplicationConfiguration()
+            {
+                Host = host,
+                ExePath = exePath,
+                CommandLineArgs = commandLineArgs,
+                UserName = userName,
+                UserPassword = userPassword
+            };
+
+            AddApplication(appConfig);
+
+            _runtimeConfig.Applications.Add(appConfig);
+            _runtimeConfig.Save();
+        }
+
+        public void RemoveApplication(string host)
+        {
+            if (!_applications.Remove(host))
+                return;
+
+            var appConfig = _runtimeConfig.Applications.FirstOrDefault(c => c.Host.ToLower() == host.ToLower());
+            _runtimeConfig.Applications.Remove(appConfig);
+            _runtimeConfig.Save();
+        }
+
+        public void StopApplication(string host)
+        {
+            var app = _applications.GetApplicationByHost(host);
+            if (app == null)
+                throw new KeyNotFoundException("There are no app for host: " + host);
+
+            app.Stop();
+        }
+
+        public void StartApplication(string host)
+        {
+            var app = _applications.GetApplicationByHost(host);
+            if (app == null)
+                throw new KeyNotFoundException("There are no app for host: " + host);
+
+            app.Start();
+        }
+
+        #endregion
+
+        #endregion
+
+
+        #region Private methods
 
         private void OnConnectionOpened(object sender, WebSocketConnectionEventArgs args)
         {
@@ -83,12 +153,11 @@ namespace DeviceHive.WebSockets.Host
 
         private void AddApplication(ApplicationConfiguration appConfig)
         {
-            var app = new Application(_server, _configSection,
-                appConfig.Host, appConfig.ExePath, appConfig.CommandLineArgs);
+            var app = new Application(_server, _configSection, appConfig);
             _applications.Add(app);
         }
-    
-        
+
+
         private void CheckInactiveApplications()
         {
             var apps = _applications.GetAllApplications();
@@ -97,5 +166,7 @@ namespace DeviceHive.WebSockets.Host
             foreach (var app in apps)
                 app.TryDeactivate(minAccessTime);
         }
+
+        #endregion
     }
 }
