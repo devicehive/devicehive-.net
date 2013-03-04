@@ -81,7 +81,7 @@ namespace DeviceHive.WebSockets.Host
         }
 
         /// <summary>
-        /// Gets or sets штеукмфд (in minutes) to check inactvie applications
+        /// Gets or sets interval (in minutes) to check inactvie applications
         /// </summary>
         [ConfigurationProperty("appInactiveCheckInterval", DefaultValue = 10)]
         public int ApplicationInactiveCheckInterval
