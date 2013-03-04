@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DeviceHive.WebSockets.Host
 {
@@ -6,13 +7,14 @@ namespace DeviceHive.WebSockets.Host
     {
         private readonly object _lock = new object();
 
-        private readonly Dictionary<string, Application> _applicationsByHost = new Dictionary<string, Application>();
+        private readonly Dictionary<string, Application> _applicationsByHost =
+            new Dictionary<string, Application>(StringComparer.OrdinalIgnoreCase);
 
 
         public void Add(Application app)
         {
             lock (_lock)
-                _applicationsByHost.Add(app.Host.ToLower(), app);
+                _applicationsByHost.Add(app.Host, app);
         }
 
         public bool Remove(string host)
@@ -26,7 +28,7 @@ namespace DeviceHive.WebSockets.Host
             lock (_lock)
             {
                 Application app;
-                return _applicationsByHost.TryGetValue(host.ToLower(), out app) ? app : null;
+                return _applicationsByHost.TryGetValue(host, out app) ? app : null;
             }
         }
 
