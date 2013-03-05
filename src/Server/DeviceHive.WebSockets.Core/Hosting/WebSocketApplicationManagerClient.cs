@@ -16,6 +16,13 @@ namespace DeviceHive.WebSockets.Core.Hosting
             Channel.RemoveApplication(host);
         }
 
+        public void ChangeApplication(string host,
+            string exePath = null, string commandLineArgs = null,
+            string userName = null, string userPassword = null)
+        {
+            Channel.ChangeApplication(host, exePath, commandLineArgs, userName, userPassword);
+        }
+
         public void StopApplication(string host)
         {
             Channel.StopApplication(host);

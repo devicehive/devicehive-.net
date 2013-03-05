@@ -13,6 +13,11 @@ namespace DeviceHive.WebSockets.Core.Hosting
         void RemoveApplication(string host);
 
         [OperationContract]
+        void ChangeApplication(string host,
+            string exePath = null, string commandLineArgs = null,
+            string userName = null, string userPassword = null);
+
+        [OperationContract]
         void StopApplication(string host);
 
         [OperationContract]

@@ -98,6 +98,29 @@ namespace DeviceHive.WebSockets.Host
             _runtimeConfig.Save();
         }
 
+        public void ChangeApplication(string host,
+            string exePath = null, string commandLineArgs = null,
+            string userName = null, string userPassword = null)
+        {
+            var app = _applications.GetApplicationByHost(host);
+            if (app == null)
+                throw new KeyNotFoundException("There are no app for host: " + host);
+
+            if (app.State != ApplicationState.Stopped)
+                throw new InvalidOperationException("Can't change not stopped application");
+
+            var appConfig = _runtimeConfig.Applications.FirstOrDefault(c => c.Host.ToLower() == host.ToLower());
+            appConfig.ExePath = exePath ?? appConfig.ExePath;
+            appConfig.CommandLineArgs = commandLineArgs ?? appConfig.CommandLineArgs;
+            appConfig.UserName = userName ?? appConfig.UserName;
+            appConfig.UserPassword = userPassword ?? appConfig.UserPassword;
+            _runtimeConfig.Save();
+
+            _applications.Remove(host);
+            app = new Application(_server, _configSection, appConfig);
+            _applications.Add(app);
+        }
+
         public void StopApplication(string host)
         {
             var app = _applications.GetApplicationByHost(host);

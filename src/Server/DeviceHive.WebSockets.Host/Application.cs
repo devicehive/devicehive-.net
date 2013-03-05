@@ -92,6 +92,11 @@ namespace DeviceHive.WebSockets.Host
             get { return _userPassword; }
         }
 
+        public ApplicationState State
+        {
+            get { return _state; }
+        }
+
 
         public void Start()
         {
