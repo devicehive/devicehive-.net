@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using WebSocket4Net;
+using log4net;
 
 namespace DeviceHive.Device
 {
@@ -266,9 +267,19 @@ namespace DeviceHive.Device
                 return;
             }
 
-            SendRequest("authenticate", deviceGuid, deviceKey);
-            _isAuthenticated = true;
-            _isConnected = true;
+            try
+            {
+                SendRequest("authenticate", deviceGuid, deviceKey);
+                _isAuthenticated = true;
+                _isConnected = true;
+            }
+            catch (Exception e)
+            {
+                _isAuthenticated = false;
+                _isConnected = false;
+                LogManager.GetLogger(GetType()).Error("Web socket authentication error", e);
+            }
+
             _authWaitHandle.Set();
         }
 

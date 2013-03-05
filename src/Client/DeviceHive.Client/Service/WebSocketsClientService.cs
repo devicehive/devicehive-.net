@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using WebSocket4Net;
+using log4net;
 
 namespace DeviceHive.Client
 {
@@ -216,10 +217,19 @@ namespace DeviceHive.Client
 
         private void Authenticate(string login, string password)
         {
-            SendRequest("authenticate",
-                new JProperty("login", login),
-                new JProperty("password", password));
-            _isAuthenticated = true;
+            try
+            {
+                SendRequest("authenticate",
+                    new JProperty("login", login),
+                    new JProperty("password", password));
+                _isAuthenticated = true;
+            }
+            catch (Exception e)
+            {
+                LogManager.GetLogger(GetType()).Error("Web socket authentication error", e);
+                _isAuthenticated = false;
+            }
+
             _authWaitHandle.Set();
         }
 

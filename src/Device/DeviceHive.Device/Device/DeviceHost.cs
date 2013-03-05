@@ -107,7 +107,11 @@ namespace DeviceHive.Device
                     Task.Factory.StartNew(() => DispatchCommandTask(device, e.Command));
             };
 
-            DeviceClient.ConnectionClosed += (s, e) => SubscribeToCommands();
+            DeviceClient.ConnectionClosed += (s, e) =>
+            {
+                if (_tasks != null)
+                    SubscribeToCommands();
+            };
 
             foreach (var device in Devices)
             {
