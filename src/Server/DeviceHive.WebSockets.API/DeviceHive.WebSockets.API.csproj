@@ -52,6 +52,9 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\DeviceHive.WebSockets.API.XML</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartArguments>-mode SelfHostApp</StartArguments>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net">
       <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-client\log4net.dll</HintPath>
