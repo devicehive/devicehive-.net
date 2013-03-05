@@ -88,26 +88,24 @@ namespace DeviceHive.WebSockets.Host
             _runtimeConfig.Save();
         }
 
-        public void RemoveApplication(string host)
+        public bool RemoveApplication(string host)
         {
             if (!_applications.Remove(host))
-                return;
+                return false;
 
             var appConfig = _runtimeConfig.Applications.FirstOrDefault(c => c.Host.ToLower() == host.ToLower());
             _runtimeConfig.Applications.Remove(appConfig);
             _runtimeConfig.Save();
+            return true;
         }
 
-        public void ChangeApplication(string host,
+        public bool ChangeApplication(string host,
             string exePath = null, string commandLineArgs = null,
             string userName = null, string userPassword = null)
         {
             var app = _applications.GetApplicationByHost(host);
-            if (app == null)
-                throw new KeyNotFoundException("There are no app for host: " + host);
-
-            if (app.State != ApplicationState.Stopped)
-                throw new InvalidOperationException("Can't change not stopped application");
+            if (app == null || app.State != ApplicationState.Stopped)
+                return false;
 
             var appConfig = _runtimeConfig.Applications.FirstOrDefault(c => c.Host.ToLower() == host.ToLower());
             appConfig.ExePath = exePath ?? appConfig.ExePath;
@@ -119,24 +117,28 @@ namespace DeviceHive.WebSockets.Host
             _applications.Remove(host);
             app = new Application(_server, _configSection, appConfig);
             _applications.Add(app);
+
+            return true;
         }
 
-        public void StopApplication(string host)
+        public bool StopApplication(string host)
         {
             var app = _applications.GetApplicationByHost(host);
             if (app == null)
-                throw new KeyNotFoundException("There are no app for host: " + host);
+                return false;
 
             app.Stop();
+            return true;
         }
 
-        public void StartApplication(string host)
+        public bool StartApplication(string host)
         {
             var app = _applications.GetApplicationByHost(host);
             if (app == null)
-                throw new KeyNotFoundException("There are no app for host: " + host);
+                return false;
 
             app.Start();
+            return true;
         }
 
         #endregion

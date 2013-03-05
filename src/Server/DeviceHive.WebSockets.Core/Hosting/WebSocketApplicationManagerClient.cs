@@ -11,26 +11,26 @@ namespace DeviceHive.WebSockets.Core.Hosting
             Channel.AddApplication(host, exePath, commandLineArgs, userName, userPassword);
         }
 
-        public void RemoveApplication(string host)
+        public bool RemoveApplication(string host)
         {
-            Channel.RemoveApplication(host);
+            return Channel.RemoveApplication(host);
         }
 
-        public void ChangeApplication(string host,
+        public bool ChangeApplication(string host,
             string exePath = null, string commandLineArgs = null,
             string userName = null, string userPassword = null)
         {
-            Channel.ChangeApplication(host, exePath, commandLineArgs, userName, userPassword);
+            return Channel.ChangeApplication(host, exePath, commandLineArgs, userName, userPassword);
         }
 
-        public void StopApplication(string host)
+        public bool StopApplication(string host)
         {
-            Channel.StopApplication(host);
+            return Channel.StopApplication(host);
         }
 
-        public void StartApplication(string host)
+        public bool StartApplication(string host)
         {
-            Channel.StopApplication(host);
+            return Channel.StopApplication(host);
         }
     }
 }

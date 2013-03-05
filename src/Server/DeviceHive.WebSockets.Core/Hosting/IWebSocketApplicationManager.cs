@@ -1,4 +1,5 @@
-﻿using System.ServiceModel;
+﻿using System.Runtime.Serialization;
+using System.ServiceModel;
 
 namespace DeviceHive.WebSockets.Core.Hosting
 {
@@ -10,17 +11,17 @@ namespace DeviceHive.WebSockets.Core.Hosting
             string userName, string userPassword);
 
         [OperationContract]
-        void RemoveApplication(string host);
+        bool RemoveApplication(string host);
 
         [OperationContract]
-        void ChangeApplication(string host,
+        bool ChangeApplication(string host,
             string exePath = null, string commandLineArgs = null,
             string userName = null, string userPassword = null);
 
         [OperationContract]
-        void StopApplication(string host);
+        bool StopApplication(string host);
 
         [OperationContract]
-        void StartApplication(string host);
+        bool StartApplication(string host);
     }
 }
