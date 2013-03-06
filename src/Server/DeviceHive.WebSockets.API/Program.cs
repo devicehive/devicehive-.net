@@ -17,8 +17,8 @@ namespace DeviceHive.WebSockets.API
 
             for (var i = 0; i < args.Length / 2; i++)
             {
-                var key = args[i];
-                var value = args[i + 1];
+                var key = args[2 * i];
+                var value = args[2 * i + 1];
 
                 options.Add(key, value);
             }
