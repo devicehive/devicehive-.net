@@ -232,14 +232,17 @@ namespace DeviceHive.WebSockets.Host
         private void StartProcess()
         {
             _process = new Process();
-            _process.StartInfo = new ProcessStartInfo(ExePath, CommandLineArgs);
+            _process.StartInfo = new ProcessStartInfo(Path.GetFullPath(ExePath), CommandLineArgs);
             _process.StartInfo.UseShellExecute = false;
-            _process.StartInfo.WorkingDirectory = Path.GetDirectoryName(ExePath);
+            _process.StartInfo.WorkingDirectory = Path.GetFullPath(Path.GetDirectoryName(ExePath));
+            _process.StartInfo.CreateNoWindow = true;
+            _process.StartInfo.LoadUserProfile = false;
             _process.EnableRaisingEvents = true;
 
             if (!string.IsNullOrEmpty(UserName))
             {
                 _process.StartInfo.UserName = UserName;
+                _process.StartInfo.Domain = Environment.MachineName;
                 
                 _process.StartInfo.Password = new SecureString();
                 foreach (var passwordChar in UserPassword)

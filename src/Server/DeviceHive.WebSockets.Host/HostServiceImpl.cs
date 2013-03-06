@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.ServiceModel;
 using System.Threading;
 using DeviceHive.WebSockets.Core.Hosting;
@@ -15,8 +18,8 @@ namespace DeviceHive.WebSockets.Host
         private readonly ApplicationCollection _applications = new ApplicationCollection();
         private readonly WebSocketServerBase _server;
         
-        private readonly ServiceConfigurationSection _configSection;
-        private readonly RuntimeServiceConfiguration _runtimeConfig;
+        private ServiceConfigurationSection _configSection;
+        private RuntimeServiceConfiguration _runtimeConfig;
 
         private Timer _inactiveAppCheckTimer;
 
@@ -28,13 +31,7 @@ namespace DeviceHive.WebSockets.Host
             _server = server;
             _server.ConnectionOpened += OnConnectionOpened;
             _server.MessageReceived += OnMessageReceived;
-            _server.ConnectionClosed += OnConnectionClosed;
-
-            _configSection = (ServiceConfigurationSection) ConfigurationManager.GetSection("webSocketsHost");
-            _runtimeConfig = RuntimeServiceConfiguration.Load(_configSection.RuntimeConfigPath);
-
-            LoadApplications();
-
+            _server.ConnectionClosed += OnConnectionClosed;            
             _managerServiceHost = new ServiceHost(this);
         }
 
@@ -43,6 +40,14 @@ namespace DeviceHive.WebSockets.Host
 
         public void Start()
         {
+            var appDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Directory.SetCurrentDirectory(appDir);
+
+            _configSection = (ServiceConfigurationSection)ConfigurationManager.GetSection("webSocketsHost");
+            _runtimeConfig = RuntimeServiceConfiguration.Load(_configSection.RuntimeConfigPath);
+
+            LoadApplications();
+
             var url = _configSection.ListenUrl;
             var sslCertificateSerialNumber = _configSection.CertificateSerialNumber;
 

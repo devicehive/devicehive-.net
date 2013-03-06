@@ -13,7 +13,7 @@ namespace DeviceHive.WebSockets.Host
             {
                 new ServiceProcessInstaller()
                 {
-                    Account = ServiceAccount.LocalSystem,
+                    Account = ServiceAccount.LocalService,
                     Username = null,
                     Password = null
                 },
