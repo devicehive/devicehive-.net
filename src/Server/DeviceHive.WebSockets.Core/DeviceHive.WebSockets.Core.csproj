@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{77693053-1DFA-4873-93A9-5405E1800E45}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DeviceHive.WebSockets.Core</RootNamespace>
+    <AssemblyName>DeviceHive.WebSockets.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <RestorePackages>true</RestorePackages>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Fleck">
+      <HintPath>..\..\..\packages\Fleck.0.9.6.15\lib\net40\Fleck.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ActionsFramework\ActionAttribute.cs" />
+    <Compile Include="ActionsFramework\ActionInfo.cs" />
+    <Compile Include="ActionsFramework\ActionInvoker.cs" />
+    <Compile Include="ActionsFramework\ControllerBase.cs" />
+    <Compile Include="ActionsFramework\Router.cs" />
+    <Compile Include="ActionsFramework\WebSocketConnectionExtensions.cs" />
+    <Compile Include="ActionsFramework\WebSocketRequestException.cs" />
+    <Compile Include="Hosting\ApplicationControlMessages.cs" />
+    <Compile Include="Hosting\ApplicationServiceBase.cs" />
+    <Compile Include="Hosting\IWebSocketApplicationManager.cs" />
+    <Compile Include="Hosting\ProxyWebSocketConnection.cs" />
+    <Compile Include="Hosting\WebSocketApplicationManagerClient.cs" />
+    <Compile Include="Hosting\WebSocketMessages.cs" />
+    <Compile Include="Network\Fleck\FleckWebSocketConnection.cs" />
+    <Compile Include="Network\Fleck\FleckWebSocketServer.cs" />
+    <Compile Include="Network\SessionContext.cs" />
+    <Compile Include="Network\WebSocketConnectionBase.cs" />
+    <Compile Include="Network\WebSocketConnectionEventArgs.cs" />
+    <Compile Include="Network\WebSocketMessageEventArgs.cs" />
+    <Compile Include="Network\WebSocketServerBase.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DeviceHive.Core\DeviceHive.Core.csproj">
+      <Project>{20C669F5-66EF-4C45-A40A-4C2441879645}</Project>
+      <Name>DeviceHive.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+</Project>

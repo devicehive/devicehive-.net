@@ -8,6 +8,14 @@ namespace DeviceHive.Core.Messaging
     public class NamedPipeMessageBusConfigurationSection : ConfigurationSection
     {
         /// <summary>
+        /// Default constructor
+        /// </summary>
+        public NamedPipeMessageBusConfigurationSection()
+        {
+            ConnectTimeout = 100;
+        }
+
+        /// <summary>
         /// Gets named pipes configuration
         /// </summary>
         [ConfigurationProperty("pipes")]

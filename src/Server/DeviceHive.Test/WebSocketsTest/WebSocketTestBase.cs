@@ -4,7 +4,7 @@ using DeviceHive.Data;
 using DeviceHive.Data.Model;
 using DeviceHive.Test.Stubs;
 using DeviceHive.Test.WebSocketsTest.Utils;
-using DeviceHive.WebSockets.Network;
+using DeviceHive.WebSockets.Core.Network;
 using NUnit.Framework;
 using Ninject;
 
