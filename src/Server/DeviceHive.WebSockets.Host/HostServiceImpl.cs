@@ -95,12 +95,19 @@ namespace DeviceHive.WebSockets.Host
 
         public bool RemoveApplication(string host)
         {
+            var app = _applications.GetApplicationByHost(host);
+            if (app == null)
+                return false;
+
+            app.Stop();
+
             if (!_applications.Remove(host))
                 return false;
 
             var appConfig = _runtimeConfig.Applications.FirstOrDefault(c => c.Host.ToLower() == host.ToLower());
             _runtimeConfig.Applications.Remove(appConfig);
             _runtimeConfig.Save();
+
             return true;
         }
 
