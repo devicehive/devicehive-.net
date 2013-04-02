@@ -110,6 +110,7 @@
     <Compile Include="Common\BooleanNegationToVisibilityConverter.cs" />
     <Compile Include="Common\ControlsHelpers.cs" />
     <Compile Include="Common\DelegateCommand.cs" />
+    <Compile Include="Common\IncrementalLoadingCollection.cs" />
     <Compile Include="Common\NotEmptyToVisibilityConverter.cs" />
     <Compile Include="Common\ObjectToJsonStringConverter.cs" />
     <Compile Include="Common\ObjectToStringConverter.cs" />

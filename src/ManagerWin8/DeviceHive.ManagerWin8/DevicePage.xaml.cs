@@ -14,6 +14,7 @@ using System.Windows.Input;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI;
+using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -39,17 +40,15 @@ namespace DeviceHive.ManagerWin8
         List<Tab> tabList = new List<Tab>();
         Tab currentTab;
 
-        bool notificationsInited;
-        bool commandsInited;
         bool equipmentInited;
-        ObservableCollection<Notification> notificationsObservable;
-        ObservableCollection<Command> commandsObservable;
+        IncrementalLoadingCollection<Notification> notificationsObservable;
+        IncrementalLoadingCollection<Command> commandsObservable;
         CancellationTokenSource notificationsCancellationSource;
         CancellationTokenSource commandsCancellationSource;
         CancellationTokenSource commandResultCancellatonSource;
-        DateTime filterNotificationsStart;
+        DateTime? filterNotificationsStart;
         DateTime? filterNotificationsEnd;
-        DateTime filterCommandsStart;
+        DateTime? filterCommandsStart;
         DateTime? filterCommandsEnd;
         Command commandSelected;
 
@@ -90,14 +89,16 @@ namespace DeviceHive.ManagerWin8
             });
             tabList.Add(new Tab("Notifications", "NotificationsState")
             {
-                Select = async () =>
+                Select = () =>
                 {
-                    if (!notificationsInited)
+                    if (NotificationsObservable == null)
                     {
-                        notificationsInited = true;
-                        await LoadNotifications();
+                        LoadNotifications();
                     }
-                    StartPollNotifications();
+                    else if (NotificationsObservable.WasAnySuccessLoading)
+                    {
+                        StartPollNotifications();
+                    }
                 },
                 Deselect = StopPollNotifications,
                 Refresh = RefreshNotifications,
@@ -114,12 +115,14 @@ namespace DeviceHive.ManagerWin8
             {
                 Select = async () =>
                 {
-                    if (!commandsInited)
+                    if (CommandsObservable == null)
                     {
-                        commandsInited = true;
-                        await LoadCommands();
+                        LoadCommands();
                     }
-                    StartPollCommands();
+                    else if (CommandsObservable.WasAnySuccessLoading)
+                    {
+                        StartPollCommands();
+                    }
                 },
                 Deselect = () =>
                 {
@@ -167,7 +170,7 @@ namespace DeviceHive.ManagerWin8
             StopPollCommandResult();
         }
 
-        void ShowFilterFlyout(object sender, DateTime start, DateTime? end, Action<DateTime, DateTime?> filterAction)
+        void ShowFilterFlyout(object sender, DateTime? start, DateTime? end, Action<DateTime?, DateTime?> filterAction)
         {
             Flyout flyOut = new Flyout();
             flyOut.Width = 300;
@@ -188,16 +191,24 @@ namespace DeviceHive.ManagerWin8
             Button filterDoButton = new Button() { Content = "Filter", Margin = new Thickness(0, 10, 0, 0) };
             filterPanel.Children.Add(filterDoButton);
 
-            filterStart.Text = start.ToString();
+            filterStart.Text = start != null ? start.ToString() : "";
             filterEnd.Text = end != null ? end.ToString() : "";
             filterDoButton.Command = new DelegateCommand(() =>
             {
+                start = null;
                 end = null;
-                DateTime newEnd;
-                if (!DateTime.TryParse(filterStart.Text, out start))
+                DateTime newStart, newEnd;
+                if (filterStart.Text != "")
                 {
-                    new MessageDialog("Wrong start date", "Filter").ShowAsync();
-                    return;
+                    if (DateTime.TryParse(filterStart.Text, out newStart))
+                    {
+                        start = newStart;
+                    }
+                    else
+                    {
+                        new MessageDialog("Wrong start date", "Filter").ShowAsync();
+                        return;
+                    }
                 }
                 if (filterEnd.Text != "")
                 {
@@ -218,7 +229,7 @@ namespace DeviceHive.ManagerWin8
             flyOut.IsOpen = true;
         }
 
-        public ObservableCollection<Notification> NotificationsObservable
+        public IncrementalLoadingCollection<Notification> NotificationsObservable
         {
             get { return notificationsObservable; }
             set
@@ -228,7 +239,7 @@ namespace DeviceHive.ManagerWin8
             }
         }
 
-        public ObservableCollection<Command> CommandsObservable
+        public IncrementalLoadingCollection<Command> CommandsObservable
         {
             get { return commandsObservable; }
             set
@@ -250,21 +261,19 @@ namespace DeviceHive.ManagerWin8
             }
         }
 
-        async void RefreshNotifications()
+        void RefreshNotifications()
         {
             if (!IsLoading)
             {
-                await LoadNotifications();
-                StartPollNotifications();
+                LoadNotifications();
             }
         }
 
-        async void RefreshCommands()
+        void RefreshCommands()
         {
             if (!IsLoading)
             {
-                await LoadCommands();
-                StartPollCommands();
+                LoadCommands();
             }
         }
 
@@ -301,29 +310,55 @@ namespace DeviceHive.ManagerWin8
             LoadingItems--;
         }
 
-        async Task LoadNotifications()
+        void LoadNotifications()
         {
-            LoadingItems++;
-            try
+            StopPollNotifications();
+            bool loaded = false;
+            NotificationFilter filter = new NotificationFilter()
             {
-                StopPollNotifications();
-                Debug.WriteLine("NTF LOAD START");
-                var notifications = await ClientService.Current.GetNotificationsAsync(deviceId, filterNotificationsStart, filterNotificationsEnd);
-                Debug.WriteLine("NTF LOAD END");
-                notifications.Reverse();
-                NotificationsObservable = new ObservableCollection<Notification>(notifications);
-            }
-            catch (Exception ex)
+                End = filterNotificationsEnd,
+                Start = filterNotificationsStart,
+                SortOrder = SortOrder.DESC
+            };
+            var list = new IncrementalLoadingCollection<Notification>(async (take, skip) =>
             {
-                NotificationsObservable = null;
-                new MessageDialog(ex.Message, "Error").ShowAsync();
-            }
-            LoadingItems--;
+                filter.Skip = (int)skip;
+                filter.Take = (int)take;
+                try
+                {
+                    Debug.WriteLine("NTF LOAD START");
+                    var notifications = await ClientService.Current.GetNotificationsAsync(deviceId, filter);
+                    Debug.WriteLine("NTF LOAD END");
+                    return notifications;
+                }
+                catch (Exception ex)
+                {
+                    Window.Current.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        new MessageDialog(ex.Message, "Error").ShowAsync();
+                    });
+                    throw ex;
+                }
+            }, 20);
+            list.IsLoadingChanged += (s, isLoading) =>
+            {
+                LoadingItems += isLoading ? 1 : -1;
+                if (!isLoading && !loaded)
+                {
+                    StartPollNotifications();
+                    if (s.Count > 0)
+                    {
+                        filter.End = s.First().Timestamp;
+                    }
+                    loaded = true;
+                }
+            };
+            NotificationsObservable = list;
         }
 
         async void StartPollNotifications()
         {
-            if (NotificationsObservable == null || filterNotificationsEnd != null)
+            if (filterNotificationsEnd != null)
             {
                 return;
             }
@@ -341,25 +376,51 @@ namespace DeviceHive.ManagerWin8
             Debug.WriteLine("NTF POLL END");
         }
 
-        async Task LoadCommands()
+        void LoadCommands()
         {
-            LoadingItems++;
-            try
+            StopPollCommands();
+            StopPollCommandResult();
+            bool loaded = false;
+            CommandFilter filter = new CommandFilter() 
             {
-                StopPollCommands();
-                StopPollCommandResult();
-                Debug.WriteLine("CMD LOAD START");
-                var commands = await ClientService.Current.GetCommandsAsync(deviceId, filterCommandsStart, filterCommandsEnd);
-                Debug.WriteLine("CMD LOAD END");
-                commands.Reverse();
-                CommandsObservable = new ObservableCollection<Command>(commands);
-            }
-            catch (Exception ex)
+                End = filterCommandsEnd,
+                Start = filterCommandsStart,
+                SortOrder = SortOrder.DESC
+            };
+            var list = new IncrementalLoadingCollection<Command>(async (take, skip) =>
             {
-                CommandsObservable = null;
-                new MessageDialog(ex.Message, "Error").ShowAsync();
-            }
-            LoadingItems--;
+                filter.Skip = (int)skip;
+                filter.Take = (int)take;
+                try
+                {
+                    Debug.WriteLine("CMD LOAD START");
+                    var commands = await ClientService.Current.GetCommandsAsync(deviceId, filter);
+                    Debug.WriteLine("CMD LOAD END");
+                    return commands;
+                }
+                catch (Exception ex)
+                {
+                    Window.Current.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        new MessageDialog(ex.Message, "Error").ShowAsync();
+                    });
+                    throw ex;
+                }
+            }, 20);
+            list.IsLoadingChanged += (s, isLoading) =>
+            {
+                LoadingItems += isLoading ? 1 : -1;
+                if (!isLoading && !loaded)
+                {
+                    StartPollCommands();
+                    if (s.Count > 0)
+                    {
+                        filter.End = s.First().Timestamp;
+                    }
+                    loaded = true;
+                }
+            };
+            CommandsObservable = list;
         }
 
         async void StartPollCommands()
