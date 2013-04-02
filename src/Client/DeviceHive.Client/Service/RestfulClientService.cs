@@ -102,7 +102,7 @@ namespace DeviceHive.Client
         /// <returns>A list of <see cref="Device"/> objects that match specified filter criteria.</returns>
         public List<Device> GetDevices(DeviceFilter filter = null)
         {
-            return Get<List<Device>>(string.Format("/device" + Query(filter)));
+            return Get<List<Device>>("/device" + Query(filter));
         }
 
         /// <summary>
@@ -570,35 +570,19 @@ namespace DeviceHive.Client
 
         private T Post<T>(string url, T obj)
         {
-            Logger.Debug("Calling POST " + url);
-            var request = WebRequest.Create(ServiceUrl + url);
-            request.Method = "POST";
-            request.ContentType = "application/json";
-            request.Credentials = new NetworkCredential(Login, Password);
-            using (var stream = request.GetRequestStream())
-            {
-                Serialize(stream, obj);
-            }
-
-            try
-            {
-                var response = request.GetResponse();
-                using (var stream = response.GetResponseStream())
-                {
-                    return Deserialize<T>(stream);
-                }
-            }
-            catch (WebException ex)
-            {
-                throw new ClientServiceException("Network error while sending request to the server", ex);
-            }
+            return Invoke<T>("POST", url, obj);
         }
 
         private T Put<T>(string url, T obj)
         {
-            Logger.Debug("Calling PUT " + url);
+            return Invoke<T>("PUT", url, obj);
+        }
+
+        private T Invoke<T>(string method, string url, T obj)
+        {
+            Logger.Debug("Calling " + method + " " + url);
             var request = WebRequest.Create(ServiceUrl + url);
-            request.Method = "PUT";
+            request.Method = method;
             request.ContentType = "application/json";
             request.Credentials = new NetworkCredential(Login, Password);
             using (var stream = request.GetRequestStream())
