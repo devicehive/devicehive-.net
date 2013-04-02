@@ -45,7 +45,6 @@ namespace VirtualLedClient
                 // start the device notification handling task
                 var cancellationSource = new CancellationTokenSource();
                 var token = cancellationSource.Token;
-
                 service.PollNotifications(HandleNotifications, device.Id.Value, DateTime.UtcNow, token);
 
                 // read user input to send corresponding commands to the VirtualLed device
