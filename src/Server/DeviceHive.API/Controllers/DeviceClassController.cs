@@ -54,7 +54,7 @@ namespace DeviceHive.API.Controllers
         /// Creates new device class.
         /// </summary>
         /// <param name="json" cref="DeviceClass">In the request body, supply a <see cref="DeviceClass"/> resource.</param>
-        /// <returns cref="DeviceClass">If successful, this method returns a <see cref="DeviceClass"/> resource in the response body.</returns>
+        /// <returns cref="DeviceClass" mode="OneWayOnly">If successful, this method returns a <see cref="DeviceClass"/> resource in the response body.</returns>
         [HttpCreatedResponse]
         [AuthorizeUser(Roles = "Administrator")]
         public JObject Post(JObject json)
@@ -66,7 +66,7 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "Device class with such name and version already exists!");
 
             DataContext.DeviceClass.Save(deviceClass);
-            return Mapper.Map(deviceClass);
+            return Mapper.Map(deviceClass, oneWayOnly: true);
         }
 
         /// <name>update</name>
@@ -75,14 +75,14 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device class identifier.</param>
         /// <param name="json" cref="DeviceClass">In the request body, supply a <see cref="DeviceClass"/> resource.</param>
-        /// <returns cref="DeviceClass">If successful, this method returns a <see cref="DeviceClass"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="name" required="false" />
         ///     <parameter name="version" required="false" />
         ///     <parameter name="isPermanent" required="false" />
         /// </request>
+        [HttpNoContentResponse]
         [AuthorizeUser(Roles = "Administrator")]
-        public JObject Put(int id, JObject json)
+        public void Put(int id, JObject json)
         {
             var deviceClass = DataContext.DeviceClass.Get(id);
             if (deviceClass == null)
@@ -96,7 +96,6 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "Device class with such name and version already exists!");
 
             DataContext.DeviceClass.Save(deviceClass);
-            return Mapper.Map(deviceClass);
         }
 
         /// <name>delete</name>

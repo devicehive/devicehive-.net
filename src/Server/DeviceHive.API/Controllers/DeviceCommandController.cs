@@ -69,7 +69,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="json" cref="DeviceCommand">In the request body, supply a <see cref="DeviceCommand"/> resource.</param>
-        /// <returns cref="DeviceCommand">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
+        /// <returns cref="DeviceCommand" mode="OneWayOnly">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="status" mode="remove" />
         ///     <parameter name="result" mode="remove" />
@@ -89,7 +89,7 @@ namespace DeviceHive.API.Controllers
 
             DataContext.DeviceCommand.Save(command);
             _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, command.ID));
-            return Mapper.Map(command);
+            return Mapper.Map(command, oneWayOnly: true);
         }
 
         /// <name>update</name>
@@ -99,14 +99,14 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="id">Device command identifier.</param>
         /// <param name="json" cref="DeviceCommand">In the request body, supply a <see cref="DeviceCommand"/> resource.</param>
-        /// <returns cref="DeviceCommand">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="command" mode="remove" />
         ///     <parameter name="parameters" mode="remove" />
         ///     <parameter name="lifetime" mode="remove" />
         /// </request>
+        [HttpNoContentResponse]
         [AuthorizeDeviceOrUser(Roles = "Administrator")]
-        public JObject Put(Guid deviceGuid, int id, JObject json)
+        public void Put(Guid deviceGuid, int id, JObject json)
         {
             EnsureDeviceAccess(deviceGuid);
 
@@ -124,7 +124,6 @@ namespace DeviceHive.API.Controllers
 
             DataContext.DeviceCommand.Save(command);
             _messageBus.Notify(new DeviceCommandUpdatedMessage(device.ID, command.ID));
-            return Mapper.Map(command);
         }
 
         private IJsonMapper<DeviceCommand> Mapper

@@ -68,7 +68,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="json" cref="DeviceNotification">In the request body, supply a <see cref="DeviceNotification"/> resource.</param>
-        /// <returns cref="DeviceNotification">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
+        /// <returns cref="DeviceNotification" mode="OneWayOnly">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
         [HttpCreatedResponse]
         [AuthorizeDeviceOrUser(Roles = "Administrator")]
         public JObject Post(Guid deviceGuid, JObject json)
@@ -86,7 +86,8 @@ namespace DeviceHive.API.Controllers
             DataContext.DeviceNotification.Save(notification);
             _messageManager.ProcessNotification(notification);
             _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
-            return Mapper.Map(notification);
+
+            return Mapper.Map(notification, oneWayOnly: true);
         }
 
         private IJsonMapper<DeviceNotification> Mapper

@@ -72,7 +72,6 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         /// <param name="json" cref="Device">In the request body, supply a <see cref="Device"/> resource.</param>
-        /// <returns cref="Device">If successful, this method returns a <see cref="Device"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="network" mode="remove" />
         ///     <parameter name="deviceClass" mode="remove" />
@@ -91,7 +90,8 @@ namespace DeviceHive.API.Controllers
         ///         <para>In case when device class is permanent, this value is ignored.</para>
         ///     </parameter>
         /// </request>
-        public JObject Put(Guid id, JObject json)
+        [HttpNoContentResponse]
+        public void Put(Guid id, JObject json)
         {
             // load device from repository
             var device = DataContext.Device.Get(id);
@@ -110,11 +110,9 @@ namespace DeviceHive.API.Controllers
                 device = new Device(id);
             }
 
-            JObject result = null;
-
             try
             {
-                result = _deviceService.SaveDevice(device, json,
+                _deviceService.SaveDevice(device, json,
                     RequestContext.CurrentUser == null);
             }
             catch (InvalidDataException e)
@@ -125,8 +123,6 @@ namespace DeviceHive.API.Controllers
             {
                 ThrowHttpResponse(HttpStatusCode.Forbidden, e.Message);
             }
-
-            return result;
         }
 
         /// <name>delete</name>

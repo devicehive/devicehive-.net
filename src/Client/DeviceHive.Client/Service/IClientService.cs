@@ -169,8 +169,7 @@ namespace DeviceHive.Client
         /// The method only updates the user password.
         /// </summary>
         /// <param name="user">The <see cref="User"/> object with the new password.</param>
-        /// <returns>The <see cref="User"/> object with updated fields.</returns>
-        User UpdateCurrentUser(User user);
+        void UpdateCurrentUser(User user);
 
         /// <summary>
         /// Fires when new notification inserted for some active notification subscription.

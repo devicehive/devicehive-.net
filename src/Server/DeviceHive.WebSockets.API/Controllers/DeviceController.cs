@@ -129,7 +129,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </summary>
         /// <param name="notification" cref="DeviceNotification">A <see cref="DeviceNotification"/> resource to create.</param>
         /// <response>
-        ///     <parameter name="notification" cref="DeviceNotification">An inserted <see cref="DeviceNotification"/> resource.</parameter>
+        ///     <parameter name="notification" cref="DeviceNotification" mode="OneWayOnly">An inserted <see cref="DeviceNotification"/> resource.</parameter>
         /// </response>
         [Action("notification/insert", NeedAuthentication = true)]
         public void InsertDeviceNotification(JObject notification)
@@ -145,7 +145,7 @@ namespace DeviceHive.WebSockets.API.Controllers
             _messageManager.ProcessNotification(notificationEntity);
             _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.ID, notificationEntity.ID));
 
-            notification = NotificationMapper.Map(notificationEntity);
+            notification = NotificationMapper.Map(notificationEntity, oneWayOnly: true);
             SendResponse(new JProperty("notification", notification));
         }
 
@@ -157,9 +157,6 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <request>
         ///     <parameter name="command.command" required="false" />
         /// </request>
-        /// <response>
-        ///     <parameter name="command" cref="DeviceCommand">An updated <see cref="DeviceCommand"/> resource.</parameter>
-        /// </response>
         [Action("command/update", NeedAuthentication = true)]
         public void UpdateDeviceCommand(int commandId, JObject command)
         {
@@ -180,8 +177,7 @@ namespace DeviceHive.WebSockets.API.Controllers
             DataContext.DeviceCommand.Save(commandEntity);
             _messageBus.Notify(new DeviceCommandUpdatedMessage(CurrentDevice.ID, commandEntity.ID));
 
-            command = CommandMapper.Map(commandEntity);
-            SendResponse(new JProperty("command", command));
+            SendSuccessResponse();
         }
 
         /// <summary>
@@ -261,9 +257,6 @@ namespace DeviceHive.WebSockets.API.Controllers
         ///         <para>In case when device class is permanent, this value is ignored.</para>
         ///     </parameter>
         /// </request>
-        /// <response>
-        ///     <parameter name="device" cref="Device">The <see cref="Device"/> resource representing the registered/updated device.</parameter>
-        /// </response>
         [Action("device/save", NeedAuthentication = false)]
         public void SaveDevice(Guid deviceId, JObject device)
         {
@@ -288,13 +281,12 @@ namespace DeviceHive.WebSockets.API.Controllers
                     deviceEntity = new Device(deviceId);
                 }
 
-                device = _deviceService.SaveDevice(deviceEntity, device);
-                SendResponse(new JProperty("device", device));
+                SendSuccessResponse();
             }
             catch (ServiceException e)
             {
                 SendErrorResponse(e.Message);
-            }            
+            }
         }
 
         #endregion

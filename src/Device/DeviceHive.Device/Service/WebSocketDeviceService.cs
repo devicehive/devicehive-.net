@@ -162,34 +162,26 @@ namespace DeviceHive.Device
         /// Registers a device.
         /// </summary>
         /// <param name="device">Device object.</param>
-        /// <returns><see cref="Device"/> object from DeviceHive.</returns>
-        public Device RegisterDevice(Device device)
+        public void RegisterDevice(Device device)
         {
             if (!_isConnected)
                 Open();
 
             var deviceJson = Serialize(device);
-            var res = SendRequest("device/save", device.Id, device.Key,
-                new JProperty("device", deviceJson));
-            deviceJson = (JObject)res["device"];
-            return Deserialize<Device>(deviceJson);
+            SendRequest("device/save", device.Id, device.Key, new JProperty("device", deviceJson));
         }
 
         /// <summary>
         /// Update a existing device.
         /// </summary>
         /// <param name="device">Device object.</param>
-        /// <returns><see cref="Device"/> object from DeviceHive.</returns>
-        public Device UpdateDevice(Device device)
+        public void UpdateDevice(Device device)
         {
             if (!_isConnected)
                 Open();
 
             var deviceJson = Serialize(device, NullValueHandling.Ignore);
-            var res = SendRequest("device/save", device.Id, device.Key,
-                new JProperty("device", deviceJson));
-            deviceJson = (JObject)res["device"];
-            return Deserialize<Device>(deviceJson);
+            SendRequest("device/save", device.Id, device.Key, new JProperty("device", deviceJson));
         }
 
         /// <summary>
@@ -199,8 +191,7 @@ namespace DeviceHive.Device
         /// <param name="deviceGuid">Optional device unique identifier.</param>
         /// <param name="deviceKey">Optional device key.</param>
         /// <returns>The <see cref="Notification"/> object with updated identifier and timestamp.</returns>
-        public Notification SendNotification(Notification notification,
-            Guid? deviceGuid = null, string deviceKey = null)
+        public Notification SendNotification(Notification notification, Guid? deviceGuid = null, string deviceKey = null)
         {
             if (!_isConnected)
                 Open();

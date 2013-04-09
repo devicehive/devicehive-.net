@@ -37,6 +37,11 @@ namespace DeviceHive.Test
         protected int ExpectedCreatedStatus { get; set; }
 
         /// <summary>
+        /// Gets or sets expected status code for PUT call
+        /// </summary>
+        protected int ExpectedUpdatedStatus { get; set; }
+
+        /// <summary>
         /// Gets or sets expected status code for DELETE call
         /// </summary>
         protected int ExpectedDeletedStatus { get; set; }
@@ -73,6 +78,7 @@ namespace DeviceHive.Test
             Client = new JsonClient(ConfigurationManager.AppSettings["ApiUrl"]);
 
             ExpectedCreatedStatus = 201;
+            ExpectedUpdatedStatus = 204;
             ExpectedDeletedStatus = 204;
             UnexistingResourceID = 999999;
             ExistingAdminUsername = "dhadmin";
@@ -191,18 +197,17 @@ namespace DeviceHive.Test
         /// <param name="resource">Resource to update</param>
         /// <param name="resourceObject">Resource object to send as update</param>
         /// <param name="auth">Authorization info</param>
-        /// <returns>JObject that represents server response</returns>
-        protected virtual JObject Update(object resource, object resourceObject, Authorization auth = null)
+        protected virtual void Update(object resource, object resourceObject, Authorization auth = null)
         {
             // invoke update
             var resourceId = GetResourceId(resource);
             var response = Client.Put(ResourceUri + "/" + resourceId, resourceObject, auth: auth);
 
             // verify response object
-            ExpectResponseStatus(response, 200);
-            Expect(response.Json, Is.InstanceOf<JObject>());
-            Expect(GetResourceId((JObject)response.Json), Is.EqualTo(resourceId.ToString()));
-            return (JObject)response.Json;
+            ExpectResponseStatus(response, ExpectedUpdatedStatus);
+            //Expect(response.Json, Is.InstanceOf<JObject>());
+            //Expect(GetResourceId((JObject)response.Json), Is.EqualTo(resourceId.ToString()));
+            //return (JObject)response.Json;
         }
 
         /// <summary>
@@ -261,7 +266,7 @@ namespace DeviceHive.Test
             {
                 var networkId = GetResourceId(network);
                 var userNetworkResponse = Client.Put("/user/" + userId + "/network/" + networkId, new { }, auth: Admin);
-                Expect(userNetworkResponse.Status, Is.EqualTo(200));
+                Expect(userNetworkResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
                 RegisterForDeletion("/user/" + userId + "/network/" + networkId);
             }
 

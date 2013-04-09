@@ -21,7 +21,7 @@ namespace DeviceHive.DocGenerator
             _xmlCommentReader = xmlCommentReader;
         }
 
-        public MetadataParameter[] GetTypeParameters(Type type, JsonMapperEntryMode? exclude = null, string prefix = null)
+        public MetadataParameter[] GetTypeParameters(Type type, JsonMapperEntryMode? mode = null, string prefix = null)
         {
             // get JSON mapping manager
             var mapper = _jsonMapperManager.GetMapper(type);
@@ -30,7 +30,7 @@ namespace DeviceHive.DocGenerator
 
             // create parameters from mapping entries
             var parameters = new List<MetadataParameter>();
-            foreach (var parameter in mapper.Entries.Where(e => exclude == null || e.Mode != exclude.Value))
+            foreach (var parameter in mapper.Entries.Where(e => mode == null || (mode.Value & e.Mode) == mode.Value))
             {
                 // add parameter that corresponds to the mapped property
                 var isJsonObject = parameter.EntityProperty.IsDefined(typeof(JsonFieldAttribute), false);
@@ -46,13 +46,13 @@ namespace DeviceHive.DocGenerator
                 // add child object parameters
                 if (param.Type == "object" && !isJsonObject)
                 {
-                    parameters.AddRange(GetTypeParameters(parameter.EntityProperty.PropertyType, exclude, param.Name));
+                    parameters.AddRange(GetTypeParameters(parameter.EntityProperty.PropertyType, mode, param.Name));
                 }
             }
             return parameters.ToArray();
         }
 
-        public void AdjustParameters(List<MetadataParameter> parameters, XElement adjustElement, JsonMapperEntryMode? exclude = null)
+        public void AdjustParameters(List<MetadataParameter> parameters, XElement adjustElement, JsonMapperEntryMode? jsonMode = null)
         {
             foreach (var parameterElement in adjustElement.Elements("parameter")
                 .Where(p => p.Attribute("name") != null))
@@ -91,7 +91,10 @@ namespace DeviceHive.DocGenerator
                 {
                     if (param.Type == null)
                         param.Type = "object";
-                    parameters.AddRange(GetTypeParameters(cref, exclude, param.Name + (type == "array" ? "[]" : null)));
+                    var paramJsonMode = jsonMode;
+                    if (paramJsonMode != null && mode == "OneWayOnly")
+                        paramJsonMode = paramJsonMode.Value | JsonMapperEntryMode.OneWayOnly;
+                    parameters.AddRange(GetTypeParameters(cref, paramJsonMode, param.Name + (type == "array" ? "[]" : null)));
                 }
             }
         }

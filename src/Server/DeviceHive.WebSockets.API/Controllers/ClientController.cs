@@ -117,7 +117,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <param name="deviceGuid">Target device unique identifier.</param>
         /// <param name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource to create.</param>
         /// <response>
-        ///     <parameter name="command" cref="DeviceCommand">An inserted <see cref="DeviceCommand"/> resource.</parameter>
+        ///     <parameter name="command" cref="DeviceCommand" mode="OneWayOnly">An inserted <see cref="DeviceCommand"/> resource.</parameter>
         /// </response>
         [Action("command/insert", NeedAuthentication = true)]
         public void InsertDeviceCommand(Guid deviceGuid, JObject command)
@@ -141,7 +141,7 @@ namespace DeviceHive.WebSockets.API.Controllers
             _commandSubscriptionManager.Subscribe(Connection, commandEntity.ID);
             _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, commandEntity.ID));
             
-            command = CommandMapper.Map(commandEntity);
+            command = CommandMapper.Map(commandEntity, oneWayOnly: true);
             SendResponse(new JProperty("command", command));
         }
 

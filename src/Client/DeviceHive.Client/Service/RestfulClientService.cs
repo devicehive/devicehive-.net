@@ -377,10 +377,9 @@ namespace DeviceHive.Client
         /// The method only updates the user password.
         /// </summary>
         /// <param name="user">The <see cref="User"/> object with the new password.</param>
-        /// <returns>The <see cref="User"/> object with updated fields.</returns>
-        public User UpdateCurrentUser(User user)
+        public void UpdateCurrentUser(User user)
         {
-            return Put<User>("/user/current", user);
+            Put<User>("/user/current", user);
         }
 
         /// <summary>
@@ -570,19 +569,9 @@ namespace DeviceHive.Client
 
         private T Post<T>(string url, T obj)
         {
-            return Invoke<T>("POST", url, obj);
-        }
-
-        private T Put<T>(string url, T obj)
-        {
-            return Invoke<T>("PUT", url, obj);
-        }
-
-        private T Invoke<T>(string method, string url, T obj)
-        {
-            Logger.Debug("Calling " + method + " " + url);
+            Logger.Debug("Calling POST " + url);
             var request = WebRequest.Create(ServiceUrl + url);
-            request.Method = method;
+            request.Method = "POST";
             request.ContentType = "application/json";
             request.Credentials = new NetworkCredential(Login, Password);
             using (var stream = request.GetRequestStream())
@@ -597,6 +586,28 @@ namespace DeviceHive.Client
                 {
                     return Deserialize<T>(stream);
                 }
+            }
+            catch (WebException ex)
+            {
+                throw new ClientServiceException("Network error while sending request to the server", ex);
+            }
+        }
+
+        private void Put<T>(string url, T obj)
+        {
+            Logger.Debug("Calling PUT " + url);
+            var request = WebRequest.Create(ServiceUrl + url);
+            request.Method = "PUT";
+            request.ContentType = "application/json";
+            request.Credentials = new NetworkCredential(Login, Password);
+            using (var stream = request.GetRequestStream())
+            {
+                Serialize(stream, obj);
+            }
+
+            try
+            {
+                request.GetResponse();
             }
             catch (WebException ex)
             {

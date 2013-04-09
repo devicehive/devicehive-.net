@@ -80,7 +80,7 @@ namespace DeviceHive.Data.Model
         public string Status { get; set; }
 
         /// <summary>
-        /// Command execution result, and optional value that could be provided by device.
+        /// Command execution result, an optional value that could be provided by device.
         /// </summary>
         [JsonField]
         public string Result { get; set; }

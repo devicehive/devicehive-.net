@@ -145,11 +145,11 @@ namespace DeviceHive.DocGenerator
                     var resourceType = _helper.GetCrefType(queryElement);
                     if (resourceType != null)
                     {
-                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.OneWay));
+                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson));
                     }
 
                     // adjust URL parameters according to the XML query element
-                    _helper.AdjustParameters(parameters, queryElement, JsonMapperEntryMode.OneWay);
+                    _helper.AdjustParameters(parameters, queryElement, JsonMapperEntryMode.FromJson);
                 }
             }
 
@@ -197,7 +197,7 @@ namespace DeviceHive.DocGenerator
                 var resourceType = _helper.GetCrefType(methodParamElement);
                 if (resourceType != null)
                 {
-                    parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.OneWay));
+                    parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson));
                 }
             }
 
@@ -205,7 +205,7 @@ namespace DeviceHive.DocGenerator
             var requestElement = methodElement.Element("request");
             if (requestElement != null)
             {
-                _helper.AdjustParameters(parameters, requestElement, JsonMapperEntryMode.OneWay);
+                _helper.AdjustParameters(parameters, requestElement, JsonMapperEntryMode.FromJson);
             }
 
             return parameters.ToArray();
@@ -233,7 +233,8 @@ namespace DeviceHive.DocGenerator
                 var resourceType = _helper.GetCrefType(methodReturnsElement);
                 if (resourceType != null)
                 {
-                    parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.OneWayToSource));
+                    var oneWayOnly = (string)methodReturnsElement.Attribute("mode") == "OneWayOnly";
+                    parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.ToJson | (oneWayOnly ? JsonMapperEntryMode.OneWayOnly : 0)));
                 }
             }
 
@@ -241,7 +242,7 @@ namespace DeviceHive.DocGenerator
             var responseElement = methodElement.Element("response");
             if (responseElement != null)
             {
-                _helper.AdjustParameters(parameters, responseElement, JsonMapperEntryMode.OneWayToSource);
+                _helper.AdjustParameters(parameters, responseElement, JsonMapperEntryMode.ToJson);
             }
 
             return parameters.ToArray();

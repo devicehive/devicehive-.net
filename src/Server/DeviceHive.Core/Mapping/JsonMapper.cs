@@ -89,8 +89,9 @@ namespace DeviceHive.Core.Mapping
         /// Maps entity to json
         /// </summary>
         /// <param name="entity">Entity object</param>
+        /// <param name="oneWayOnly">Whether to map only OneWay fields</param>
         /// <returns>Mapped JObject object</returns>
-        public JObject Map(T entity)
+        public JObject Map(T entity, bool oneWayOnly = false)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -98,8 +99,13 @@ namespace DeviceHive.Core.Mapping
             var json = new JObject();
             foreach (var entry in _configuration.Entries)
             {
-                if (entry.Mode == JsonMapperEntryMode.OneWay || entry.Mode == JsonMapperEntryMode.TwoWay)
+                if ((entry.Mode & JsonMapperEntryMode.ToJson) != 0)
+                {
+                    if (oneWayOnly && (entry.Mode & JsonMapperEntryMode.OneWayOnly) == 0)
+                        continue;
+
                     entry.MapToJson(entity, json);
+                }
             }
 
             OnAfterMapToJson(entity, json);
@@ -134,7 +140,7 @@ namespace DeviceHive.Core.Mapping
 
             foreach (var entry in _configuration.Entries)
             {
-                if (entry.Mode == JsonMapperEntryMode.OneWayToSource || entry.Mode == JsonMapperEntryMode.TwoWay)
+                if ((entry.Mode & JsonMapperEntryMode.FromJson) != 0)
                     entry.MapToEntity(json, entity);
             }
         }

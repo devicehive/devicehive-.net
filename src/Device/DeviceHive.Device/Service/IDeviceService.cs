@@ -21,15 +21,13 @@ namespace DeviceHive.Device
         /// Registers a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
-        /// <returns><see cref="Device"/> object registered.</returns>
-        Device RegisterDevice(Device device);
+        void RegisterDevice(Device device);
 
         /// <summary>
         /// Updates a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
-        /// <returns><see cref="Device"/> object updated.</returns>
-        Device UpdateDevice(Device device);
+        void UpdateDevice(Device device);
 
         /// <summary>
         /// Sends new device notification to the service.

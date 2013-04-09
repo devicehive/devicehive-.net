@@ -33,7 +33,7 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion("/device/class/" + DeviceClassID);
 
             var deviceResponse = Client.Put("/device/" + DeviceGUID, new { key = "key", name = "_ut_dc", network = NetworkID, deviceClass = DeviceClassID });
-            Assert.That(deviceResponse.Status, Is.EqualTo(200));
+            Assert.That(deviceResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
             RegisterForDeletion("/device/" + DeviceGUID);
         }
 
@@ -142,7 +142,6 @@ namespace DeviceHive.Test.ApiTest
 
             var resource = Create(new { command = "_ut" }, auth: User("_ut_u", "x"));
 
-            Expect(resource, Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = userId }));
             Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = userId }));
         }
 
@@ -150,9 +149,8 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             var resource = Create(new { command = "_ut" }, auth: Admin);
-            var update = Update(resource, new { command = "_ut2", parameters = new { a = "b" }, status = "OK", result = "Success" }, auth: Device(DeviceGUID, "key"));
+            Update(resource, new { command = "_ut2", parameters = new { a = "b" }, status = "OK", result = "Success" }, auth: Device(DeviceGUID, "key"));
 
-            Expect(update, Matches(new { command = "_ut2", parameters = new { a = "b" }, status = "OK", result = "Success", timestamp = ResponseMatchesContraint.Timestamp }));
             Expect(Get(resource, auth: Admin), Matches(new { command = "_ut2", parameters = new { a = "b" }, status = "OK", result = "Success", timestamp = ResponseMatchesContraint.Timestamp }));
         }
 
@@ -160,9 +158,8 @@ namespace DeviceHive.Test.ApiTest
         public void Update_Partial()
         {
             var resource = Create(new { command = "_ut", parameters = new { a = "b" } }, auth: Admin);
-            var update = Update(resource, new { parameters = new { a = "b2" } }, auth: Device(DeviceGUID, "key"));
+            Update(resource, new { parameters = new { a = "b2" } }, auth: Device(DeviceGUID, "key"));
 
-            Expect(update, Matches(new { command = "_ut", parameters = new { a = "b2" }, timestamp = ResponseMatchesContraint.Timestamp }));
             Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = new { a = "b2" }, timestamp = ResponseMatchesContraint.Timestamp }));
         }
 
@@ -187,18 +184,18 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Get(), FailsWith(401));
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
             Expect(() => Create(new { command = "_ut" }), FailsWith(401));
-            Expect(() => Update(UnexistingResourceID, new { command = "_ut" }), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { command = "_ut" }); return false; }, FailsWith(401));
 
             // user authorization
             var user = CreateUser(1, NetworkID);
-            Expect(() => Update(UnexistingResourceID, new { notification = "_ut" }, auth: user), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { notification = "_ut" }, auth: user); return false; }, FailsWith(401));
         }
 
         [Test]
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => Update(UnexistingResourceID, new { command = "_ut" }, auth: Admin), FailsWith(404));
+            Expect(() => { Update(UnexistingResourceID, new { command = "_ut" }, auth: Admin); return false; }, FailsWith(404));
         }
     }
 }

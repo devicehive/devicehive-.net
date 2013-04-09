@@ -32,7 +32,7 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion("/device/class/" + DeviceClassID);
 
             var deviceResponse = Client.Put("/device/" + DeviceGUID, new { key = "key", name = "_ut_dc", network = NetworkID, deviceClass = DeviceClassID });
-            Assert.That(deviceResponse.Status, Is.EqualTo(200));
+            Assert.That(deviceResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
             RegisterForDeletion("/device/" + DeviceGUID);
 
             var deviceNotificationResponse = Client.Post("/device/" + DeviceGUID + "/notification",
@@ -72,7 +72,7 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Update()
         {
-            Expect(() => Update("test", new { parameters = new { x = "y" } }, auth: Admin), FailsWith(405));
+            Expect(() => { Update("test", new { parameters = new { x = "y" } }, auth: Admin); return false; }, FailsWith(405));
         }
 
         [Test]

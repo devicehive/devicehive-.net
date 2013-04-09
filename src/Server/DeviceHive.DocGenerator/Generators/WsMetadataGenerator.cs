@@ -135,7 +135,7 @@ namespace DeviceHive.DocGenerator
                     var resourceType = _helper.GetCrefType(methodParamElement);
                     if (resourceType != null)
                     {
-                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.OneWay, p.Name));
+                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson, p.Name));
                     }
                 }
             }
@@ -145,7 +145,7 @@ namespace DeviceHive.DocGenerator
             var requestElement = methodElement == null ? null : methodElement.Element("request");
             if (requestElement != null)
             {
-                _helper.AdjustParameters(parameters, requestElement, JsonMapperEntryMode.OneWay);
+                _helper.AdjustParameters(parameters, requestElement, JsonMapperEntryMode.FromJson);
             }
 
             // adjust documentation for device/save method
@@ -175,7 +175,7 @@ namespace DeviceHive.DocGenerator
             var responseElement = methodElement == null ? null : methodElement.Element("response");
             if (responseElement != null)
             {
-                _helper.AdjustParameters(parameters, responseElement, JsonMapperEntryMode.OneWayToSource);
+                _helper.AdjustParameters(parameters, responseElement, JsonMapperEntryMode.ToJson);
             }
 
             return parameters.ToArray();

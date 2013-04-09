@@ -192,7 +192,7 @@ namespace DeviceHive.Core.Mapping
                     Expression.Condition(
                         Expression.NotEqual(Expression.Invoke(entityPropertyExpression, entity), Expression.Constant(null, typeof(TRef))),
                         Expression.Call(Expression.Constant(mapper), typeof(IJsonMapper<>).MakeGenericType(typeof(TRef))
-                            .GetMethod("Map", new[] { typeof(TRef) }), Expression.Invoke(entityPropertyExpression, entity)),
+                            .GetMethod("Map", new[] { typeof(TRef), typeof(bool) }), Expression.Invoke(entityPropertyExpression, entity), Expression.Constant(false)),
                         Expression.Constant(null, typeof(JObject)))));
             var mapToJsonLabmda = Expression.Lambda<Action<T, JObject>>(jsonAddProperty, entity, json);
 

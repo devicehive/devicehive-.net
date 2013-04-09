@@ -33,34 +33,32 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create()
         {
-            var resource = Update(NetworkID, new { }, auth: Admin);
+            Update(NetworkID, new { }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + NetworkID);
 
-            Expect(resource, Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" }}));
-            Expect(Get(resource, auth: Admin), Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" } }));
+            Expect(Get(NetworkID, auth: Admin), Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" } }));
         }
 
         [Test]
         public void Update()
         {
-            var resource = Update(NetworkID, new { }, auth: Admin);
+            Update(NetworkID, new { }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + NetworkID);
 
-            var update = Update(resource, new { }, auth: Admin);
+            Update(NetworkID, new { }, auth: Admin);
 
-            Expect(update, Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" }}));
-            Expect(Get(resource, auth: Admin), Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" } }));
+            Expect(Get(NetworkID, auth: Admin), Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" } }));
         }
 
         [Test]
         public void Delete()
         {
-            var resource = Update(NetworkID, new { }, auth: Admin);
+            Update(NetworkID, new { }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + NetworkID);
 
-            Delete(resource, auth: Admin);
+            Delete(NetworkID, auth: Admin);
 
-            Expect(() => Get(resource, auth: Admin), FailsWith(404));
+            Expect(() => Get(NetworkID, auth: Admin), FailsWith(404));
         }
 
         [Test]
@@ -68,13 +66,13 @@ namespace DeviceHive.Test.ApiTest
         {
             // no authorization
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
-            Expect(() => Update(UnexistingResourceID, new { }), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { }); return false; }, FailsWith(401));
             Expect(() => { Delete(UnexistingResourceID); return false; }, FailsWith(401));
 
             // user authorization
             var user = CreateUser(1);
             Expect(() => Get(UnexistingResourceID, auth: user), FailsWith(401));
-            Expect(() => Update(UnexistingResourceID, new { }, auth: user), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { }, auth: user); return false; }, FailsWith(401));
             Expect(() => { Delete(UnexistingResourceID, auth: user); return false; }, FailsWith(401));
         }
 
@@ -82,7 +80,7 @@ namespace DeviceHive.Test.ApiTest
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => Update(UnexistingResourceID, new { }, auth: Admin), FailsWith(404));
+            Expect(() => { Update(UnexistingResourceID, new { }, auth: Admin); return false; }, FailsWith(404));
             Delete(UnexistingResourceID, auth: Admin); // should not fail
         }
 

@@ -84,8 +84,7 @@ namespace DeviceHive.Device
         /// Registers a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
-        /// <returns><see cref="Device"/> object registered.</returns>
-        public Device RegisterDevice(Device device)
+        public void RegisterDevice(Device device)
         {
             if (device == null)
                 throw new ArgumentNullException("device");
@@ -108,18 +107,17 @@ namespace DeviceHive.Device
                 throw new ArgumentException("Device class version is null or empty!", "device.DeviceClass.Version");
 
             if (InitWebSocketsService())
-                return _webSocketDeviceService.RegisterDevice(device);
+                _webSocketDeviceService.RegisterDevice(device);
 
             var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
-            return Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d);
+            Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d);
         }
 
         /// <summary>
         /// Updates a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
-        /// <returns><see cref="Device"/> object updated.</returns>
-        public Device UpdateDevice(Device device)
+        public void UpdateDevice(Device device)
         {
             if (device == null)
                 throw new ArgumentNullException("device");
@@ -142,10 +140,10 @@ namespace DeviceHive.Device
             }
 
             if (InitWebSocketsService())
-                return _webSocketDeviceService.UpdateDevice(device);
+                _webSocketDeviceService.UpdateDevice(device);
 
             var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
-            return Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d, NullValueHandling.Ignore);
+            Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d, NullValueHandling.Ignore);
         }
 
         /// <summary>
@@ -474,7 +472,7 @@ namespace DeviceHive.Device
             }
         }
 
-        private T Put<T>(string url, Guid deviceId, string deviceKey, T obj, NullValueHandling nullValueHandling = NullValueHandling.Include)
+        private void Put<T>(string url, Guid deviceId, string deviceKey, T obj, NullValueHandling nullValueHandling = NullValueHandling.Include)
         {
             Logger.Debug("Calling PUT " + url);
             var request = WebRequest.Create(ServiceUrl + url);
@@ -489,11 +487,7 @@ namespace DeviceHive.Device
 
             try
             {
-                var response = request.GetResponse();
-                using (var stream = response.GetResponseStream())
-                {
-                    return Deserialize<T>(stream);
-                }
+                request.GetResponse();
             }
             catch (WebException ex)
             {

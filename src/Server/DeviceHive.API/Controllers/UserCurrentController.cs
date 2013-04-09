@@ -36,11 +36,11 @@ namespace DeviceHive.API.Controllers
         /// Updates the current user.
         /// </summary>
         /// <param name="json">In the request body, supply a <see cref="User"/> resource.</param>
-        /// <returns cref="User">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="password" type="string">User password</parameter>
         /// </request>
-        public JObject Put(JObject json)
+        [HttpNoContentResponse]
+        public void Put(JObject json)
         {
             var user = DataContext.User.Get(RequestContext.CurrentUser.ID);
 
@@ -49,7 +49,6 @@ namespace DeviceHive.API.Controllers
             Validate(user);
 
             DataContext.User.Save(user);
-            return Mapper.Map(user);
         }
 
         private IJsonMapper<User> Mapper
