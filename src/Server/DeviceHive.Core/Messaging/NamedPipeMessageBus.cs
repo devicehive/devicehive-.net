@@ -125,19 +125,26 @@ namespace DeviceHive.Core.Messaging
                 PipeAccessRights.FullControl, AccessControlType.Allow);
             pipeSecurity.AddAccessRule(everyoneAccessRule);
 
-            using (var namedPipeServer = new NamedPipeServerStream(
-                _serverPipeConfiguration.Name, PipeDirection.InOut, 1,
-                PipeTransmissionMode.Byte, PipeOptions.Asynchronous,
-                0, 0, pipeSecurity))
+            try
             {
-                while (true)
+                using (var namedPipeServer = new NamedPipeServerStream(
+                    _serverPipeConfiguration.Name, PipeDirection.InOut, 1,
+                    PipeTransmissionMode.Byte, PipeOptions.Asynchronous,
+                    0, 0, pipeSecurity))
                 {
-                    if (_stopReading)
-                        return;
+                    while (true)
+                    {
+                        if (_stopReading)
+                            return;
 
-                    ReadMessage(namedPipeServer);
+                        ReadMessage(namedPipeServer);
+                    }
                 }
             }
+            catch (IOException e)
+            {
+                _log.Error("Named pipe read error", e);
+            }            
         }
 
         private void ReadMessage(NamedPipeServerStream namedPipeServer)

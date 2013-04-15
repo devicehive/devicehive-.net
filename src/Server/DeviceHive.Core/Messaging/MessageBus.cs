@@ -85,6 +85,15 @@ namespace DeviceHive.Core.Messaging
                 var serializer = new JsonSerializer();
                 messageContainer = serializer.Deserialize<MessageContainer>(reader);
             }
+
+            if (messageContainer == null)
+            {
+                _log.ErrorFormat("Message container is null" +
+                    "(data length: {0}, data: {1})",
+                    (data != null) ? data.Length : -1,
+                    (data != null) ? Convert.ToBase64String(data) : string.Empty);
+                return;
+            }
             
             HandleMessage(messageContainer);
         }
