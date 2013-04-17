@@ -410,9 +410,9 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="user">The <see cref="User"/> object with the new password.</param>
         /// <returns>The <see cref="User"/> object with updated fields.</returns>
-        public async Task<User> UpdateCurrentUserAsync(User user)
+        public async Task UpdateCurrentUserAsync(User user)
         {
-            return await PutAsync<User>("/user/current", user);
+            await PutAsync<User>("/user/current", user);
         }
 
         #endregion
@@ -449,18 +449,8 @@ namespace DeviceHive.Client
 
         private async Task<T> PostAsync<T>(string url, T obj)
         {
-            return await InvokeAsync<T>("POST", url, obj);
-        }
-
-        private async Task<T> PutAsync<T>(string url, T obj)
-        {
-            return await InvokeAsync<T>("PUT", url, obj);
-        }
-
-        private async Task<T> InvokeAsync<T>(string method, string url, T obj)
-        {
             var request = WebRequest.CreateHttp(ServiceUrl + url);
-            request.Method = method;
+            request.Method = "POST";
             request.ContentType = "application/json";
             request.Credentials = new NetworkCredential(Login, Password);
             using (var stream = await request.GetRequestStreamAsync())
@@ -475,6 +465,27 @@ namespace DeviceHive.Client
                 {
                     return Deserialize<T>(stream);
                 }
+            }
+            catch (WebException ex)
+            {
+                throw new ClientServiceException("Network error while sending request to the server", ex);
+            }
+        }
+
+        private async Task PutAsync<T>(string url, T obj)
+        {
+            var request = WebRequest.CreateHttp(ServiceUrl + url);
+            request.Method = "PUT";
+            request.ContentType = "application/json";
+            request.Credentials = new NetworkCredential(Login, Password);
+            using (var stream = await request.GetRequestStreamAsync())
+            {
+                Serialize(stream, obj);
+            }
+
+            try
+            {
+                await request.GetResponseAsync();
             }
             catch (WebException ex)
             {

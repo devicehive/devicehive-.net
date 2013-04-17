@@ -165,6 +165,6 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="user">The <see cref="User"/> object with the new password.</param>
         /// <returns>The <see cref="User"/> object with updated fields.</returns>
-        Task<User> UpdateCurrentUserAsync(User user);
+        Task UpdateCurrentUserAsync(User user);
     }
 }

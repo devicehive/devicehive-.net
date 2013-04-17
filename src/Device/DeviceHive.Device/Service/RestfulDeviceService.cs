@@ -107,7 +107,10 @@ namespace DeviceHive.Device
                 throw new ArgumentException("Device class version is null or empty!", "device.DeviceClass.Version");
 
             if (InitWebSocketsService())
+            {
                 _webSocketDeviceService.RegisterDevice(device);
+                return;
+            }
 
             var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
             Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d);
@@ -140,7 +143,10 @@ namespace DeviceHive.Device
             }
 
             if (InitWebSocketsService())
+            {
                 _webSocketDeviceService.UpdateDevice(device);
+                return;
+            }
 
             var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
             Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d, NullValueHandling.Ignore);
