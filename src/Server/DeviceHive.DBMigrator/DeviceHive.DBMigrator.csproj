@@ -47,6 +47,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DeviceHive.Data.EF\DeviceHive.Data.EF.csproj">
+      <Project>{F20179DE-DFFA-48B5-9346-352A5972C08F}</Project>
+      <Name>DeviceHive.Data.EF</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DeviceHive.Data\DeviceHive.Data.csproj">
       <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>
       <Name>DeviceHive.Data</Name>

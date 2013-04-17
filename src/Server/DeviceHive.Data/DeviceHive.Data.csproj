@@ -38,9 +38,6 @@
     <DocumentationFile>bin\Release\DeviceHive.Data.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework">
-      <HintPath>..\..\..\packages\EntityFramework.4.3.1\lib\net40\EntityFramework.dll</HintPath>
-    </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
@@ -49,69 +46,17 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataContext.cs" />
-    <Compile Include="EF\DeviceClassRepository.cs" />
-    <Compile Include="EF\DeviceCommandRepository.cs" />
-    <Compile Include="EF\DeviceEquipmentRepository.cs" />
-    <Compile Include="EF\DeviceHiveContext.cs" />
-    <Compile Include="EF\DeviceNotificationRepository.cs" />
-    <Compile Include="EF\DeviceRepository.cs" />
-    <Compile Include="EF\EquipmentRepository.cs" />
-    <Compile Include="EF\NetworkRepository.cs" />
-    <Compile Include="EF\QueryableExtensions.cs" />
-    <Compile Include="EF\TimestampRepository.cs" />
-    <Compile Include="EF\UserNetworkRepository.cs" />
-    <Compile Include="EF\UserRepository.cs" />
-    <Compile Include="Migrations\201208020910522_6.1.cs" />
-    <Compile Include="Migrations\201208020910522_6.1.Designer.cs">
-      <DependentUpon>201208020910522_6.1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201211271726121_7.0.cs" />
-    <Compile Include="Migrations\201211271726121_7.0.Designer.cs">
-      <DependentUpon>201211271726121_7.0.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201211271736196_7.1.cs" />
-    <Compile Include="Migrations\201211271736196_7.1.Designer.cs">
-      <DependentUpon>201211271736196_7.1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201212021916148_7.2.cs" />
-    <Compile Include="Migrations\201212021916148_7.2.Designer.cs">
-      <DependentUpon>201212021916148_7.2.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201212071109516_7.3.cs" />
-    <Compile Include="Migrations\201212071109516_7.3.Designer.cs">
-      <DependentUpon>201212071109516_7.3.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201212111857162_7.4.cs" />
-    <Compile Include="Migrations\201212111857162_7.4.Designer.cs">
-      <DependentUpon>201212111857162_7.4.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201212281308163_7.5.cs" />
-    <Compile Include="Migrations\201212281308163_7.5.Designer.cs">
-      <DependentUpon>201212281308163_7.5.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Migrator.cs" />
+    <Compile Include="Repositories\QueryableExtensions.cs" />
     <Compile Include="Model\ApiInfo.cs" />
     <Compile Include="Repositories\ITimestampRepository.cs" />
     <Compile Include="SortOrder.cs" />
     <Compile Include="Validation\JsonFieldAttribute.cs" />
-    <Compile Include="Migrations\201205191537489_5.cs" />
-    <Compile Include="Migrations\201205191537489_5.Designer.cs">
-      <DependentUpon>201205191537489_5.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201206170910295_6.cs" />
-    <Compile Include="Migrations\201206170910295_6.Designer.cs">
-      <DependentUpon>201206170910295_6.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\Device.cs" />
     <Compile Include="Model\DeviceClass.cs" />
     <Compile Include="Model\DeviceCommand.cs" />

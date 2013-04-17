@@ -55,10 +55,10 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var taskSource = new TaskCompletionSource<JArray>();
-            var start = timestamp != null ? timestamp.Value.AddTicks(10) : _timestampRepository.GetCurrentTimestamp();
+            var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             if (waitTimeout <= 0)
             {
-                var filter = new DeviceCommandFilter { Start = start };
+                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false };
                 var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
                 taskSource.SetResult(new JArray(commands.Select(n => Mapper.Map(n))));
                 return taskSource.Task;
@@ -77,7 +77,7 @@ namespace DeviceHive.API.Controllers
                         return;
                     }
 
-                    var filter = new DeviceCommandFilter { Start = start };
+                    var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false };
                     var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
                     if (commands != null && commands.Any())
                     {

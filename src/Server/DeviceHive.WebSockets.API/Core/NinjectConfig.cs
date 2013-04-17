@@ -1,4 +1,6 @@
-﻿using DeviceHive.Core.Mapping;
+﻿using System.Configuration;
+using System.Reflection;
+using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.MessageLogic.NotificationHandlers;
 using DeviceHive.Core.Messaging;
@@ -27,16 +29,17 @@ namespace DeviceHive.WebSockets.API.Core
 
         private static void RegisterServices(IKernel kernel)
         {
+            // bind data context
+            kernel.Bind<DeviceHive.Data.MongoDB.MongoConnection>().ToSelf().InSingletonScope();
+            kernel.Bind<DataContext>().ToSelf().InSingletonScope()
+                .OnActivation<DataContext>(context => { context.SetRepositoryCreator(type => kernel.Get(type)); });
+
             // bind repositories
-            kernel.Bind<IUserRepository, ISimpleRepository<User>>().To<UserRepository>();
-            kernel.Bind<IUserNetworkRepository, ISimpleRepository<UserNetwork>>().To<UserNetworkRepository>();
-            kernel.Bind<INetworkRepository, ISimpleRepository<Network>>().To<NetworkRepository>();
-            kernel.Bind<IDeviceClassRepository, ISimpleRepository<DeviceClass>>().To<DeviceClassRepository>();
-            kernel.Bind<IEquipmentRepository, ISimpleRepository<Equipment>>().To<EquipmentRepository>();
-            kernel.Bind<IDeviceRepository, ISimpleRepository<Device>>().To<DeviceRepository>();
-            kernel.Bind<IDeviceNotificationRepository, ISimpleRepository<DeviceNotification>>().To<DeviceNotificationRepository>();
-            kernel.Bind<IDeviceCommandRepository, ISimpleRepository<DeviceCommand>>().To<DeviceCommandRepository>();
-            kernel.Bind<IDeviceEquipmentRepository, ISimpleRepository<DeviceEquipment>>().To<DeviceEquipmentRepository>();
+            var dataContext = kernel.Get<DataContext>();
+            foreach (var interfaceType in dataContext.RegisteredInterfaces)
+                kernel.Bind(interfaceType).To(dataContext.GetRepositoryType(interfaceType));
+            foreach (var objectType in dataContext.RegisteredObjects)
+                kernel.Bind(typeof(ISimpleRepository<>).MakeGenericType(objectType)).To(dataContext.GetRepositoryTypeFor(objectType));
 
             // bind services
             kernel.Bind<DeviceService>().ToSelf();
@@ -51,9 +54,6 @@ namespace DeviceHive.WebSockets.API.Core
             // bind JSON mapper
             kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope()
                 .OnActivation(JsonMapperConfig.ConfigureMapping);
-
-            // bind data context
-            kernel.Bind<DataContext>().ToSelf().InSingletonScope();
 
             // bind message bus
             kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope()

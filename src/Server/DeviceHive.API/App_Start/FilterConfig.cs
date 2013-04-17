@@ -17,10 +17,8 @@ namespace DeviceHive.API
 
             configuration.MessageHandlers.Add(new XHttpMethodDelegatingHandler());
 
-            var formatter = configuration.Formatters
-                .Where(f => f.SupportedMediaTypes.Any(v => v.MediaType.Equals("application/json", StringComparison.CurrentCultureIgnoreCase)))
-                .FirstOrDefault() as JsonMediaTypeFormatter;
-            formatter.SerializerSettings.Converters.Add(new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffffff" });
+            var jsonFormatter = configuration.Formatters.JsonFormatter;
+            jsonFormatter.SerializerSettings.Converters.Add(new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffffff" });
         }
     }
 }

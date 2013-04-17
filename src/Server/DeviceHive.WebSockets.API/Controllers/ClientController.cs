@@ -215,7 +215,7 @@ namespace DeviceHive.WebSockets.API.Controllers
 
             lock (initialNotificationList)
             {
-                var filter = new DeviceNotificationFilter { Start = timestamp.Value.AddTicks(10) };
+                var filter = new DeviceNotificationFilter { Start = timestamp, IsDateInclusive = false };
                 var initialNotifications = DataContext.DeviceNotification.GetByDevices(
                     devices.Select(d => d.ID).ToArray(), filter);
 

@@ -112,14 +112,19 @@ namespace DeviceHive.Data.Model
         #region Public Properties
 
         /// <summary>
-        /// Filter by command start timestamp (inclusive, UTC).
+        /// Filter by command start timestamp (UTC).
         /// </summary>
         public DateTime? Start { get; set; }
 
         /// <summary>
-        /// Filter by command end timestamp (inclusive, UTC).
+        /// Filter by command end timestamp (UTC).
         /// </summary>
         public DateTime? End { get; set; }
+
+        /// <summary>
+        /// Gets or sets flag indicating if start and end dates are inclusive (default is true).
+        /// </summary>
+        public bool IsDateInclusive { get; set; }
 
         /// <summary>
         /// Filter by command name.
@@ -162,6 +167,7 @@ namespace DeviceHive.Data.Model
         /// </summary>
         public DeviceCommandFilter()
         {
+            IsDateInclusive = true;
             SortField = DeviceCommandSortField.Timestamp;
             Take = 1000;
         }

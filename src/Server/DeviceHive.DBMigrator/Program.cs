@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using DeviceHive.Data.Migrations;
+using DeviceHive.Data.EF.Migrations;
 
 namespace DeviceHive.DBMigrator
 {

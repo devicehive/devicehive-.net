@@ -85,14 +85,19 @@ namespace DeviceHive.Data.Model
         #region Public Properties
 
         /// <summary>
-        /// Filter by notification start timestamp (inclusive, UTC).
+        /// Filter by notification start timestamp (UTC).
         /// </summary>
         public DateTime? Start { get; set; }
 
         /// <summary>
-        /// Filter by notification end timestamp (inclusive, UTC).
+        /// Filter by notification end timestamp (UTC).
         /// </summary>
         public DateTime? End { get; set; }
+
+        /// <summary>
+        /// Gets or sets flag indicating if start and end dates are inclusive (default is true).
+        /// </summary>
+        public bool IsDateInclusive { get; set; }
 
         /// <summary>
         /// Filter by notification name.
@@ -130,6 +135,7 @@ namespace DeviceHive.Data.Model
         /// </summary>
         public DeviceNotificationFilter()
         {
+            IsDateInclusive = true;
             SortField = DeviceNotificationSortField.Timestamp;
             Take = 1000;
         }

@@ -56,9 +56,6 @@ namespace DeviceHive.Test.WebSocketsTest
             var res = ClientController.InsertDeviceCommand(connection, DeviceGUID,
                 new JObject(new JProperty("command", "_ut")));
             Expect((string) res["status"], EqualTo("success"));
-
-            var resCommand = (JObject) res["command"];
-            Expect((string) resCommand["command"], EqualTo("_ut"));
         }        
 
         #endregion

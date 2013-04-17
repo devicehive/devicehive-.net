@@ -1,16 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Data", "DeviceHive.Data\DeviceHive.Data.csproj", "{57837E79-1267-4780-99DC-D872FEEC38C8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Test", "DeviceHive.Test\DeviceHive.Test.csproj", "{62EB1D5F-C2D7-460F-8DA0-43404A4835CD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.API", "DeviceHive.API\DeviceHive.API.csproj", "{C75BF442-2B90-4066-AEF9-2908475E853D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.DocGenerator", "DeviceHive.DocGenerator\DeviceHive.DocGenerator.csproj", "{4FFCB159-433A-4520-8C55-801DF77A655A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.DBMigrator", "DeviceHive.DBMigrator\DeviceHive.DBMigrator.csproj", "{3A08E496-1A7A-4137-971D-D215437F08D6}"
-EndProject
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{FD22FD85-7522-43F2-96AD-738627CDF09D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6FC6CB3C-BB5C-400B-A13D-FB7CA2B72E33}"
@@ -22,15 +12,29 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{127833
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Core", "DeviceHive.Core\DeviceHive.Core.csproj", "{20C669F5-66EF-4C45-A40A-4C2441879645}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebSockets", "WebSockets", "{DFB5A12D-A2A1-40BA-8957-C126BCB65095}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Data", "DeviceHive.Data\DeviceHive.Data.csproj", "{57837E79-1267-4780-99DC-D872FEEC38C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Test", "DeviceHive.Test\DeviceHive.Test.csproj", "{62EB1D5F-C2D7-460F-8DA0-43404A4835CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.API", "DeviceHive.API\DeviceHive.API.csproj", "{C75BF442-2B90-4066-AEF9-2908475E853D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.DocGenerator", "DeviceHive.DocGenerator\DeviceHive.DocGenerator.csproj", "{4FFCB159-433A-4520-8C55-801DF77A655A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.DBMigrator", "DeviceHive.DBMigrator\DeviceHive.DBMigrator.csproj", "{3A08E496-1A7A-4137-971D-D215437F08D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Core", "DeviceHive.Core\DeviceHive.Core.csproj", "{20C669F5-66EF-4C45-A40A-4C2441879645}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.WebSockets.Core", "DeviceHive.WebSockets.Core\DeviceHive.WebSockets.Core.csproj", "{77693053-1DFA-4873-93A9-5405E1800E45}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.WebSockets.Host", "DeviceHive.WebSockets.Host\DeviceHive.WebSockets.Host.csproj", "{3C6F9A3B-A600-4903-8985-5D8533982CC6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.WebSockets.API", "DeviceHive.WebSockets.API\DeviceHive.WebSockets.API.csproj", "{500AFF4C-A800-4119-ACA8-07A47E74ADF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Data.EF", "DeviceHive.Data.EF\DeviceHive.Data.EF.csproj", "{F20179DE-DFFA-48B5-9346-352A5972C08F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Data.MongoDB", "DeviceHive.Data.MongoDB\DeviceHive.Data.MongoDB.csproj", "{ED0E9DD6-360B-455B-AD38-194752FC7330}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -132,14 +136,34 @@ Global
 		{500AFF4C-A800-4119-ACA8-07A47E74ADF9}.Release|Mixed Platforms.Build.0 = Release|x86
 		{500AFF4C-A800-4119-ACA8-07A47E74ADF9}.Release|x86.ActiveCfg = Release|x86
 		{500AFF4C-A800-4119-ACA8-07A47E74ADF9}.Release|x86.Build.0 = Release|x86
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F20179DE-DFFA-48B5-9346-352A5972C08F}.Release|x86.ActiveCfg = Release|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{ED0E9DD6-360B-455B-AD38-194752FC7330}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{62EB1D5F-C2D7-460F-8DA0-43404A4835CD} = {6FC6CB3C-BB5C-400B-A13D-FB7CA2B72E33}
-		{3A08E496-1A7A-4137-971D-D215437F08D6} = {FD22FD85-7522-43F2-96AD-738627CDF09D}
 		{4FFCB159-433A-4520-8C55-801DF77A655A} = {FD22FD85-7522-43F2-96AD-738627CDF09D}
+		{3A08E496-1A7A-4137-971D-D215437F08D6} = {FD22FD85-7522-43F2-96AD-738627CDF09D}
+		{62EB1D5F-C2D7-460F-8DA0-43404A4835CD} = {6FC6CB3C-BB5C-400B-A13D-FB7CA2B72E33}
 		{77693053-1DFA-4873-93A9-5405E1800E45} = {DFB5A12D-A2A1-40BA-8957-C126BCB65095}
 		{3C6F9A3B-A600-4903-8985-5D8533982CC6} = {DFB5A12D-A2A1-40BA-8957-C126BCB65095}
 		{500AFF4C-A800-4119-ACA8-07A47E74ADF9} = {DFB5A12D-A2A1-40BA-8957-C126BCB65095}

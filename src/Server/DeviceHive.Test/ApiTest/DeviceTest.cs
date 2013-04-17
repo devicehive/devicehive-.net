@@ -196,7 +196,6 @@ namespace DeviceHive.Test.ApiTest
         {
             // modified network and device class auto-create
             Update(ID, new { key = "key", name = "_ut", network = NetworkID, deviceClass = DeviceClassID });
-            RegisterForDeletion(ResourceUri + "/" + ID);
 
             // modify device
             var obj = new { name = "_ut2", status = "status", data = new { a = "b" },
@@ -207,6 +206,7 @@ namespace DeviceHive.Test.ApiTest
             var get = Get(ID, auth: Admin);
             RegisterForDeletion("/network/" + get["network"]["id"]);
             RegisterForDeletion("/device/class/" + get["deviceClass"]["id"]);
+            RegisterForDeletion(ResourceUri + "/" + ID);
             Expect(get, Matches(obj));
 
             // verify device-update notification

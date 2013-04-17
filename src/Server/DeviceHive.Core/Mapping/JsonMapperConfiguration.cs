@@ -84,10 +84,12 @@ namespace DeviceHive.Core.Mapping
             // create MapToEntity action
             var jsonPropertyCall = Expression.Call(json, typeof(JObject).GetMethod("Property"), Expression.Constant(jsonProperty));
             var jsonParseValue = (Expression)null;
-            if (entityProperty.PropertyType == typeof(Guid))
+            if (entityProperty.PropertyType == typeof(Guid) || entityProperty.PropertyType == typeof(Guid?))
             {
                 jsonParseValue = Expression.Call(null, typeof(Guid).GetMethod("Parse", BindingFlags.Public | BindingFlags.Static),
                     Expression.Convert(Expression.Property(jsonPropertyCall, "Value"), typeof(string)));
+                if (entityProperty.PropertyType == typeof(Guid?))
+                    jsonParseValue = Expression.Convert(jsonParseValue, entityProperty.PropertyType);
             }
             else if (entityProperty.PropertyType.IsEnum)
             {

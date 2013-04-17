@@ -194,7 +194,7 @@ namespace DeviceHive.WebSockets.API.Controllers
 
                 lock (initialCommandList)
                 {
-                    var filter = new DeviceCommandFilter { Start = timestamp.Value.AddTicks(10) };
+                    var filter = new DeviceCommandFilter { Start = timestamp, IsDateInclusive = false };
                     var initialCommands = DataContext.DeviceCommand.GetByDevice(
                         CurrentDevice.ID, filter);
 

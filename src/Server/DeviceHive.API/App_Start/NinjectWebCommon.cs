@@ -1,4 +1,6 @@
 using System;
+using System.Configuration;
+using System.Linq;
 using System.Reflection;
 using System.Web;
 using DeviceHive.API.Business;
@@ -8,8 +10,8 @@ using DeviceHive.Core.MessageLogic.NotificationHandlers;
 using DeviceHive.Core.Messaging;
 using DeviceHive.Core.Services;
 using DeviceHive.Data;
-using DeviceHive.Data.EF;
 using DeviceHive.Data.Model;
+using DeviceHive.Data.MongoDB;
 using DeviceHive.Data.Repositories;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Ninject;
@@ -65,20 +67,17 @@ namespace DeviceHive.API
             // load assembly modules
             kernel.Load(Assembly.GetExecutingAssembly());
 
-            // bind repositories
-            kernel.Bind<ITimestampRepository>().To<TimestampRepository>();
-            kernel.Bind<IUserRepository, ISimpleRepository<User>>().To<UserRepository>();
-            kernel.Bind<IUserNetworkRepository, ISimpleRepository<UserNetwork>>().To<UserNetworkRepository>();
-            kernel.Bind<INetworkRepository, ISimpleRepository<Network>>().To<NetworkRepository>();
-            kernel.Bind<IDeviceClassRepository, ISimpleRepository<DeviceClass>>().To<DeviceClassRepository>();
-            kernel.Bind<IEquipmentRepository, ISimpleRepository<Equipment>>().To<EquipmentRepository>();
-            kernel.Bind<IDeviceRepository, ISimpleRepository<Device>>().To<DeviceRepository>();
-            kernel.Bind<IDeviceNotificationRepository, ISimpleRepository<DeviceNotification>>().To<DeviceNotificationRepository>();
-            kernel.Bind<IDeviceCommandRepository, ISimpleRepository<DeviceCommand>>().To<DeviceCommandRepository>();
-            kernel.Bind<IDeviceEquipmentRepository, ISimpleRepository<DeviceEquipment>>().To<DeviceEquipmentRepository>();
-
             // bind data context
-            kernel.Bind<DataContext>().ToSelf().InSingletonScope();
+            kernel.Bind<MongoConnection>().ToSelf().InSingletonScope();
+            kernel.Bind<DataContext>().ToSelf().InSingletonScope()
+                .OnActivation<DataContext>(context => { context.SetRepositoryCreator(type => kernel.Get(type)); });
+
+            // bind repositories
+            var dataContext = kernel.Get<DataContext>();
+            foreach (var interfaceType in dataContext.RegisteredInterfaces)
+                kernel.Bind(interfaceType).To(dataContext.GetRepositoryType(interfaceType));
+            foreach (var objectType in dataContext.RegisteredObjects)
+                kernel.Bind(typeof(ISimpleRepository<>).MakeGenericType(objectType)).To(dataContext.GetRepositoryTypeFor(objectType));
 
             // bind services
             kernel.Bind<DeviceService>().ToSelf();

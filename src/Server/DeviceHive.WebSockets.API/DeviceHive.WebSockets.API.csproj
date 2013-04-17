@@ -41,6 +41,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\DeviceHive.WebSockets.API.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -71,11 +72,7 @@
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfigLoader.cs" />
@@ -106,6 +103,14 @@
     <ProjectReference Include="..\DeviceHive.Core\DeviceHive.Core.csproj">
       <Project>{20C669F5-66EF-4C45-A40A-4C2441879645}</Project>
       <Name>DeviceHive.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.Data.EF\DeviceHive.Data.EF.csproj">
+      <Project>{F20179DE-DFFA-48B5-9346-352A5972C08F}</Project>
+      <Name>DeviceHive.Data.EF</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.Data.MongoDB\DeviceHive.Data.MongoDB.csproj">
+      <Project>{ED0E9DD6-360B-455B-AD38-194752FC7330}</Project>
+      <Name>DeviceHive.Data.MongoDB</Name>
     </ProjectReference>
     <ProjectReference Include="..\DeviceHive.Data\DeviceHive.Data.csproj">
       <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>

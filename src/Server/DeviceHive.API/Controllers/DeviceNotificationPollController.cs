@@ -50,10 +50,10 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var taskSource = new TaskCompletionSource<JArray>();
-            var start = timestamp != null ? timestamp.Value.AddTicks(10) : _timestampRepository.GetCurrentTimestamp();
+            var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             if (waitTimeout <= 0)
             {
-                var filter = new DeviceNotificationFilter { Start = start };
+                var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false };
                 var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, filter);
                 taskSource.SetResult(new JArray(notifications.Select(n => Mapper.Map(n))));
                 return taskSource.Task;
@@ -72,7 +72,7 @@ namespace DeviceHive.API.Controllers
                         return;
                     }
 
-                    var filter = new DeviceNotificationFilter { Start = start };
+                    var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false };
                     var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, filter);
                     if (notifications != null && notifications.Any())
                     {
@@ -118,10 +118,10 @@ namespace DeviceHive.API.Controllers
                 }).ToArray();
 
             var taskSource = new TaskCompletionSource<JArray>();
-            var start = timestamp != null ? timestamp.Value.AddTicks(10) : _timestampRepository.GetCurrentTimestamp();
+            var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             if (waitTimeout <= 0)
             {
-                var filter = new DeviceNotificationFilter { Start = start };
+                var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false };
                 var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter);
                 taskSource.SetResult(MapDeviceNotifications(notifications.Where(n => IsNetworkAccessible(n.Device.NetworkID))));
                 return taskSource.Task;
@@ -141,7 +141,7 @@ namespace DeviceHive.API.Controllers
                     return;
                 }
 
-                var filter = new DeviceNotificationFilter { Start = start };
+                var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false };
                 var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter)
                     .Where(n => IsNetworkAccessible(n.Device.NetworkID)).ToArray();
                 if (notifications != null && notifications.Any())
