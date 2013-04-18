@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using DeviceHive.WebSockets.Core.Network;
 
 namespace DeviceHive.Test.Stubs
@@ -32,6 +33,10 @@ namespace DeviceHive.Test.Stubs
     {
         private readonly Guid _identity;
         private readonly string _path;
+        
+        private Action<string> _sendMessageHandler;
+
+        private readonly AutoResetEvent _messageSentEvent = new AutoResetEvent(false);
 
         public StubWebSocketConnection(Guid identity, string path)
         {
@@ -54,14 +59,25 @@ namespace DeviceHive.Test.Stubs
             get { return _path; }
         }
 
-        public Action<string> SendMessageHandler { get; set; }
+        public Action<string> SendMessageHandler
+        {
+            get { return _sendMessageHandler; }
+            set
+            {
+                _sendMessageHandler = value;
+                _messageSentEvent.Reset();
+            }
+        }
 
         public Action<string> ReceiveMessageHandler { get; set; }
 
         public override void Send(string message)
         {
             if (SendMessageHandler != null)
+            {
                 SendMessageHandler(message);
+                _messageSentEvent.Set();
+            }
         }
 
         public override void Close()
@@ -72,6 +88,11 @@ namespace DeviceHive.Test.Stubs
         {
             if (ReceiveMessageHandler != null)
                 ReceiveMessageHandler(message);
+        }
+
+        public void WaiteForSendMessage()
+        {
+            _messageSentEvent.WaitOne();
         }
     }
 }

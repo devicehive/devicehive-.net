@@ -281,6 +281,7 @@ namespace DeviceHive.WebSockets.API.Controllers
                     deviceEntity = new Device(deviceId);
                 }
 
+                _deviceService.SaveDevice(deviceEntity, device);
                 SendSuccessResponse();
             }
             catch (ServiceException e)
