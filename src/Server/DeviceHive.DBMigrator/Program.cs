@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Configuration;
 using System.Linq;
-using DeviceHive.Data.EF.Migrations;
+using System.Reflection;
+using DeviceHive.Data.Migrations;
 
 namespace DeviceHive.DBMigrator
 {
@@ -10,24 +12,33 @@ namespace DeviceHive.DBMigrator
         {
             try
             {
-                Console.WriteLine("Starting DeviceHive database migrator...");
-                var migrator = new Migrator();
+                var repositoryAssembly = ConfigurationManager.AppSettings["RepositoryAssembly"];
+                if (string.IsNullOrWhiteSpace(repositoryAssembly))
+                    throw new InvalidOperationException("Please specify the RepositoryAssembly setting in the configuration file!");
 
-                var pendingMigrations = migrator.GetPendingMigrations();
-                if (!pendingMigrations.Any())
+                var repositoryAssemblyObject = Assembly.Load(repositoryAssembly);
+                var migratorType = repositoryAssemblyObject.GetTypes().FirstOrDefault(t => typeof(IMigrator).IsAssignableFrom(t));
+                if (migratorType == null)
+                    throw new InvalidOperationException("Specified assembly does not contain migrator class!");
+
+                var migrator = (IMigrator)Activator.CreateInstance(migratorType);
+
+                Console.WriteLine("Starting DeviceHive database migrator");
+                Console.WriteLine("Using repository assembly: " + repositoryAssembly);
+
+                Console.WriteLine("Database version: " + migrator.DatabaseVersion);
+                Console.WriteLine("Current version: " + migrator.CurrentVersion);
+
+                if (migrator.CurrentVersion == migrator.DatabaseVersion)
                 {
-                    Console.WriteLine("There is no pending migrations to apply.");
+                    Console.WriteLine("No migration is required, exiting");
                     return 0;
                 }
 
-                Console.WriteLine("Applying the following migrations to the database:");
-                foreach (var migration in pendingMigrations)
-                {
-                    Console.WriteLine("Migration: " + migration);
-                }
+                Console.WriteLine("Migrating the database to version: " + migrator.CurrentVersion);
 
                 migrator.Migrate();
-                Console.WriteLine("Database migration completed successfully.");
+                Console.WriteLine("Database migration completed successfully");
                 
                 return 0;
             }

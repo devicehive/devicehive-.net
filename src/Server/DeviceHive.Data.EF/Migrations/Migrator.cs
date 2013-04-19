@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Data.Entity.Migrations;
+using DeviceHive.Data.Migrations;
 
 namespace DeviceHive.Data.EF.Migrations
 {
     /// <summary>
     /// Represents a migrator used to apply existing migrations to the database
     /// </summary>
-    public class Migrator
+    public class Migrator : IMigrator
     {
         private DbMigrator _migrator;
 
@@ -19,6 +20,51 @@ namespace DeviceHive.Data.EF.Migrations
         public Migrator()
         {
             _migrator = new DbMigrator(new Configuration());
+        }
+        #endregion
+
+        #region IMigrator Members
+
+        /// <summary>
+        /// Gets the target database version
+        /// </summary>
+        public string DatabaseVersion
+        {
+            get { return _migrator.GetDatabaseMigrations().Max(); }
+        }
+
+        /// <summary>
+        /// Gets the current (latest) version
+        /// </summary>
+        public string CurrentVersion
+        {
+            get { return _migrator.GetLocalMigrations().Max(); }
+        }
+
+        /// <summary>
+        /// Gets array of all versions
+        /// </summary>
+        /// <returns>Array of versions</returns>
+        public string[] GetAllVersions()
+        {
+            return _migrator.GetLocalMigrations().OrderBy(m => m).ToArray();
+        }
+
+        /// <summary>
+        /// Migrates the target database to the current version
+        /// </summary>
+        public void Migrate()
+        {
+            _migrator.Update();
+        }
+
+        /// <summary>
+        /// Migrates the target database database to the specified version
+        /// </summary>
+        /// <param name="version">Version to migrate to</param>
+        public void Migrate(string targetMigration)
+        {
+            _migrator.Update(targetMigration);
         }
         #endregion
 
@@ -49,23 +95,6 @@ namespace DeviceHive.Data.EF.Migrations
         public string[] GetPendingMigrations()
         {
             return _migrator.GetPendingMigrations().ToArray();
-        }
-
-        /// <summary>
-        /// Migrates the target database to the current version
-        /// </summary>
-        public void Migrate()
-        {
-            _migrator.Update();
-        }
-
-        /// <summary>
-        /// Migrates the target database to the specified version
-        /// </summary>
-        /// <param name="targetMigration">The migration name to update</param>
-        public void Migrate(string targetMigration)
-        {
-            _migrator.Update(targetMigration);
         }
         #endregion
     }

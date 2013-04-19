@@ -290,35 +290,6 @@ namespace DeviceHive.Data.MongoDB
             }
             return value;
         }
-
-        private void EnsureIndexes()
-        {
-            Users.EnsureIndex(IndexKeys<User>.Ascending(e => e.Login), IndexOptions.SetUnique(true));
-            UserNetworks.EnsureIndex(IndexKeys<UserNetwork>.Ascending(e => e.NetworkID));
-            UserNetworks.EnsureIndex(IndexKeys<UserNetwork>.Ascending(e => e.UserID, e => e.NetworkID), IndexOptions.SetUnique(true));
-            Networks.EnsureIndex(IndexKeys<Network>.Ascending(e => e.Name), IndexOptions.SetUnique(true));
-            DeviceClasses.EnsureIndex(IndexKeys<DeviceClass>.Ascending(e => e.Name, e => e.Version), IndexOptions.SetUnique(true));
-            Equipment.EnsureIndex(IndexKeys<Equipment>.Ascending(e => e.DeviceClassID));
-            Devices.EnsureIndex(IndexKeys<Device>.Ascending(e => e.GUID), IndexOptions.SetUnique(true));
-            Devices.EnsureIndex(IndexKeys<Device>.Ascending(e => e.NetworkID));
-            Devices.EnsureIndex(IndexKeys<Device>.Ascending(e => e.Network.Name));
-            Devices.EnsureIndex(IndexKeys<Device>.Ascending(e => e.DeviceClassID));
-            Devices.EnsureIndex(IndexKeys<Device>.Ascending(e => e.DeviceClass.Name, e => e.DeviceClass.Version));
-            DeviceNotifications.EnsureIndex(IndexKeys<DeviceNotification>.Ascending(e => e.Timestamp));
-            DeviceNotifications.EnsureIndex(IndexKeys<DeviceNotification>.Ascending(e => e.DeviceID, e => e.Timestamp));
-            DeviceCommands.EnsureIndex(IndexKeys<DeviceCommand>.Ascending(e => e.DeviceID, e => e.Timestamp));
-            DeviceEquipment.EnsureIndex(IndexKeys<DeviceEquipment>.Ascending(e => e.DeviceID, e => e.Code), IndexOptions.SetUnique(true));
-        }
-
-        private void EnsureDefaultObjects()
-        {
-            if (Users.Count() == 0)
-            {
-                var user = new User("dhadmin", "dhadmin_#911", (int)UserRole.Administrator, (int)UserStatus.Active);
-                EnsureIdentity(user);
-                Users.Save(user);
-            }
-        }
         #endregion
 
         #region RawJsonBsonSerializer class

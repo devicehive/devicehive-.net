@@ -39,6 +39,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
   </ItemGroup>
@@ -50,6 +51,10 @@
     <ProjectReference Include="..\DeviceHive.Data.EF\DeviceHive.Data.EF.csproj">
       <Project>{F20179DE-DFFA-48B5-9346-352A5972C08F}</Project>
       <Name>DeviceHive.Data.EF</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.Data.MongoDB\DeviceHive.Data.MongoDB.csproj">
+      <Project>{ed0e9dd6-360b-455b-ad38-194752fc7330}</Project>
+      <Name>DeviceHive.Data.MongoDB</Name>
     </ProjectReference>
     <ProjectReference Include="..\DeviceHive.Data\DeviceHive.Data.csproj">
       <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>
