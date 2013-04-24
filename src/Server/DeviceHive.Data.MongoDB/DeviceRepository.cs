@@ -92,18 +92,24 @@ namespace DeviceHive.Data.MongoDB
 
         public List<Device> GetOfflineDevices()
         {
-            throw new NotImplementedException();
+            var devices = _mongo.Devices.AsQueryable()
+                .Where(d => d.DeviceClass.OfflineTimeout != null)
+                .Select(d => new { ID = d.ID, OfflineTimeout = d.DeviceClass.OfflineTimeout }).ToList();
 
-            //using (var context = new DeviceHiveContext())
-            //{
-            //    return context.Devices
-            //        .Include(e => e.Network)
-            //        .Include(e => e.DeviceClass)
-            //        .Where(e => e.DeviceClass.OfflineTimeout != null)
-            //        .Where(d => !context.DeviceNotifications.Any(n => n.Device == d &&
-            //            EntityFunctions.AddSeconds(n.Timestamp, d.DeviceClass.OfflineTimeout) >= DateTime.UtcNow))
-            //        .ToList();
-            //}
+            var deviceIds = new List<int>();
+            var timestamp = _mongo.Database.Eval("return new Date()").ToUniversalTime();
+            foreach (var device in devices)
+            {
+                var ts = timestamp.AddSeconds(-device.OfflineTimeout.Value);
+                var alive = _mongo.DeviceNotifications.FindOne(Query.And(
+                    Query<DeviceNotification>.EQ(e => e.DeviceID, device.ID),
+                    Query<DeviceNotification>.GTE(e => e.Timestamp, ts))) != null;
+                
+                if (!alive)
+                    deviceIds.Add(device.ID);
+            }
+
+            return _mongo.Devices.Find(Query<Device>.In(e => e.ID, deviceIds)).ToList();
         }
         #endregion
     }
