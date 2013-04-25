@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Web.Http.Description;
 using DeviceHive.Data.Repositories;
+using Version = DeviceHive.Core.Version;
 
 namespace DeviceHive.API.Controllers
 {

@@ -27,6 +27,11 @@ namespace DeviceHive.Data.Model
         /// </remarks>
         public string WebSocketServerUrl { get; set; }
 
+        /// <summary>
+        /// REST server URL.
+        /// </summary>
+        public string RestServerUrl { get; set; }
+
         #endregion
     }
 }

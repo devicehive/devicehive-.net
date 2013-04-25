@@ -15,7 +15,7 @@ namespace DeviceHive.WebSockets.API.Core
                 .Property(e => e.Status, "status")
                 .Property(e => e.LastLogin, "lastLogin", JsonMapperEntryMode.ToJson);
 
-            context.Kernel.ConfigureMapping<Data.Model.Network>()
+            context.Kernel.ConfigureMapping<Network>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Description, "description");
@@ -68,6 +68,11 @@ namespace DeviceHive.WebSockets.API.Core
                 .Property(e => e.Code, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.ToJson)
                 .RawJsonProperty(e => e.Parameters, "parameters", JsonMapperEntryMode.ToJson);
+
+            context.Kernel.ConfigureMapping<ApiInfo>()
+                .Property(e => e.ApiVersion, "apiVersion")
+                .Property(e => e.ServerTimestamp, "serverTimestamp")
+                .Property(e => e.RestServerUrl, "restServerUrl");
         }
     }
 }

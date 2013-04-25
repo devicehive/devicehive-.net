@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
@@ -288,6 +289,23 @@ namespace DeviceHive.WebSockets.API.Controllers
             {
                 SendErrorResponse(e.Message);
             }
+        }
+
+        /// <summary>
+        /// Gets meta-information of the current API.
+        /// </summary>
+        /// <returns cref="Data.Model.ApiInfo">If successful, this method returns a <see cref="Data.Model.ApiInfo"/> resource in the response body.</returns>
+        [Action("server/info")]
+        public void ApiInfo()
+        {
+            var apiInfo = new ApiInfo
+            {
+                ApiVersion = DeviceHive.Core.Version.ApiVersion,
+                ServerTimestamp = DataContext.Timestamp.GetCurrentTimestamp(),
+                WebSocketServerUrl = ConfigurationManager.AppSettings["RestServerUrl"]
+            };
+
+            SendResponse(new JProperty("info", ApiInfoMapper.Map(apiInfo)));
         }
 
         #endregion
