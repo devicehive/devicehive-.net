@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.IO.Pipes;
@@ -15,28 +16,42 @@ namespace DeviceHive.Core.Messaging
     /// </summary>
     public class NamedPipeMessageBus : MessageBus, IDisposable
     {
+        private const int _connectRetryTimes = 5;
+
         private readonly ILog _log = LogManager.GetLogger(typeof (NamedPipeMessageBus));
 
         private NamedPipeElement _serverPipeConfiguration;
         private NamedPipeElement[] _clientPipesConfiguration;
-        private int _connectTimeout;
+        private int _connectTimeout = 100;
 
         private readonly Thread _readThread;
-        private readonly EventWaitHandle _cancelConnectionEvent = new AutoResetEvent(false);
-        private volatile bool _stopReading = false;        
+        private readonly EventWaitHandle _cancelConnectionEvent = new ManualResetEvent(false);
+        private volatile bool _stopReading = false;
 
-        #region Constructor
+        #region Constructors
+
+        private NamedPipeMessageBus(Configuration configuration)
+        {
+            LoadConfiguration(configuration);
+
+            _readThread = new Thread(ReadData);
+            _readThread.Start();
+        }
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public NamedPipeMessageBus()
-        {
-            LoadConfiguration();
+        public NamedPipeMessageBus() : this(GetConfiguration())
+        {            
+        }
 
-            _readThread = new Thread(ReadData);
-            _readThread.Start();
-        }        
+        /// <summary>
+        /// Initialize new instance of <see cref="NamedPipeMessageBus"/> for two way communication
+        /// </summary>
+        public NamedPipeMessageBus(string serverPipeName, string clientPipeName) :
+            this(new Configuration(serverPipeName, clientPipeName))
+        {            
+        }
 
         #endregion
 
@@ -58,11 +73,7 @@ namespace DeviceHive.Core.Messaging
                         _log.DebugFormat("Send message to {0}\\{1}",
                             pipeConfiguration.ServerName, pipeConfiguration.Name);
 
-                        try
-                        {
-                            namedPipeClient.Connect(_connectTimeout);
-                        }
-                        catch (TimeoutException)
+                        if (!ConnectToPipe(namedPipeClient))
                         {
                             _log.WarnFormat("Couldn't connect to pipe {0}\\{1}",
                                 pipeConfiguration.ServerName, pipeConfiguration.Name);
@@ -83,6 +94,28 @@ namespace DeviceHive.Core.Messaging
 
         #region Private Methods
 
+        private bool ConnectToPipe(NamedPipeClientStream namedPipeClient)
+        {
+            for (int i = 0; i < _connectRetryTimes; i++)
+            {
+                try
+                {
+                    namedPipeClient.Connect(_connectTimeout);
+                    return true;
+                }                    
+                catch (IOException) // pipe is in use
+                {       
+                    // retry one more time
+                }
+                catch (TimeoutException) // pipe doesn't exist
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
         private void ReadData()
         {
             var pipeSecurity = new PipeSecurity();
@@ -92,19 +125,26 @@ namespace DeviceHive.Core.Messaging
                 PipeAccessRights.FullControl, AccessControlType.Allow);
             pipeSecurity.AddAccessRule(everyoneAccessRule);
 
-            using (var namedPipeServer = new NamedPipeServerStream(
-                _serverPipeConfiguration.Name, PipeDirection.InOut, 1,
-                PipeTransmissionMode.Byte, PipeOptions.Asynchronous,
-                0, 0, pipeSecurity))
+            try
             {
-                while (true)
+                using (var namedPipeServer = new NamedPipeServerStream(
+                    _serverPipeConfiguration.Name, PipeDirection.InOut, 1,
+                    PipeTransmissionMode.Byte, PipeOptions.Asynchronous,
+                    0, 0, pipeSecurity))
                 {
-                    if (_stopReading)
-                        return;
+                    while (true)
+                    {
+                        if (_stopReading)
+                            return;
 
-                    ReadMessage(namedPipeServer);
+                        ReadMessage(namedPipeServer);
+                    }
                 }
             }
+            catch (IOException e)
+            {
+                _log.Error("Named pipe read error", e);
+            }            
         }
 
         private void ReadMessage(NamedPipeServerStream namedPipeServer)
@@ -137,7 +177,7 @@ namespace DeviceHive.Core.Messaging
             HandleMessage(data);
         }
 
-        private void LoadConfiguration()
+        private static Configuration GetConfiguration()
         {
             var configurationSection = (NamedPipeMessageBusConfigurationSection)
                 ConfigurationManager.GetSection("namedPipeMessageBus");
@@ -145,11 +185,17 @@ namespace DeviceHive.Core.Messaging
             if (configurationSection == null)
                 throw new InvalidOperationException("namedPipeMessageBus configuration sections can't be found");
 
-            _connectTimeout = configurationSection.ConnectTimeout;
+            return new Configuration(
+                configurationSection.Pipes.Cast<NamedPipeElement>(),
+                configurationSection.ConnectTimeout);
+        }
 
-            var pipes = configurationSection.Pipes.Cast<NamedPipeElement>();
-            _serverPipeConfiguration = pipes.Single(p => p.IsServer);
-            _clientPipesConfiguration = pipes.ToArray();
+        private void LoadConfiguration(Configuration configuration)
+        {
+            _connectTimeout = configuration.ConnectTimeout;
+
+            _serverPipeConfiguration = configuration.Pipes.Single(p => p.IsServer);
+            _clientPipesConfiguration = configuration.Pipes.Where(p => !p.IsServer).ToArray();
 
             if (_serverPipeConfiguration.ServerName != ".")
                 throw new InvalidOperationException("Server pipe can't be located on the remote machine");
@@ -170,6 +216,34 @@ namespace DeviceHive.Core.Messaging
                 _cancelConnectionEvent.Set();
                 _readThread.Join();
             }
+        }
+
+        #endregion
+
+        #region Inner classes
+
+        private class Configuration
+        {
+            public Configuration(string serverPipeName, string clientPipeName)
+            {
+                Pipes = new[]
+                {
+                    new NamedPipeElement() {IsServer = true, Name = serverPipeName},
+                    new NamedPipeElement() {IsServer = false, Name = clientPipeName}
+                };
+
+                ConnectTimeout = 100;
+            }
+
+            public Configuration(IEnumerable<NamedPipeElement> pipes, int connectTimeout)
+            {
+                Pipes = pipes;
+                ConnectTimeout = connectTimeout;
+            }
+
+            public IEnumerable<NamedPipeElement> Pipes { get; private set; }
+
+            public int ConnectTimeout { get; private set; }
         }
 
         #endregion

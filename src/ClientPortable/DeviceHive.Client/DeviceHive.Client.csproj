@@ -46,15 +46,22 @@
     <Compile Include="Service\ApiInfo.cs" />
     <Compile Include="Service\ClientServiceException.cs" />
     <Compile Include="Service\Command.cs" />
+    <Compile Include="Service\CommandFilter.cs" />
     <Compile Include="Service\Device.cs" />
     <Compile Include="Service\DeviceClass.cs" />
     <Compile Include="Service\DeviceEquipmentState.cs" />
+    <Compile Include="Service\DeviceFilter.cs" />
     <Compile Include="Service\DeviceNotification.cs" />
     <Compile Include="Service\Equipment.cs" />
     <Compile Include="Service\IClientService.cs" />
     <Compile Include="Service\Network.cs" />
+    <Compile Include="Service\NetworkFilter.cs" />
     <Compile Include="Service\Notification.cs" />
+    <Compile Include="Service\NotificationFilter.cs" />
     <Compile Include="Service\RestfulClientService.cs" />
+    <Compile Include="Service\SortOrder.cs" />
+    <Compile Include="Service\User.cs" />
+    <Compile Include="Service\UserNetwork.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Threading.Tasks">

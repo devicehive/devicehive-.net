@@ -24,7 +24,7 @@
         <ScrollViewer Style="{StaticResource VerticalScrollViewerStyle}">
             <StackPanel Orientation="Vertical">
                 <TextBlock Text="API URL"/>
-                <TextBox Text="{Binding CloudServerUrl, Mode=TwoWay}"/>
+                <TextBox Text="{Binding CloudServerUrl, Mode=TwoWay}" InputScope="Url"/>
                 <TextBlock Text="Username"/>
                 <TextBox Text="{Binding CloudUsername, Mode=TwoWay}"/>
                 <TextBlock Text="Password"/>

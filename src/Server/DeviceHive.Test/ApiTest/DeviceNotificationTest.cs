@@ -33,7 +33,7 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion("/device/class/" + DeviceClassID);
 
             var deviceResponse = Client.Put("/device/" + DeviceGUID, new { key = "key", name = "_ut_dc", network = NetworkID, deviceClass = DeviceClassID });
-            Assert.That(deviceResponse.Status, Is.EqualTo(200));
+            Assert.That(deviceResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
             RegisterForDeletion("/device/" + DeviceGUID);
         }
 
@@ -163,7 +163,7 @@ namespace DeviceHive.Test.ApiTest
 
             var otherDeviceGuid = Guid.NewGuid().ToString();
             var otherDeviceResponse = Client.Put("/device/" + otherDeviceGuid, new { key = "key", name = "_ut_dc2", network = otherNetworkID, deviceClass = DeviceClassID });
-            Assert.That(otherDeviceResponse.Status, Is.EqualTo(200));
+            Assert.That(otherDeviceResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
             RegisterForDeletion("/device/" + otherDeviceGuid);
 
             // task to poll new resources
@@ -211,7 +211,6 @@ namespace DeviceHive.Test.ApiTest
         {
             var resource = Create(new { notification = "_ut" }, auth: Device(DeviceGUID, "key"));
 
-            Expect(resource, Matches(new { notification = "_ut", parameters = (string)null, timestamp = ResponseMatchesContraint.Timestamp }));
             Expect(Get(resource, auth: Admin), Matches(new { notification = "_ut", parameters = (string)null, timestamp = ResponseMatchesContraint.Timestamp }));
         }
 
@@ -219,8 +218,8 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             var resource = Create(new { notification = "_ut" }, auth: Device(DeviceGUID, "key"));
-            
-            Expect(() => Update(resource, new { notification = "_ut2", parameters = new { a = "b" } }, auth: Admin), FailsWith(405));
+
+            Expect(() => { Update(resource, new { notification = "_ut2", parameters = new { a = "b" } }, auth: Admin); return false; }, FailsWith(405));
         }
 
         [Test]

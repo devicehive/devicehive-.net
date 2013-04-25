@@ -50,7 +50,6 @@ namespace DeviceHive.Test.ApiTest
         {
             var resource = Create(new { name = "_ut", key = "_ut_key" }, auth: Admin);
             
-            Expect(resource, Matches(new { name = "_ut", key = "_ut_key", description = (string)null }));
             Expect(Get(resource, auth: Admin), Matches(new { name = "_ut", key = "_ut_key", description = (string)null }));
         }
 
@@ -77,7 +76,7 @@ namespace DeviceHive.Test.ApiTest
             var deviceId = Guid.NewGuid().ToString();
             var deviceResponse = Client.Put("/device/" + deviceId, new { key = "key", name = "_ut_d",
                 network = int.Parse(GetResourceId(resource)), deviceClass = deviceClassId}, auth: Admin);
-            Expect(deviceResponse.Status, Is.EqualTo(200));
+            Expect(deviceResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
             RegisterForDeletion("/device/" + deviceId);
 
             // verify that response includes the list of devices
@@ -91,9 +90,8 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             var resource = Create(new { name = "_ut", key = "_ut_key" }, auth: Admin);
-            var update = Update(resource, new { name = "_ut2", key = "_ut_key2", description = "desc" }, auth: Admin);
+            Update(resource, new { name = "_ut2", key = "_ut_key2", description = "desc" }, auth: Admin);
 
-            Expect(update, Matches(new { name = "_ut2", key = "_ut_key2", description = "desc" }));
             Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2", key = "_ut_key2", description = "desc" }));
         }
 
@@ -101,9 +99,8 @@ namespace DeviceHive.Test.ApiTest
         public void Update_Partial()
         {
             var resource = Create(new { name = "_ut", key = "_ut_key", description = "desc" }, auth: Admin);
-            var update = Update(resource, new { description = "desc2" }, auth: Admin);
+            Update(resource, new { description = "desc2" }, auth: Admin);
 
-            Expect(update, Matches(new { name = "_ut", key = "_ut_key", description = "desc2" }));
             Expect(Get(resource, auth: Admin), Matches(new { name = "_ut", key = "_ut_key", description = "desc2" }));
         }
 
@@ -129,13 +126,13 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Get(), FailsWith(401));
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
             Expect(() => Create(new { name = "_ut" }), FailsWith(401));
-            Expect(() => Update(UnexistingResourceID, new { name = "_ut" }), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { name = "_ut" }); return false; }, FailsWith(401));
             Expect(() => { Delete(UnexistingResourceID); return false; }, FailsWith(401));
 
             // user authorization
             var user = CreateUser(1);
             Expect(() => Create(new { name = "_ut" }, auth: user), FailsWith(401));
-            Expect(() => Update(UnexistingResourceID, new { name = "_ut" }, auth: user), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { name = "_ut" }, auth: user); return false; }, FailsWith(401));
             Expect(() => { Delete(UnexistingResourceID, auth: user); return false; }, FailsWith(401));
         }
 
@@ -143,7 +140,7 @@ namespace DeviceHive.Test.ApiTest
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => Update(UnexistingResourceID, new { name = "_ut" }, auth: Admin), FailsWith(404));
+            Expect(() => { Update(UnexistingResourceID, new { name = "_ut" }, auth: Admin); return false; }, FailsWith(404));
             Delete(UnexistingResourceID, auth: Admin); // should not fail
         }
     }

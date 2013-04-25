@@ -17,10 +17,12 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets list of users.
         /// </summary>
+        /// <query cref="UserFilter" />
         /// <returns cref="User">If successful, this method returns array of <see cref="User"/> resources in the response body.</returns>
         public JArray Get()
         {
-            return new JArray(DataContext.User.GetAll().Select(n => Mapper.Map(n)));
+            var filter = MapObjectFromQuery<UserFilter>();
+            return new JArray(DataContext.User.GetAll(filter).Select(n => Mapper.Map(n)));
         }
 
         /// <name>get</name>
@@ -51,7 +53,7 @@ namespace DeviceHive.API.Controllers
         /// Creates new user.
         /// </summary>
         /// <param name="json" cref="User">In the request body, supply a <see cref="User"/> resource.</param>
-        /// <returns cref="User">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
+        /// <returns cref="User" mode="OneWayOnly">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="password" type="string" required="true">User password</parameter>
         /// </request>
@@ -69,7 +71,7 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such login already exists!");
 
             DataContext.User.Save(user);
-            return Mapper.Map(user);
+            return Mapper.Map(user, oneWayOnly: true);
         }
 
         /// <name>update</name>
@@ -78,14 +80,14 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">User identifier.</param>
         /// <param name="json" cref="User">In the request body, supply a <see cref="User"/> resource.</param>
-        /// <returns cref="Network">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="password" type="string">User password</parameter>
         ///     <parameter name="login" required="false" />
         ///     <parameter name="role" required="false" />
         ///     <parameter name="status" required="false" />
         /// </request>
-        public JObject Put(int id, JObject json)
+        [HttpNoContentResponse]
+        public void Put(int id, JObject json)
         {
             var user = DataContext.User.Get(id);
             if (user == null)
@@ -101,7 +103,6 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such name already exists!");
 
             DataContext.User.Save(user);
-            return Mapper.Map(user);
         }
 
         /// <name>delete</name>

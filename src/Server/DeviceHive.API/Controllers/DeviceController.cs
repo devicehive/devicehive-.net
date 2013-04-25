@@ -29,11 +29,17 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets list of devices.
         /// </summary>
+        /// <query cref="DeviceFilter" />
         /// <returns cref="Device">If successful, this method returns array of <see cref="Device"/> resources in the response body.</returns>
-        [AuthorizeUser(Roles = "Administrator")]
+        [AuthorizeUser]
         public JArray Get()
         {
-            return new JArray(DataContext.Device.GetAll().Select(n => Mapper.Map(n)));
+            var filter = MapObjectFromQuery<DeviceFilter>();
+            var devices = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
+                DataContext.Device.GetAll(filter) :
+                DataContext.Device.GetByUser(RequestContext.CurrentUser.ID, filter);
+
+            return new JArray(devices.Select(n => Mapper.Map(n)));
         }
 
         /// <name>get</name>
@@ -66,7 +72,6 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         /// <param name="json" cref="Device">In the request body, supply a <see cref="Device"/> resource.</param>
-        /// <returns cref="Device">If successful, this method returns a <see cref="Device"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="network" mode="remove" />
         ///     <parameter name="deviceClass" mode="remove" />
@@ -78,14 +83,15 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="deviceClass" type="integer or object" required="true">
         ///         <para>Device class identifier or <see cref="DeviceClass"/> object.</para>
         ///         <para>If object is passed, the target device class will be searched by name and version, and automatically created if not found.</para>
-        ///         <para>The device class object will be also updated accordingly unless the <see cref="DeviceClass.IsPermanent"/> flag is set.</para>
+        ///         <para>The device class object will be also updated accordingly unless the DeviceClass.IsPermanent flag is set.</para>
         ///     </parameter>
         ///     <parameter name="equipment" type="array" required="false" cref="Equipment">
         ///         <para>Array of <see cref="Equipment"/> objects to be associated with the device class. If specified, all existing values will be replaced.</para>
         ///         <para>In case when device class is permanent, this value is ignored.</para>
         ///     </parameter>
         /// </request>
-        public JObject Put(Guid id, JObject json)
+        [HttpNoContentResponse]
+        public void Put(Guid id, JObject json)
         {
             // load device from repository
             var device = DataContext.Device.Get(id);
@@ -104,11 +110,9 @@ namespace DeviceHive.API.Controllers
                 device = new Device(id);
             }
 
-            JObject result = null;
-
             try
             {
-                result = _deviceService.SaveDevice(device, json,
+                _deviceService.SaveDevice(device, json,
                     RequestContext.CurrentUser == null);
             }
             catch (InvalidDataException e)
@@ -119,8 +123,6 @@ namespace DeviceHive.API.Controllers
             {
                 ThrowHttpResponse(HttpStatusCode.Forbidden, e.Message);
             }
-
-            return result;
         }
 
         /// <name>delete</name>

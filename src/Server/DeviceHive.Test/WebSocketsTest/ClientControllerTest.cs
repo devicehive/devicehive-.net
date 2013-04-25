@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -56,9 +57,6 @@ namespace DeviceHive.Test.WebSocketsTest
             var res = ClientController.InsertDeviceCommand(connection, DeviceGUID,
                 new JObject(new JProperty("command", "_ut")));
             Expect((string) res["status"], EqualTo("success"));
-
-            var resCommand = (JObject) res["command"];
-            Expect((string) resCommand["command"], EqualTo("_ut"));
         }        
 
         #endregion
@@ -89,6 +87,8 @@ namespace DeviceHive.Test.WebSocketsTest
             msg = DeviceController.InsertDeviceNotification(deviceConnection, new JObject(
                 new JProperty("notification", "_ut")));
             var insertedNotification = (JObject) msg["notification"];
+
+            clientConnection.WaiteForSendMessage();
 
             Expect(() => (string)notification["notification"], EqualTo("_ut"));
             Expect(() => (int) notification["id"], EqualTo((int) insertedNotification["id"]));
@@ -153,6 +153,8 @@ namespace DeviceHive.Test.WebSocketsTest
                 new JProperty("notification", "_ut")));
             var insertedNotification = (JObject) msg["notification"];
 
+            clientConnection.WaiteForSendMessage();
+
             Expect(() => (string) notification["notification"], EqualTo("_ut"));
             Expect(() => (int) notification["id"], EqualTo((int) insertedNotification["id"]));
         }
@@ -214,6 +216,8 @@ namespace DeviceHive.Test.WebSocketsTest
             msg = DeviceController.InsertDeviceNotification(deviceConnection, new JObject(
                 new JProperty("notification", "_ut")));
             var insertedNotification = (JObject) msg["notification"];
+
+            clientConnection.WaiteForSendMessage();
 
             Expect(() => (string) notification["notification"], EqualTo("_ut"));
             Expect(() => (int) notification["id"], EqualTo((int) insertedNotification["id"]));

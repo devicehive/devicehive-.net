@@ -12,6 +12,12 @@ namespace DeviceHive.API
         public static void RegisterRoutes(HttpRouteCollection routes)
         {
             routes.MapHttpRoute(
+                name: "UserCurrent",
+                routeTemplate: "user/current",
+                defaults: new { controller = "UserCurrent" }
+            );
+
+            routes.MapHttpRoute(
                 name: "UserNetwork",
                 routeTemplate: "user/{id}/network/{networkId}",
                 defaults: new { controller = "UserNetwork" }
@@ -99,12 +105,6 @@ namespace DeviceHive.API
                 name: "Cron",
                 routeTemplate: "cron/{action}",
                 defaults: new { controller = "Cron" }
-            );
-
-            routes.MapHttpRoute(
-                name: "Metadata",
-                routeTemplate: "metadata",
-                defaults: new { controller = "Metadata" }
             );
 
             routes.MapHttpRoute(

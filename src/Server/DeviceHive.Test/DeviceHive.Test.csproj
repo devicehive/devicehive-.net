@@ -37,6 +37,12 @@
     <Reference Include="log4net">
       <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="MongoDB.Bson, Version=1.8.1.20, Culture=neutral, PublicKeyToken=f686731cfb9cc103, processorArchitecture=MSIL">
+      <HintPath>..\packages\mongocsharpdriver.1.8.1\lib\net35\MongoDB.Bson.dll</HintPath>
+    </Reference>
+    <Reference Include="MongoDB.Driver, Version=1.8.1.20, Culture=neutral, PublicKeyToken=f686731cfb9cc103, processorArchitecture=MSIL">
+      <HintPath>..\packages\mongocsharpdriver.1.8.1\lib\net35\MongoDB.Driver.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -66,11 +72,13 @@
     <Compile Include="ApiTest\EquipmentTest.cs" />
     <Compile Include="ApiTest\UserNetworkTest.cs" />
     <Compile Include="ApiTest\UserTest.cs" />
-    <Compile Include="ResourceTest.cs" />
-    <Compile Include="JsonClient.cs" />
+    <Compile Include="DataTest\MongoDbDataTest.cs" />
+    <Compile Include="DataTest\SqlDataTest.cs" />
+    <Compile Include="ApiTest\ResourceTest.cs" />
+    <Compile Include="ApiTest\JsonClient.cs" />
     <Compile Include="ApiTest\NetworkTest.cs" />
-    <Compile Include="RollbackTest.cs" />
-    <Compile Include="DataTest.cs" />
+    <Compile Include="DataTest\RollbackTest.cs" />
+    <Compile Include="DataTest\BaseDataTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stubs\StubMessageBus.cs" />
     <Compile Include="Stubs\StubWebSocketServer.cs" />
@@ -84,20 +92,34 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DeviceHive.Core\DeviceHive.Core.csproj">
       <Project>{20C669F5-66EF-4C45-A40A-4C2441879645}</Project>
       <Name>DeviceHive.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.Data.EF\DeviceHive.Data.EF.csproj">
+      <Project>{F20179DE-DFFA-48B5-9346-352A5972C08F}</Project>
+      <Name>DeviceHive.Data.EF</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.Data.MongoDB\DeviceHive.Data.MongoDB.csproj">
+      <Project>{ED0E9DD6-360B-455B-AD38-194752FC7330}</Project>
+      <Name>DeviceHive.Data.MongoDB</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DeviceHive.Data\DeviceHive.Data.csproj">
       <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>
       <Name>DeviceHive.Data</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DeviceHive.WebSockets\DeviceHive.WebSockets.csproj">
-      <Project>{240E0349-322C-4DCF-B968-CE6554F76D3A}</Project>
-      <Name>DeviceHive.WebSockets</Name>
+    <ProjectReference Include="..\DeviceHive.WebSockets.API\DeviceHive.WebSockets.API.csproj">
+      <Project>{500AFF4C-A800-4119-ACA8-07A47E74ADF9}</Project>
+      <Name>DeviceHive.WebSockets.API</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.WebSockets.Core\DeviceHive.WebSockets.Core.csproj">
+      <Project>{77693053-1DFA-4873-93A9-5405E1800E45}</Project>
+      <Name>DeviceHive.WebSockets.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

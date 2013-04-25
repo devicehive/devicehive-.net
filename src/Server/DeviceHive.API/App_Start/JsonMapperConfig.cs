@@ -14,14 +14,14 @@ namespace DeviceHive.API
         public static void ConfigureMapping(IContext context, JsonMapperManager manager)
         {
             context.Kernel.ConfigureMapping<User>()
-                .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Login, "login")
                 .Property(e => e.Role, "role")
                 .Property(e => e.Status, "status")
-                .Property(e => e.LastLogin, "lastLogin", JsonMapperEntryMode.OneWay);
+                .Property(e => e.LastLogin, "lastLogin", JsonMapperEntryMode.ToJson);
 
             context.Kernel.ConfigureMapping<Network, NetworkJsonMapper>()
-                .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Key, "key") // is returned to administrators only
                 .Property(e => e.Name, "name")
                 .Property(e => e.Description, "description");
@@ -30,7 +30,7 @@ namespace DeviceHive.API
                 .ReferenceProperty(e => e.Network, "network");
 
             context.Kernel.ConfigureMapping<DeviceClass>()
-                .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Version, "version")
                 .Property(e => e.IsPermanent, "isPermanent")
@@ -38,15 +38,15 @@ namespace DeviceHive.API
                 .RawJsonProperty(e => e.Data, "data");
 
             context.Kernel.ConfigureMapping<Equipment>()
-                .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Code, "code")
                 .Property(e => e.Type, "type")
                 .RawJsonProperty(e => e.Data, "data");
 
             context.Kernel.ConfigureMapping<Device>()
-                .Property(e => e.GUID, "id", JsonMapperEntryMode.OneWay)
-                .Property(e => e.Key, "key", JsonMapperEntryMode.OneWayToSource)
+                .Property(e => e.GUID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Key, "key", JsonMapperEntryMode.FromJson)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Status, "status")
                 .RawJsonProperty(e => e.Data, "data")
@@ -54,15 +54,15 @@ namespace DeviceHive.API
                 .ReferenceProperty(e => e.DeviceClass, "deviceClass");
 
             context.Kernel.ConfigureMapping<DeviceNotification>()
-                .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
-                .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.OneWay)
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Notification, "notification")
                 .RawJsonProperty(e => e.Parameters, "parameters");
 
             context.Kernel.ConfigureMapping<DeviceCommand>()
-                .Property(e => e.ID, "id", JsonMapperEntryMode.OneWay)
-                .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.OneWay)
-                .Property(e => e.UserID, "userId", JsonMapperEntryMode.OneWay)
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.ToJson)
+                .Property(e => e.UserID, "userId", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Command, "command")
                 .RawJsonProperty(e => e.Parameters, "parameters")
                 .Property(e => e.Lifetime, "lifetime")
@@ -71,14 +71,75 @@ namespace DeviceHive.API
                 .RawJsonProperty(e => e.Result, "result");
 
             context.Kernel.ConfigureMapping<DeviceEquipment>()
-                .Property(e => e.Code, "id", JsonMapperEntryMode.OneWay)
-                .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.OneWay)
-                .RawJsonProperty(e => e.Parameters, "parameters", JsonMapperEntryMode.OneWay);
+                .Property(e => e.Code, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.ToJson)
+                .RawJsonProperty(e => e.Parameters, "parameters", JsonMapperEntryMode.ToJson);
 
             context.Kernel.ConfigureMapping<ApiInfo>()
                 .Property(e => e.ApiVersion, "apiVersion")
                 .Property(e => e.ServerTimestamp, "serverTimestamp")
                 .Property(e => e.WebSocketServerUrl, "webSocketServerUrl");
+
+            // filters
+            context.Kernel.ConfigureMapping<UserFilter>()
+                .Property(e => e.Login, "login")
+                .Property(e => e.LoginPattern, "loginPattern")
+                .Property(e => e.Role, "role")
+                .Property(e => e.Status, "status")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<NetworkFilter>()
+                .Property(e => e.Name, "name")
+                .Property(e => e.NamePattern, "namePattern")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<DeviceClassFilter>()
+                .Property(e => e.Name, "name")
+                .Property(e => e.NamePattern, "namePattern")
+                .Property(e => e.Version, "version")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<DeviceFilter>()
+                .Property(e => e.Name, "name")
+                .Property(e => e.NamePattern, "namePattern")
+                .Property(e => e.Status, "status")
+                .Property(e => e.NetworkID, "networkId")
+                .Property(e => e.NetworkName, "networkName")
+                .Property(e => e.DeviceClassID, "deviceClassId")
+                .Property(e => e.DeviceClassName, "deviceClassName")
+                .Property(e => e.DeviceClassVersion, "deviceClassVersion")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<DeviceNotificationFilter>()
+                .Property(e => e.Start, "start")
+                .Property(e => e.End, "end")
+                .Property(e => e.Notification, "notification")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<DeviceCommandFilter>()
+                .Property(e => e.Start, "start")
+                .Property(e => e.End, "end")
+                .Property(e => e.Command, "command")
+                .Property(e => e.Status, "status")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
         }
     }
 

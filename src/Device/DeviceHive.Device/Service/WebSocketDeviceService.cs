@@ -8,13 +8,14 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using WebSocket4Net;
+using log4net;
 
 namespace DeviceHive.Device
 {
     /// <summary>
     /// Provides access for devices to WebSockets DeviceHive API (/device endpoint)
     /// </summary>
-    public class WebSocketDeviceService
+    public class WebSocketDeviceService : IDisposable
     {
         #region Private fields
 
@@ -63,6 +64,10 @@ namespace DeviceHive.Device
         /// </summary>
         public event EventHandler<CommandEventArgs> CommandInserted;
 
+        /// <summary>
+        /// Fires <see cref="CommandInserted"/> event.
+        /// </summary>
+        /// <param name="eventArgs">CommandEventArgs object.</param>
         protected void OnCommandInserted(CommandEventArgs eventArgs)
         {
             var handler = CommandInserted;
@@ -75,6 +80,9 @@ namespace DeviceHive.Device
         /// </summary>
         public event EventHandler ConnectionClosed;
 
+        /// <summary>
+        /// Fires <see cref="ConnectionClosed"/> event.
+        /// </summary>
         protected void OnConnectionClosed()
         {
             var handler = ConnectionClosed;
@@ -137,45 +145,43 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets device from the DeviceHive network.
         /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="deviceKey">Device private key.</param>
         /// <returns><see cref="Device"/> object from DeviceHive.</returns>
-        public Device GetDevice(Guid deviceGuid, string deviceKey)
+        public Device GetDevice(Guid? deviceGuid, string deviceKey)
         {
             if (!_isConnected)
                 Open();
 
             var res = SendRequest("device/get", deviceGuid, deviceKey);
-            var deviceJson = (JObject) res["device"];
+            var deviceJson = (JObject)res["device"];
             return Deserialize<Device>(deviceJson);
         }
 
         /// <summary>
-        /// Registers new device
+        /// Registers a device.
         /// </summary>
-        public Device RegisterDevice(Guid? deviceGuid, Device device)
+        /// <param name="device">Device object.</param>
+        public void RegisterDevice(Device device)
         {
             if (!_isConnected)
                 Open();
 
             var deviceJson = Serialize(device);
-            var res = SendRequest("device/save", deviceGuid, device.Key,
-                new JProperty("device", deviceJson));
-            deviceJson = (JObject) res["device"];
-            return Deserialize<Device>(deviceJson);
+            SendRequest("device/save", device.Id, device.Key, new JProperty("device", deviceJson));
         }
 
         /// <summary>
-        /// Update existing device
+        /// Update a existing device.
         /// </summary>
-        public Device UpdateDevice(Device device, Guid deviceGuid, string deviceKey = null)
+        /// <param name="device">Device object.</param>
+        public void UpdateDevice(Device device)
         {
             if (!_isConnected)
                 Open();
 
             var deviceJson = Serialize(device, NullValueHandling.Ignore);
-            var res = SendRequest("device/save", deviceGuid, deviceKey,
-                new JProperty("device", deviceJson));
-            deviceJson = (JObject)res["device"];
-            return Deserialize<Device>(deviceJson);
+            SendRequest("device/save", device.Id, device.Key, new JProperty("device", deviceJson));
         }
 
         /// <summary>
@@ -185,15 +191,14 @@ namespace DeviceHive.Device
         /// <param name="deviceGuid">Optional device unique identifier.</param>
         /// <param name="deviceKey">Optional device key.</param>
         /// <returns>The <see cref="Notification"/> object with updated identifier and timestamp.</returns>
-        public Notification SendNotification(Notification notification,
-            Guid? deviceGuid = null, string deviceKey = null)
+        public Notification SendNotification(Notification notification, Guid? deviceGuid = null, string deviceKey = null)
         {
             if (!_isConnected)
                 Open();
 
             var res = SendRequest("notification/insert", deviceGuid, deviceKey,
                 new JProperty("notification", Serialize(notification)));
-            var notificationJson = (JObject) res["notification"];
+            var notificationJson = (JObject)res["notification"];
             return Deserialize<Notification>(notificationJson);
         }
 
@@ -210,7 +215,7 @@ namespace DeviceHive.Device
 
             SendRequest("command/update", deviceGuid, deviceKey,
                 new JProperty("commandId", command.Id),
-                new JProperty("command", Serialize(command)));
+                new JProperty("command", Serialize(command, NullValueHandling.Ignore)));
         }
 
         /// <summary>
@@ -253,9 +258,19 @@ namespace DeviceHive.Device
                 return;
             }
 
-            SendRequest("authenticate", deviceGuid, deviceKey);
-            _isAuthenticated = true;
-            _isConnected = true;
+            try
+            {
+                SendRequest("authenticate", deviceGuid, deviceKey);
+                _isAuthenticated = true;
+                _isConnected = true;
+            }
+            catch (Exception e)
+            {
+                _isAuthenticated = false;
+                _isConnected = false;
+                LogManager.GetLogger(GetType()).Error("Web socket authentication error", e);
+            }
+
             _authWaitHandle.Set();
         }
 

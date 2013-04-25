@@ -49,6 +49,9 @@ namespace DeviceHive.Core.Mapping
             JsonProperty = jsonProperty;
             EntityProperty = entityProperty;
 
+            if ((Mode & JsonMapperEntryMode.TwoWay) != JsonMapperEntryMode.TwoWay)
+                Mode |= JsonMapperEntryMode.OneWayOnly;
+
             _mapToJsonAction = mapToJsonAction;
             _mapToEntityAction = mapToEntityAction;
         }

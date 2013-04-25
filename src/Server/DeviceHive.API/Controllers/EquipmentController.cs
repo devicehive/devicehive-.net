@@ -41,7 +41,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="deviceClassId">Device class identifier.</param>
         /// <param name="json" cref="Equipment">In the request body, supply an <see cref="Equipment"/> resource.</param>
-        /// <returns cref="Equipment">If successful, this method returns an <see cref="Equipment"/> resource in the response body.</returns>
+        /// <returns cref="Equipment" mode="OneWayOnly">If successful, this method returns an <see cref="Equipment"/> resource in the response body.</returns>
         [HttpCreatedResponse]
         public JObject Post(int deviceClassId, JObject json)
         {
@@ -54,7 +54,7 @@ namespace DeviceHive.API.Controllers
             Validate(equipment);
 
             DataContext.Equipment.Save(equipment);
-            return Mapper.Map(equipment);
+            return Mapper.Map(equipment, oneWayOnly: true);
         }
 
         /// <name>update</name>
@@ -64,13 +64,13 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceClassId">Device class identifier.</param>
         /// <param name="id">Equipment identifier.</param>
         /// <param name="json" cref="Equipment">In the request body, supply an <see cref="Equipment"/> resource.</param>
-        /// <returns cref="Equipment">If successful, this method returns an <see cref="Equipment"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="name" required="false" />
         ///     <parameter name="code" required="false" />
         ///     <parameter name="type" required="false" />
         /// </request>
-        public JObject Put(int deviceClassId, int id, JObject json)
+        [HttpNoContentResponse]
+        public void Put(int deviceClassId, int id, JObject json)
         {
             var equipment = DataContext.Equipment.Get(id);
             if (equipment == null || equipment.DeviceClassID != deviceClassId)
@@ -80,7 +80,6 @@ namespace DeviceHive.API.Controllers
             Validate(equipment);
 
             DataContext.Equipment.Save(equipment);
-            return Mapper.Map(equipment);
         }
 
         /// <name>delete</name>

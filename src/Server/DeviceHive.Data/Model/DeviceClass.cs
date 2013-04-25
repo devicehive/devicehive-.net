@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using DeviceHive.Data.Validation;
@@ -77,5 +78,62 @@ namespace DeviceHive.Data.Model
         public string Data { get; set; }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Represents a device class filter.
+    /// </summary>
+    public class DeviceClassFilter
+    {
+        #region Public Properties
+
+        /// <summary>
+        /// Filter by device class name.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Filter by device class name pattern.
+        /// </summary>
+        public string NamePattern { get; set; }
+
+        /// <summary>
+        /// Filter by device class version.
+        /// </summary>
+        public string Version { get; set; }
+
+        /// <summary>
+        /// Result list sort field. Available values are ID and Name.
+        /// </summary>
+        [DefaultValue(DeviceClassSortField.None)]
+        public DeviceClassSortField SortField { get; set; }
+
+        /// <summary>
+        /// Result list sort order. Available values are ASC and DESC.
+        /// </summary>
+        [DefaultValue(SortOrder.ASC)]
+        public SortOrder SortOrder { get; set; }
+
+        /// <summary>
+        /// Number of records to skip from the result list.
+        /// </summary>
+        public int? Skip { get; set; }
+
+        /// <summary>
+        /// Number of records to take from the result list.
+        /// </summary>
+        public int? Take { get; set; }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Represents device class sort fields.
+    /// </summary>
+    public enum DeviceClassSortField
+    {
+        None = 0,
+        ID = 1,
+        Name = 2
     }
 }

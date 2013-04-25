@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using DeviceHive.Data.Validation;
@@ -88,7 +89,6 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// Device operation status.
         /// The status is optional and it can be set to an arbitrary value, if applicable.
-        /// <para>To change their status, devices should send 'deviceStatus' notification with the corresponding 'status' parameter.</para>
         /// <para>If device status monitoring feature is enabled, the framework will set status value to 'Offline' after defined period of inactivity.</para>
         /// </summary>
         [StringLength(128)]
@@ -122,5 +122,90 @@ namespace DeviceHive.Data.Model
         public DeviceClass DeviceClass { get; set; }
         
         #endregion
+    }
+
+    /// <summary>
+    /// Represents a device filter.
+    /// </summary>
+    public class DeviceFilter
+    {
+        #region Public Properties
+
+        /// <summary>
+        /// Filter by device name.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Filter by device name pattern.
+        /// </summary>
+        public string NamePattern { get; set; }
+        
+        /// <summary>
+        /// Filter by device status.
+        /// </summary>
+        public string Status { get; set; }
+
+        /// <summary>
+        /// Filter by associated network identifier.
+        /// </summary>
+        public int? NetworkID { get; set; }
+
+        /// <summary>
+        /// Filter by associated network name.
+        /// </summary>
+        public string NetworkName { get; set; }
+
+        /// <summary>
+        /// Filter by associated device class identifier.
+        /// </summary>
+        public int? DeviceClassID { get; set; }
+
+        /// <summary>
+        /// Filter by associated device class name.
+        /// </summary>
+        public string DeviceClassName { get; set; }
+
+        /// <summary>
+        /// Filter by associated device class version.
+        /// </summary>
+        public string DeviceClassVersion { get; set; }
+
+        /// <summary>
+        /// Result list sort field. Available values are Name, Status, Network and DeviceClass.
+        /// </summary>
+        [DefaultValue(DeviceSortField.None)]
+        public DeviceSortField SortField { get; set; }
+
+        /// <summary>
+        /// Result list sort order. Available values are ASC and DESC.
+        /// </summary>
+        [DefaultValue(SortOrder.ASC)]
+        public SortOrder SortOrder { get; set; }
+
+        /// <summary>
+        /// Number of records to skip from the result list.
+        /// </summary>
+        public int? Skip { get; set; }
+
+        /// <summary>
+        /// Number of records to take from the result list.
+        /// </summary>
+        public int? Take { get; set; }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Represents device sort fields.
+    /// </summary>
+    public enum DeviceSortField
+    {
+        None = 0,
+        ID = 1,
+        Name = 2,
+        Status = 3,
+        Network = 4,
+        DeviceClass = 5
     }
 }

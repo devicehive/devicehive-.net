@@ -18,7 +18,7 @@ namespace DeviceHive.Device
     /// </summary>
     public class RestfulDeviceService : IDeviceService, IDisposable
     {
-        #region Private fields
+        #region Private Fields
 
         private WebSocketDeviceService _webSocketDeviceService;
 
@@ -47,6 +47,7 @@ namespace DeviceHive.Device
         /// Default constructor.
         /// </summary>
         /// <param name="serviceUrl">URL of the DeviceHive service.</param>
+        /// <param name="useWebSockets">Whether to use WebSockets protocol if possible.</param>
         public RestfulDeviceService(string serviceUrl, bool useWebSockets = true)
         {
             if (serviceUrl == null)
@@ -83,8 +84,7 @@ namespace DeviceHive.Device
         /// Registers a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
-        /// <returns><see cref="Device"/> object registered.</returns>
-        public Device RegisterDevice(Device device)
+        public void RegisterDevice(Device device)
         {
             if (device == null)
                 throw new ArgumentNullException("device");
@@ -106,19 +106,21 @@ namespace DeviceHive.Device
             if (string.IsNullOrEmpty(device.DeviceClass.Version))
                 throw new ArgumentException("Device class version is null or empty!", "device.DeviceClass.Version");
 
-            var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
             if (InitWebSocketsService())
-                return _webSocketDeviceService.RegisterDevice(device.Id, d);
+            {
+                _webSocketDeviceService.RegisterDevice(device);
+                return;
+            }
 
-            return Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d);
+            var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
+            Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d);
         }
 
         /// <summary>
         /// Updates a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
-        /// <returns><see cref="Device"/> object updated.</returns>
-        public Device UpdateDevice(Device device)
+        public void UpdateDevice(Device device)
         {
             if (device == null)
                 throw new ArgumentNullException("device");
@@ -140,11 +142,14 @@ namespace DeviceHive.Device
                     throw new ArgumentException("Device class version is null or empty!", "device.DeviceClass.Version");
             }
 
-            var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
             if (InitWebSocketsService())
-                return _webSocketDeviceService.UpdateDevice(d, device.Id.Value, device.Key);
+            {
+                _webSocketDeviceService.UpdateDevice(device);
+                return;
+            }
 
-            return Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d, NullValueHandling.Ignore);
+            var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
+            Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d, NullValueHandling.Ignore);
         }
 
         /// <summary>
@@ -199,19 +204,6 @@ namespace DeviceHive.Device
                     return commands;
             }
         }
-
-        /// <summary>
-        /// Fires when new command inserted for some active command subscription.
-        /// </summary>
-        /// <remarks>
-        /// Subscription can be created through <see cref="IDeviceService.SubscribeToCommands"/> method.
-        /// </remarks>
-        public event EventHandler<CommandEventArgs> CommandInserted;
-
-        /// <summary>
-        /// Fires when underlying connection is closed
-        /// </summary>
-        public event EventHandler ConnectionClosed;
 
         /// <summary>
         /// Subscribe to device commands
@@ -284,23 +276,52 @@ namespace DeviceHive.Device
                 throw new ArgumentNullException("command");
             if (command.Id == null)
                 throw new ArgumentNullException("command.ID");
-            if (string.IsNullOrEmpty(command.Name))
-                throw new ArgumentNullException("Command name is null or empty", "command.Name");
 
-            var c = new Command(command.Name, command.Parameters, command.Status, command.Result);
+            var c = new Command(null, null, command.Status, command.Result) {Id = command.Id};
 
             if (InitWebSocketsService())
             {
-                _webSocketDeviceService.UpdateCommand(command, deviceId, deviceKey);
+                _webSocketDeviceService.UpdateCommand(c, deviceId, deviceKey);
             }
             else
             {
-                Put(string.Format("/device/{0}/command/{1}", deviceId, command.Id), deviceId, deviceKey, c);
+                Put(string.Format("/device/{0}/command/{1}", deviceId, command.Id),
+                    deviceId, deviceKey, c, NullValueHandling.Ignore);
             }
+        }
+
+        /// <summary>
+        /// Fires when new command inserted for some active command subscription.
+        /// </summary>
+        /// <remarks>
+        /// Subscription can be created through <see cref="IDeviceService.SubscribeToCommands"/> method.
+        /// </remarks>
+        public event EventHandler<CommandEventArgs> CommandInserted;
+
+        /// <summary>
+        /// Fires when underlying connection is closed
+        /// </summary>
+        public event EventHandler ConnectionClosed;
+
+        #endregion
+
+        #region IDisposable Members
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
+        {
+            if (_webSocketDeviceService != null)
+                _webSocketDeviceService.Dispose();
+
+            foreach (var commandSubscriptionTask in _commandSubscriptionTasks.Values)
+                commandSubscriptionTask.Cancel();
         }
         #endregion
 
-        #region Protected methods
+        #region Protected Methods
 
         /// <summary>
         /// Fires <see cref="CommandInserted"/> event
@@ -357,6 +378,7 @@ namespace DeviceHive.Device
             }
             catch (DeviceServiceException)
             {
+                Logger.Warn("Fallback to pooling instead of WebSockets");
                 UseWebSockets = false;
                 return false;
             }
@@ -456,7 +478,7 @@ namespace DeviceHive.Device
             }
         }
 
-        private T Put<T>(string url, Guid deviceId, string deviceKey, T obj, NullValueHandling nullValueHandling = NullValueHandling.Include)
+        private void Put<T>(string url, Guid deviceId, string deviceKey, T obj, NullValueHandling nullValueHandling = NullValueHandling.Include)
         {
             Logger.Debug("Calling PUT " + url);
             var request = WebRequest.Create(ServiceUrl + url);
@@ -471,11 +493,7 @@ namespace DeviceHive.Device
 
             try
             {
-                var response = request.GetResponse();
-                using (var stream = response.GetResponseStream())
-                {
-                    return Deserialize<T>(stream);
-                }
+                request.GetResponse();
             }
             catch (WebException ex)
             {
@@ -585,9 +603,9 @@ namespace DeviceHive.Device
 
                 Task.Factory.StartNew(() =>
                 {
-                    try
+                    while (true)
                     {
-                        while (true)
+                        try
                         {
                             var сommands = restfulDeviceService.PollCommands(deviceId, deviceKey,
                                 timestamp, _cancellationTokenSource.Token);
@@ -600,9 +618,16 @@ namespace DeviceHive.Device
 
                             timestamp = сommands.Max(c => c.Timestamp ?? timestamp);
                         }
-                    }
-                    catch (OperationCanceledException)
-                    {
+                        catch (OperationCanceledException)
+                        {
+                            return;
+                        }
+                        catch (Exception e)
+                        {
+                            LogManager.GetLogger(typeof(RestfulDeviceService))
+                                .Error("Error on command polling. Restart polling", e);
+                            Thread.Sleep(1000); // retry with small wait
+                        }
                     }
                 });
             }
@@ -612,24 +637,6 @@ namespace DeviceHive.Device
                 _cancellationTokenSource.Cancel();
             }
         }
-
-        #endregion
-
-        #region Implementation of IDisposable
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        /// <filterpriority>2</filterpriority>
-        public void Dispose()
-        {
-            if (_webSocketDeviceService != null)
-                _webSocketDeviceService.Dispose();
-
-            foreach (var commandSubscriptionTask in _commandSubscriptionTasks.Values)
-                commandSubscriptionTask.Cancel();
-        }
-
         #endregion
     }
 }

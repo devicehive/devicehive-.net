@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using DeviceHive.API.Filters;
@@ -12,6 +14,7 @@ using DeviceHive.Core.Mapping;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
 using Ninject;
+using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.API.Controllers
 {
@@ -72,6 +75,12 @@ namespace DeviceHive.API.Controllers
             return JsonMapperManager.GetMapper<T>();
         }
 
+        protected T MapObjectFromQuery<T>()
+        {
+            var json = new JObject(Request.GetQueryNameValuePairs().Select(p => new JProperty(p.Key, p.Value)));
+            return GetMapper<T>().Map(json);
+        }
+
         protected void Validate(object entity)
         {
             var result = new List<ValidationResult>();
@@ -89,6 +98,17 @@ namespace DeviceHive.API.Controllers
         protected void ThrowHttpResponse(HttpStatusCode status, string message)
         {
             throw new HttpResponseException(HttpResponse(status, message));
+        }
+
+        protected Task Delay(int timeout)
+        {
+            var taskSource = new TaskCompletionSource<bool>();
+            new Timer(self =>
+                {
+                    ((IDisposable)self).Dispose();
+                    taskSource.TrySetResult(true);
+                }).Change(timeout, Timeout.Infinite);
+            return taskSource.Task;
         }
         #endregion
     }

@@ -44,11 +44,11 @@ namespace DeviceHive.API.Controllers
         /// <param name="id">User identifier.</param>
         /// <param name="networkId">Network identifier.</param>
         /// <param name="json" cref="UserNetwork">In the request body, supply the empty object.</param>
-        /// <returns cref="UserNetwork">If successful, this method returns the following structure in the response body.</returns>
         /// <request>
         ///     <parameter name="network" mode="remove" />
         /// </request>
-        public JObject Put(int id, int networkId, JObject json)
+        [HttpNoContentResponse]
+        public void Put(int id, int networkId, JObject json)
         {
             var user = DataContext.User.Get(id);
             if (user == null)
@@ -66,7 +66,6 @@ namespace DeviceHive.API.Controllers
             Validate(userNetwork);
 
             DataContext.UserNetwork.Save(userNetwork);
-            return Mapper.Map(userNetwork);
         }
 
         /// <name>unassignNetwork</name>

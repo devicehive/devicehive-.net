@@ -21,15 +21,13 @@ namespace DeviceHive.Device
         /// Registers a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
-        /// <returns><see cref="Device"/> object registered.</returns>
-        Device RegisterDevice(Device device);
+        void RegisterDevice(Device device);
 
         /// <summary>
         /// Updates a device in the DeviceHive network.
         /// </summary>
         /// <param name="device"><see cref="Device"/> object.</param>
-        /// <returns><see cref="Device"/> object updated.</returns>
-        Device UpdateDevice(Device device);
+        void UpdateDevice(Device device);
 
         /// <summary>
         /// Sends new device notification to the service.
@@ -50,19 +48,6 @@ namespace DeviceHive.Device
         /// <param name="token">Cancellation token used to cancel polling operation.</param>
         /// <returns>A list of <see cref="Command"/> objects.</returns>
         List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime? timestamp, CancellationToken token);
-
-        /// <summary>
-        /// Fires when new command inserted for some active command subscription.
-        /// </summary>
-        /// <remarks>
-        /// Subscription can be created through <see cref="IDeviceService.SubscribeToCommands"/> method.
-        /// </remarks>
-        event EventHandler<CommandEventArgs> CommandInserted;
-
-        /// <summary>
-        /// Fires when underlying connection is closed
-        /// </summary>
-        event EventHandler ConnectionClosed;
 
         /// <summary>
         /// Subscribe to device commands
@@ -88,5 +73,18 @@ namespace DeviceHive.Device
         /// <param name="deviceKey">Device key.</param>
         /// <param name="command">A <see cref="Command"/> object to be updated.</param>
         void UpdateCommand(Guid deviceId, string deviceKey, Command command);
+
+        /// <summary>
+        /// Fires when new command inserted for some active command subscription.
+        /// </summary>
+        /// <remarks>
+        /// Subscription can be created through <see cref="IDeviceService.SubscribeToCommands"/> method.
+        /// </remarks>
+        event EventHandler<CommandEventArgs> CommandInserted;
+
+        /// <summary>
+        /// Fires when underlying connection is closed
+        /// </summary>
+        event EventHandler ConnectionClosed;
     }
 }

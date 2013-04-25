@@ -84,10 +84,10 @@ namespace DeviceHive.Test.WebSocketsTest
             DeviceController.Authenticate(connection, DeviceGUID, DeviceKey);
             var msg = DeviceController.UpdateDeviceCommand(connection, commandId, new JObject(
                 new JProperty("result", commandResult)));
-            command = (JObject) msg["command"];
+
+            clientConnection.WaiteForSendMessage();
             
             Expect((string) msg["status"], EqualTo("success"));
-            Expect((string)command["result"], EqualTo(commandResult));
             Expect(result, EqualTo(commandResult));
         }
 
@@ -117,10 +117,10 @@ namespace DeviceHive.Test.WebSocketsTest
             var connection = DeviceController.Connect();
             var msg = DeviceController.UpdateDeviceCommand(connection, DeviceGUID, DeviceKey,
                 commandId, new JObject(new JProperty("result", commandResult)));
-            command = (JObject)msg["command"];
 
-            Expect((string)msg["status"], EqualTo("success"));
-            Expect((string)command["result"], EqualTo(commandResult));
+            clientConnection.WaiteForSendMessage();
+
+            Expect((string) msg["status"], EqualTo("success"));
             Expect(result, EqualTo(commandResult));
         }
 
@@ -176,6 +176,8 @@ namespace DeviceHive.Test.WebSocketsTest
             msg = ClientController.InsertDeviceCommand(clientConnection, DeviceGUID, new JObject(
                 new JProperty("command", "_ut")));
             var insertedCommand = (JObject) msg["command"];
+
+            deviceConnection.WaiteForSendMessage();
 
             Expect(() => (string) command["command"], EqualTo("_ut"));
             Expect(() => (int) command["id"], EqualTo((int) insertedCommand["id"]));

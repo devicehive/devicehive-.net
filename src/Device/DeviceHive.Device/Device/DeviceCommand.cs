@@ -24,6 +24,11 @@ namespace DeviceHive.Device
         /// </summary>
         public JToken Parameters { get; private set; }
 
+        /// <summary>
+        /// Gets creator user identifier.
+        /// </summary>
+        public int? UserId { get; private set; }
+
         #endregion
 
         #region Constructor
@@ -33,13 +38,15 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="name">Command name.</param>
         /// <param name="parameters">Command parameters in the raw json format.</param>
-        public DeviceCommand(string name, JToken parameters)
+        /// <param name="userId">Creator user identifier.</param>
+        public DeviceCommand(string name, JToken parameters, int? userId)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Name is null or empty!", "name");
 
             Name = name;
             Parameters = parameters;
+            UserId = userId;
         }
         #endregion
 

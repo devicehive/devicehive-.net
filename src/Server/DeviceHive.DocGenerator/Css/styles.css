@@ -20,7 +20,7 @@ body {
     border: 1px solid #CCCCCC;
     border-radius: 2px 2px 2px 2px;
     float: none;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 18px;
     margin: 20px 0 0 27%;
     padding: 20px 3%;
@@ -46,18 +46,16 @@ body {
 #content p.description {
     background-color: #DBEAF9;
     border: 1px solid #B5CEE7;
-    font-size: 13px;
     font-style: italic;
     line-height: 15px;
     margin: 10px 0 8px;
     padding: 7px;
 }
 #content ul {
-    margin: 0 0 0 40px;
+    margin: 0 0 0 30px;
 }
 #content ul li {
-    color: #000000;
-    font-size: 13px;
+    padding: 0;
     margin: 2px;
 }
 #content h1 {
@@ -74,7 +72,9 @@ body {
     font-size: 1.5em;
     font-weight: normal;
     line-height: 18px;
-    margin: 30px 0 20px;
+    margin: 30px 0 0;
+    border-bottom: 1px solid #BBBBBB;
+    padding-bottom: 14px;
 }
 #content h3 {
     color: #9F6227;
@@ -83,7 +83,6 @@ body {
     margin: 20px 0 10px;
 }
 #content p {
-    font-size: 13px;
     line-height: 18px;
     margin: 8px 0;
     padding: 0;

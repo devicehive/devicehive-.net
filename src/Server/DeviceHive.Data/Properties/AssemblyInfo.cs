@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("DataArt Apps")]
 [assembly: AssemblyProduct("DeviceHive")]
-[assembly: AssemblyCopyright("Copyright © DataArt Apps 2012")]
+[assembly: AssemblyCopyright("Copyright © DataArt Apps 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

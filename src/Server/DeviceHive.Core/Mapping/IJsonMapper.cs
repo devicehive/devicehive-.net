@@ -52,8 +52,9 @@ namespace DeviceHive.Core.Mapping
         /// Maps entity to json
         /// </summary>
         /// <param name="entity">Entity object</param>
+        /// <param name="oneWayOnly">Whether to map only OneWay fields</param>
         /// <returns>Mapped JObject object</returns>
-        JObject Map(T entity);
+        JObject Map(T entity, bool oneWayOnly = false);
 
         /// <summary>
         /// Maps json to entity
@@ -102,21 +103,28 @@ namespace DeviceHive.Core.Mapping
     /// <summary>
     /// Represents available mapping modes
     /// </summary>
+    [Flags]
     public enum JsonMapperEntryMode
     {
         /// <summary>
-        /// Mapping from object to json only
+        /// Mapping from object to json
         /// </summary>
-        OneWay,
+        ToJson = 1,
 
         /// <summary>
-        /// Mapping from json to object only
+        /// Mapping from json to object
         /// </summary>
-        OneWayToSource,
+        FromJson = 2,
 
         /// <summary>
         /// Mapping in both directions
         /// </summary>
-        TwoWay,
+        TwoWay = 1 + 2,
+
+        /// <summary>
+        /// Mapping in one direction only
+        /// This value is assigned automatically and used just for checks
+        /// </summary>
+        OneWayOnly = 4,
     }
 }

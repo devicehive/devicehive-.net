@@ -34,7 +34,6 @@ namespace DeviceHive.Test.ApiTest
         {
             var resource = Create(new { name = "_ut", version = "1", offlineTimeout = 3600 }, auth: Admin);
 
-            Expect(resource, Matches(new { name = "_ut", version = "1", isPermanent = false, offlineTimeout = 3600 }));
             Expect(Get(resource, auth: Admin), Matches(new { name = "_ut", version = "1", isPermanent = false, offlineTimeout = 3600 }));
         }
 
@@ -67,9 +66,8 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             var resource = Create(new { name = "_ut", version = "1" }, auth: Admin);
-            var update = Update(resource, new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" } }, auth: Admin);
+            Update(resource, new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" } }, auth: Admin);
 
-            Expect(update, Matches(new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" } }));
             Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" } }));
         }
 
@@ -77,9 +75,8 @@ namespace DeviceHive.Test.ApiTest
         public void Update_Partial()
         {
             var resource = Create(new { name = "_ut", version = "1" }, auth: Admin);
-            var update = Update(resource, new { version = "2" }, auth: Admin);
+            Update(resource, new { version = "2" }, auth: Admin);
 
-            Expect(update, Matches(new { name = "_ut", version = "2", isPermanent = false }));
             Expect(Get(resource, auth: Admin), Matches(new { name = "_ut", version = "2", isPermanent = false }));
         }
 
@@ -105,14 +102,14 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Get(), FailsWith(401));
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
             Expect(() => Create(new { name = "_ut", version = "1" }), FailsWith(401));
-            Expect(() => Update(UnexistingResourceID, new { name = "_ut", version = "1" }), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { name = "_ut", version = "1" }); return false; }, FailsWith(401));
             Expect(() => { Delete(UnexistingResourceID); return false; }, FailsWith(401));
 
             // user authorization
             var user = CreateUser(1);
             Expect(() => Get(auth: user), FailsWith(401));
             Expect(() => Create(new { name = "_ut", version = "1" }, auth: user), FailsWith(401));
-            Expect(() => Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: user), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: user); return false; }, FailsWith(401));
             Expect(() => { Delete(UnexistingResourceID, auth: user); return false; }, FailsWith(401));
         }
 
@@ -120,7 +117,7 @@ namespace DeviceHive.Test.ApiTest
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: Admin), FailsWith(404));
+            Expect(() => { Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: Admin); return false; }, FailsWith(404));
             Delete(UnexistingResourceID, auth: Admin); // should not fail
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 using log4net;
@@ -35,9 +36,19 @@ namespace DeviceHive.Core.Messaging
         /// <param name="message">Message object</param>
         public void Notify<TMessage>(TMessage message) where TMessage : class
         {
+            Notify(message, typeof (TMessage));
+        }
+
+        /// <summary>
+        /// Notifies other listening clients about new message
+        /// </summary>        
+        /// <param name="message">Message object</param>
+        /// /// <param name="messageType">Message type</param>
+        public void Notify(object message, Type messageType)
+        {
             var messageContainer = new MessageContainer()
             {
-                TypeName = typeof (TMessage).FullName,
+                TypeName = messageType.FullName,
                 Message = message
             };
 
@@ -51,7 +62,8 @@ namespace DeviceHive.Core.Messaging
                 data = ms.ToArray();
             }
 
-            _log.DebugFormat("Send message {0}", messageContainer.TypeName);            
+            _log.DebugFormat("Send message {0}", messageContainer.TypeName);
+            HandleMessage(messageContainer); // handle message by current process itself
             SendMessage(data);
         }
 
@@ -74,11 +86,16 @@ namespace DeviceHive.Core.Messaging
                 messageContainer = serializer.Deserialize<MessageContainer>(reader);
             }
 
-            _log.DebugFormat("Receive message {0}", messageContainer.TypeName);
-
-            var handlers = _subscriptions[messageContainer.TypeName];
-            foreach (var handler in handlers)
-                handler(messageContainer.Message);
+            if (messageContainer == null)
+            {
+                _log.ErrorFormat("Message container is null" +
+                    "(data length: {0}, data: {1})",
+                    (data != null) ? data.Length : -1,
+                    (data != null) ? Convert.ToBase64String(data) : string.Empty);
+                return;
+            }
+            
+            HandleMessage(messageContainer);
         }
 
         /// <summary>
@@ -86,6 +103,22 @@ namespace DeviceHive.Core.Messaging
         /// </summary>
         /// <param name="data">Message data</param>
         protected abstract void SendMessage(byte[] data);
+
+        #endregion
+
+        #region Private methods
+
+        private void HandleMessage(MessageContainer messageContainer)
+        {
+            _log.DebugFormat("Receive message {0}", messageContainer.TypeName);
+
+            var handlers = _subscriptions[messageContainer.TypeName];
+            foreach (var handler in handlers)
+            {
+                var handler1 = handler;
+                ThreadPool.QueueUserWorkItem(obj => handler1(messageContainer.Message));
+            }
+        }
 
         #endregion
 

@@ -1,5 +1,5 @@
 ﻿@* Generator : Template *@
-@using DeviceHive.API.Models
+@using DeviceHive.DocGenerator
 
 @functions  {
     public MetadataResource Resource { get; set; }
@@ -7,7 +7,6 @@
 }
 
 <h1>@Html.Encode(Resource.Name): @Html.Encode(Method.Name)</h1>
-
 <p>@Html.Documentation(Method.Documentation)</p>
 
 <h2>Request</h2>

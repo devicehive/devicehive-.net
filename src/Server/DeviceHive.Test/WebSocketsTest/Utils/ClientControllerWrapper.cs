@@ -1,6 +1,6 @@
 ﻿using System;
 using DeviceHive.Test.Stubs;
-using DeviceHive.WebSockets.Controllers;
+using DeviceHive.WebSockets.API.Controllers;
 using Newtonsoft.Json.Linq;
 using Ninject;
 

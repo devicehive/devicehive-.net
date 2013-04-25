@@ -10,7 +10,7 @@ namespace DeviceHive.API
         /// <summary>
         /// API version
         /// </summary>
-        public const string ApiVersion = "1.1.0";
+        public const string ApiVersion = "1.2.0";
 
     }
 }

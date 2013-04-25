@@ -43,7 +43,7 @@ namespace DeviceHive.API.Filters
                 response.Headers.Add("Access-Control-Allow-Origin", origin.Value.First());
                 response.Headers.Add("Access-Control-Allow-Credentials", "true");
                 response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-                response.Headers.Add("Access-Control-Allow-Headers", "Origin, Authorization, Accept");
+                response.Headers.Add("Access-Control-Allow-Headers", "Origin, Authorization, Accept, Content-Type");
             }
 
             throw new HttpResponseException(response);

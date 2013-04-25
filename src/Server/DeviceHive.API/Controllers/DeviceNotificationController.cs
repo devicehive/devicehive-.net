@@ -28,17 +28,17 @@ namespace DeviceHive.API.Controllers
         /// Queries device notifications.
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
-        /// <param name="start">Notification start date (inclusive, UTC).</param>
-        /// <param name="end">Notification end date (inclusive, UTC)</param>
+        /// <query cref="DeviceNotificationFilter" />
         /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
         [AuthorizeUser]
-        public JToken Get(Guid deviceGuid, DateTime? start = null, DateTime? end = null)
+        public JToken Get(Guid deviceGuid)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsNetworkAccessible(device.NetworkID))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
-            return new JArray(DataContext.DeviceNotification.GetByDevice(device.ID, start, end).Select(n => Mapper.Map(n)));
+            var filter = MapObjectFromQuery<DeviceNotificationFilter>();
+            return new JArray(DataContext.DeviceNotification.GetByDevice(device.ID, filter).Select(n => Mapper.Map(n)));
         }
 
         /// <name>get</name>
@@ -68,7 +68,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="json" cref="DeviceNotification">In the request body, supply a <see cref="DeviceNotification"/> resource.</param>
-        /// <returns cref="DeviceNotification">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
+        /// <returns cref="DeviceNotification" mode="OneWayOnly">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
         [HttpCreatedResponse]
         [AuthorizeDeviceOrUser(Roles = "Administrator")]
         public JObject Post(Guid deviceGuid, JObject json)
@@ -86,7 +86,8 @@ namespace DeviceHive.API.Controllers
             DataContext.DeviceNotification.Save(notification);
             _messageManager.ProcessNotification(notification);
             _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
-            return Mapper.Map(notification);
+
+            return Mapper.Map(notification, oneWayOnly: true);
         }
 
         private IJsonMapper<DeviceNotification> Mapper

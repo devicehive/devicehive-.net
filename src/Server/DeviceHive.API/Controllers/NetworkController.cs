@@ -17,13 +17,15 @@ namespace DeviceHive.API.Controllers
         /// Gets list of device networks.
         /// <para>If caller belongs to the Client user role, the result list is limited to networks the user has access to.</para>
         /// </summary>
+        /// <query cref="NetworkFilter" />
         /// <returns cref="Network">If successful, this method returns array of <see cref="Network"/> resources in the response body.</returns>
         [AuthorizeUser]
         public JArray Get()
         {
-            var networks = RequestContext.CurrentUser.Role == (int)UserRole.Client ?
-                DataContext.Network.GetByUser(RequestContext.CurrentUser.ID) :
-                DataContext.Network.GetAll();
+            var filter = MapObjectFromQuery<NetworkFilter>();
+            var networks = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
+                DataContext.Network.GetAll(filter) :
+                DataContext.Network.GetByUser(RequestContext.CurrentUser.ID, filter);
 
             return new JArray(networks.Select(n => Mapper.Map(n)));
         }
@@ -58,7 +60,7 @@ namespace DeviceHive.API.Controllers
         /// Creates new device network.
         /// </summary>
         /// <param name="json" cref="Network">In the request body, supply a <see cref="Network"/> resource.</param>
-        /// <returns cref="Network">If successful, this method returns a <see cref="Network"/> resource in the response body.</returns>
+        /// <returns cref="Network" mode="OneWayOnly">If successful, this method returns a <see cref="Network"/> resource in the response body.</returns>
         [HttpCreatedResponse]
         [AuthorizeUser(Roles = "Administrator")]
         public JObject Post(JObject json)
@@ -70,7 +72,7 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "Network with such name already exists!");
             
             DataContext.Network.Save(network);
-            return Mapper.Map(network);
+            return Mapper.Map(network, oneWayOnly: true);
         }
 
         /// <name>update</name>
@@ -79,12 +81,12 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Network identifier.</param>
         /// <param name="json" cref="Network">In the request body, supply a <see cref="Network"/> resource.</param>
-        /// <returns cref="Network">If successful, this method returns a <see cref="Network"/> resource in the response body.</returns>
         /// <request>
         ///     <parameter name="name" required="false" />
         /// </request>
+        [HttpNoContentResponse]
         [AuthorizeUser(Roles = "Administrator")]
-        public JObject Put(int id, JObject json)
+        public void Put(int id, JObject json)
         {
             var network = DataContext.Network.Get(id);
             if (network == null)
@@ -98,7 +100,6 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "Network with such name already exists!");
 
             DataContext.Network.Save(network);
-            return Mapper.Map(network);
         }
 
         /// <name>delete</name>

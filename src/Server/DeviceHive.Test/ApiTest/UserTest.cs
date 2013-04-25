@@ -17,21 +17,52 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void GetAll()
         {
-            Get(auth: Admin);
+            // create user
+            var resource = Create(new { login = "_ut", password = "pwd", role = 1, status = 0 }, auth: Admin);
+            var resourceId = GetResourceId(resource);
+
+            // get all users
+            var users = Get(auth: Admin);
+            Expect(users.Count, Is.GreaterThan(1));
+            Expect(users.Count(u => GetResourceId(u) == resourceId), Is.EqualTo(1));
+
+            // get user by login
+            users = Get(new Dictionary<string, string> { { "login", "_ut" } }, auth: Admin);
+            Expect(users.Count, Is.EqualTo(1));
+            Expect(GetResourceId(users[0]), Is.EqualTo(resourceId));
+
+            // get non-existing user by login
+            users = Get(new Dictionary<string, string> { { "login", "nonexist" } }, auth: Admin);
+            Expect(users.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Get_Current()
+        {
+            // create user
+            var resource = Create(new { login = "_ut", password = "pwd", role = 1, status = 0 }, auth: Admin);
+
+            // get current user
+            var current = Client.Get(ResourceUri + "/current", auth: User("_ut", "pwd"));
+            Expect(current.Status, Is.EqualTo(200));
+            Expect(current.Json, Is.InstanceOf<JObject>());
+            Expect(current.Json, Matches(new { id = (int)resource["id"], login = "_ut", role = 1, status = 0 }));
         }
 
         [Test]
         public void Create()
         {
+            // create user
             var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
 
-            Expect(resource, Matches(new { login = "_ut", role = 0, status = 0, lastLogin = (DateTime?)null }));
+            // verify server response
             Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 0, status = 0, lastLogin = (DateTime?)null }));
         }
 
         [Test]
         public void Create_Existing()
         {
+            // create user with an existing login
             var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
             Expect(() => Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin), FailsWith(403));
         }
@@ -51,7 +82,7 @@ namespace DeviceHive.Test.ApiTest
 
             // create user/network
             var userNetworkResponse = Client.Put("/user/" + userId + "/network/" + networkId, new { }, auth: Admin);
-            Expect(userNetworkResponse.Status, Is.EqualTo(200));
+            Expect(userNetworkResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
             var userNetwork = (JObject)userNetworkResponse.Json;
             RegisterForDeletion("/user/" + userId + "/network/" + networkId);
 
@@ -63,21 +94,37 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Update()
         {
+            // create and update user
             var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
-            var update = Update(resource, new { login = "_ut2", password = "pwd2", role = 1, status = 1 }, auth: Admin);
+            Update(resource, new { login = "_ut2", password = "pwd2", role = 1, status = 1 }, auth: Admin);
 
-            Expect(update, Matches(new { login = "_ut2", role = 1, status = 1, lastLogin = (DateTime?)null }));
+            // verify server response
             Expect(Get(resource, auth: Admin), Matches(new { login = "_ut2", role = 1, status = 1, lastLogin = (DateTime?)null }));
         }
 
         [Test]
         public void Update_Partial()
         {
+            // create and update user
             var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
-            var update = Update(resource, new { status = 1 }, auth: Admin);
+            Update(resource, new { status = 1 }, auth: Admin);
 
-            Expect(update, Matches(new { login = "_ut", role = 0, status = 1, lastLogin = (DateTime?)null }));
+            // verify server response
             Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 0, status = 1, lastLogin = (DateTime?)null }));
+        }
+
+        [Test]
+        public void Update_Current()
+        {
+            // create user
+            var resource = Create(new { login = "_ut", password = "pwd", role = 1, status = 0 }, auth: Admin);
+
+            // update user password
+            var current = Client.Put(ResourceUri + "/current", new { password = "pwd2" }, auth: User("_ut", "pwd"));
+            Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus));
+
+            // verify user password has been changed
+            Expect(Client.Get(ResourceUri + "/current", auth: User("_ut", "pwd")).Status, Is.EqualTo(401));
         }
 
         [Test]
@@ -101,8 +148,10 @@ namespace DeviceHive.Test.ApiTest
             // no authorization
             Expect(() => Get(), FailsWith(401));
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
+            Expect(() => Get("current"), FailsWith(401));
             Expect(() => Create(new { login = "_ut" }), FailsWith(401));
-            Expect(() => Update(UnexistingResourceID, new { login = "_ut" }), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { login = "_ut" }); return false; }, FailsWith(401));
+            Expect(() => { Update("current", new { }); return false; }, FailsWith(401));
             Expect(() => { Delete(UnexistingResourceID); return false; }, FailsWith(401));
 
             // user authorization
@@ -110,7 +159,7 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Get(auth: user), FailsWith(401));
             Expect(() => Get(UnexistingResourceID, auth: user), FailsWith(401));
             Expect(() => Create(new { login = "_ut" }, auth: user), FailsWith(401));
-            Expect(() => Update(UnexistingResourceID, new { login = "_ut" }, auth: user), FailsWith(401));
+            Expect(() => { Update(UnexistingResourceID, new { login = "_ut" }, auth: user); return false; }, FailsWith(401));
             Expect(() => { Delete(UnexistingResourceID, auth: user); return false; }, FailsWith(401));
         }
 
@@ -118,7 +167,7 @@ namespace DeviceHive.Test.ApiTest
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => Update(UnexistingResourceID, new { login = "_ut" }, auth: Admin), FailsWith(404));
+            Expect(() => { Update(UnexistingResourceID, new { login = "_ut" }, auth: Admin); return false; }, FailsWith(404));
             Delete(UnexistingResourceID, auth: Admin); // should not fail
         }
     }

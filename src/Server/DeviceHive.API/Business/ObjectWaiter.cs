@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DeviceHive.API.Business
 {
@@ -72,7 +73,7 @@ namespace DeviceHive.API.Business
         private class Subscription
         {
             private readonly HashSet<object> _keys;
-            private readonly ManualResetEvent _handle;
+            private readonly AutoResetEvent _handle;
 
             public HashSet<object> Keys
             {
@@ -87,7 +88,7 @@ namespace DeviceHive.API.Business
             public Subscription(object[] keys)
             {
                 _keys = new HashSet<object>(keys);
-                _handle = new ManualResetEvent(false);
+                _handle = new AutoResetEvent(false);
             }
 
             public void Notify()
@@ -110,9 +111,15 @@ namespace DeviceHive.API.Business
                 _subscription = subscription;
             }
 
-            public WaitHandle Handle
+            public Task Wait()
             {
-                get { return _subscription.Handle; }
+                var taskSource = new TaskCompletionSource<bool>();
+                var registeredHandle = ThreadPool.RegisterWaitForSingleObject(_subscription.Handle,
+                    delegate { taskSource.TrySetResult(true); }, null, Timeout.Infinite, true);
+                
+                var task = taskSource.Task;
+                task.ContinueWith(_ => registeredHandle.Unregister(null));
+                return task;
             }
 
             public void Dispose()
@@ -129,8 +136,9 @@ namespace DeviceHive.API.Business
     public interface IWaiterHandle : IDisposable
     {
         /// <summary>
-        /// Gets associated wait handle
+        /// Asynchronously waits for handle
         /// </summary>
-        WaitHandle Handle { get; }
+        /// <returns>Task object</returns>
+        Task Wait();
     }
 }
