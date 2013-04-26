@@ -294,15 +294,17 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <summary>
         /// Gets meta-information of the current API.
         /// </summary>
-        /// <returns cref="Data.Model.ApiInfo">If successful, this method returns a <see cref="Data.Model.ApiInfo"/> resource in the response body.</returns>
+        /// <response>
+        ///     <parameter name="info" cref="ApiInfo">The <see cref="ApiInfo"/> resource.</parameter>
+        /// </response>
         [Action("server/info")]
-        public void ApiInfo()
+        public void ServerInfo()
         {
             var apiInfo = new ApiInfo
             {
                 ApiVersion = DeviceHive.Core.Version.ApiVersion,
                 ServerTimestamp = DataContext.Timestamp.GetCurrentTimestamp(),
-                WebSocketServerUrl = ConfigurationManager.AppSettings["RestServerUrl"]
+                RestServerUrl = ConfigurationManager.AppSettings["RestServerUrl"]
             };
 
             SendResponse(new JProperty("info", ApiInfoMapper.Map(apiInfo)));
