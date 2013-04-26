@@ -21,12 +21,16 @@ namespace DeviceHive.Data.Repositories
             if (filter.Start != null)
             {
                 var start = DateTime.SpecifyKind(filter.Start.Value, DateTimeKind.Utc);
+                if (!filter.IsDateInclusive)
+                    start = start.AddTicks(10); // SQL Server has 7-digit precision, while JSON mapping 6-digit
                 query = filter.IsDateInclusive ? query.Where(e => e.Timestamp >= start) : query.Where(e => e.Timestamp > start);
             }
 
             if (filter.End != null)
             {
                 var end = DateTime.SpecifyKind(filter.End.Value, DateTimeKind.Utc);
+                if (!filter.IsDateInclusive)
+                    end = end.AddTicks(-10); // SQL Server has 7-digit precision, while JSON mapping 6-digit
                 query = filter.IsDateInclusive ? query.Where(e => e.Timestamp <= end) : query.Where(e => e.Timestamp < end);
             }
 
