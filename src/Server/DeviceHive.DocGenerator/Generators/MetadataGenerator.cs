@@ -8,6 +8,7 @@ using System.Xml.XPath;
 using DeviceHive.API;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
+using DeviceHive.Data;
 using Ninject;
 
 namespace DeviceHive.DocGenerator
@@ -22,6 +23,8 @@ namespace DeviceHive.DocGenerator
         {
             var kernel = new StandardKernel();
             kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
+            kernel.Bind<DataContext>().ToSelf().InSingletonScope()
+                .OnActivation<DataContext>(context => { context.SetRepositoryCreator(type => kernel.Get(type)); });
 
             _dataXmlCommentReader = new XmlCommentReader("DeviceHive.Data.xml");
             _apiXmlCommentReader = new XmlCommentReader("DeviceHive.API.xml");

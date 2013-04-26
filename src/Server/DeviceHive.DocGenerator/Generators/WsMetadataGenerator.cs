@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DeviceHive.Core.Mapping;
+using DeviceHive.Data;
 using DeviceHive.WebSockets.API.Core;
 using DeviceHive.WebSockets.Core.ActionsFramework;
 using Newtonsoft.Json.Linq;
@@ -21,6 +22,8 @@ namespace DeviceHive.DocGenerator
         {
             var kernel = new StandardKernel();
             kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
+            kernel.Bind<DataContext>().ToSelf().InSingletonScope()
+                .OnActivation<DataContext>(context => { context.SetRepositoryCreator(type => kernel.Get(type)); });
 
             _dataXmlCommentReader = new XmlCommentReader("DeviceHive.Data.xml");
             _wsXmlCommentReader = new XmlCommentReader("DeviceHive.WebSockets.API.xml");

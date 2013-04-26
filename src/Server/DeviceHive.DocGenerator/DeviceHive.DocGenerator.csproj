@@ -154,6 +154,10 @@
       <Project>{20C669F5-66EF-4C45-A40A-4C2441879645}</Project>
       <Name>DeviceHive.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DeviceHive.Data.MongoDB\DeviceHive.Data.MongoDB.csproj">
+      <Project>{ed0e9dd6-360b-455b-ad38-194752fc7330}</Project>
+      <Name>DeviceHive.Data.MongoDB</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DeviceHive.Data\DeviceHive.Data.csproj">
       <Project>{57837E79-1267-4780-99DC-D872FEEC38C8}</Project>
       <Name>DeviceHive.Data</Name>
