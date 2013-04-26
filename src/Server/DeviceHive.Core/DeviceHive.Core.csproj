@@ -77,6 +77,7 @@
     <Compile Include="Services\Exceptions.cs" />
     <Compile Include="Services\DeviceService.cs" />
     <Compile Include="Services\ServiceBase.cs" />
+    <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

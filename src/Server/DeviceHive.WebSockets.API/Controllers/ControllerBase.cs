@@ -16,6 +16,7 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         private readonly IJsonMapper<DeviceCommand> _commandMapper;
         private readonly IJsonMapper<DeviceNotification> _notificationMapper;
+        private readonly IJsonMapper<ApiInfo> _apiInfoMapper;
 
         #endregion
 
@@ -29,6 +30,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         
             _commandMapper = jsonMapperManager.GetMapper<DeviceCommand>();
             _notificationMapper = jsonMapperManager.GetMapper<DeviceNotification>();
+            _apiInfoMapper = jsonMapperManager.GetMapper<ApiInfo>();
         }
 
         #endregion
@@ -48,6 +50,11 @@ namespace DeviceHive.WebSockets.API.Controllers
         protected IJsonMapper<DeviceNotification> NotificationMapper
         {
             get { return _notificationMapper; }
+        }
+
+        public IJsonMapper<ApiInfo> ApiInfoMapper
+        {
+            get { return _apiInfoMapper; }
         }
 
         #endregion

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.Messaging;
@@ -182,6 +183,25 @@ namespace DeviceHive.WebSockets.API.Controllers
                 _subscriptionManager.Unsubscribe(Connection, deviceId);
 
             SendSuccessResponse();
+        }
+
+        /// <summary>
+        /// Gets meta-information about the current API.
+        /// </summary>
+        /// <response>
+        ///     <parameter name="info" cref="ApiInfo">The <see cref="ApiInfo"/> resource.</parameter>
+        /// </response>
+        [Action("server/info")]
+        public void ServerInfo()
+        {
+            var apiInfo = new ApiInfo
+            {
+                ApiVersion = DeviceHive.Core.Version.ApiVersion,
+                ServerTimestamp = DataContext.Timestamp.GetCurrentTimestamp(),
+                RestServerUrl = ConfigurationManager.AppSettings["RestServerUrl"]
+            };
+
+            SendResponse(new JProperty("info", ApiInfoMapper.Map(apiInfo)));
         }
 
         #endregion

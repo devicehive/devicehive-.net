@@ -4,6 +4,7 @@ using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
 using Newtonsoft.Json.Linq;
+using Version = DeviceHive.Core.Version;
 
 namespace DeviceHive.API.Controllers
 {

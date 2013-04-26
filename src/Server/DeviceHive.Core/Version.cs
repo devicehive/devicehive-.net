@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DeviceHive.API
+﻿namespace DeviceHive.Core
 {
     /// <summary>
     /// Represents current version information
