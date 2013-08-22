@@ -150,24 +150,24 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
             Expect(() => Get("current"), FailsWith(401));
             Expect(() => Create(new { login = "_ut" }), FailsWith(401));
-            Expect(() => { Update(UnexistingResourceID, new { login = "_ut" }); return false; }, FailsWith(401));
-            Expect(() => { Update("current", new { }); return false; }, FailsWith(401));
-            Expect(() => { Delete(UnexistingResourceID); return false; }, FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { login = "_ut" }), FailsWith(401));
+            Expect(() => Update("current", new { }), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID), FailsWith(401));
 
             // user authorization
             var user = CreateUser(1);
             Expect(() => Get(auth: user), FailsWith(401));
             Expect(() => Get(UnexistingResourceID, auth: user), FailsWith(401));
             Expect(() => Create(new { login = "_ut" }, auth: user), FailsWith(401));
-            Expect(() => { Update(UnexistingResourceID, new { login = "_ut" }, auth: user); return false; }, FailsWith(401));
-            Expect(() => { Delete(UnexistingResourceID, auth: user); return false; }, FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { login = "_ut" }, auth: user), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
         }
 
         [Test]
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => { Update(UnexistingResourceID, new { login = "_ut" }, auth: Admin); return false; }, FailsWith(404));
+            Expect(() => Update(UnexistingResourceID, new { login = "_ut" }, auth: Admin), FailsWith(404));
             Delete(UnexistingResourceID, auth: Admin); // should not fail
         }
     }

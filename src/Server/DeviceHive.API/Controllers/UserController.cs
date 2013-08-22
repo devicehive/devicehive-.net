@@ -10,7 +10,6 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="User" />
-    [AuthorizeUser(Roles = "Administrator")]
     public class UserController : BaseController
     {
         /// <name>list</name>
@@ -19,6 +18,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="UserFilter" />
         /// <returns cref="User">If successful, this method returns array of <see cref="User"/> resources in the response body.</returns>
+        [AuthorizeUser(Roles = "Administrator")]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<UserFilter>();
@@ -34,8 +34,11 @@ namespace DeviceHive.API.Controllers
         /// <response>
         ///     <parameter name="networks" type="array" cref="UserNetwork">Array of networks associated with the user</parameter>
         /// </response>
+        [AuthorizeUser, ResolveCurrentUser("id")]
         public JObject Get(int id)
         {
+            EnsureUserAccessTo(id);
+
             var user = DataContext.User.Get(id);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -57,6 +60,7 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="password" type="string" required="true">User password</parameter>
         /// </request>
+        [AuthorizeUser(Roles = "Administrator")]
         [HttpCreatedResponse]
         public JObject Post(JObject json)
         {
@@ -87,15 +91,25 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="status" required="false" />
         /// </request>
         [HttpNoContentResponse]
+        [AuthorizeUser, ResolveCurrentUser("id")]
         public void Put(int id, JObject json)
         {
+            EnsureUserAccessTo(id);
+
             var user = DataContext.User.Get(id);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
 
-            Mapper.Apply(user, json);
+            if (RequestContext.CurrentUser.Role == (int)UserRole.Administrator)
+            {
+                // only administrators can change user properties
+                Mapper.Apply(user, json);
+            }
             if (json["password"] != null && json["password"].Type == JTokenType.String)
+            {
+                // all users can change their password
                 user.SetPassword((string)json["password"]);
+            }
             Validate(user);
 
             var existing = DataContext.User.Get(user.Login);
@@ -110,6 +124,7 @@ namespace DeviceHive.API.Controllers
         /// Deletes an existing user.
         /// </summary>
         /// <param name="id">User identifier.</param>
+        [AuthorizeUser(Roles = "Administrator")]
         [HttpNoContentResponse]
         public void Delete(int id)
         {

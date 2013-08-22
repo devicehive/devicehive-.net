@@ -395,29 +395,34 @@ namespace DeviceHive.Test
 
         private bool IsMatches(JToken actual, object expected)
         {
+            if (expected == null || (expected is string) || expected.GetType().IsValueType)
+            {
+                var jvalue = actual as JValue;
+                if (jvalue == null)
+                    return false;
+
+                if (expected is TimestampValue)
+                {
+                    // a timestamp is expected
+                    return jvalue.Value is DateTime && _timestampRegex.IsMatch(jvalue.Parent.ToString());
+                }
+                else
+                {
+                    if (expected is int)
+                        expected = (long)(int)expected;
+
+                    return object.Equals(jvalue.Value, expected);
+                }
+            }
+
             foreach (var property in expected.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 var expectedProperty = property.GetValue(expected, null);
                 var actualProperty = actual[property.Name];
 
-                if (expectedProperty is TimestampValue)
-                {
-                    // a timestamp is expected
-                    var jvalue = actualProperty as JValue;
-                    if (jvalue == null || !(jvalue.Value is DateTime))
-                        return false;
-                    if (!_timestampRegex.IsMatch(jvalue.Parent.ToString()))
-                        return false;
-                    continue;
-                }
-
                 if (actualProperty is JValue)
                 {
-                    if (expectedProperty is int)
-                        expectedProperty = (long)(int)expectedProperty;
-
-                    if (!object.Equals(((JValue)actualProperty).Value, expectedProperty))
-                        return false;
+                    return IsMatches(actualProperty, expectedProperty);
                 }
                 else if (actualProperty is JObject)
                 {
@@ -490,6 +495,10 @@ namespace DeviceHive.Test
 
         public override bool Matches(object actual)
         {
+            if (actual is TestDelegate)
+            {
+                return Matches(() => { ((TestDelegate)actual)(); return false; });
+            }
             return false;
         }
 

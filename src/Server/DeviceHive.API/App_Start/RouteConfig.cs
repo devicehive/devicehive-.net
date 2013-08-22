@@ -12,12 +12,6 @@ namespace DeviceHive.API
         public static void RegisterRoutes(HttpRouteCollection routes)
         {
             routes.MapHttpRoute(
-                name: "UserCurrent",
-                routeTemplate: "user/current",
-                defaults: new { controller = "UserCurrent" }
-            );
-
-            routes.MapHttpRoute(
                 name: "UserNetwork",
                 routeTemplate: "user/{id}/network/{networkId}",
                 defaults: new { controller = "UserNetwork" }
@@ -27,6 +21,12 @@ namespace DeviceHive.API
                 name: "User",
                 routeTemplate: "user/{id}",
                 defaults: new { controller = "User", id = RouteParameter.Optional }
+            );
+
+            routes.MapHttpRoute(
+                name: "AccessKey",
+                routeTemplate: "user/{userId}/accesskey/{id}",
+                defaults: new { controller = "AccessKey", id = RouteParameter.Optional }
             );
 
             routes.MapHttpRoute(

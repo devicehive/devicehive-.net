@@ -29,6 +29,20 @@ namespace DeviceHive.API
             context.Kernel.ConfigureMapping<UserNetwork>()
                 .ReferenceProperty(e => e.Network, "network");
 
+            context.Kernel.ConfigureMapping<AccessKeyPermission>()
+                .Property(e => e.Domains, "domains")
+                .Property(e => e.Subnets, "subnets")
+                .Property(e => e.Actions, "actions")
+                .Property(e => e.Networks, "networks")
+                .Property(e => e.Devices, "devices");
+
+            context.Kernel.ConfigureMapping<AccessKey>()
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Label, "label")
+                .Property(e => e.Key, "key", JsonMapperEntryMode.ToJson)
+                .Property(e => e.ExpirationDate, "expirationDate")
+                .CollectionProperty(e => e.Permissions, "permissions");
+
             context.Kernel.ConfigureMapping<DeviceClass>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Name, "name")

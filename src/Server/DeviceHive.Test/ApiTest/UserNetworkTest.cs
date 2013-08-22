@@ -66,21 +66,21 @@ namespace DeviceHive.Test.ApiTest
         {
             // no authorization
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
-            Expect(() => { Update(UnexistingResourceID, new { }); return false; }, FailsWith(401));
-            Expect(() => { Delete(UnexistingResourceID); return false; }, FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { }), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID), FailsWith(401));
 
             // user authorization
             var user = CreateUser(1);
             Expect(() => Get(UnexistingResourceID, auth: user), FailsWith(401));
-            Expect(() => { Update(UnexistingResourceID, new { }, auth: user); return false; }, FailsWith(401));
-            Expect(() => { Delete(UnexistingResourceID, auth: user); return false; }, FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { }, auth: user), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
         }
 
         [Test]
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => { Update(UnexistingResourceID, new { }, auth: Admin); return false; }, FailsWith(404));
+            Expect(() => Update(UnexistingResourceID, new { }, auth: Admin), FailsWith(404));
             Delete(UnexistingResourceID, auth: Admin); // should not fail
         }
 
