@@ -18,7 +18,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="UserFilter" />
         /// <returns cref="User">If successful, this method returns array of <see cref="User"/> resources in the response body.</returns>
-        [AuthorizeUser(Roles = "Administrator")]
+        [AuthorizeAdmin]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<UserFilter>();
@@ -60,7 +60,7 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="password" type="string" required="true">User password</parameter>
         /// </request>
-        [AuthorizeUser(Roles = "Administrator")]
+        [AuthorizeAdmin]
         [HttpCreatedResponse]
         public JObject Post(JObject json)
         {
@@ -124,7 +124,7 @@ namespace DeviceHive.API.Controllers
         /// Deletes an existing user.
         /// </summary>
         /// <param name="id">User identifier.</param>
-        [AuthorizeUser(Roles = "Administrator")]
+        [AuthorizeAdmin]
         [HttpNoContentResponse]
         public void Delete(int id)
         {

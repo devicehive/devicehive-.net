@@ -20,7 +20,7 @@ namespace DeviceHive.API.Filters
             var controller = (BaseController)actionContext.ControllerContext.Controller;
             DataContext = controller.DataContext;
 
-            // check basic authorization
+            // check basic authentication
             var auth = actionContext.Request.Headers.Authorization;
             if (auth != null && auth.Scheme == "Basic" && !string.IsNullOrEmpty(auth.Parameter))
             {
@@ -57,6 +57,29 @@ namespace DeviceHive.API.Filters
                     }
                 }
                 
+                return;
+            }
+
+            // check access key authentication
+            if (auth != null && auth.Scheme == "Bearer" && !string.IsNullOrEmpty(auth.Parameter))
+            {
+                // get the token value
+                var token = auth.Parameter;
+
+                // get the access key object
+                var accessKey = DataContext.AccessKey.Get(token);
+                if (accessKey != null && (accessKey.ExpirationDate == null || accessKey.ExpirationDate > DateTime.UtcNow))
+                {
+                    // get the user object
+                    var user = DataContext.User.Get(accessKey.UserID);
+                    if (user != null && user.Status == (int)UserStatus.Active)
+                    {
+                        // authenticate the user
+                        controller.RequestContext.CurrentAccessKey = accessKey;
+                        controller.RequestContext.CurrentUser = user;
+                    }
+                }
+
                 return;
             }
 

@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="Equipment" />
-    [AuthorizeUser(Roles = "Administrator")]
+    [AuthorizeAdmin]
     public class EquipmentController : BaseController
     {
         public HttpResponseMessage Get(int deviceClassId)

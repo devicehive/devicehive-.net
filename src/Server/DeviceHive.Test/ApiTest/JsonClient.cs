@@ -57,6 +57,9 @@ namespace DeviceHive.Test
                         request.Headers["Authorization"] = "Basic " + Convert.ToBase64String(
                             Encoding.UTF8.GetBytes(string.Format("{0}:{1}", auth.Login, auth.Password)));
                         break;
+                    case "AccessKey":
+                        request.Headers["Authorization"] = "Bearer " + auth.Login;
+                        break;
                     case "Device":
                         request.Headers["Auth-DeviceID"] = auth.Login;
                         request.Headers["Auth-DeviceKey"] = auth.Password;
@@ -112,12 +115,14 @@ namespace DeviceHive.Test
         public string Type { get; private set; }
         public string Login { get; private set; }
         public string Password { get; private set; }
+        public string ID { get; private set; }
 
-        public Authorization(string type, string login, string password)
+        public Authorization(string type, string login, string password = null, string id = null)
         {
             Type = type;
             Login = login;
             Password = password;
+            ID = id;
         }
     }
 

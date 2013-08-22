@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="User" />
-    [AuthorizeUser(Roles = "Administrator")]
+    [AuthorizeAdmin]
     public class UserNetworkController : BaseController
     {
         /// <name>getNetwork</name>

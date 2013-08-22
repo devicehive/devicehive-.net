@@ -19,13 +19,27 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="NetworkFilter" />
         /// <returns cref="Network">If successful, this method returns array of <see cref="Network"/> resources in the response body.</returns>
-        [AuthorizeUser]
+        [AuthorizeUser(AccessKeyAction = "GetNetwork")]
         public JArray Get()
         {
+            var networks = (List<Network>)null;
             var filter = MapObjectFromQuery<NetworkFilter>();
-            var networks = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
-                DataContext.Network.GetAll(filter) :
-                DataContext.Network.GetByUser(RequestContext.CurrentUser.ID, filter);
+
+            if (RequestContext.CurrentUser.Role == (int)UserRole.Administrator)
+            {
+                // administrators get all networks
+                networks = DataContext.Network.GetAll(filter);
+            }
+            else
+            {
+                // users see a limited set of networks
+                networks = DataContext.Network.GetByUser(RequestContext.CurrentUser.ID, filter);
+                if (RequestContext.CurrentUserPermissions != null)
+                {
+                    // if access key was used, limit networks to allowed ones
+                    networks = networks.Where(n => RequestContext.CurrentUserPermissions.Any(p => p.IsNetworkAllowed(n.ID))).ToList();
+                }
+            }
 
             return new JArray(networks.Select(n => Mapper.Map(n)));
         }
@@ -40,17 +54,24 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="devices" type="array" cref="Device">Array of devices registered in the current network.</parameter>
         ///     <parameter name="devices[].network" mode="remove" />
         /// </response>
-        [AuthorizeUser]
+        [AuthorizeUser(AccessKeyAction = "GetNetwork")]
         public JObject Get(int id)
         {
             var network = DataContext.Network.Get(id);
-            if (network == null || !IsNetworkAccessible(network.ID))
+            if (network == null || !IsNetworkAccessible(network))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Network not found!");
 
             var jNetwork = Mapper.Map(network);
 
             var deviceMapper = GetMapper<Device>();
             var devices = DataContext.Device.GetByNetwork(id);
+            if (RequestContext.CurrentUserPermissions != null)
+            {
+                // if access key was used, limit devices to allowed ones
+                devices = devices.Where(d => RequestContext.CurrentUserPermissions.Any(p =>
+                    p.IsActionAllowed("GetDevice") && p.IsDeviceAllowed(d.GUID.ToString()))).ToList();
+            }
+            
             jNetwork["devices"] = new JArray(devices.Select(d => deviceMapper.Map(d)));
             return jNetwork;
         }
@@ -61,8 +82,8 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="json" cref="Network">In the request body, supply a <see cref="Network"/> resource.</param>
         /// <returns cref="Network" mode="OneWayOnly">If successful, this method returns a <see cref="Network"/> resource in the response body.</returns>
+        [AuthorizeAdmin]
         [HttpCreatedResponse]
-        [AuthorizeUser(Roles = "Administrator")]
         public JObject Post(JObject json)
         {
             var network = Mapper.Map(json);
@@ -84,8 +105,8 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="name" required="false" />
         /// </request>
+        [AuthorizeAdmin]
         [HttpNoContentResponse]
-        [AuthorizeUser(Roles = "Administrator")]
         public void Put(int id, JObject json)
         {
             var network = DataContext.Network.Get(id);
@@ -107,8 +128,8 @@ namespace DeviceHive.API.Controllers
         /// Deletes an existing device network.
         /// </summary>
         /// <param name="id">Network identifier.</param>
+        [AuthorizeAdmin]
         [HttpNoContentResponse]
-        [AuthorizeUser(Roles = "Administrator")]
         public void Delete(int id)
         {
             DataContext.Network.Delete(id);

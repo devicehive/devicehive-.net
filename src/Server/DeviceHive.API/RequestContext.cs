@@ -9,8 +9,10 @@ namespace DeviceHive.API
     public class RequestContext
     {
         public User CurrentUser { get; set; }
+        public AccessKey CurrentAccessKey { get; set; }
         public Device CurrentDevice { get; set; }
 
         public List<UserNetwork> CurrentUserNetworks { get; set; }
+        public AccessKeyPermission[] CurrentUserPermissions { get; set; }
     }
 }

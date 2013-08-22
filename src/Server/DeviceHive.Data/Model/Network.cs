@@ -43,7 +43,6 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// Optional key that is used to protect the network from unauthorized device registrations.
         /// When defined, devices will need to pass the key in order to register to the current network.
-        /// The key maximum length is 64 characters and it must be unique across all the networks.
         /// </summary>
         [StringLength(64)]
         public string Key { get; set; }

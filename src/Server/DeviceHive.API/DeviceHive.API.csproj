@@ -117,9 +117,8 @@
     <Compile Include="Controllers\EquipmentController.cs" />
     <Compile Include="Filters\AllowCrossDomainOrigin.cs" />
     <Compile Include="Filters\AuthenticateAttribute.cs" />
-    <Compile Include="Filters\AuthorizeDeviceAttribute.cs" />
-    <Compile Include="Filters\AuthorizeDeviceOrUserAttribute.cs" />
-    <Compile Include="Filters\AuthorizeUserAttribute.cs" />
+    <Compile Include="Filters\AuthorizeAttribute.cs" />
+    <Compile Include="Filters\AuthorizeDeviceRegistrationAttribute.cs" />
     <Compile Include="Filters\HandleExceptionAttribute.cs" />
     <Compile Include="Filters\HttpCreatedResponseAttribute.cs" />
     <Compile Include="Filters\HttpNoContentResponseAttribute.cs" />

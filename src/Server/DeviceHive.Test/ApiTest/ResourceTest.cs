@@ -124,7 +124,7 @@ namespace DeviceHive.Test
         /// </summary>
         /// <param name="auth">Authorization info</param>
         /// <returns>JArray that represents server response</returns>
-        protected virtual JArray Get(Authorization auth = null)
+        protected virtual JArray List(Authorization auth = null)
         {
             // invoke get
             var response = Client.Get(ResourceUri, auth: auth);
@@ -141,7 +141,7 @@ namespace DeviceHive.Test
         /// <param name="query">Optional query parameters</param>
         /// <param name="auth">Authorization info</param>
         /// <returns>JArray that represents server response</returns>
-        protected virtual JArray Get(Dictionary<string, string> query, Authorization auth = null)
+        protected virtual JArray List(Dictionary<string, string> query, Authorization auth = null)
         {
             // invoke get
             var response = Client.Get(ResourceUri + "?" +
@@ -271,7 +271,40 @@ namespace DeviceHive.Test
             }
 
             // return user authorization object
-            return User(login, password);
+            return User(login, password, userId);
+        }
+
+        /// <summary>
+        /// Creates an access key and returns corresponding Authorization object
+        /// </summary>
+        /// <param name="user">User authorization object</param>
+        /// <param name="action">Allowed access key action</param>
+        /// <param name="networks">Allowed networks</param>
+        /// <param name="devices">Allowed devices</param>
+        /// <returns>Coresponding Authorization object</returns>
+        protected Authorization CreateAccessKey(Authorization user, string action, int[] networks = null, string[] devices = null)
+        {
+            return CreateAccessKey(user, new[] { action }, networks, devices);
+        }
+
+        /// <summary>
+        /// Creates an access key and returns corresponding Authorization object
+        /// </summary>
+        /// <param name="user">User authorization object</param>
+        /// <param name="actions">Allowed access key actions</param>
+        /// <param name="networks">Allowed networks</param>
+        /// <param name="devices">Allowed devices</param>
+        /// <returns>Coresponding Authorization object</returns>
+        protected Authorization CreateAccessKey(Authorization user, string[] actions, int[] networks = null, string[] devices = null)
+        {
+            // create access key
+            var accessKeyResource = Client.Post("/user/current/accesskey", new { label = "ut", permissions =
+                new[] { new { actions = actions, networks = networks, devices = devices } } }, auth: user);
+            Expect(accessKeyResource.Status, Is.EqualTo(ExpectedCreatedStatus));
+            var accessKeyId = GetResourceId(accessKeyResource.Json);
+            RegisterForDeletion("/user/" + user.ID + "/accesskey/" + accessKeyId);
+
+            return AccessKey((string)accessKeyResource.Json["key"]);
         }
 
         /// <summary>
@@ -294,11 +327,21 @@ namespace DeviceHive.Test
         /// <summary>
         /// Gets authorization for a user
         /// </summary>
-        /// <param name="username">User login</param>
+        /// <param name="login">User login</param>
         /// <param name="password">User password</param>
-        protected Authorization User(string login, string password)
+        /// <param name="id">User identifier (optional)</param>
+        protected Authorization User(string login, string password, string id = null)
         {
-            return new Authorization("User", login, password);
+            return new Authorization("User", login, password, id);
+        }
+
+        /// <summary>
+        /// Gets authorization for an access key
+        /// </summary>
+        /// <param name="key">Access key</param>
+        protected Authorization AccessKey(string key)
+        {
+            return new Authorization("AccessKey", key, null);
         }
 
         /// <summary>

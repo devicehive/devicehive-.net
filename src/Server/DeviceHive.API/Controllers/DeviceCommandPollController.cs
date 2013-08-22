@@ -45,13 +45,13 @@ namespace DeviceHive.API.Controllers
         /// <param name="timestamp">Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
-        [AuthorizeDeviceOrUser]
+        [AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
         public Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, int? waitTimeout = null) 
         {
             EnsureDeviceAccess(deviceGuid);
 
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var taskSource = new TaskCompletionSource<JArray>();
@@ -106,11 +106,11 @@ namespace DeviceHive.API.Controllers
         /// <param name="id">Command identifier.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
-        [AuthorizeUser]
+        [AuthorizeUser(AccessKeyAction = "GetDeviceCommand")]
         public Task<JObject> Get(Guid deviceGuid, int id, int? waitTimeout = null)
         {
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var command = DataContext.DeviceCommand.Get(id);

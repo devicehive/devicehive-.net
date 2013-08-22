@@ -18,7 +18,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="DeviceClassFilter" />
         /// <returns cref="DeviceClass">If successful, this method returns array of <see cref="DeviceClass"/> resources in the response body.</returns>
-        [AuthorizeUser(Roles = "Administrator")]
+        [AuthorizeAdmin]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<DeviceClassFilter>();
@@ -55,8 +55,8 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="json" cref="DeviceClass">In the request body, supply a <see cref="DeviceClass"/> resource.</param>
         /// <returns cref="DeviceClass" mode="OneWayOnly">If successful, this method returns a <see cref="DeviceClass"/> resource in the response body.</returns>
+        [AuthorizeAdmin]
         [HttpCreatedResponse]
-        [AuthorizeUser(Roles = "Administrator")]
         public JObject Post(JObject json)
         {
             var deviceClass = Mapper.Map(json);
@@ -80,8 +80,8 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="version" required="false" />
         ///     <parameter name="isPermanent" required="false" />
         /// </request>
+        [AuthorizeAdmin]
         [HttpNoContentResponse]
-        [AuthorizeUser(Roles = "Administrator")]
         public void Put(int id, JObject json)
         {
             var deviceClass = DataContext.DeviceClass.Get(id);
@@ -103,8 +103,8 @@ namespace DeviceHive.API.Controllers
         /// Deletes an existing device class.
         /// </summary>
         /// <param name="id">Device class identifier.</param>
+        [AuthorizeAdmin]
         [HttpNoContentResponse]
-        [AuthorizeUser(Roles = "Administrator")]
         public void Delete(int id)
         {
             DataContext.DeviceClass.Delete(id);

@@ -25,21 +25,21 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         /// <returns cref="DeviceEquipment">If successful, this method returns array of the following structures in the response body.</returns>
-        [AuthorizeUser]
+        [AuthorizeUser(AccessKeyAction = "GetDeviceState")]
         public JArray Get(Guid id)
         {
             var device = DataContext.Device.Get(id);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             return new JArray(DataContext.DeviceEquipment.GetByDevice(device.ID).Select(n => Mapper.Map(n)));
         }
 
-        [AuthorizeUser]
+        [AuthorizeUser(AccessKeyAction = "GetDeviceState")]
         public JObject Get(Guid id, string code)
         {
             var device = DataContext.Device.Get(id);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var equipment = DataContext.DeviceEquipment.GetByDeviceAndCode(device.ID, code);

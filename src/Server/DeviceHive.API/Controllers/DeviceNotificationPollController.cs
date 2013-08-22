@@ -42,11 +42,11 @@ namespace DeviceHive.API.Controllers
         /// <param name="timestamp">Timestamp of the last received notification (UTC). If not specified, the server's timestamp is taken instead.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
-        [AuthorizeUser]
+        [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, int? waitTimeout = null)
         {
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var taskSource = new TaskCompletionSource<JArray>();
@@ -103,15 +103,15 @@ namespace DeviceHive.API.Controllers
         /// <returns>If successful, this method returns array of the following resources in the response body.</returns>
         /// <response>
         ///     <parameter name="deviceGuid" type="guid">Associated device unique identifier.</parameter>
-        ///     <parameter name="notification" cref="DeviceNotification">DeviceNotification resource.</parameter>
+        ///     <parameter name="notification" cref="DeviceNotification"><see cref="DeviceNotification"/> resource.</parameter>
         /// </response>
-        [AuthorizeUser]
+        [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, int? waitTimeout = null)
         {
             var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(deviceGuid =>
                 {
                     var device = DataContext.Device.Get(deviceGuid);
-                    if (device == null || !IsNetworkAccessible(device.NetworkID))
+                    if (device == null || !IsDeviceAccessible(device))
                         ThrowHttpResponse(HttpStatusCode.BadRequest, "Invalid deviceGuid: " + deviceGuid);
 
                     return device.ID;
@@ -123,7 +123,7 @@ namespace DeviceHive.API.Controllers
             {
                 var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false };
                 var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter);
-                taskSource.SetResult(MapDeviceNotifications(notifications.Where(n => IsNetworkAccessible(n.Device.NetworkID))));
+                taskSource.SetResult(MapDeviceNotifications(notifications.Where(n => IsDeviceAccessible(n.Device))));
                 return taskSource.Task;
             }
 
@@ -143,7 +143,7 @@ namespace DeviceHive.API.Controllers
 
                 var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false };
                 var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter)
-                    .Where(n => IsNetworkAccessible(n.Device.NetworkID)).ToArray();
+                    .Where(n => IsDeviceAccessible(n.Device)).ToArray();
                 if (notifications != null && notifications.Any())
                 {
                     taskSource.SetResult(MapDeviceNotifications(notifications));

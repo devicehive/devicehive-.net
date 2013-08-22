@@ -22,17 +22,17 @@ namespace DeviceHive.Test.ApiTest
             var resourceId = GetResourceId(resource);
 
             // get all users
-            var users = Get(auth: Admin);
+            var users = List(auth: Admin);
             Expect(users.Count, Is.GreaterThan(1));
             Expect(users.Count(u => GetResourceId(u) == resourceId), Is.EqualTo(1));
 
             // get user by login
-            users = Get(new Dictionary<string, string> { { "login", "_ut" } }, auth: Admin);
+            users = List(new Dictionary<string, string> { { "login", "_ut" } }, auth: Admin);
             Expect(users.Count, Is.EqualTo(1));
             Expect(GetResourceId(users[0]), Is.EqualTo(resourceId));
 
             // get non-existing user by login
-            users = Get(new Dictionary<string, string> { { "login", "nonexist" } }, auth: Admin);
+            users = List(new Dictionary<string, string> { { "login", "nonexist" } }, auth: Admin);
             Expect(users.Count, Is.EqualTo(0));
         }
 
@@ -146,7 +146,7 @@ namespace DeviceHive.Test.ApiTest
         public void Unauthorized()
         {
             // no authorization
-            Expect(() => Get(), FailsWith(401));
+            Expect(() => List(), FailsWith(401));
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
             Expect(() => Get("current"), FailsWith(401));
             Expect(() => Create(new { login = "_ut" }), FailsWith(401));
@@ -156,7 +156,7 @@ namespace DeviceHive.Test.ApiTest
 
             // user authorization
             var user = CreateUser(1);
-            Expect(() => Get(auth: user), FailsWith(401));
+            Expect(() => List(auth: user), FailsWith(401));
             Expect(() => Get(UnexistingResourceID, auth: user), FailsWith(401));
             Expect(() => Create(new { login = "_ut" }, auth: user), FailsWith(401));
             Expect(() => Update(UnexistingResourceID, new { login = "_ut" }, auth: user), FailsWith(401));

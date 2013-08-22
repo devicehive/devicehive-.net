@@ -32,7 +32,8 @@ namespace DeviceHive.Test.ApiTest
             DeviceClassID = (int)deviceClassResponse.Json["id"];
             RegisterForDeletion("/device/class/" + DeviceClassID);
 
-            var deviceResponse = Client.Put("/device/" + DeviceGUID, new { key = "key", name = "_ut_dc", network = NetworkID, deviceClass = DeviceClassID });
+            var deviceResponse = Client.Put("/device/" + DeviceGUID, new { key = "key", name = "_ut_dc",
+                network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } });
             Assert.That(deviceResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
             RegisterForDeletion("/device/" + DeviceGUID);
         }
@@ -40,41 +41,74 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void GetAll()
         {
-            Get(auth: Device(DeviceGUID, "key"));
+            // create command resources
+            var user = CreateUser(1, NetworkID);
+            var resource1 = Create(new { command = "_ut1" }, auth: user);
+            var resource2 = Create(new { command = "_ut2" }, auth: user);
+
+            // user: get all commands
+            var commands = List(auth: user);
+            Expect(commands.Count, Is.EqualTo(2));
+
+            // user: get commands by name
+            commands = List(new Dictionary<string, string> { { "command", "_ut1" } }, auth: user);
+            Expect(commands.Count, Is.EqualTo(1));
+            Expect(GetResourceId(commands[0]), Is.EqualTo(GetResourceId(resource1)));
+
+            // user: get commands by start date
+            commands = List(new Dictionary<string, string> { { "start", DateTime.UtcNow.AddHours(-1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff") } }, auth: user);
+            Expect(commands.Count, Is.EqualTo(2));
+
+            commands = List(new Dictionary<string, string> { { "start", DateTime.UtcNow.AddHours(1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff") } }, auth: user);
+            Expect(commands.Count, Is.EqualTo(0));
+
+            // user: get commands by end date
+            commands = List(new Dictionary<string, string> { { "end", DateTime.UtcNow.AddHours(-1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff") } }, auth: user);
+            Expect(commands.Count, Is.EqualTo(0));
+
+            commands = List(new Dictionary<string, string> { { "end", DateTime.UtcNow.AddHours(1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff") } }, auth: user);
+            Expect(commands.Count, Is.EqualTo(2));
         }
 
         [Test]
-        public void GetAll_Filter()
+        public void Get()
         {
+            // create resource
             var resource = Create(new { command = "_ut" }, auth: Admin);
 
-            Expect(Get(new Dictionary<string, string> { { "start", DateTime.UtcNow.AddHours(-1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff") } }, auth: Device(DeviceGUID, "key")).Count, Is.GreaterThan(0));
-            Expect(Get(new Dictionary<string, string> { { "start", DateTime.UtcNow.AddHours(1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff") } }, auth: Device(DeviceGUID, "key")).Count, Is.EqualTo(0));
-            Expect(Get(new Dictionary<string, string> { { "end", DateTime.UtcNow.AddHours(-1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff") } }, auth: Device(DeviceGUID, "key")).Count, Is.EqualTo(0));
-            Expect(Get(new Dictionary<string, string> { { "end", DateTime.UtcNow.AddHours(1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff") } }, auth: Device(DeviceGUID, "key")).Count, Is.GreaterThan(0));
-        }
+            // device authentication
+            Get(resource, auth: Device(DeviceGUID, "key")); // should succeed
 
-        [Test]
-        public void Get_Client()
-        {
+            // user authentication
             var user1 = CreateUser(1);
             var user2 = CreateUser(1, NetworkID);
-            var resource = Create(new { command = "_ut" }, auth: Admin);
-
             Expect(() => Get(resource, auth: user1), FailsWith(404)); // should fail with 404
             Get(resource, auth: user2); // should succeed
+
+            // access key authentication
+            var accessKey1 = CreateAccessKey(user1, "GetDeviceCommand");
+            var accessKey2 = CreateAccessKey(user2, "GetDeviceCommand", networks: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "GetDeviceCommand", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey4 = CreateAccessKey(user2, "GetDeviceCommand");
+            Expect(() => Get(resource, auth: accessKey1), FailsWith(404)); // should fail with 404
+            Expect(() => Get(resource, auth: accessKey2), FailsWith(404)); // should fail with 404
+            Expect(() => Get(resource, auth: accessKey3), FailsWith(404)); // should fail with 404
+            Get(resource, auth: accessKey4); // should succeed
         }
 
         [Test]
         public void Poll()
         {
+            // create user account
+            var user = CreateUser(1, NetworkID);
+
             // create resource
-            var resource1 = Create(new { command = "_ut1" }, auth: Admin);
+            var resource1 = Create(new { command = "_ut1" }, auth: user);
 
             // task to poll new resources
             var poll = new Task(() =>
                 {
-                    var response = Client.Get(ResourceUri + "/poll", auth: Device(DeviceGUID, "key"));
+                    var response = Client.Get(ResourceUri + "/poll", auth: user);
                     Expect(response.Status, Is.EqualTo(200));
                     Expect(response.Json, Is.InstanceOf<JArray>());
 
@@ -86,7 +120,7 @@ namespace DeviceHive.Test.ApiTest
             // start poll, wait, then create another resource
             poll.Start();
             Thread.Sleep(100);
-            var resource2 = Create(new { command = "_ut2" }, auth: Admin);
+            var resource2 = Create(new { command = "_ut2" }, auth: user);
 
             Expect(poll.Wait(2000), Is.True); // task should complete
         }
@@ -94,10 +128,13 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Poll_NoWait()
         {
+            // create user account
+            var user = CreateUser(1, NetworkID);
+
             // task to poll new resources
             var poll = Task.Factory.StartNew(() =>
                 {
-                    var response = Client.Get(ResourceUri + "/poll?waitTimeout=0", auth: Device(DeviceGUID, "key"));
+                    var response = Client.Get(ResourceUri + "/poll?waitTimeout=0", auth: user);
                     Expect(response.Status, Is.EqualTo(200));
                     Expect(response.Json, Is.InstanceOf<JArray>());
                     Expect(response.Json.Count(), Is.EqualTo(0));
@@ -109,13 +146,16 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Poll_ByID()
         {
+            // create user account
+            var user = CreateUser(1, NetworkID);
+
             // create resource
             var resource = Create(new { command = "_ut1" }, auth: Admin);
 
             // task to poll command update
             var poll = new Task(() =>
             {
-                var response = Client.Get(ResourceUri + "/" + GetResourceId(resource) + "/poll", auth: Admin);
+                var response = Client.Get(ResourceUri + "/" + GetResourceId(resource) + "/poll", auth: user);
                 Expect(response.Status, Is.EqualTo(200));
                 Expect(response.Json, Is.InstanceOf<JObject>());
 
@@ -126,7 +166,7 @@ namespace DeviceHive.Test.ApiTest
             // start poll, wait, then update resource
             poll.Start();
             Thread.Sleep(100);
-            Update(resource, new { status = "Done", result = "OK" }, auth: Admin);
+            Update(resource, new { status = "Done", result = "OK" }, auth: user);
 
             Expect(poll.Wait(2000), Is.True); // task should complete
         }
@@ -134,41 +174,56 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create()
         {
-            // create user
-            var userResponse = Client.Post("/user", new { login = "_ut_u", password = "x", role = 0, status = 0 }, auth: Admin);
-            Assert.That(userResponse.Status, Is.EqualTo(ExpectedCreatedStatus));
-            var userId = (int)userResponse.Json["id"];
-            RegisterForDeletion("/user/" + userId);
+            // user authorization
+            var user1 = CreateUser(1);
+            var user2 = CreateUser(1, NetworkID);
+            Expect(() => Create(new { command = "_ut" }, auth: user1), FailsWith(404)); // should fail
+            var resource = Create(new { command = "_ut" }, auth: user2); // should succeed
+            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = user2.ID }));
 
-            var resource = Create(new { command = "_ut" }, auth: User("_ut_u", "x"));
-
-            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = userId }));
+            // access keys authorization
+            var accessKey1 = CreateAccessKey(user1, "CreateDeviceCommand");
+            var accessKey2 = CreateAccessKey(user2, "CreateDeviceCommand", networks: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "CreateDeviceCommand", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey4 = CreateAccessKey(user2, "CreateDeviceCommand");
+            Expect(() => Create(new { command = "_ut" }, auth: accessKey1), FailsWith(404)); // should fail with 404
+            Expect(() => Create(new { command = "_ut" }, auth: accessKey2), FailsWith(404)); // should fail with 404
+            Expect(() => Create(new { command = "_ut" }, auth: accessKey3), FailsWith(404)); // should fail with 404
+            Create(new { command = "_ut" }, auth: accessKey4); // should succeed
         }
 
         [Test]
         public void Update()
         {
             var resource = Create(new { command = "_ut" }, auth: Admin);
-            Update(resource, new { command = "_ut2", parameters = new { a = "b" }, status = "OK", result = "Success" }, auth: Device(DeviceGUID, "key"));
 
-            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut2", parameters = new { a = "b" }, status = "OK", result = "Success", timestamp = ResponseMatchesContraint.Timestamp }));
-        }
+            // device authorization
+            Update(resource, new { parameters = new { a = "b" }, status = "OK", result = "Success" }, auth: Device(DeviceGUID, "key"));
+            Expect(Get(resource, auth: Admin), Matches(new { parameters = new { a = "b" }, status = "OK", result = "Success", timestamp = ResponseMatchesContraint.Timestamp }));
 
-        [Test]
-        public void Update_Partial()
-        {
-            var resource = Create(new { command = "_ut", parameters = new { a = "b" } }, auth: Admin);
-            Update(resource, new { parameters = new { a = "b2" } }, auth: Device(DeviceGUID, "key"));
+            // user authorization
+            var user1 = CreateUser(1);
+            var user2 = CreateUser(1, NetworkID);
+            Expect(() => Update(resource, new { command = "_ut1" }, auth: user1), FailsWith(404)); // should fail
+            Update(resource, new { command = "_ut1" }, auth: user2); // should succeed
 
-            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = new { a = "b2" }, timestamp = ResponseMatchesContraint.Timestamp }));
+            // access keys authorization
+            var accessKey1 = CreateAccessKey(user1, "UpdateDeviceCommand");
+            var accessKey2 = CreateAccessKey(user2, "UpdateDeviceCommand", networks: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "UpdateDeviceCommand", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey4 = CreateAccessKey(user2, "UpdateDeviceCommand");
+            Expect(() => Update(resource, new { command = "_ut1" }, auth: accessKey1), FailsWith(404)); // should fail with 404
+            Expect(() => Update(resource, new { command = "_ut1" }, auth: accessKey2), FailsWith(404)); // should fail with 404
+            Expect(() => Update(resource, new { command = "_ut1" }, auth: accessKey3), FailsWith(404)); // should fail with 404
+            Update(resource, new { command = "_ut1" }, auth: accessKey4); // should succeed
         }
 
         [Test]
         public void Delete()
         {
+            // delete is not allwed
             var resource = Create(new { command = "_ut" }, auth: Admin);
-
-            Expect(() => { Delete(resource, auth: Admin); return false; }, FailsWith(405));
+            Expect(() => Delete(resource, auth: Admin), FailsWith(405));
         }
 
         [Test]
@@ -181,21 +236,20 @@ namespace DeviceHive.Test.ApiTest
         public void Unauthorized()
         {
             // no authorization
-            Expect(() => Get(), FailsWith(401));
+            Expect(() => List(), FailsWith(401));
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
             Expect(() => Create(new { command = "_ut" }), FailsWith(401));
-            Expect(() => { Update(UnexistingResourceID, new { command = "_ut" }); return false; }, FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { command = "_ut" }), FailsWith(401));
 
-            // user authorization
-            var user = CreateUser(1, NetworkID);
-            Expect(() => { Update(UnexistingResourceID, new { notification = "_ut" }, auth: user); return false; }, FailsWith(401));
+            // device authorization
+            Expect(() => Create(new { command = "_ut" }, auth: Device(DeviceGUID, "key")), FailsWith(401));
         }
 
         [Test]
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => { Update(UnexistingResourceID, new { command = "_ut" }, auth: Admin); return false; }, FailsWith(404));
+            Expect(() => Update(UnexistingResourceID, new { command = "_ut" }, auth: Admin), FailsWith(404));
         }
     }
 }

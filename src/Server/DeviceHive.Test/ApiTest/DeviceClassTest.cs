@@ -17,7 +17,7 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void GetAll()
         {
-            Get(auth: Admin);
+            List(auth: Admin);
         }
 
         [Test]
@@ -99,25 +99,25 @@ namespace DeviceHive.Test.ApiTest
         public void Unauthorized()
         {
             // no authorization
-            Expect(() => Get(), FailsWith(401));
+            Expect(() => List(), FailsWith(401));
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
             Expect(() => Create(new { name = "_ut", version = "1" }), FailsWith(401));
-            Expect(() => { Update(UnexistingResourceID, new { name = "_ut", version = "1" }); return false; }, FailsWith(401));
-            Expect(() => { Delete(UnexistingResourceID); return false; }, FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut", version = "1" }), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID), FailsWith(401));
 
             // user authorization
             var user = CreateUser(1);
-            Expect(() => Get(auth: user), FailsWith(401));
+            Expect(() => List(auth: user), FailsWith(401));
             Expect(() => Create(new { name = "_ut", version = "1" }, auth: user), FailsWith(401));
-            Expect(() => { Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: user); return false; }, FailsWith(401));
-            Expect(() => { Delete(UnexistingResourceID, auth: user); return false; }, FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: user), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
         }
 
         [Test]
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => { Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: Admin); return false; }, FailsWith(404));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: Admin), FailsWith(404));
             Delete(UnexistingResourceID, auth: Admin); // should not fail
         }
     }

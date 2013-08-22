@@ -22,7 +22,7 @@ namespace DeviceHive.API
 
             context.Kernel.ConfigureMapping<Network, NetworkJsonMapper>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
-                .Property(e => e.Key, "key") // is returned to administrators only
+                .Property(e => e.Key, "key") // is returned to users only
                 .Property(e => e.Name, "name")
                 .Property(e => e.Description, "description");
 
@@ -194,9 +194,9 @@ namespace DeviceHive.API
             base.OnAfterMapToJson(entity, json);
 
             var context = _kernel.Get<RequestContext>();
-            if (context.CurrentUser == null || context.CurrentUser.Role != (int)UserRole.Administrator)
+            if (context.CurrentUser == null)
             {
-                json.Remove("key"); // do not expose network key to clients
+                json.Remove("key"); // do not expose network key to devices
             }
         }
         #endregion

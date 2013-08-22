@@ -17,11 +17,41 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void GetAll()
         {
-            Get(auth: Admin);
+            // create networks
+            var networkResource1 = Create(new { name = "_ut1", key = "_ut_key" }, auth: Admin);
+            var networkResource2 = Create(new { name = "_ut2", key = "_ut_key" }, auth: Admin);
+            var networkId1 = GetResourceId(networkResource1);
+            var networkId2 = GetResourceId(networkResource2);
+
+            // admin: get all networks
+            var networks = List(auth: Admin);
+            Expect(networks.Any(n => GetResourceId(n) == networkId1), Is.True);
+            Expect(networks.Any(n => GetResourceId(n) == networkId2), Is.True);
+
+            // admin: get network by name
+            networks = List(new Dictionary<string, string> { { "name", "_ut1" } }, auth: Admin);
+            Expect(networks.Count, Is.EqualTo(1));
+            Expect(GetResourceId(networks[0]), Is.EqualTo(networkId1));
+
+            // user: get all networks
+            var user = CreateUser(1, networkId1);
+            networks = List(auth: user);
+            Expect(networks.Count, Is.EqualTo(1));
+            Expect(GetResourceId(networks[0]), Is.EqualTo(networkId1));
+
+            // accesskey: get all networks
+            var accessKey = CreateAccessKey(user, "GetNetwork");
+            networks = List(auth: accessKey);
+            Expect(networks.Count, Is.EqualTo(1));
+            Expect(GetResourceId(networks[0]), Is.EqualTo(networkId1));
+
+            // accesskey: get all networks with no access
+            accessKey = CreateAccessKey(user, "GetNetwork", new[] { 0 });
+            Expect(List(auth: accessKey).Count, Is.EqualTo(0));
         }
 
         [Test]
-        public void Get_Client()
+        public void Get()
         {
             // create network
             var networkResource = Create(new { name = "_ut1", key = "_ut_key" }, auth: Admin);
@@ -31,18 +61,17 @@ namespace DeviceHive.Test.ApiTest
             var user1 = CreateUser(1);
             var user2 = CreateUser(1, networkId);
 
-            // verify that Get() response includes only one network
-            var array1 = Get(auth: user1);
-            var array2 = Get(auth: user2);
-            Expect(array1.Any(n => GetResourceId(n) == networkId), Is.False);
-            Expect(array2.Any(n => GetResourceId(n) == networkId), Is.True);
-
             // verify that Get(id) response succeeds only for one network
             Expect(() => Get(networkId, auth: user1), FailsWith(404)); // should fail with 404
             var network = Get(networkId, auth: user2); // should succeed
 
-            // verify that Get(id) does not include network key
-            Expect(network["key"], Is.Null);
+            // verify that access keys can receive network
+            var accessKey1 = CreateAccessKey(user1, "GetNetwork");
+            var accessKey2 = CreateAccessKey(user2, "GetNetwork", networks: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "GetNetwork");
+            Expect(() => Get(networkId, auth: accessKey1), FailsWith(404)); // should fail with 404
+            Expect(() => Get(networkId, auth: accessKey2), FailsWith(404)); // should fail with 404
+            Get(networkId, auth: accessKey3); // should succeed
         }
 
         [Test]
@@ -75,7 +104,7 @@ namespace DeviceHive.Test.ApiTest
             // create device
             var deviceId = Guid.NewGuid().ToString();
             var deviceResponse = Client.Put("/device/" + deviceId, new { key = "key", name = "_ut_d",
-                network = int.Parse(GetResourceId(resource)), deviceClass = deviceClassId}, auth: Admin);
+                network = new { name = "_ut" }, deviceClass = new { name = "_ut_dc", version = "1" }}, auth: Admin);
             Expect(deviceResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
             RegisterForDeletion("/device/" + deviceId);
 
@@ -84,6 +113,15 @@ namespace DeviceHive.Test.ApiTest
                 devices = new[] { new { id = deviceId, name = "_ut_d", status = (string)null,
                     network = new { id = int.Parse(GetResourceId(resource)), name = "_ut" },
                     deviceClass = new { id = deviceClassId, name = "_ut_dc", version = "1" }}}}));
+
+            // verify the devices are filtered according to access key permissions
+            var user = CreateUser(1, resource);
+            var accessKey1 = CreateAccessKey(user, "GetNetwork");
+            var accessKey2 = CreateAccessKey(user, new[] { "GetNetwork", "GetDevice" }, devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey3 = CreateAccessKey(user, new[] { "GetNetwork", "GetDevice" });
+            Expect(Get(resource, auth: accessKey1)["devices"].Count(), Is.EqualTo(0));
+            Expect(Get(resource, auth: accessKey2)["devices"].Count(), Is.EqualTo(0));
+            Expect(Get(resource, auth: accessKey3)["devices"].Count(), Is.EqualTo(1));
         }
 
         [Test]
@@ -123,24 +161,24 @@ namespace DeviceHive.Test.ApiTest
         public void Unauthorized()
         {
             // no authorization
-            Expect(() => Get(), FailsWith(401));
+            Expect(() => List(), FailsWith(401));
             Expect(() => Get(UnexistingResourceID), FailsWith(401));
             Expect(() => Create(new { name = "_ut" }), FailsWith(401));
-            Expect(() => { Update(UnexistingResourceID, new { name = "_ut" }); return false; }, FailsWith(401));
-            Expect(() => { Delete(UnexistingResourceID); return false; }, FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut" }), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID), FailsWith(401));
 
             // user authorization
             var user = CreateUser(1);
             Expect(() => Create(new { name = "_ut" }, auth: user), FailsWith(401));
-            Expect(() => { Update(UnexistingResourceID, new { name = "_ut" }, auth: user); return false; }, FailsWith(401));
-            Expect(() => { Delete(UnexistingResourceID, auth: user); return false; }, FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut" }, auth: user), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
         }
 
         [Test]
         public void NotFound()
         {
             Expect(() => Get(UnexistingResourceID, auth: Admin), FailsWith(404));
-            Expect(() => { Update(UnexistingResourceID, new { name = "_ut" }, auth: Admin); return false; }, FailsWith(404));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut" }, auth: Admin), FailsWith(404));
             Delete(UnexistingResourceID, auth: Admin); // should not fail
         }
     }

@@ -162,18 +162,18 @@ namespace DeviceHive.DocGenerator
         private string GetAuthorization(HttpActionDescriptor description)
         {
             var filters = description.GetFilters().Union(description.ControllerDescriptor.GetFilters()).ToList();
+            var authorizeAdmin = filters.OfType<AuthorizeAdminAttribute>().FirstOrDefault();
             var authorizeUser = filters.OfType<AuthorizeUserAttribute>().FirstOrDefault();
-            var authorizeDevice = filters.OfType<AuthorizeDeviceAttribute>().FirstOrDefault();
-            var authorizeDeviceOrUser = filters.OfType<AuthorizeDeviceOrUserAttribute>().FirstOrDefault();
+            var authorizeUserOrDevice = filters.OfType<AuthorizeUserOrDeviceAttribute>().FirstOrDefault();
 
-            if (authorizeDeviceOrUser != null)
-                return string.Format("Device and User ({0})", authorizeDeviceOrUser.Roles ?? "All Roles");
+            if (authorizeAdmin != null)
+                return "Administrator";
 
             if (authorizeUser != null)
-                return string.Format("User ({0})", authorizeUser.Roles ?? "All Roles");
+                return "User" + (authorizeUser.AccessKeyAction == null ? null : " (AC: " + authorizeUser.AccessKeyAction + ")");
 
-            if (authorizeDevice != null)
-                return "Device";
+            if (authorizeUserOrDevice != null)
+                return "User or Device" + (authorizeUserOrDevice.AccessKeyAction == null ? null : " (AC: " + authorizeUserOrDevice.AccessKeyAction + ")");
 
             return "None";
         }
