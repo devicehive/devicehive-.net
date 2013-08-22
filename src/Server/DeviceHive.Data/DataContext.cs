@@ -142,6 +142,14 @@ namespace DeviceHive.Data
         }
 
         /// <summary>
+        /// Gets repository for access keys
+        /// </summary>
+        public IAccessKeyRepository AccessKey
+        {
+            get { return GetRepository<IAccessKeyRepository>(); }
+        }
+
+        /// <summary>
         /// Gets repository for user networks
         /// </summary>
         public IUserNetworkRepository UserNetwork

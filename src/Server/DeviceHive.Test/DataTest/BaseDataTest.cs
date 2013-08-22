@@ -88,6 +88,62 @@ namespace DeviceHive.Test.DataTest
         }
 
         [Test]
+        public void AccessKey()
+        {
+            var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);
+            DataContext.User.Save(user);
+            RegisterTearDown(() => DataContext.User.Delete(user.ID));
+
+            var accessKey = new AccessKey(user.ID, "Test");
+            accessKey.Permissions.Add(new AccessKeyPermission { Subnets = new[] { "127.0.0.1" } });
+            accessKey.Permissions.Add(new AccessKeyPermission { Subnets = new[] { "127.0.0.2" } });
+            DataContext.AccessKey.Save(accessKey);
+            RegisterTearDown(() => DataContext.AccessKey.Delete(accessKey.ID));
+
+            // test GetByUser
+            var accessKeys = DataContext.AccessKey.GetByUser(user.ID);
+            Assert.AreEqual(1, accessKeys.Count);
+            Assert.AreEqual(accessKey.ID, accessKeys[0].ID);
+            Assert.AreEqual(user.ID, accessKeys[0].UserID);
+
+            // test Get(id)
+            var accessKey1 = DataContext.AccessKey.Get(accessKey.ID);
+            Assert.IsNotNull(accessKey1);
+            Assert.AreEqual("Test", accessKey1.Label);
+            Assert.AreEqual(accessKey.Key, accessKey1.Key);
+            Assert.IsNotNull(accessKey1.Permissions);
+            Assert.AreEqual(2, accessKey1.Permissions.Count);
+            Assert.AreEqual(new[] { "127.0.0.1" }, accessKey1.Permissions[0].Subnets);
+            Assert.AreEqual(new[] { "127.0.0.2" }, accessKey1.Permissions[1].Subnets);
+
+            // test Save
+            accessKey.Label = "Test2";
+            accessKey.GenerateKey();
+            accessKey.ExpirationDate = DateTime.UtcNow;
+            accessKey.Permissions.RemoveAt(1);
+            accessKey.Permissions.Add(new AccessKeyPermission {
+                Subnets = new[] { "127.0.0.3" },
+                Domains = new[] { "www.example.com" },
+                Networks = new[] { 1, 2, 3 }});
+            DataContext.AccessKey.Save(accessKey);
+            var accessKey2 = DataContext.AccessKey.Get(accessKey.ID);
+            Assert.AreEqual("Test2", accessKey2.Label);
+            Assert.AreEqual(accessKey.Key, accessKey2.Key);
+            Assert.IsNotNull(accessKey2.ExpirationDate);
+            Assert.IsNotNull(accessKey2.Permissions);
+            Assert.AreEqual(2, accessKey2.Permissions.Count);
+            Assert.AreEqual(new[] { "127.0.0.1" }, accessKey2.Permissions[0].Subnets);
+            Assert.AreEqual(new[] { "127.0.0.3" }, accessKey2.Permissions[1].Subnets);
+            Assert.AreEqual(new[] { "www.example.com" }, accessKey2.Permissions[1].Domains);
+            Assert.AreEqual(new[] { 1, 2, 3 }, accessKey2.Permissions[1].Networks);
+
+            // test Delete
+            DataContext.AccessKey.Delete(accessKey.ID);
+            var accessKey3 = DataContext.AccessKey.Get(accessKey.ID);
+            Assert.IsNull(accessKey3);
+        }
+
+        [Test]
         public void UserNetwork()
         {
             var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);

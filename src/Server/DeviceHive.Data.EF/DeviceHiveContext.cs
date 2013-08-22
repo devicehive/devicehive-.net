@@ -27,6 +27,16 @@ namespace DeviceHive.Data.EF
         public DbSet<UserNetwork> UserNetworks { get; set; }
 
         /// <summary>
+        /// Gets DbSet for access keys
+        /// </summary>
+        public DbSet<AccessKey> AccessKeys { get; set; }
+
+        /// <summary>
+        /// Gets DbSet for access key permissions
+        /// </summary>
+        public DbSet<AccessKeyPermission> AccessKeyPermissions { get; set; }
+
+        /// <summary>
         /// Gets DbSet for networks
         /// </summary>
         public DbSet<Network> Networks { get; set; }
@@ -68,6 +78,7 @@ namespace DeviceHive.Data.EF
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
+            modelBuilder.Entity<AccessKey>().HasMany(e => e.Permissions).WithRequired().HasForeignKey(e => e.AccessKeyID).WillCascadeOnDelete(true);
             modelBuilder.Entity<UserNetwork>().HasRequired(e => e.User).WithMany().HasForeignKey(e => e.UserID).WillCascadeOnDelete(true);
             modelBuilder.Entity<UserNetwork>().HasRequired(e => e.Network).WithMany().HasForeignKey(e => e.NetworkID).WillCascadeOnDelete(true);
             modelBuilder.Entity<Equipment>().HasRequired(e => e.DeviceClass).WithMany().HasForeignKey(e => e.DeviceClassID).WillCascadeOnDelete(true);

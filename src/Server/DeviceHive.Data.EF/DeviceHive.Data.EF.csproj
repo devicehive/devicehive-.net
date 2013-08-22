@@ -44,6 +44,7 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccessKeyRepository.cs" />
     <Compile Include="DeviceClassRepository.cs" />
     <Compile Include="DeviceCommandRepository.cs" />
     <Compile Include="DeviceEquipmentRepository.cs" />
@@ -86,6 +87,10 @@
     <Compile Include="Migrations\201212281308163_7.5.cs" />
     <Compile Include="Migrations\201212281308163_7.5.Designer.cs">
       <DependentUpon>201212281308163_7.5.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201308091141358_9.0.cs" />
+    <Compile Include="Migrations\201308091141358_9.0.Designer.cs">
+      <DependentUpon>201308091141358_9.0.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Migrator.cs" />
