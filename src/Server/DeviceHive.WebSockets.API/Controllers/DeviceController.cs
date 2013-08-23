@@ -38,7 +38,8 @@ namespace DeviceHive.WebSockets.API.Controllers
     {
         #region Private Fields
 
-        private readonly DeviceSubscriptionManager _subscriptionManager;
+        private static readonly DeviceSubscriptionManager _subscriptionManager = new DeviceSubscriptionManager();
+
         private readonly MessageBus _messageBus;
         private readonly IMessageManager _messageManager;
         private readonly DeviceService _deviceService;
@@ -49,12 +50,10 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         public DeviceController(ActionInvoker actionInvoker,
             DataContext dataContext, JsonMapperManager jsonMapperManager,
-            [Named("DeviceCommand")] DeviceSubscriptionManager subscriptionManager,
             MessageBus messageBus, IMessageManager messageManager,
             DeviceService deviceService) :
             base(actionInvoker, dataContext, jsonMapperManager)
         {
-            _subscriptionManager = subscriptionManager;
             _messageBus = messageBus;
             _messageManager = messageManager;
             _deviceService = deviceService;
@@ -82,7 +81,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         public override void CleanupConnection(WebSocketConnectionBase connection)
         {
             base.CleanupConnection(connection);
-            CleanupNotifications(connection);
+            _subscriptionManager.Cleanup(connection);
         }
 
         #endregion
@@ -295,11 +294,6 @@ namespace DeviceHive.WebSockets.API.Controllers
                 foreach (var connection in connections)
                     Notify(connection, device, command);
             }
-        }
-
-        private void CleanupNotifications(WebSocketConnectionBase connection)
-        {
-            _subscriptionManager.Cleanup(connection);
         }
 
         /// <summary>

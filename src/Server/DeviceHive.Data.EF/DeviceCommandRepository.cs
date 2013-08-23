@@ -21,6 +21,17 @@ namespace DeviceHive.Data.EF
             }
         }
 
+        public List<DeviceCommand> GetByDevices(int[] deviceIds, DeviceCommandFilter filter = null)
+        {
+            using (var context = new DeviceHiveContext())
+            {
+                var query = context.DeviceCommands.Include(e => e.Device);
+                if (deviceIds != null)
+                    query = query.Where(e => deviceIds.Contains(e.Device.ID));
+                return query.Filter(filter).ToList();
+            }
+        }
+
         public DeviceCommand Get(int id)
         {
             using (var context = new DeviceHiveContext())

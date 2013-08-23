@@ -144,6 +144,90 @@ namespace DeviceHive.Test.ApiTest
         }
 
         [Test]
+        public void PollMany()
+        {
+            // create user account
+            var user = CreateUser(1, NetworkID);
+
+            // task to poll new resources
+            var poll = new Task(() =>
+                {
+                    var response = Client.Get("/device/command/poll?deviceGuids=" + DeviceGUID, auth: user);
+                    Expect(response.Status, Is.EqualTo(200));
+                    Expect(response.Json, Is.InstanceOf<JArray>());
+
+                    var result = (JArray)response.Json;
+                    Expect(result.Count, Is.EqualTo(1));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = new { command = "_ut2" } }));
+                });
+
+            // create resource, start poll, wait, then create another resource
+            var resource1 = Create(new { command = "_ut1" }, auth: user);
+            poll.Start();
+            Thread.Sleep(100);
+            var resource2 = Create(new { command = "_ut2" }, auth: user);
+
+            Expect(poll.Wait(2000), Is.True); // task should complete
+        }
+
+        [Test]
+        public void PollMany_OtherDevice()
+        {
+            // create another network and device
+            var otherNetworkResponse = Client.Post("/network", new { name = "_ut_n2" }, auth: Admin);
+            Assert.That(otherNetworkResponse.Status, Is.EqualTo(ExpectedCreatedStatus));
+            var otherNetworkID = (int)otherNetworkResponse.Json["id"];
+            RegisterForDeletion("/network/" + otherNetworkID);
+
+            var otherDeviceGuid = Guid.NewGuid().ToString();
+            var otherDeviceResponse = Client.Put("/device/" + otherDeviceGuid, new { key = "key", name = "_ut_dc2",
+                network = new { name = "_ut_n2" }, deviceClass = new { name = "_ut_dc", version = "1" } });
+            Assert.That(otherDeviceResponse.Status, Is.EqualTo(ExpectedUpdatedStatus));
+            RegisterForDeletion("/device/" + otherDeviceGuid);
+
+            // task to poll new resources
+            var user = CreateUser(1, NetworkID);
+            var poll = new Task(() =>
+                {
+                    var response = Client.Get("/device/command/poll", auth: user);
+                    Expect(response.Status, Is.EqualTo(200));
+                    Expect(response.Json, Is.InstanceOf<JArray>());
+
+                    var result = (JArray)response.Json;
+                    Expect(result.Count, Is.EqualTo(1));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = new { command = "_ut2" } }));
+                });
+
+            // start poll, wait, create other response, wait, then create matching resource
+            poll.Start();
+            Thread.Sleep(100);
+            var response1 = Client.Post("/device/" + otherDeviceGuid + "/command", new { command = "_ut2" }, auth: Admin);
+            Assert.That(response1.Status, Is.EqualTo(ExpectedCreatedStatus));
+            Thread.Sleep(100);
+            var resource2 = Create(new { command = "_ut2" }, auth: Admin);
+
+            Expect(poll.Wait(2000), Is.True); // task should complete
+        }
+
+        [Test]
+        public void PollMany_NoWait()
+        {
+            // create user account
+            var user = CreateUser(1, NetworkID);
+
+            // task to poll new resources
+            var poll = Task.Factory.StartNew(() =>
+                {
+                    var response = Client.Get("/device/command/poll?waitTimeout=0", auth: user);
+                    Expect(response.Status, Is.EqualTo(200));
+                    Expect(response.Json, Is.InstanceOf<JArray>());
+                    Expect(response.Json.Count(), Is.EqualTo(0));
+                });
+
+            Expect(poll.Wait(2000), Is.True); // task should complete immediately
+        }
+
+        [Test]
         public void Poll_ByID()
         {
             // create user account

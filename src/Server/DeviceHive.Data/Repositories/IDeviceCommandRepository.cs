@@ -8,6 +8,7 @@ namespace DeviceHive.Data.Repositories
     public interface IDeviceCommandRepository : ISimpleRepository<DeviceCommand>
     {
         List<DeviceCommand> GetByDevice(int deviceId, DeviceCommandFilter filter = null);
+        List<DeviceCommand> GetByDevices(int[] deviceIds, DeviceCommandFilter filter = null);
     }
 
     public static class DeviceCommandRepositoryExtension

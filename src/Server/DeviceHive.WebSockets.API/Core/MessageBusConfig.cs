@@ -16,7 +16,10 @@ namespace DeviceHive.WebSockets.API.Core
                 clientController.HandleDeviceNotification(msg.DeviceId, msg.NotificationId));
 
             messageBus.Subscribe((DeviceCommandAddedMessage msg) =>
-                deviceController.HandleDeviceCommand(msg.DeviceId, msg.CommandId));
+                {
+                    deviceController.HandleDeviceCommand(msg.DeviceId, msg.CommandId);
+                    clientController.HandleDeviceCommand(msg.DeviceId, msg.CommandId);
+                });
 
             messageBus.Subscribe((DeviceCommandUpdatedMessage msg) =>
                 clientController.HandleCommandUpdate(msg.CommandId));

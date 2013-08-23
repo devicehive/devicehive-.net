@@ -93,6 +93,76 @@ namespace DeviceHive.API.Controllers
             return taskSource.Task;
         }
 
+        /// <name>pollMany</name>
+        /// <summary>
+        ///     <para>Polls new device commands.</para>
+        ///     <para>This method returns all device commands that were created after specified timestamp.</para>
+        ///     <para>In the case when no commands were found, the method blocks until new command is received.
+        ///         If no commands are received within the waitTimeout period, the server returns an empty response.
+        ///         In this case, to continue polling, the client should repeat the call with the same timestamp value.
+        ///     </para>
+        /// </summary>
+        /// <param name="deviceGuids">Comma-separated list of device unique identifiers.</param>
+        /// <param name="timestamp">Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.</param>
+        /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
+        /// <returns>If successful, this method returns array of the following resources in the response body.</returns>
+        /// <response>
+        ///     <parameter name="deviceGuid" type="guid">Associated device unique identifier.</parameter>
+        ///     <parameter name="command" cref="DeviceCommand"><see cref="DeviceCommand"/> resource.</parameter>
+        /// </response>
+        [AuthorizeUser(AccessKeyAction = "GetDeviceCommand")]
+        public Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, int? waitTimeout = null)
+        {
+            var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(deviceGuid =>
+                {
+                    var device = DataContext.Device.Get(deviceGuid);
+                    if (device == null || !IsDeviceAccessible(device))
+                        ThrowHttpResponse(HttpStatusCode.BadRequest, "Invalid deviceGuid: " + deviceGuid);
+
+                    return device.ID;
+                }).ToArray();
+
+            var taskSource = new TaskCompletionSource<JArray>();
+            var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
+            if (waitTimeout <= 0)
+            {
+                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false };
+                var commands = DataContext.DeviceCommand.GetByDevices(deviceIds, filter);
+                taskSource.SetResult(MapDeviceCommands(commands.Where(c => IsDeviceAccessible(c.Device))));
+                return taskSource.Task;
+            }
+
+            var delayTask = Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            var waiterHandle = _commandByDeviceIdWaiter.BeginWait(
+                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray());
+            taskSource.Task.ContinueWith(t => waiterHandle.Dispose());
+
+            Action<bool> wait = null;
+            Action<bool> wait2 = cancel =>
+            {
+                if (cancel)
+                {
+                    taskSource.SetResult(new JArray());
+                    return;
+                }
+
+                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false };
+                var commands = DataContext.DeviceCommand.GetByDevices(deviceIds, filter)
+                    .Where(c => IsDeviceAccessible(c.Device)).ToArray();
+                if (commands != null && commands.Any())
+                {
+                    taskSource.SetResult(MapDeviceCommands(commands));
+                    return;
+                }
+
+                Task.Factory.ContinueWhenAny(new[] { waiterHandle.Wait(), delayTask }, t => wait(t == delayTask));
+            };
+            wait = wait2;
+            wait(false);
+
+            return taskSource.Task;
+        }
+
         /// <name>wait</name>
         /// <summary>
         ///     <para>Waits for a command to be processed.</para>
@@ -155,6 +225,29 @@ namespace DeviceHive.API.Controllers
             wait(false);
 
             return taskSource.Task;
+        }
+
+        private JArray MapDeviceCommands(IEnumerable<DeviceCommand> commands)
+        {
+            return new JArray(commands.Select(n =>
+                {
+                    return new JObject(
+                        new JProperty("deviceGuid", n.Device.GUID),
+                        new JProperty("command", Mapper.Map(n)));
+                }));
+        }
+
+        private Guid[] ParseDeviceGuids(string deviceGuids)
+        {
+            try
+            {
+                return deviceGuids.Split(',').Select(g => new Guid(g)).ToArray();
+            }
+            catch (FormatException)
+            {
+                ThrowHttpResponse(HttpStatusCode.BadRequest, "Format of the deviceGuids parameter is invalid!");
+                return null;
+            }
         }
 
         private IJsonMapper<DeviceCommand> Mapper

@@ -2,7 +2,8 @@
 {
     public class CommandSubscriptionManager: SubscriptionManager<int>
     {
-        public CommandSubscriptionManager() : base("CommandSubscriptions")
+        public CommandSubscriptionManager()
+            : base("CommandSubscriptions")
         {
         }
     }

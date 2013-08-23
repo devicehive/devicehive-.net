@@ -5,7 +5,13 @@ namespace DeviceHive.WebSockets.API.Subscriptions
 {
     public class DeviceSubscriptionManager : SubscriptionManager<int>
     {
-        public DeviceSubscriptionManager() : base("DeviceSubscriptions")
+        public DeviceSubscriptionManager()
+            : base("DeviceSubscriptions")
+        {
+        }
+
+        public DeviceSubscriptionManager(string subscriptionsValueKey)
+            : base(subscriptionsValueKey)
         {
         }
 
