@@ -77,6 +77,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfigLoader.cs" />
+    <Compile Include="Filters\AuthenticateClientAttribute.cs" />
+    <Compile Include="Filters\AuthorizeClientAttribute.cs" />
     <Compile Include="Controllers\ClientController.cs" />
     <Compile Include="Controllers\ControllerBase.cs" />
     <Compile Include="Controllers\DeviceController.cs" />
@@ -85,6 +87,9 @@
     <Compile Include="Core\NinjectConfig.cs" />
     <Compile Include="Core\NinjectRouter.cs" />
     <Compile Include="Core\RoutesConfig.cs" />
+    <Compile Include="Filters\AuthenticateDeviceAttribute.cs" />
+    <Compile Include="Filters\AuthorizeDeviceRegistrationAttribute.cs" />
+    <Compile Include="Filters\AuthorizeDeviceAttribute.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service\HostedAppServiceImpl.cs" />

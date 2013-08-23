@@ -7,19 +7,19 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
     {
         private readonly ControllerCollection _controllerCollection = new ControllerCollection();
 
-        public void InvokeAction(ControllerBase controller, string actionName)
+        public void InvokeAction(ActionContext actionContext)
         {
-            var actionCollection = _controllerCollection.GetActionCollection(controller.GetType());
-            var action = actionCollection.GetAction(actionName);
+            var actionCollection = _controllerCollection.GetActionCollection(actionContext.Controller.GetType());
+            var action = actionCollection.GetAction(actionContext.Action);
 
             if (action == null)
             {
                 throw new WebSocketRequestException(string.Format(
                     "Can't find action {0} in controller {1}",
-                    actionName, controller.GetType().FullName));
+                    actionContext.Action, actionContext.Controller.GetType().FullName));
             }
 
-            action.Invoke(controller);
+            action.Invoke(actionContext);
         }
 
         #region ActionCollection class
@@ -51,7 +51,7 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
                         continue;
 
                     var actionAttr = (ActionAttribute) actionAttrs[0];
-                    var action = new ActionInfo(methodInfo, actionAttr.NeedAuthentication);
+                    var action = new ActionInfo(methodInfo);
                     _actions.Add(actionAttr.ActionName, action);
                 }
             }

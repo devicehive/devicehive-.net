@@ -7,51 +7,52 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
 {
     internal class ActionInfo
     {
-        private readonly bool _needAuthentication;
-        private readonly Action<ControllerBase> _invokeAction;
+        private readonly Action<ActionContext> _invokeAction;
+        private readonly ActionFilterAttribute[] _filters;
 
-        public ActionInfo(MethodInfo methodInfo, bool needAuthentication)
+        public ActionInfo(MethodInfo methodInfo)
         {
             _invokeAction = BuildInvokeAction(methodInfo);
-            _needAuthentication = needAuthentication;
+            _filters = methodInfo.GetCustomAttributes(typeof(ActionFilterAttribute), true).Cast<ActionFilterAttribute>().ToArray();
         }
 
-        public void Invoke(ControllerBase controller)
+        public void Invoke(ActionContext actionContext)
         {
-            if (_needAuthentication && !controller.IsAuthenticated)
-                throw new WebSocketRequestException("Please authenticate to invoke this action");
+            foreach (var filter in _filters)
+                filter.OnAuthentication(actionContext);
 
-            _invokeAction(controller);
+            foreach (var filter in _filters)
+                filter.OnAuthorization(actionContext);
+
+            _invokeAction(actionContext);
         }
 
-        private Action<ControllerBase> BuildInvokeAction(MethodInfo methodInfo)
+        private Action<ActionContext> BuildInvokeAction(MethodInfo methodInfo)
         {
             var controllerType = methodInfo.DeclaringType;
-            var controllerParam = Expression.Parameter(typeof(ControllerBase));
+            var actionContextParam = Expression.Parameter(typeof(ActionContext));
 
-            var typedControllerExpr = Expression.Convert(controllerParam, controllerType);
-            var parameters = methodInfo
-                .GetParameters()
-                .Select(parameterInfo => BuildParameterExpression(controllerParam, parameterInfo))
-                .ToArray();
+            var controllerExpr = Expression.Property(actionContextParam, typeof(ActionContext).GetProperty("Controller"));
+            var typedControllerExpr = Expression.Convert(controllerExpr, controllerType);
+            var parameters = methodInfo.GetParameters()
+                .Select(parameterInfo => BuildParameterExpression(actionContextParam, parameterInfo)).ToArray();
 
             var actionCallExpr = Expression.Call(typedControllerExpr, methodInfo, parameters);
-            var lambda = Expression.Lambda<Action<ControllerBase>>(actionCallExpr, controllerParam);
+            var lambda = Expression.Lambda<Action<ActionContext>>(actionCallExpr, actionContextParam);
 
             return lambda.Compile();
         }
 
-        private Expression BuildParameterExpression(ParameterExpression controllerParam,
+        private Expression BuildParameterExpression(ParameterExpression actionContextParam,
             ParameterInfo parameterInfo)
         {
             var parameterType = parameterInfo.ParameterType;
-            
-            var controllerType = typeof (ControllerBase);
-            var getArgumentMethod = controllerType
-                .GetMethod("GetArgument")
+
+            var getParameterMethod = typeof(ActionContext)
+                .GetMethod("GetRequestParameter")
                 .MakeGenericMethod(parameterType);
 
-            return Expression.Call(controllerParam, getArgumentMethod,
+            return Expression.Call(actionContextParam, getParameterMethod,
                 Expression.Constant(parameterInfo.Name));
         }
     }

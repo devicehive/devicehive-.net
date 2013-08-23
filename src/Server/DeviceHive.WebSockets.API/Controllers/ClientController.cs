@@ -6,6 +6,7 @@ using DeviceHive.Core.Mapping;
 using DeviceHive.Core.Messaging;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
+using DeviceHive.WebSockets.API.Filters;
 using DeviceHive.WebSockets.API.Subscriptions;
 using DeviceHive.WebSockets.Core.ActionsFramework;
 using DeviceHive.WebSockets.Core.Network;
@@ -19,7 +20,7 @@ namespace DeviceHive.WebSockets.API.Controllers
     /// The service allows clients to exchange messages with the DeviceHive server using a single persistent connection.
     /// </para>
     /// <para>
-    /// After connection is eshtablished, clients need to authenticate using their login and password,
+    /// After connection is eshtablished, clients need to authenticate using their login and password or access key,
     /// and then start sending commands to devices using the command/insert message.
     /// As soon as a command is processed by a device, the server sends the command/update message.
     /// </para>
@@ -31,8 +32,6 @@ namespace DeviceHive.WebSockets.API.Controllers
     public class ClientController : ControllerBase
     {        
         #region Private Fields
-
-        private const int _maxLoginAttempts = 10;
 
         private readonly DeviceSubscriptionManager _subscriptionManager;
         private readonly CommandSubscriptionManager _commandSubscriptionManager;
@@ -60,18 +59,19 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         private User CurrentUser
         {
-            get { return (User) Connection.Session["user"]; }
-            set { Connection.Session["user"] = value; }
+            get { return (User) Connection.Session["User"]; }
+            set { Connection.Session["User"] = value; }
+        }
+
+        private AccessKey CurrentAccessKey
+        {
+            get { return (AccessKey)Connection.Session["AccessKey"]; }
+            set { Connection.Session["AccessKey"] = value; }
         }
 
         #endregion
 
         #region ControllerBase Members
-
-        public override bool IsAuthenticated
-        {
-            get { return CurrentUser != null; }
-        }
 
         public override void CleanupConnection(WebSocketConnectionBase connection)
         {
@@ -85,30 +85,23 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         /// <summary>
         /// Authenticates a user.
+        /// Either login and password or accessKey parameters must be passed.
         /// </summary>
-        /// <param name="login">User login.</param>
-        /// <param name="password">User password.</param>
+        /// <request>
+        ///     <parameter name="login" type="string">User login.</parameter>
+        ///     <parameter name="password" type="string">User password.</parameter>
+        ///     <parameter name="accessKey" type="string">User access key.</parameter>
+        /// </request>
         [Action("authenticate")]
-        public void Authenticate(string login, string password)
+        [AuthenticateClient]
+        public void Authenticate()
         {
-            if (login == null || password == null)
-                throw new WebSocketRequestException("Please specify 'login' and 'password'");
+            if (ActionContext.GetParameter("AuthUser") == null)
+                throw new WebSocketRequestException("Please specify 'login' and 'password' or 'accessKey'");
 
-            var user = DataContext.User.Get(login);
-            if (user == null || user.Status != (int)UserStatus.Active)
-                throw new WebSocketRequestException("Invalid login or password");
+            CurrentUser = (User)ActionContext.GetParameter("AuthUser");
+            CurrentAccessKey = (AccessKey)ActionContext.GetParameter("AuthAccessKey");
 
-            if (user.IsValidPassword(password))
-            {
-                UpdateUserLastLogin(user);
-            }
-            else
-            {
-                IncrementUserLoginAttempts(user);
-                throw new WebSocketRequestException("Invalid login or password");
-            }
-
-            CurrentUser = user;
             SendSuccessResponse();
         }
 
@@ -120,7 +113,8 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <response>
         ///     <parameter name="command" cref="DeviceCommand" mode="OneWayOnly">An inserted <see cref="DeviceCommand"/> resource.</parameter>
         /// </response>
-        [Action("command/insert", NeedAuthentication = true)]
+        [Action("command/insert")]
+        [AuthorizeClient(AccessKeyAction = "CreateDeviceCommand")]
         public void InsertDeviceCommand(Guid deviceGuid, JObject command)
         {
             if (deviceGuid == Guid.Empty)
@@ -130,10 +124,10 @@ namespace DeviceHive.WebSockets.API.Controllers
                 throw new WebSocketRequestException("Please specify command");
 
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device, "CreateDeviceCommand"))
                 throw new WebSocketRequestException("Device not found");
 
-            var commandEntity = CommandMapper.Map(command);
+            var commandEntity = GetMapper<DeviceCommand>().Map(command);
             commandEntity.Device = device;
             commandEntity.UserID = CurrentUser.ID;
             Validate(commandEntity);
@@ -141,8 +135,8 @@ namespace DeviceHive.WebSockets.API.Controllers
             DataContext.DeviceCommand.Save(commandEntity);
             _commandSubscriptionManager.Subscribe(Connection, commandEntity.ID);
             _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, commandEntity.ID));
-            
-            command = CommandMapper.Map(commandEntity, oneWayOnly: true);
+
+            command = GetMapper<DeviceCommand>().Map(commandEntity, oneWayOnly: true);
             SendResponse(new JProperty("command", command));
         }
 
@@ -154,32 +148,33 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <request>
         ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to subscribe to. If not specified, the subscription is made to all accessible devices.</parameter>
         /// </request>
-        [Action("notification/subscribe", NeedAuthentication = true)]
+        [Action("notification/subscribe")]
+        [AuthorizeClient(AccessKeyAction = "GetDeviceNotification")]
         public void SubsrcibeToDeviceNotifications(DateTime? timestamp)
         {
-            var devices = GetSubscriptionDevices().ToArray();
+            var devices = GetSubscriptionDevices("GetDeviceNotification").ToArray();
 
             if (timestamp != null)
                 SendInitialNotifications(devices, timestamp);
 
-            var deviceIds = GetSubscriptionDeviceIds(devices);
-            foreach (var deviceId in deviceIds)
+            foreach (var deviceId in GetSubscriptionDeviceIds(devices))
                 _subscriptionManager.Subscribe(Connection, deviceId);
 
             SendSuccessResponse();
         }
 
         /// <summary>
-        /// Unsubscribes from device commands.
+        /// Unsubscribes from device notifications.
         /// </summary>
         /// <request>
         ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to unsubscribe from. Keep null to unsubscribe from previously made subscription to all accessible devices.</parameter>
         /// </request>
-        [Action("notification/unsubscribe", NeedAuthentication = true)]
+        [Action("notification/unsubscribe")]
+        [AuthorizeClient(AccessKeyAction = "GetDeviceNotification")]
         public void UnsubsrcibeFromDeviceNotifications()
         {
-            var deviceIds = GetSubscriptionDeviceIds().ToArray();
-            foreach (var deviceId in deviceIds)
+            var devices = GetSubscriptionDevices("GetDeviceNotification").ToArray();
+            foreach (var deviceId in GetSubscriptionDeviceIds(devices))
                 _subscriptionManager.Unsubscribe(Connection, deviceId);
 
             SendSuccessResponse();
@@ -201,13 +196,21 @@ namespace DeviceHive.WebSockets.API.Controllers
                 RestServerUrl = ConfigurationManager.AppSettings["RestServerUrl"]
             };
 
-            SendResponse(new JProperty("info", ApiInfoMapper.Map(apiInfo)));
+            SendResponse(new JProperty("info", GetMapper<ApiInfo>().Map(apiInfo)));
         }
 
         #endregion
 
-        #region Notification Handling
+        #region Notification Subscription Handling
 
+        /// <summary>
+        /// Notifies the user about new device notification.
+        /// </summary>
+        /// <action>notification/insert</action>
+        /// <response>
+        ///     <parameter name="deviceGuid" type="guid">Device unique identifier.</parameter>
+        ///     <parameter name="notification" cref="DeviceNotification">A <see cref="DeviceNotification"/> resource representing the notification.</parameter>
+        /// </response>
         public void HandleDeviceNotification(int deviceId, int notificationId)
         {
             var connections = _subscriptionManager.GetConnections(deviceId);
@@ -230,14 +233,12 @@ namespace DeviceHive.WebSockets.API.Controllers
         {
             var initialNotificationList = GetInitialNotificationList(Connection);
 
-            if (devices.Length == 1 && devices[0] == null)
-                devices = DataContext.Device.GetByUser(CurrentUser.ID).ToArray();
-
             lock (initialNotificationList)
             {
                 var filter = new DeviceNotificationFilter { Start = timestamp, IsDateInclusive = false };
-                var initialNotifications = DataContext.DeviceNotification.GetByDevices(
-                    devices.Select(d => d.ID).ToArray(), filter);
+                var deviceIds = devices.Length == 1 && devices[0] == null ? null : devices.Select(d => d.ID).ToArray();
+                var initialNotifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter)
+                    .Where(n => IsDeviceAccessible(n.Device, "GetDeviceNotification")).ToArray();
 
                 foreach (var notification in initialNotifications)
                 {
@@ -247,14 +248,6 @@ namespace DeviceHive.WebSockets.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Notifies the user about new device notification.
-        /// </summary>
-        /// <action>notification/insert</action>
-        /// <response>
-        ///     <parameter name="deviceGuid" type="guid">Device unique identifier.</parameter>
-        ///     <parameter name="notification" cref="DeviceNotification">A <see cref="DeviceNotification"/> resource representing the notification.</parameter>
-        /// </response>
         private void Notify(WebSocketConnectionBase connection, DeviceNotification notification, Device device,
             bool isInitialNotification = false)
         {
@@ -267,19 +260,18 @@ namespace DeviceHive.WebSockets.API.Controllers
                         return;
                 }
 
-                var user = (User) connection.Session["user"];
-                if (user == null || !IsNetworkAccessible(device.NetworkID, user))
+                if (!IsDeviceAccessible(connection, device, "GetDeviceNotification"))
                     return;
             }
 
             connection.SendResponse("notification/insert",
                 new JProperty("deviceGuid", device.GUID),
-                new JProperty("notification", NotificationMapper.Map(notification)));
+                new JProperty("notification", GetMapper<DeviceNotification>().Map(notification)));
         }
 
         #endregion
 
-        #region Command Update Handling
+        #region Command Update Subscription Handling
 
         /// <summary>
         /// Notifies the user about a command has been processed by a device.
@@ -298,7 +290,7 @@ namespace DeviceHive.WebSockets.API.Controllers
                 foreach (var connection in connections)
                 {
                     connection.SendResponse("command/update",
-                        new JProperty("command", CommandMapper.Map(command)));
+                        new JProperty("command", GetMapper<DeviceCommand>().Map(command)));
                 }
             }
         }
@@ -307,59 +299,41 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         #region Private Methods
 
-        private bool IsNetworkAccessible(int? networkId, User user = null)
+        private bool IsDeviceAccessible(Device device, string accessKeyAction)
         {
+            return IsDeviceAccessible(Connection, device, accessKeyAction);
+        }
+        
+        private bool IsDeviceAccessible(WebSocketConnectionBase connection, Device device, string accessKeyAction)
+        {
+            var user = (User)connection.Session["User"];
             if (user == null)
-                user = CurrentUser;
-
-            if (user.Role == (int) UserRole.Administrator)
-                return true;
-
-            if (networkId == null)
                 return false;
 
-            var userNetworks = DataContext.UserNetwork.GetByUser(user.ID);
-            return userNetworks.Any(un => un.NetworkID == networkId);
-        }
-
-        private void IncrementUserLoginAttempts(User user)
-        {
-            user.LoginAttempts++;
-            if (user.LoginAttempts >= _maxLoginAttempts)
-                user.Status = (int)UserStatus.LockedOut;
-            DataContext.User.Save(user);
-        }
-
-        private void UpdateUserLastLogin(User user)
-        {
-            // update LastLogin only if it's too far behind - save database resources
-            if (user.LoginAttempts > 0 || user.LastLogin == null || user.LastLogin.Value.AddHours(1) < DateTime.UtcNow)
+            if (user.Role != (int)UserRole.Administrator)
             {
-                user.LoginAttempts = 0;
-                user.LastLogin = DateTime.UtcNow;
-                DataContext.User.Save(user);
+                if (device.NetworkID == null)
+                    return false;
+
+                var userNetworks = (List<UserNetwork>)connection.Session["UserNetworks"];
+                if (userNetworks == null)
+                {
+                    userNetworks = DataContext.UserNetwork.GetByUser(user.ID);
+                    connection.Session["UserNetworks"] = userNetworks;
+                }
+
+                if (!userNetworks.Any(un => un.NetworkID == device.NetworkID))
+                    return false;
             }
+
+            // check if access key permissions are sufficient
+            var accessKey = (AccessKey)connection.Session["AccessKey"];
+            return accessKey == null || accessKey.Permissions.Any(p =>
+                p.IsActionAllowed(accessKeyAction) && p.IsAddressAllowed(connection.Host) &&
+                p.IsNetworkAllowed(device.NetworkID ?? 0) && p.IsDeviceAllowed(device.GUID.ToString()));
         }
 
-        private IEnumerable<int?> GetSubscriptionDeviceIds(IEnumerable<Device> devices = null)
-        {
-            if (devices == null)
-                devices = GetSubscriptionDevices();
-
-            foreach (var device in devices)
-            {
-                if (device == null)
-                {
-                    yield return null;
-                }
-                else
-                {
-                    yield return device.ID;
-                }
-            }
-        }
-
-        private IEnumerable<Device> GetSubscriptionDevices()
+        private IEnumerable<Device> GetSubscriptionDevices(string accessKeyAction)
         {
             var deviceGuids = ParseDeviceGuids();
             if (deviceGuids == null)
@@ -371,27 +345,33 @@ namespace DeviceHive.WebSockets.API.Controllers
             foreach (var deviceGuid in deviceGuids)
             {
                 var device = DataContext.Device.Get(deviceGuid);
-                if (device == null || !IsNetworkAccessible(device.NetworkID))
+                if (device == null || !IsDeviceAccessible(device, accessKeyAction))
                     throw new WebSocketRequestException("Invalid deviceGuid: " + deviceGuid);
 
                 yield return device;
             }
         }
 
+        private IEnumerable<int?> GetSubscriptionDeviceIds(IEnumerable<Device> devices)
+        {
+            foreach (var device in devices)
+                yield return device != null ? (int?)device.ID : null;
+        }
+
         private IEnumerable<Guid> ParseDeviceGuids()
         {
-            if (ActionArgs == null)
+            if (ActionContext.Request == null)
                 return null;
 
-            var deviceGuids = ActionArgs["deviceGuids"];
+            var deviceGuids = ActionContext.Request["deviceGuids"];
             if (deviceGuids == null)
                 return null;
 
             var deviceGuidsArray = deviceGuids as JArray;
             if (deviceGuidsArray != null)
-                return deviceGuidsArray.Select(t => (Guid) t).ToArray();
+                return deviceGuidsArray.Select(t => (Guid)t).ToArray();
 
-            return new[] {(Guid) deviceGuids};
+            return new[] { (Guid)deviceGuids };
         }
 
         private ISet<int> GetInitialNotificationList(WebSocketConnectionBase connection)

@@ -26,35 +26,35 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
 
         #endregion
 
-        #region Properties
-        
-        protected WebSocketConnectionBase Connection { get; private set; }
+        #region Protected Properties
 
-        protected string ActionName { get; private set; }
+        protected ActionContext ActionContext { get; private set; }
 
-        protected JObject ActionArgs { get; private set; }
-
-        public virtual bool IsAuthenticated
+        protected WebSocketConnectionBase Connection
         {
-            get { return false; }
+            get { return ActionContext.Connection; }
+        }
+
+        protected JObject Request
+        {
+            get { return ActionContext.Request; }
         }
 
         #endregion
 
         #region Public Methods
 
-        public void InvokeAction(WebSocketConnectionBase connection, string action, JObject args)
+        public void InvokeAction(ActionContext actionContext)
         {
-            Connection = connection;
-            ActionName = action;
-            ActionArgs = args;
+            if (actionContext == null)
+                throw new ArgumentNullException("actionContext");
 
-            _logger.DebugFormat("Invoking action {0} on connection: {1}", action, connection.Identity);
+            ActionContext = actionContext;
+
+            _logger.DebugFormat("Invoking action {0} on connection: {1}", ActionContext.Action, Connection.Identity);
             try
             {
-                BeforeActionInvoke();
-                _actionInvoker.InvokeAction(this, action);
-                AfterActionInvoke();
+                _actionInvoker.InvokeAction(ActionContext);
             }
             catch (WebSocketRequestException e)
             {
@@ -68,35 +68,8 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
             }
         }
 
-        public TArg GetArgument<TArg>(string name)
-        {
-            if (ActionArgs == null)
-                return default(TArg);
-
-            var val = ActionArgs[name];
-            if (val == null)
-                return default(TArg);
-
-            try
-            {
-                return val.ToObject<TArg>();
-            }
-            catch (FormatException)
-            {
-                throw new WebSocketRequestException("Invalid format for parameter " + name);
-            }
-        }
-
         public virtual void CleanupConnection(WebSocketConnectionBase connection)
-        {            
-        }
-
-        protected virtual void BeforeActionInvoke()
-        {            
-        }
-
-        protected virtual void AfterActionInvoke()
-        {            
+        {
         }
 
         #endregion
@@ -110,9 +83,9 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
                 new JProperty("status", isErrorResponse ? "error" : "success")
             };
 
-            if (ActionArgs != null)
+            if (ActionContext.Request != null)
             {
-                var requestId = ActionArgs["requestId"];
+                var requestId = ActionContext.Request["requestId"];
                 if (requestId != null)
                     additionalProperties.Add(new JProperty("requestId", requestId));
             }
@@ -122,7 +95,7 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
         
         protected void SendResponse(params JProperty[] properties)
         {
-            Connection.SendResponse(ActionName, GetResponseProperties(false, properties));
+            Connection.SendResponse(ActionContext.Action, GetResponseProperties(false, properties));
         }
         
         protected void SendSuccessResponse()
@@ -132,7 +105,7 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
 
         protected void SendErrorResponse(string error)
         {
-            Connection.SendResponse(ActionName, GetResponseProperties(true,
+            Connection.SendResponse(ActionContext.Action, GetResponseProperties(true,
                 new[] {new JProperty("error", error)}));
         }
 

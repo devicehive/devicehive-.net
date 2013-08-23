@@ -31,7 +31,8 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
                 var request = JObject.Parse(message);
                 var action = (string) request["action"];
 
-                controller.InvokeAction(connection, action, request);
+                var actionContext = new ActionContext(connection, controller, action, request);
+                controller.InvokeAction(actionContext);
             }
             catch (Exception e)
             {

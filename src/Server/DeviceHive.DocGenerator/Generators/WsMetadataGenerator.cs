@@ -9,6 +9,7 @@ using DeviceHive.WebSockets.Core.ActionsFramework;
 using Newtonsoft.Json.Linq;
 using Ninject;
 using ControllerBase = DeviceHive.WebSockets.API.Controllers.ControllerBase;
+using DeviceHive.WebSockets.API.Filters;
 
 namespace DeviceHive.DocGenerator
 {
@@ -89,11 +90,15 @@ namespace DeviceHive.DocGenerator
 
         private string GetAuthorization(MethodInfo method)
         {
-            var actionAttribute = method.GetCustomAttributes(typeof(ActionAttribute), true).Cast<ActionAttribute>().First();
-            if (!actionAttribute.NeedAuthentication)
-                return "None";
+            var actionAttribute = method.GetCustomAttributes(typeof(ActionFilterAttribute), true).Cast<ActionFilterAttribute>().ToArray();
 
-            return IsDeviceMethod(method) ? "Device" : "User";
+            if (actionAttribute.OfType<AuthorizeClientAttribute>().Any())
+                return "User";
+
+            if (actionAttribute.OfType<AuthorizeDeviceAttribute>().Any())
+                return "Device";
+
+            return "None";
         }
 
         private MetadataParameter[] GetRequestParameters(MethodInfo method)
@@ -108,7 +113,7 @@ namespace DeviceHive.DocGenerator
             // add device authentication parameters
             if (IsDeviceMethod(method))
             {
-                if (actionAttribute.NeedAuthentication)
+                if (GetAuthorization(method) == "Device")
                 {
                     parameters.Add(new MetadataParameter("deviceId", _helper.ToJsonType(typeof(Guid)), "Device unique identifier (specify if not authenticated).", false));
                     parameters.Add(new MetadataParameter("deviceKey", _helper.ToJsonType(typeof(string)), "Device authentication key (specify if not authenticated).", false));

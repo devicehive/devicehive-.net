@@ -51,6 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionsFramework\ActionAttribute.cs" />
+    <Compile Include="ActionsFramework\ActionContext.cs" />
+    <Compile Include="ActionsFramework\ActionFilterAttribute.cs" />
     <Compile Include="ActionsFramework\ActionInfo.cs" />
     <Compile Include="ActionsFramework\ActionInvoker.cs" />
     <Compile Include="ActionsFramework\ControllerBase.cs" />

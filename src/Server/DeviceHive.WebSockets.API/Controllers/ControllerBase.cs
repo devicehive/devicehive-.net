@@ -13,48 +13,26 @@ namespace DeviceHive.WebSockets.API.Controllers
         #region Private Fields
 
         private readonly DataContext _dataContext;
-
-        private readonly IJsonMapper<DeviceCommand> _commandMapper;
-        private readonly IJsonMapper<DeviceNotification> _notificationMapper;
-        private readonly IJsonMapper<ApiInfo> _apiInfoMapper;
+        private readonly JsonMapperManager _jsonMapperManager;
 
         #endregion
 
         #region Constructor
 
-        protected ControllerBase(ActionInvoker actionInvoker,
-            DataContext dataContext, JsonMapperManager jsonMapperManager) :
+        protected ControllerBase(ActionInvoker actionInvoker, DataContext dataContext, JsonMapperManager jsonMapperManager) :
             base(actionInvoker)
         {
             _dataContext = dataContext;
-        
-            _commandMapper = jsonMapperManager.GetMapper<DeviceCommand>();
-            _notificationMapper = jsonMapperManager.GetMapper<DeviceNotification>();
-            _apiInfoMapper = jsonMapperManager.GetMapper<ApiInfo>();
+            _jsonMapperManager = jsonMapperManager;
         }
 
         #endregion
 
-        #region Properties
+        #region Public Properties
 
-        protected DataContext DataContext
+        public DataContext DataContext
         {
             get { return _dataContext; }
-        }
-
-        protected IJsonMapper<DeviceCommand> CommandMapper
-        {
-            get { return _commandMapper; }
-        }
-
-        protected IJsonMapper<DeviceNotification> NotificationMapper
-        {
-            get { return _notificationMapper; }
-        }
-
-        public IJsonMapper<ApiInfo> ApiInfoMapper
-        {
-            get { return _apiInfoMapper; }
         }
 
         #endregion
@@ -66,6 +44,11 @@ namespace DeviceHive.WebSockets.API.Controllers
             var result = new List<ValidationResult>();
             if (!Validator.TryValidateObject(entity, new ValidationContext(entity, null, null), result, true))
                 throw new WebSocketRequestException(result.First().ErrorMessage);
+        }
+
+        protected IJsonMapper<T> GetMapper<T>()
+        {
+            return _jsonMapperManager.GetMapper<T>();
         }
 
         #endregion

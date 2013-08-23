@@ -27,7 +27,8 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
         {
             JObject jsonMessage = null;
             connection.SendMessageHandler = msg => jsonMessage = JObject.Parse(msg);
-            _controller.InvokeAction(connection, actionName, args);
+            var actionContext = new ActionContext(connection, _controller, actionName, args);
+            _controller.InvokeAction(actionContext);
             return jsonMessage;
         }
     }
