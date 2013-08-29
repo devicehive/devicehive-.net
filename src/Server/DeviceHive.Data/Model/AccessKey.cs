@@ -71,7 +71,7 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// A collection of associated permission objects.
         /// </summary>
-        public List<AccessKeyPermission> Permissions { get; private set; }
+        public List<AccessKeyPermission> Permissions { get; set; }
 
         #endregion
 

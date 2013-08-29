@@ -52,7 +52,7 @@ namespace DeviceHive.Data.MongoDB
 
             if (deviceClass.Equipment == null)
                 deviceClass.Equipment = new List<Equipment>();
-            deviceClass.Equipment.ForEach(e => { _mongo.EnsureIdentity(e); e.DeviceClassID = deviceClass.ID; });
+            deviceClass.Equipment.ForEach(e => _mongo.EnsureIdentity(e));
 
             _mongo.DeviceClasses.Save(deviceClass);
 

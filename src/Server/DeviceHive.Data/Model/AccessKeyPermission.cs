@@ -31,7 +31,7 @@ namespace DeviceHive.Data.Model
         public int ID { get; private set; }
 
         /// <summary>
-        /// Associated access key identifier.
+        /// Associated access key identifier (used internally by EF repository).
         /// </summary>
         public int AccessKeyID { get; private set; }
 

@@ -1,11 +1,6 @@
-﻿using DeviceHive.Data.Model;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
+﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
-using MongoDB.Driver.Linq;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace DeviceHive.Data.MongoDB.Migrations

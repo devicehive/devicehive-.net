@@ -41,6 +41,11 @@ namespace DeviceHive.Data.MongoDB
             get { return Database.GetCollection<UserNetwork>("user_networks"); }
         }
 
+        public MongoCollection<AccessKey> AccessKeys
+        {
+            get { return Database.GetCollection<AccessKey>("access_keys"); }
+        }
+
         public MongoCollection<Network> Networks
         {
             get { return Database.GetCollection<Network>("networks"); }
@@ -169,6 +174,18 @@ namespace DeviceHive.Data.MongoDB
                         cm.AutoMap();
                         cm.UnmapField(e => e.User);
                         cm.UnmapField(e => e.Network);
+                        cm.SetIdMember(cm.GetMemberMap(e => e.ID));
+                    });
+
+                BsonClassMap.RegisterClassMap<AccessKey>(cm =>
+                    {
+                        cm.AutoMap();
+                        cm.SetIdMember(cm.GetMemberMap(e => e.ID));
+                    });
+
+                BsonClassMap.RegisterClassMap<AccessKeyPermission>(cm =>
+                    {
+                        cm.AutoMap();
                         cm.SetIdMember(cm.GetMemberMap(e => e.ID));
                     });
 

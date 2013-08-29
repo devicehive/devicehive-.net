@@ -49,9 +49,9 @@ namespace DeviceHive.Data.Model
         public int ID { get; private set; }
 
         /// <summary>
-        /// Associated device class identifier.
+        /// Associated device class identifier (used internally by EF repository).
         /// </summary>
-        public int DeviceClassID { get; set; }
+        public int DeviceClassID { get; private set; }
 
         /// <summary>
         /// Equipment display name.
