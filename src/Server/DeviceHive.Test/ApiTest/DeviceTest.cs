@@ -25,7 +25,8 @@ namespace DeviceHive.Test.ApiTest
             NetworkID = (int)networkResponse.Json["id"];
             RegisterForDeletion("/network/" + NetworkID);
 
-            var deviceClassResponse = Client.Post("/device/class", new { name = "_ut_dc", version = "1" }, auth: Admin);
+            var deviceClassResponse = Client.Post("/device/class", new { name = "_ut_dc", version = "1",
+                equipment = new[] { new { name = "_ut_eq", code = "_ut_eq", type = "_ut_eq" } } }, auth: Admin);
             Assert.That(deviceClassResponse.Status, Is.EqualTo(ExpectedCreatedStatus));
             DeviceClassID = (int)deviceClassResponse.Json["id"];
             RegisterForDeletion("/device/class/" + DeviceClassID);
@@ -116,7 +117,8 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             // expect valid server response
-            Expect(Get(ID, auth: Admin), Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
+            Expect(Get(ID, auth: Admin), Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new {
+                name = "_ut_dc", version = "1", equipment = new[] { new { name = "_ut_eq", code = "_ut_eq", type = "_ut_eq" } } } }));
             
             // verify device-add notification
             var notificationResponse = Client.Get("/device/" + ID + "/notification", auth: Admin);
@@ -164,39 +166,32 @@ namespace DeviceHive.Test.ApiTest
         public void Create_RefCreate()
         {
             // both network and device class should auto-create
-            Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n_a" }, deviceClass = new { name = "_ut_dc_a", version = "1" } });
+            Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n_a" }, deviceClass = new {
+                name = "_ut_dc_a", version = "1", equipment = new[] { new { name = "_ut_eq", code = "_ut_eq", type = "_ut_eq" } } } });
 
             var get = Get(ID, auth: Admin);
             RegisterForDeletion("/network/" + (int)get["network"]["id"]);
             RegisterForDeletion("/device/class/" + (int)get["deviceClass"]["id"]);
             RegisterForDeletion(ResourceUri + "/" + ID);
 
-            Expect(get, Matches(new { id = ID, name = "_ut",
-                network = new { name = "_ut_n_a" }, deviceClass = new { name = "_ut_dc_a", version = "1" } }));
+            Expect(get, Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n_a" }, deviceClass = new {
+                name = "_ut_dc_a", version = "1", equipment = new[] { new { name = "_ut_eq", code = "_ut_eq", type = "_ut_eq" } } } }));
         }
 
         [Test]
-        public void Create_WithEquipment()
+        public void Create_LegacyEquipment()
         {
-            // network, device class and eqipment should auto-create
+            // eqipment should auto-create using compatibility code (version 1.2)
             Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n_a" }, deviceClass = new { name = "_ut_dc_a", version = "1" },
                 equipment = new[] { new { name = "eq1", code = "eq1_code", type = "eq1_type" } }});
 
             var get = Get(ID, auth: Admin);
-            var networkId = (int)get["network"]["id"];
-            var deviceClassId = (int)get["deviceClass"]["id"];
-            RegisterForDeletion("/network/" + networkId);
-            RegisterForDeletion("/device/class/" + deviceClassId);
+            RegisterForDeletion("/network/" + (int)get["network"]["id"]);
+            RegisterForDeletion("/device/class/" + (int)get["deviceClass"]["id"]);
             RegisterForDeletion(ResourceUri + "/" + ID);
 
-            var eqResponse = Client.Get("/device/class/" + deviceClassId, auth: Admin);
-            var equipment = eqResponse.Json["equipment"][0];
-            var equipmentId = (int)equipment["id"];
-            RegisterForDeletion("/device/class/" + deviceClassId + "/equipment/" + equipmentId);
-
-            Expect(get, Matches(new { id = ID, name = "_ut",
-                network = new { name = "_ut_n_a" }, deviceClass = new { name = "_ut_dc_a", version = "1" } }));
-            Expect(equipment, Matches(new { name = "eq1", code = "eq1_code", type = "eq1_type" }));
+            Expect(get, Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n_a" }, deviceClass = new {
+                name = "_ut_dc_a", version = "1", equipment = new[] { new { name = "eq1", code = "eq1_code", type = "eq1_type" } } } }));
         }
 
         [Test]
@@ -207,14 +202,14 @@ namespace DeviceHive.Test.ApiTest
             
             // try to change device class
             Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" },
-                deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 },
-                equipment = new[] { new { name = "eq1", code = "eq1_code", type = "eq1_type" }}});
+                deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10,
+                equipment = new[] { new { name = "eq1", code = "eq1_code", type = "eq1_type" }}}});
             RegisterForDeletion(ResourceUri + "/" + ID);
 
+            // permanent device classes should not change
             var dcResponse = Client.Get("/device/class/" + DeviceClassID, auth: Admin);
-            var equipment = (JArray)dcResponse.Json["equipment"];
-            Expect(dcResponse.Json, Matches(new { offlineTimeout = (int?)null }));
-            Expect(equipment.Count, Is.EqualTo(0)); // permanent device classes should not change
+            Expect(dcResponse.Json, Matches(new { offlineTimeout = (int?)null,
+                equipment = new[] { new { name = "_ut_eq", code = "_ut_eq", type = "_ut_eq" } } }));
         }
 
         [Test]
@@ -223,8 +218,8 @@ namespace DeviceHive.Test.ApiTest
             Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } });
 
             // modify device, new network and device class should auto-create
-            var obj = new { name = "_ut2", status = "status", data = new { a = "b" },
-                network = new { name = "_ut_n2", description = "desc" }, deviceClass = new { name = "_ut_dc", version = "2" } };
+            var obj = new { name = "_ut2", status = "status", data = new { a = "b" }, network = new { name = "_ut_n2", description = "desc" },
+                deviceClass = new { name = "_ut_dc", version = "2", equipment = new[] { new { name = "_ut_eq", code = "_ut_eq", type = "_ut_eq" } } } };
             Update(ID, obj, auth: Admin);
 
             // expect valid server response

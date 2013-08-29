@@ -51,11 +51,6 @@ namespace DeviceHive.Data.MongoDB
             get { return Database.GetCollection<DeviceClass>("device_classes"); }
         }
 
-        public MongoCollection<Equipment> Equipment
-        {
-            get { return Database.GetCollection<Equipment>("equipment"); }
-        }
-
         public MongoCollection<Device> Devices
         {
             get { return Database.GetCollection<Device>("devices"); }
@@ -193,7 +188,6 @@ namespace DeviceHive.Data.MongoDB
                 BsonClassMap.RegisterClassMap<Equipment>(cm =>
                     {
                         cm.AutoMap();
-                        cm.UnmapField(e => e.DeviceClass);
                         cm.SetIdMember(cm.GetMemberMap(e => e.ID));
                         cm.GetMemberMap(e => e.Data).SetSerializer(rawJsonSerializer);
                     });

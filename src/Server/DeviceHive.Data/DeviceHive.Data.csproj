@@ -77,7 +77,6 @@
     <Compile Include="Repositories\IDeviceEquipmentRepository.cs" />
     <Compile Include="Repositories\IDeviceNotificationRepository.cs" />
     <Compile Include="Repositories\IDeviceRepository.cs" />
-    <Compile Include="Repositories\IEquipmentRepository.cs" />
     <Compile Include="Repositories\INetworkRepository.cs" />
     <Compile Include="Repositories\ISimpleRepository.cs" />
     <Compile Include="Repositories\IUserNetworkRepository.cs" />

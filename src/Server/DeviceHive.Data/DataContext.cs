@@ -174,14 +174,6 @@ namespace DeviceHive.Data
         }
 
         /// <summary>
-        /// Gets repository for equipments
-        /// </summary>
-        public IEquipmentRepository Equipment
-        {
-            get { return GetRepository<IEquipmentRepository>(); }
-        }
-
-        /// <summary>
         /// Gets repository for devices
         /// </summary>
         public IDeviceRepository Device

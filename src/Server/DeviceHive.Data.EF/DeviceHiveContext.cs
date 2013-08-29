@@ -81,7 +81,7 @@ namespace DeviceHive.Data.EF
             modelBuilder.Entity<AccessKey>().HasMany(e => e.Permissions).WithRequired().HasForeignKey(e => e.AccessKeyID).WillCascadeOnDelete(true);
             modelBuilder.Entity<UserNetwork>().HasRequired(e => e.User).WithMany().HasForeignKey(e => e.UserID).WillCascadeOnDelete(true);
             modelBuilder.Entity<UserNetwork>().HasRequired(e => e.Network).WithMany().HasForeignKey(e => e.NetworkID).WillCascadeOnDelete(true);
-            modelBuilder.Entity<Equipment>().HasRequired(e => e.DeviceClass).WithMany().HasForeignKey(e => e.DeviceClassID).WillCascadeOnDelete(true);
+            modelBuilder.Entity<DeviceClass>().HasMany(e => e.Equipment).WithRequired().HasForeignKey(e => e.DeviceClassID).WillCascadeOnDelete(true);
             modelBuilder.Entity<Device>().HasOptional(e => e.Network).WithMany().HasForeignKey(e => e.NetworkID).WillCascadeOnDelete(true);
             modelBuilder.Entity<Device>().HasRequired(e => e.DeviceClass).WithMany().HasForeignKey(e => e.DeviceClassID).WillCascadeOnDelete(true);
             modelBuilder.Entity<DeviceNotification>().Property(e => e.Timestamp).HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed);

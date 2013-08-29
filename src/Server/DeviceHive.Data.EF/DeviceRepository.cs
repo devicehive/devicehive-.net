@@ -19,7 +19,7 @@ namespace DeviceHive.Data.EF
             {
                 return context.Devices
                     .Include(e => e.Network)
-                    .Include(e => e.DeviceClass)
+                    .Include(e => e.DeviceClass.Equipment)
                     .Filter(filter).ToList();
             }
         }
@@ -30,7 +30,7 @@ namespace DeviceHive.Data.EF
             {
                 return context.Devices
                     .Include(e => e.Network)
-                    .Include(e => e.DeviceClass)
+                    .Include(e => e.DeviceClass.Equipment)
                     .Where(e => e.Network.ID == networkId)
                     .Filter(filter).ToList();
             }
@@ -42,7 +42,7 @@ namespace DeviceHive.Data.EF
             {
                 return context.Devices
                     .Include(e => e.Network)
-                    .Include(e => e.DeviceClass)
+                    .Include(e => e.DeviceClass.Equipment)
                     .Where(e => context.UserNetworks.Any(n => n.UserID == userId && n.NetworkID == e.NetworkID))
                     .Filter(filter).ToList();
             }
@@ -54,7 +54,7 @@ namespace DeviceHive.Data.EF
             {
                 return context.Devices
                     .Include(e => e.Network)
-                    .Include(e => e.DeviceClass)
+                    .Include(e => e.DeviceClass.Equipment)
                     .FirstOrDefault(e => e.ID == id);
             }
         }
@@ -65,7 +65,7 @@ namespace DeviceHive.Data.EF
             {
                 return context.Devices
                     .Include(e => e.Network)
-                    .Include(e => e.DeviceClass)
+                    .Include(e => e.DeviceClass.Equipment)
                     .FirstOrDefault(e => e.GUID == guid);
             }
         }
@@ -112,7 +112,7 @@ namespace DeviceHive.Data.EF
             {
                 return context.Devices
                     .Include(e => e.Network)
-                    .Include(e => e.DeviceClass)
+                    .Include(e => e.DeviceClass.Equipment)
                     .Where(e => e.DeviceClass.OfflineTimeout != null)
                     .Where(d => !context.DeviceNotifications.Any(n => n.Device == d &&
                         EntityFunctions.AddSeconds(n.Timestamp, d.DeviceClass.OfflineTimeout) >= DateTime.UtcNow))

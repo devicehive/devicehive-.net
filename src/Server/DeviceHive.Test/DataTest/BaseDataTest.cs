@@ -222,6 +222,8 @@ namespace DeviceHive.Test.DataTest
         public void DeviceClass()
         {
             var deviceClass = new DeviceClass("Test", "V1");
+            deviceClass.Equipment.Add(new Equipment("name1", "code1", "type1"));
+            deviceClass.Equipment.Add(new Equipment("name2", "code2", "type2"));
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
@@ -233,6 +235,10 @@ namespace DeviceHive.Test.DataTest
             var deviceClass1 = DataContext.DeviceClass.Get(deviceClass.ID);
             Assert.IsNotNull(deviceClass1);
             Assert.AreEqual("Test", deviceClass1.Name);
+            Assert.IsNotNull(deviceClass1.Equipment);
+            Assert.AreEqual(2, deviceClass1.Equipment.Count);
+            Assert.AreEqual("name1", deviceClass1.Equipment[0].Name);
+            Assert.AreEqual("name2", deviceClass1.Equipment[1].Name);
 
             // test Get(name, version)
             var deviceClass2 = DataContext.DeviceClass.Get("Test", "V1");
@@ -244,6 +250,8 @@ namespace DeviceHive.Test.DataTest
             deviceClass.IsPermanent = true;
             deviceClass.OfflineTimeout = 10;
             deviceClass.Data = "{ }";
+            deviceClass.Equipment.RemoveAt(1);
+            deviceClass.Equipment.Add(new Equipment("name3", "code3", "type3"));
             DataContext.DeviceClass.Save(deviceClass);
             var deviceClass3 = DataContext.DeviceClass.Get(deviceClass.ID);
             Assert.AreEqual("Test2", deviceClass3.Name);
@@ -251,66 +259,14 @@ namespace DeviceHive.Test.DataTest
             Assert.AreEqual(true, deviceClass3.IsPermanent);
             Assert.AreEqual(10, deviceClass3.OfflineTimeout);
             Assert.AreEqual("{ }", deviceClass3.Data);
+            Assert.AreEqual(2, deviceClass3.Equipment.Count);
+            Assert.AreEqual("name1", deviceClass3.Equipment[0].Name);
+            Assert.AreEqual("name3", deviceClass3.Equipment[1].Name);
 
             // test Delete
             DataContext.DeviceClass.Delete(deviceClass.ID);
             var deviceClass4 = DataContext.DeviceClass.Get(deviceClass.ID);
             Assert.IsNull(deviceClass4);
-        }
-
-        [Test]
-        public void Equipment()
-        {
-            var deviceClass = new DeviceClass("D1", "V1");
-            DataContext.DeviceClass.Save(deviceClass);
-            RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
-
-            var equipment = new Equipment("Test", "Code", "Type", deviceClass);
-            DataContext.Equipment.Save(equipment);
-            RegisterTearDown(() => DataContext.Equipment.Delete(equipment.ID));
-
-            // test GetByDeviceClass
-            var equipments = DataContext.Equipment.GetByDeviceClass(deviceClass.ID);
-            Assert.AreEqual(1, equipments.Count);
-            Assert.AreEqual(equipment.ID, equipments[0].ID);
-            Assert.AreEqual(deviceClass.ID, equipments[0].DeviceClassID);
-            Assert.IsNotNull(equipments[0].DeviceClass);
-
-            // test Get(id)
-            var equipment1 = DataContext.Equipment.Get(equipment.ID);
-            Assert.IsNotNull(equipment1);
-            Assert.AreEqual("Test", equipment1.Name);
-            Assert.AreEqual("Code", equipment1.Code);
-            Assert.AreEqual("Type", equipment1.Type);
-            Assert.AreEqual(deviceClass.ID, equipment1.DeviceClassID);
-            Assert.IsNotNull(equipment1.DeviceClass);
-
-            // test Save
-            equipment.Name = "Test2";
-            equipment.Code = "Code2";
-            equipment.Type = "Type2";
-            equipment.Data = "{ }";
-            DataContext.Equipment.Save(equipment);
-            var equipment2 = DataContext.Equipment.Get(equipment.ID);
-            Assert.AreEqual("Test2", equipment2.Name);
-            Assert.AreEqual("Code2", equipment2.Code);
-            Assert.AreEqual("Type2", equipment2.Type);
-            Assert.AreEqual("{ }", equipment2.Data);
-
-            // test update relationship
-            var deviceClass2 = new DeviceClass("D2", "V2");
-            DataContext.DeviceClass.Save(deviceClass2);
-            RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass2.ID));
-            equipment.DeviceClass = deviceClass2;
-            DataContext.Equipment.Save(equipment);
-            var equipment3 = DataContext.Equipment.Get(equipment.ID);
-            Assert.AreEqual(deviceClass2.ID, equipment3.DeviceClassID);
-            Assert.IsNotNull(equipment3.DeviceClass);
-
-            // test Delete
-            DataContext.Equipment.Delete(equipment.ID);
-            var equipment4 = DataContext.Equipment.Get(equipment.ID);
-            Assert.IsNull(equipment4);
         }
 
         [Test]

@@ -51,7 +51,6 @@
     <Compile Include="DeviceHiveContext.cs" />
     <Compile Include="DeviceNotificationRepository.cs" />
     <Compile Include="DeviceRepository.cs" />
-    <Compile Include="EquipmentRepository.cs" />
     <Compile Include="Migrations\201205191537489_5.cs" />
     <Compile Include="Migrations\201205191537489_5.Designer.cs">
       <DependentUpon>201205191537489_5.cs</DependentUpon>

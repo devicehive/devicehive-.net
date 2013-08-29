@@ -7,11 +7,13 @@ using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
+using System.Web.Http.Description;
 
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="Equipment" />
     [AuthorizeAdmin]
+    [ApiExplorerSettings(IgnoreApi = true)] // backward compatibility only
     public class EquipmentController : BaseController
     {
         public HttpResponseMessage Get(int deviceClassId)
@@ -28,8 +30,9 @@ namespace DeviceHive.API.Controllers
         /// <returns cref="Equipment">If successful, this method returns an <see cref="Equipment"/> resource in the response body.</returns>
         public JObject Get(int deviceClassId, int id)
         {
-            var equipment = DataContext.Equipment.Get(id);
-            if (equipment == null || equipment.DeviceClassID != deviceClassId)
+            var deviceClass = DataContext.DeviceClass.Get(deviceClassId);
+            var equipment = deviceClass == null ? null : deviceClass.Equipment.FirstOrDefault(e => e.ID == id);
+            if (equipment == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Equipment not found!");
 
             return Mapper.Map(equipment);
@@ -50,10 +53,10 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device class not found!");
 
             var equipment = Mapper.Map(json);
-            equipment.DeviceClass = deviceClass;
             Validate(equipment);
 
-            DataContext.Equipment.Save(equipment);
+            deviceClass.Equipment.Add(equipment);
+            DataContext.DeviceClass.Save(deviceClass);
             return Mapper.Map(equipment, oneWayOnly: true);
         }
 
@@ -72,14 +75,15 @@ namespace DeviceHive.API.Controllers
         [HttpNoContentResponse]
         public void Put(int deviceClassId, int id, JObject json)
         {
-            var equipment = DataContext.Equipment.Get(id);
-            if (equipment == null || equipment.DeviceClassID != deviceClassId)
+            var deviceClass = DataContext.DeviceClass.Get(deviceClassId);
+            var equipment = deviceClass == null ? null : deviceClass.Equipment.FirstOrDefault(e => e.ID == id);
+            if (equipment == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Equipment not found!");
 
             Mapper.Apply(equipment, json);
             Validate(equipment);
 
-            DataContext.Equipment.Save(equipment);
+            DataContext.DeviceClass.Save(deviceClass);
         }
 
         /// <name>delete</name>
@@ -91,9 +95,13 @@ namespace DeviceHive.API.Controllers
         [HttpNoContentResponse]
         public void Delete(int deviceClassId, int id)
         {
-            var equipment = DataContext.Equipment.Get(id);
-            if (equipment != null && equipment.DeviceClassID == deviceClassId)
-                DataContext.Equipment.Delete(id);
+            var deviceClass = DataContext.DeviceClass.Get(deviceClassId);
+            var equipment = deviceClass == null ? null : deviceClass.Equipment.FirstOrDefault(e => e.ID == id);
+            if (equipment != null)
+            {
+                deviceClass.Equipment.Remove(equipment);
+                DataContext.DeviceClass.Save(deviceClass);
+            }
         }
 
         private IJsonMapper<Equipment> Mapper

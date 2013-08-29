@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
 using DeviceHive.Core.Mapping;
@@ -52,20 +53,17 @@ namespace DeviceHive.Core.Services
             // save device object
             DataContext.Device.Save(device);
 
-            // replace equipments for the corresponding device class
+            // backward compatibility with 1.2 - equipment was passed on device level
             if (!device.DeviceClass.IsPermanent && deviceJson["equipment"] is JArray)
             {
-                foreach (var equipment in DataContext.Equipment.GetByDeviceClass(device.DeviceClass.ID))
-                {
-                    DataContext.Equipment.Delete(equipment.ID);
-                }
+                device.DeviceClass.Equipment = new List<Equipment>();
                 foreach (JObject jEquipment in (JArray)deviceJson["equipment"])
                 {
                     var equipment = GetMapper<Equipment>().Map(jEquipment);
-                    equipment.DeviceClass = device.DeviceClass;
                     Validate(equipment);
-                    DataContext.Equipment.Save(equipment);
+                    device.DeviceClass.Equipment.Add(equipment);
                 }
+                DataContext.DeviceClass.Save(device.DeviceClass);
             }
 
             // save the device diff notification
@@ -129,7 +127,10 @@ namespace DeviceHive.Core.Services
                 {
                     // auto-create device class
                     deviceClass = device.DeviceClass;
+
                     Validate(deviceClass);
+                    if (deviceClass.Equipment != null)
+                        deviceClass.Equipment.ForEach(e => Validate(e));
                     DataContext.DeviceClass.Save(deviceClass);
                 }
                 else if (!deviceClass.IsPermanent)
@@ -138,8 +139,14 @@ namespace DeviceHive.Core.Services
                     deviceClass.Data = device.DeviceClass.Data;
                     deviceClass.IsPermanent = device.DeviceClass.IsPermanent;
                     deviceClass.OfflineTimeout = device.DeviceClass.OfflineTimeout;
+                    if (device.DeviceClass.Equipment != null)
+                    {
+                        deviceClass.Equipment.Clear();
+                        deviceClass.Equipment.AddRange(device.DeviceClass.Equipment);
+                    }
                     
                     Validate(deviceClass);
+                    deviceClass.Equipment.ForEach(e => Validate(e));
                     DataContext.DeviceClass.Save(deviceClass);
                 }
             }

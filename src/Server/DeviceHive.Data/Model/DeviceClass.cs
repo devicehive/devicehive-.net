@@ -35,6 +35,7 @@ namespace DeviceHive.Data.Model
 
             this.Name = name;
             this.Version = version;
+            this.Equipment = new List<Equipment>();
         }
         #endregion
 
@@ -76,6 +77,11 @@ namespace DeviceHive.Data.Model
         /// </summary>
         [JsonField]
         public string Data { get; set; }
+
+        /// <summary>
+        /// A collection of associated equipment objects.
+        /// </summary>
+        public List<Equipment> Equipment { get; set; }
 
         #endregion
     }

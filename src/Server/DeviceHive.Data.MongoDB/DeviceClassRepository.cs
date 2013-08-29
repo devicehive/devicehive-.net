@@ -49,6 +49,11 @@ namespace DeviceHive.Data.MongoDB
                 throw new ArgumentNullException("deviceClass");
 
             _mongo.EnsureIdentity(deviceClass);
+
+            if (deviceClass.Equipment == null)
+                deviceClass.Equipment = new List<Equipment>();
+            deviceClass.Equipment.ForEach(e => { _mongo.EnsureIdentity(e); e.DeviceClassID = deviceClass.ID; });
+
             _mongo.DeviceClasses.Save(deviceClass);
 
             _mongo.Devices.Update(Query<Device>.EQ(e => e.DeviceClassID, deviceClass.ID),
@@ -61,7 +66,6 @@ namespace DeviceHive.Data.MongoDB
                 throw new InvalidOperationException("Could not delete a device class because there are one or several devices associated with it");
 
             _mongo.DeviceClasses.Remove(Query<DeviceClass>.EQ(e => e.ID, id));
-            _mongo.Equipment.Remove(Query<Equipment>.EQ(e => e.DeviceClassID, id));
         }
         #endregion
     }

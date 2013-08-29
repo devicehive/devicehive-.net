@@ -228,18 +228,13 @@ namespace DeviceHive.WebSockets.API.Controllers
         ///     <parameter name="device.network" mode="remove" />
         ///     <parameter name="device.deviceClass" mode="remove" />
         ///     <parameter name="device.network" type="integer or object" required="false">
-        ///         <para>Network identifier or <see cref="Network"/> object.</para>
-        ///         <para>If object is passed, the target network will be searched by name and automatically created if not found.</para>
-        ///         <para>In case when existing network is protected with the key, the key value must be included.</para>
+        ///         <para>A <see cref="Network"/> object which includes name property to match.</para>
+        ///         <para>In case when the target network is protected with a key, the key value must also be included.</para>
+        ///         <para>For debug deployments, any non-existing networks are automatically created.</para>
         ///     </parameter>
         ///     <parameter name="device.deviceClass" type="integer or object" required="true">
-        ///         <para>Device class identifier or <see cref="DeviceClass"/> object.</para>
-        ///         <para>If object is passed, the target device class will be searched by name and version, and automatically created if not found.</para>
-        ///         <para>The device class object will be also updated accordingly unless the DeviceClass.IsPermanent flag is set.</para>
-        ///     </parameter>
-        ///     <parameter name="device.equipment" type="array" required="false" cref="Equipment">
-        ///         <para>Array of <see cref="Equipment"/> objects to be associated with the device class. If specified, all existing values will be replaced.</para>
-        ///         <para>In case when device class is permanent, this value is ignored.</para>
+        ///         <para>A <see cref="DeviceClass"/> object which includes name and version properties to match.</para>
+        ///         <para>The device class objects are automatically created/updated unless the DeviceClass.IsPermanent flag is set.</para>
         ///     </parameter>
         /// </request>
         [Action("device/save")]

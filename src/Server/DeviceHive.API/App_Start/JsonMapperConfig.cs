@@ -43,20 +43,21 @@ namespace DeviceHive.API
                 .Property(e => e.ExpirationDate, "expirationDate")
                 .CollectionProperty(e => e.Permissions, "permissions");
 
-            context.Kernel.ConfigureMapping<DeviceClass>()
-                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
-                .Property(e => e.Name, "name")
-                .Property(e => e.Version, "version")
-                .Property(e => e.IsPermanent, "isPermanent")
-                .Property(e => e.OfflineTimeout, "offlineTimeout")
-                .RawJsonProperty(e => e.Data, "data");
-
             context.Kernel.ConfigureMapping<Equipment>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Code, "code")
                 .Property(e => e.Type, "type")
                 .RawJsonProperty(e => e.Data, "data");
+
+            context.Kernel.ConfigureMapping<DeviceClass>()
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Name, "name")
+                .Property(e => e.Version, "version")
+                .Property(e => e.IsPermanent, "isPermanent")
+                .Property(e => e.OfflineTimeout, "offlineTimeout")
+                .RawJsonProperty(e => e.Data, "data")
+                .CollectionProperty(e => e.Equipment, "equipment");
 
             context.Kernel.ConfigureMapping<Device>()
                 .Property(e => e.GUID, "id", JsonMapperEntryMode.ToJson)

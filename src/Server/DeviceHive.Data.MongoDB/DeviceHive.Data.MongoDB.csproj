@@ -50,10 +50,10 @@
     <Compile Include="DeviceEquipmentRepository.cs" />
     <Compile Include="DeviceNotificationRepository.cs" />
     <Compile Include="DeviceRepository.cs" />
-    <Compile Include="EquipmentRepository.cs" />
     <Compile Include="Migrations\MigrationAttribute.cs" />
     <Compile Include="Migrations\MigrationBase.cs" />
     <Compile Include="Migrations\Migration_1.cs" />
+    <Compile Include="Migrations\Migration_2.cs" />
     <Compile Include="Migrations\Migrator.cs" />
     <Compile Include="MongoConnection.cs" />
     <Compile Include="NetworkRepository.cs" />

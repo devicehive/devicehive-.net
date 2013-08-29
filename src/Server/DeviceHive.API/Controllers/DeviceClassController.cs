@@ -31,9 +31,6 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device class identifier.</param>
         /// <returns cref="DeviceClass">If successful, this method returns a <see cref="DeviceClass"/> resource in the response body.</returns>
-        /// <response>
-        ///     <parameter name="equipment" type="array" cref="Equipment">Array of equipment included into devices of the current class.</parameter>
-        /// </response>
         [AuthorizeUser]
         public JObject Get(int id)
         {
@@ -41,12 +38,7 @@ namespace DeviceHive.API.Controllers
             if (deviceClass == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device class not found!");
 
-            var jDeviceClass = Mapper.Map(deviceClass);
-
-            var equipmentMapper = GetMapper<Equipment>();
-            var equipment = DataContext.Equipment.GetByDeviceClass(id);
-            jDeviceClass["equipment"] = new JArray(equipment.Select(e => equipmentMapper.Map(e)));
-            return jDeviceClass;
+            return Mapper.Map(deviceClass);
         }
 
         /// <name>insert</name>
@@ -61,6 +53,8 @@ namespace DeviceHive.API.Controllers
         {
             var deviceClass = Mapper.Map(json);
             Validate(deviceClass);
+            if (deviceClass.Equipment != null)
+                deviceClass.Equipment.ForEach(e => Validate(e));
 
             if (DataContext.DeviceClass.Get(deviceClass.Name, deviceClass.Version) != null)
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "Device class with such name and version already exists!");
@@ -79,6 +73,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="name" required="false" />
         ///     <parameter name="version" required="false" />
         ///     <parameter name="isPermanent" required="false" />
+        ///     <parameter name="equipment" required="false" />
         /// </request>
         [AuthorizeAdmin]
         [HttpNoContentResponse]
@@ -90,6 +85,7 @@ namespace DeviceHive.API.Controllers
 
             Mapper.Apply(deviceClass, json);
             Validate(deviceClass);
+            deviceClass.Equipment.ForEach(e => Validate(e));
 
             var existing = DataContext.DeviceClass.Get(deviceClass.Name, deviceClass.Version);
             if (existing != null && existing.ID != deviceClass.ID)
