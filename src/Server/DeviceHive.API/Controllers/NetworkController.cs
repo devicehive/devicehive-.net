@@ -15,7 +15,7 @@ namespace DeviceHive.API.Controllers
         /// <name>list</name>
         /// <summary>
         /// Gets list of device networks.
-        /// <para>If caller belongs to the Client user role, the result list is limited to networks the user has access to.</para>
+        /// <para>The result list is limited to networks the client has access to.</para>
         /// </summary>
         /// <query cref="NetworkFilter" />
         /// <returns cref="Network">If successful, this method returns array of <see cref="Network"/> resources in the response body.</returns>

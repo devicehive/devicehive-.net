@@ -170,10 +170,10 @@ namespace DeviceHive.DocGenerator
                 return "Administrator";
 
             if (authorizeUser != null)
-                return "User" + (authorizeUser.AccessKeyAction == null ? null : " (AC: " + authorizeUser.AccessKeyAction + ")");
+                return "User" + (authorizeUser.AccessKeyAction == null ? null : " or Key (" + authorizeUser.AccessKeyAction + ")");
 
             if (authorizeUserOrDevice != null)
-                return "User or Device" + (authorizeUserOrDevice.AccessKeyAction == null ? null : " (AC: " + authorizeUserOrDevice.AccessKeyAction + ")");
+                return "User or Device" + (authorizeUserOrDevice.AccessKeyAction == null ? null : " or Key (" + authorizeUserOrDevice.AccessKeyAction + ")");
 
             return "None";
         }

@@ -88,7 +88,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         #region Actions Methods
 
         /// <summary>
-        /// Authenticates a user.
+        /// Authenticates a client.
         /// Either login and password or accessKey parameters must be passed.
         /// </summary>
         /// <request>
@@ -184,6 +184,9 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="commandId">Device command identifier.</param>
         /// <param name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource to update.</param>
+        /// <request>
+        ///     <parameter name="command.command" required="false" />
+        /// </request>
         [Action("command/update")]
         [AuthorizeClient(AccessKeyAction = "UpdateDeviceCommand")]
         public void UpdateDeviceCommand(Guid deviceGuid, int commandId, JObject command)
@@ -221,7 +224,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </summary>
         /// <param name="timestamp">Timestamp of the last received notification (UTC). If not specified, the server's timestamp is taken instead.</param>
         /// <request>
-        ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to subscribe to. If not specified, the subscription is made to all accessible devices.</parameter>
+        ///     <parameter name="deviceGuids" type="array">Array of device unique identifiers to subscribe to. If not specified, the subscription is made to all accessible devices.</parameter>
         /// </request>
         [Action("notification/subscribe")]
         [AuthorizeClient(AccessKeyAction = "GetDeviceNotification")]
@@ -244,7 +247,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </summary>
         /// <param name="timestamp">Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.</param>
         /// <request>
-        ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to subscribe to. If not specified, the subscription is made to all accessible devices.</parameter>
+        ///     <parameter name="deviceGuids" type="array">Array of device unique identifiers to subscribe to. If not specified, the subscription is made to all accessible devices.</parameter>
         /// </request>
         [Action("command/subscribe")]
         [AuthorizeClient(AccessKeyAction = "GetDeviceCommand")]
@@ -265,7 +268,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// Unsubscribes from device notifications.
         /// </summary>
         /// <request>
-        ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to unsubscribe from. Keep null to unsubscribe from previously made subscription to all accessible devices.</parameter>
+        ///     <parameter name="deviceGuids" type="array">Array of device unique identifiers to unsubscribe from. Keep null to unsubscribe from previously made subscription to all accessible devices.</parameter>
         /// </request>
         [Action("notification/unsubscribe")]
         [AuthorizeClient(AccessKeyAction = "GetDeviceNotification")]
@@ -282,7 +285,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// Unsubscribes from device commands.
         /// </summary>
         /// <request>
-        ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to unsubscribe from. Keep null to unsubscribe from previously made subscription to all accessible devices.</parameter>
+        ///     <parameter name="deviceGuids" type="array">Array of device unique identifiers to unsubscribe from. Keep null to unsubscribe from previously made subscription to all accessible devices.</parameter>
         /// </request>
         [Action("command/unsubscribe")]
         [AuthorizeClient(AccessKeyAction = "GetDeviceCommand")]

@@ -81,21 +81,16 @@ namespace DeviceHive.API.Controllers
         }
 
         /// <name>register</name>
-        /// <summary>
-        ///     <para>Registers a device.</para>
-        ///     <para>If device with specified identifier has already been registered, it gets updated in case when valid key is provided in the authorization header.</para>
-        /// </summary>
+        /// <summary>Registers or updates a device.</summary>
         /// <param name="id">Device unique identifier.</param>
         /// <param name="json" cref="Device">In the request body, supply a <see cref="Device"/> resource.</param>
         /// <request>
-        ///     <parameter name="network" mode="remove" />
-        ///     <parameter name="deviceClass" mode="remove" />
-        ///     <parameter name="network" type="object" required="false">
+        ///     <parameter name="network">
         ///         <para>A <see cref="Network"/> object which includes name property to match.</para>
         ///         <para>In case when the target network is protected with a key, the key value must also be included.</para>
-        ///         <para>For debug deployments, any non-existing networks are automatically created.</para>
+        ///         <para>For test deployments, any non-existing networks are automatically created.</para>
         ///     </parameter>
-        ///     <parameter name="deviceClass" type="object" required="true">
+        ///     <parameter name="deviceClass">
         ///         <para>A <see cref="DeviceClass"/> object which includes name and version properties to match.</para>
         ///         <para>The device class objects are automatically created/updated unless the DeviceClass.IsPermanent flag is set.</para>
         ///     </parameter>

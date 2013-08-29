@@ -68,7 +68,7 @@ namespace DeviceHive.DocGenerator
 
                     methods.Add(new MetadataMethod
                     {
-                        Name = actionElement.Contents(),
+                        Name = "srv: " + actionElement.Contents(),
                         Documentation = methodElement.ElementContents("summary"),
                         Originator = "Server",
                         Authorization = "n/a",
@@ -81,7 +81,7 @@ namespace DeviceHive.DocGenerator
                     Name = controller.Name.Replace("Controller", ""),
                     Uri = "/" + controller.Name.Replace("Controller", "").ToLower(),
                     Documentation = _wsXmlCommentReader.GetTypeElement(controller).ElementContents("summary"),
-                    Methods = methods.ToArray(),
+                    Methods = methods.OrderBy(m => m.Name).ToArray(),
                 });
             }
             var metadata = new Metadata { Services = services.ToArray() };
@@ -90,12 +90,15 @@ namespace DeviceHive.DocGenerator
 
         private string GetAuthorization(MethodInfo method)
         {
-            var actionAttribute = method.GetCustomAttributes(typeof(ActionFilterAttribute), true).Cast<ActionFilterAttribute>().ToArray();
+            var actionAttributes = method.GetCustomAttributes(typeof(ActionFilterAttribute), true).Cast<ActionFilterAttribute>().ToArray();
 
-            if (actionAttribute.OfType<AuthorizeClientAttribute>().Any())
-                return "User";
+            var authorizeClient = actionAttributes.OfType<AuthorizeClientAttribute>().FirstOrDefault();
+            if (authorizeClient != null)
+                return "User" + (authorizeClient.AccessKeyAction == null ? null : " or Key (" + authorizeClient.AccessKeyAction + ")");
 
-            if (actionAttribute.OfType<AuthorizeDeviceAttribute>().Any())
+            var authorizeDevice = actionAttributes.OfType<AuthorizeDeviceAttribute>().FirstOrDefault();
+            var authorizeDeviceRegistration = actionAttributes.OfType<AuthorizeDeviceRegistrationAttribute>().FirstOrDefault();
+            if (authorizeDevice != null || authorizeDeviceRegistration != null)
                 return "Device";
 
             return "None";
@@ -118,11 +121,6 @@ namespace DeviceHive.DocGenerator
                     parameters.Add(new MetadataParameter("deviceId", _helper.ToJsonType(typeof(Guid)), "Device unique identifier (specify if not authenticated).", false));
                     parameters.Add(new MetadataParameter("deviceKey", _helper.ToJsonType(typeof(string)), "Device authentication key (specify if not authenticated).", false));
                 }
-                else if (actionAttribute.ActionName == "authenticate")
-                {
-                    parameters.Add(new MetadataParameter("deviceId", _helper.ToJsonType(typeof(Guid)), "Device unique identifier.", true));
-                    parameters.Add(new MetadataParameter("deviceKey", _helper.ToJsonType(typeof(string)), "Device authentication key.", true));
-                }
             }
 
             // add action method parameters
@@ -143,7 +141,7 @@ namespace DeviceHive.DocGenerator
                     var resourceType = _helper.GetCrefType(methodParamElement);
                     if (resourceType != null)
                     {
-                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson, p.Name));
+                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson, p.Name + "."));
                     }
                 }
             }

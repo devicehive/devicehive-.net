@@ -17,6 +17,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets list of access keys and their permissions.
         /// </summary>
+        /// <param name="userId">User identifier. Use the 'current' keyword to list access keys of the current user.</param>
         /// <returns cref="AccessKey">If successful, this method returns array of <see cref="AccessKey"/> resources in the response body.</returns>
         public JArray Get(int userId)
         {
@@ -33,7 +34,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets information about access key and its permissions.
         /// </summary>
-        /// <param name="userId">User identifier.</param>
+        /// <param name="userId">User identifier. Use the 'current' keyword to get access key of the current user.</param>
         /// <param name="id">Access key identifier.</param>
         /// <returns cref="AccessKey">If successful, this method returns a <see cref="AccessKey"/> resource in the response body.</returns>
         public JObject Get(int userId, int id)
@@ -51,7 +52,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Creates new access key.
         /// </summary>
-        /// <param name="userId">User identifier.</param>
+        /// <param name="userId">User identifier. Use the 'current' keyword to create access key for the current user.</param>
         /// <param name="json" cref="AccessKey">In the request body, supply a <see cref="AccessKey"/> resource.</param>
         /// <returns cref="AccessKey" mode="OneWayOnly">If successful, this method returns a <see cref="AccessKey"/> resource in the response body.</returns>
         [HttpCreatedResponse]
@@ -77,7 +78,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Updates an existing access key.
         /// </summary>
-        /// <param name="userId">User identifier.</param>
+        /// <param name="userId">User identifier. Use the 'current' keyword to update access key of the current user.</param>
         /// <param name="id">Access key identifier.</param>
         /// <param name="json" cref="AccessKey">In the request body, supply a <see cref="AccessKey"/> resource.</param>
         /// <request>
@@ -104,8 +105,8 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Deletes an existing access key.
         /// </summary>
-        /// <param name="userId">User identifier.</param>
-        /// <param name="id">User identifier.</param>
+        /// <param name="userId">User identifier. Use the 'current' keyword to delete access key of the current user.</param>
+        /// <param name="id">Access key identifier.</param>
         [HttpNoContentResponse]
         public void Delete(int userId, int id)
         {

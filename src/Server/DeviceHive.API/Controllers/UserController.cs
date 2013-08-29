@@ -29,7 +29,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets information about user and its assigned networks.
         /// </summary>
-        /// <param name="id">User identifier.</param>
+        /// <param name="id">User identifier. Use the 'current' keyword to get information about the current user.</param>
         /// <returns cref="User">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
         /// <response>
         ///     <parameter name="networks" type="array" cref="UserNetwork">Array of networks associated with the user</parameter>
@@ -82,7 +82,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Updates an existing user.
         /// </summary>
-        /// <param name="id">User identifier.</param>
+        /// <param name="id">User identifier. Use the 'current' keyword to update information of the current user.</param>
         /// <param name="json" cref="User">In the request body, supply a <see cref="User"/> resource.</param>
         /// <request>
         ///     <parameter name="password" type="string">User password</parameter>

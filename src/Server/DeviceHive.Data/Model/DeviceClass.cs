@@ -64,6 +64,7 @@ namespace DeviceHive.Data.Model
         /// Indicates whether device class is permanent.
         /// Permanent device classes could not be modified by devices during registration.
         /// </summary>
+        [DefaultValue(false)]
         public bool IsPermanent { get; set; }
 
         /// <summary>

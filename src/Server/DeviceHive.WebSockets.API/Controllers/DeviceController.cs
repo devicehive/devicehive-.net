@@ -92,6 +92,10 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// Authenticates a device.
         /// After successful authentication, all subsequent messages may exclude deviceId and deviceKey parameters.
         /// </summary>
+        /// <request>
+        ///     <parameter name="deviceId" type="guid" required="true">Device unique identifier.</parameter>
+        ///     <parameter name="deviceKey" type="string" required="true">Device authentication key.</parameter>
+        /// </request>
         [Action("authenticate")]
         [AuthenticateDevice]
         public void Authenticate()
@@ -220,19 +224,16 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         /// <summary>
         /// Registers or updates a device.
-        /// A valid device key is required in the deviceKey parameter in order to update an existing device.
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
         /// <param name="device" cref="Device">A <see cref="Device"/> resource to register or update.</param>
         /// <request>
-        ///     <parameter name="device.network" mode="remove" />
-        ///     <parameter name="device.deviceClass" mode="remove" />
-        ///     <parameter name="device.network" type="integer or object" required="false">
+        ///     <parameter name="device.network">
         ///         <para>A <see cref="Network"/> object which includes name property to match.</para>
         ///         <para>In case when the target network is protected with a key, the key value must also be included.</para>
-        ///         <para>For debug deployments, any non-existing networks are automatically created.</para>
+        ///         <para>For test deployments, any non-existing networks are automatically created.</para>
         ///     </parameter>
-        ///     <parameter name="device.deviceClass" type="integer or object" required="true">
+        ///     <parameter name="device.deviceClass">
         ///         <para>A <see cref="DeviceClass"/> object which includes name and version properties to match.</para>
         ///         <para>The device class objects are automatically created/updated unless the DeviceClass.IsPermanent flag is set.</para>
         ///     </parameter>
