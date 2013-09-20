@@ -125,8 +125,12 @@ namespace DeviceHive.API.Filters
                 var httpContext = (HttpContextBase)actionContext.Request.Properties["MS_HttpContext"];
                 var userAddress = httpContext.Request.UserHostAddress;
 
+                var domain = actionContext.Request.Headers.Contains("Origin") ?
+                    actionContext.Request.Headers.GetValues("Origin").First() : null;
+
                 var permissions = requestContext.CurrentAccessKey.Permissions
-                    .Where(p => p.IsActionAllowed(AccessKeyAction) && p.IsAddressAllowed(userAddress)) // TODO: domains
+                    .Where(p => p.IsActionAllowed(AccessKeyAction) &&
+                        p.IsAddressAllowed(userAddress) && (domain == null || p.IsDomainAllowed(domain)))
                     .ToArray();
 
                 if (!permissions.Any())
@@ -146,15 +150,7 @@ namespace DeviceHive.API.Filters
             if ((Entity & AuthorizeEntity.User) != 0)
             {
                 response.Headers.WwwAuthenticate.Add(new AuthenticationHeaderValue("Basic"));
-
-                var origin = actionContext.Request.Headers.FirstOrDefault(h => h.Key == "Origin");
-                if (origin.Value != null && origin.Value.Any())
-                {
-                    response.Headers.Add("Access-Control-Allow-Origin", origin.Value.First());
-                    response.Headers.Add("Access-Control-Allow-Credentials", "true");
-                    response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-                    response.Headers.Add("Access-Control-Allow-Headers", "Origin, Authorization, Accept, Content-Type");
-                }
+                AllowCrossDomainOrigin.AppendCorsHeaders(actionContext.Request, response);
             }
 
             throw new HttpResponseException(response);
