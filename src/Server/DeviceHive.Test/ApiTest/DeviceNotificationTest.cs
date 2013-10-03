@@ -84,8 +84,8 @@ namespace DeviceHive.Test.ApiTest
 
             // access key authentication
             var accessKey1 = CreateAccessKey(user1, "GetDeviceNotification");
-            var accessKey2 = CreateAccessKey(user2, "GetDeviceNotification", networks: new[] { 0 });
-            var accessKey3 = CreateAccessKey(user2, "GetDeviceNotification", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user2, "GetDeviceNotification", networkIds: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "GetDeviceNotification", deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey4 = CreateAccessKey(user2, "GetDeviceNotification");
             Expect(() => Get(resource, auth: accessKey1), FailsWith(404)); // should fail with 404
             Expect(() => Get(resource, auth: accessKey2), FailsWith(404)); // should fail with 404
@@ -238,8 +238,8 @@ namespace DeviceHive.Test.ApiTest
 
             // access keys authorization
             var accessKey1 = CreateAccessKey(user1, "CreateDeviceNotification");
-            var accessKey2 = CreateAccessKey(user2, "CreateDeviceNotification", networks: new[] { 0 });
-            var accessKey3 = CreateAccessKey(user2, "CreateDeviceNotification", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user2, "CreateDeviceNotification", networkIds: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "CreateDeviceNotification", deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey4 = CreateAccessKey(user2, "CreateDeviceNotification");
             Expect(() => Create(new { notification = "_ut" }, auth: accessKey1), FailsWith(404)); // should fail with 404
             Expect(() => Create(new { notification = "_ut" }, auth: accessKey2), FailsWith(404)); // should fail with 404

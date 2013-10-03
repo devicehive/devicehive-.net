@@ -67,7 +67,7 @@ namespace DeviceHive.Test.ApiTest
 
             // verify that access keys can receive network
             var accessKey1 = CreateAccessKey(user1, "GetNetwork");
-            var accessKey2 = CreateAccessKey(user2, "GetNetwork", networks: new[] { 0 });
+            var accessKey2 = CreateAccessKey(user2, "GetNetwork", networkIds: new[] { 0 });
             var accessKey3 = CreateAccessKey(user2, "GetNetwork");
             Expect(() => Get(networkId, auth: accessKey1), FailsWith(404)); // should fail with 404
             Expect(() => Get(networkId, auth: accessKey2), FailsWith(404)); // should fail with 404
@@ -117,7 +117,7 @@ namespace DeviceHive.Test.ApiTest
             // verify the devices are filtered according to access key permissions
             var user = CreateUser(1, resource);
             var accessKey1 = CreateAccessKey(user, "GetNetwork");
-            var accessKey2 = CreateAccessKey(user, new[] { "GetNetwork", "GetDevice" }, devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user, new[] { "GetNetwork", "GetDevice" }, deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey3 = CreateAccessKey(user, new[] { "GetNetwork", "GetDevice" });
             Expect(Get(resource, auth: accessKey1)["devices"].Count(), Is.EqualTo(0));
             Expect(Get(resource, auth: accessKey2)["devices"].Count(), Is.EqualTo(0));

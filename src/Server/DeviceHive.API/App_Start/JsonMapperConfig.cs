@@ -33,8 +33,8 @@ namespace DeviceHive.API
                 .Property(e => e.Domains, "domains")
                 .Property(e => e.Subnets, "subnets")
                 .Property(e => e.Actions, "actions")
-                .Property(e => e.Networks, "networks")
-                .Property(e => e.Devices, "devices");
+                .Property(e => e.Networks, "networkIds")
+                .Property(e => e.Devices, "deviceGuids");
 
             context.Kernel.ConfigureMapping<AccessKey>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)

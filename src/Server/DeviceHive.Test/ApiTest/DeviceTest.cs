@@ -96,8 +96,8 @@ namespace DeviceHive.Test.ApiTest
 
             // access keys can receive device resource when have necessary permissions
             var accessKey1 = CreateAccessKey(user1, "GetDevice");
-            var accessKey2 = CreateAccessKey(user2, "GetDevice", networks: new[] { 0 });
-            var accessKey3 = CreateAccessKey(user2, "GetDevice", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user2, "GetDevice", networkIds: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "GetDevice", deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey4 = CreateAccessKey(user2, "GetDevice");
             Expect(() => Get(ID, auth: accessKey1), FailsWith(404)); // should fail with 404
             Expect(() => Get(ID, auth: accessKey2), FailsWith(404)); // should fail with 404
@@ -280,8 +280,8 @@ namespace DeviceHive.Test.ApiTest
 
             // access keys can update a device resource when have necessary permissions
             var accessKey1 = CreateAccessKey(user1, "RegisterDevice");
-            var accessKey2 = CreateAccessKey(user2, "RegisterDevice", networks: new[] { 0 });
-            var accessKey3 = CreateAccessKey(user2, "RegisterDevice", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user2, "RegisterDevice", networkIds: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "RegisterDevice", deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey4 = CreateAccessKey(user2, "RegisterDevice");
             Expect(() => Update(ID, new { status = "status2" }, auth: accessKey1), FailsWith(401)); // should fail with 401
             Expect(() => Update(ID, new { status = "status2" }, auth: accessKey2), FailsWith(401)); // should fail with 401
