@@ -83,6 +83,51 @@ namespace DeviceHive.Core.Mapping
                     }
                 };
 
+            Entries.Add(new JsonMapperEntry<T>(mode, jsonProperty, entityProperty, mapToJsonLabmda, mapToEntityLabmda));
+            return this;
+        }
+
+        /// <summary>
+        /// Configures property mapping
+        /// </summary>
+        /// <param name="entityPropertyExpression">Property access expression</param>
+        /// <param name="jsonProperty">Json property name</param>
+        /// <param name="mode">Mapping mode</param>
+        /// <returns>Current configuration object</returns>
+        public JsonMapperConfiguration<T> EnumProperty<TEnum>(Expression<Func<T, int?>> entityPropertyExpression, string jsonProperty, JsonMapperEntryMode mode = JsonMapperEntryMode.TwoWay)
+            where TEnum : struct
+        {
+            if (entityPropertyExpression == null)
+                throw new ArgumentNullException("entityPropertyExpression");
+            if (string.IsNullOrEmpty(jsonProperty))
+                throw new ArgumentException("jsonProperty is null or empty!", "jsonProperty");
+            if (!typeof(TEnum).IsEnum)
+                throw new ArgumentException("TEnum is not an enum type!", "TEnum");
+
+            var entityProperty = GetProperty(entityPropertyExpression);
+            var isNullable = Nullable.GetUnderlyingType(entityProperty.PropertyType) != null;
+
+            // create MapToJson action
+            var entityPropertyLambda = entityPropertyExpression.Compile();
+            var entityConversionLambda = GetValueFormatter(typeof(TEnum));
+            Action<T, JObject> mapToJsonLabmda = (entity, json) =>
+                {
+                    var value = Enum.ToObject(typeof(TEnum), entityPropertyLambda(entity));
+                    json.Add(new JProperty(jsonProperty, entityConversionLambda(value).ToString()));
+                };
+
+            // create MapToEntity action
+            var entityPropertySetterLambda = GetPropertySetter(entityProperty);
+            var jsonTokenParser = GetJsonTokenParser(isNullable ? typeof(Nullable<TEnum>) : typeof(TEnum));
+            Action<JObject, T> mapToEntityLabmda = (json, entity) =>
+                {
+                    var jProperty = json.Property(jsonProperty);
+                    if (jProperty != null)
+                    {
+                        var value = (int)jsonTokenParser(jProperty.Value);
+                        entityPropertySetterLambda(entity, value);
+                    }
+                };
 
             Entries.Add(new JsonMapperEntry<T>(mode, jsonProperty, entityProperty, mapToJsonLabmda, mapToEntityLabmda));
             return this;
