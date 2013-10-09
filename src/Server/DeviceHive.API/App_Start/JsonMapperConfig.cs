@@ -90,6 +90,24 @@ namespace DeviceHive.API
                 .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.ToJson)
                 .RawJsonProperty(e => e.Parameters, "parameters", JsonMapperEntryMode.ToJson);
 
+            context.Kernel.ConfigureMapping<OAuthClient>()
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Name, "name")
+                .Property(e => e.Domain, "domain")
+                .Property(e => e.Subnet, "subnet")
+                .Property(e => e.OAuthID, "oauthId");
+
+            context.Kernel.ConfigureMapping<OAuthGrant>()
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Timestamp, "timestamp", JsonMapperEntryMode.ToJson)
+                .Property(e => e.AuthCode, "authCode", JsonMapperEntryMode.ToJson)
+                .ReferenceProperty(e => e.Client, "client")
+                .ReferenceProperty(e => e.AccessKey, "accessKey", JsonMapperEntryMode.ToJson)
+                .EnumProperty<OAuthGrantType>(e => e.Type, "type")
+                .Property(e => e.Scope, "scope")
+                .Property(e => e.RedirectUri, "redirectUri")
+                .EnumProperty<OAuthGrantAccessType>(e => e.AccessType, "accessType");
+
             context.Kernel.ConfigureMapping<ApiInfo>()
                 .Property(e => e.ApiVersion, "apiVersion")
                 .Property(e => e.ServerTimestamp, "serverTimestamp")
@@ -151,6 +169,19 @@ namespace DeviceHive.API
                 .Property(e => e.End, "end")
                 .Property(e => e.Command, "command")
                 .Property(e => e.Status, "status")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<OAuthGrantFilter>()
+                .Property(e => e.Start, "start")
+                .Property(e => e.End, "end")
+                .Property(e => e.ClientOAuthID, "clientOAuthId")
+                .EnumProperty<OAuthGrantType>(e => e.Type, "type")
+                .Property(e => e.Scope, "scope")
+                .Property(e => e.RedirectUri, "redirectUri")
+                .EnumProperty<OAuthGrantAccessType>(e => e.AccessType, "accessType")
                 .Property(e => e.SortField, "sortField")
                 .Property(e => e.SortOrder, "sortOrder")
                 .Property(e => e.Take, "take")
