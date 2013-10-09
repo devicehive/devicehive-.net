@@ -206,6 +206,22 @@ namespace DeviceHive.Data
         }
 
         /// <summary>
+        /// Gets repository for OAuth clients
+        /// </summary>
+        public IOAuthClientRepository OAuthClient
+        {
+            get { return GetRepository<IOAuthClientRepository>(); }
+        }
+
+        /// <summary>
+        /// Gets repository for OAuth grants
+        /// </summary>
+        public IOAuthGrantRepository OAuthGrant
+        {
+            get { return GetRepository<IOAuthGrantRepository>(); }
+        }
+
+        /// <summary>
         /// Gets repository for timestamp operations
         /// </summary>
         public ITimestampRepository Timestamp
