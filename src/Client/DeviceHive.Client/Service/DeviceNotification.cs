@@ -3,7 +3,7 @@
 namespace DeviceHive.Client
 {
     /// <summary>
-    /// Represents information about notification linked to device.
+    /// Represents information about notification linked to a device.
     /// </summary>
     public class DeviceNotification
     {
