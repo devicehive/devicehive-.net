@@ -34,24 +34,16 @@ namespace DeviceHive.API.Controllers
         [AuthorizeUser(AccessKeyAction = "GetDevice")]
         public JArray Get()
         {
-            var devices = (List<Device>)null;
             var filter = MapObjectFromQuery<DeviceFilter>();
+            var devices = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
+                DataContext.Device.GetAll(filter) :
+                DataContext.Device.GetByUser(RequestContext.CurrentUser.ID, filter);
 
-            if (RequestContext.CurrentUser.Role == (int)UserRole.Administrator)
+            if (RequestContext.CurrentUserPermissions != null)
             {
-                // administrators get all devices
-                devices = DataContext.Device.GetAll(filter);
-            }
-            else
-            {
-                // users see a limited set of devices
-                devices = DataContext.Device.GetByUser(RequestContext.CurrentUser.ID, filter);
-                if (RequestContext.CurrentUserPermissions != null)
-                {
-                    // if access key was used, limit devices to allowed ones
-                    devices = devices.Where(d => RequestContext.CurrentUserPermissions.Any(p =>
-                        p.IsNetworkAllowed(d.NetworkID.Value) && p.IsDeviceAllowed(d.GUID.ToString()))).ToList();
-                }
+                // if access key was used, limit devices to allowed ones
+                devices = devices.Where(d => RequestContext.CurrentUserPermissions.Any(p =>
+                    p.IsNetworkAllowed(d.NetworkID) && p.IsDeviceAllowed(d.GUID.ToString()))).ToList();
             }
 
             return new JArray(devices.Select(n => Mapper.Map(n)));
