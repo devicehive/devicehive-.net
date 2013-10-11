@@ -68,11 +68,11 @@ namespace DeviceHive.API.Controllers
 
             var oauthGrant = Mapper.Map(json);
             oauthGrant.UserID = user.ID;
-            if (oauthGrant.Type == (int)OAuthGrantType.Code)
-                oauthGrant.AuthCode = Guid.NewGuid();
+            if (string.IsNullOrEmpty(oauthGrant.RedirectUri))
+                ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing required field: redirectUri");
 
             MapClient(oauthGrant);
-            CreateAccessKey(user, oauthGrant);
+            OAuth2Controller.RenewGrant(oauthGrant);
             Validate(oauthGrant);
 
             DataContext.AccessKey.Save(oauthGrant.AccessKey);
@@ -107,10 +107,11 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.NotFound, "OAuth grant not found!");
 
             Mapper.Apply(oauthGrant, json);
-            oauthGrant.AuthCode = oauthGrant.Type == (int)OAuthGrantType.Code ? (Guid?)Guid.NewGuid() : null;
+            if (string.IsNullOrEmpty(oauthGrant.RedirectUri))
+                ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing required field: redirectUri");
 
             MapClient(oauthGrant);
-            UpdateAccessKey(oauthGrant);
+            OAuth2Controller.RenewGrant(oauthGrant);
             Validate(oauthGrant);
 
             DataContext.AccessKey.Save(oauthGrant.AccessKey);
@@ -153,37 +154,6 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "A client with specified 'oauthId' property does not exist!");
 
             grant.Client = client;
-        }
-
-        private void CreateAccessKey(User user, OAuthGrant grant)
-        {
-            var accessKey = new AccessKey(user.ID, string.Format("Key for {0} client", grant.Client.Name));
-            if (grant.AccessType == (int)OAuthGrantAccessType.Online)
-                accessKey.ExpirationDate = DataContext.Timestamp.GetCurrentTimestamp().AddHours(1);
-
-            accessKey.Permissions.Add(new AccessKeyPermission
-                {
-                    Subnets = grant.Client.Subnet == null ? null : grant.Client.Subnet.Split(','),
-                    Domains = new[] { grant.Client.Domain },
-                    Actions = grant.Scope.Split(' '),
-                });
-
-            grant.AccessKey = accessKey;
-        }
-
-        private void UpdateAccessKey(OAuthGrant grant)
-        {
-            grant.AccessKey.Label = string.Format("Key for {0} client", grant.Client.Name);
-            grant.AccessKey.ExpirationDate = grant.AccessType == (int)OAuthGrantAccessType.Online ?
-                (DateTime?)DataContext.Timestamp.GetCurrentTimestamp().AddHours(1) : null;
-
-            grant.AccessKey.Permissions.Clear();
-            grant.AccessKey.Permissions.Add(new AccessKeyPermission
-                {
-                    Subnets = grant.Client.Subnet == null ? null : grant.Client.Subnet.Split(','),
-                    Domains = new[] { grant.Client.Domain },
-                    Actions = grant.Scope.Split(' '),
-                });
         }
 
         private IJsonMapper<OAuthGrant> Mapper

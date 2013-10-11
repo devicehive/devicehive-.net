@@ -20,6 +20,11 @@ namespace DeviceHive.Data.Model
         /// Token grant type
         /// </summary>
         Token = 1,
+
+        /// <summary>
+        /// Password grant type
+        /// </summary>
+        Password = 2,
     }
 
     /// <summary>
@@ -60,8 +65,7 @@ namespace DeviceHive.Data.Model
         /// <param name="accessKey">Associated AccessKey object.</param>
         /// <param name="type">OAuth type.</param>
         /// <param name="scope">Requested OAuth scope.</param>
-        /// <param name="redirectUri">OAuth redirect URI specified during authorization.</param>
-        public OAuthGrant(OAuthClient client, int userId, AccessKey accessKey, int type, string scope, string redirectUri)
+        public OAuthGrant(OAuthClient client, int userId, AccessKey accessKey, int type, string scope)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
@@ -69,15 +73,13 @@ namespace DeviceHive.Data.Model
                 throw new ArgumentNullException("accessKey");
             if (string.IsNullOrEmpty(scope))
                 throw new ArgumentException("Scope is null or empty!", "scope");
-            if (string.IsNullOrEmpty(redirectUri))
-                throw new ArgumentException("RedirectUri is null or empty!", "redirectUri");
 
+            this.Timestamp = DateTime.UtcNow;
             this.Client = client;
             this.UserID = userId;
             this.AccessKey = accessKey;
             this.Type = type;
             this.Scope = scope;
-            this.RedirectUri = redirectUri;
         }
         #endregion
 
@@ -91,7 +93,7 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// OAuth grant timestamp.
         /// </summary>
-        public DateTime Timestamp { get; private set; }
+        public DateTime Timestamp { get; set; }
 
         /// <summary>
         /// OAuth authorization code.
@@ -127,27 +129,45 @@ namespace DeviceHive.Data.Model
 
         /// <summary>
         /// OAuth grant type.
+        /// <list type="bullet">
+        ///     <item><description>Code: Authorization Code grant</description></item>
+        ///     <item><description>Token: Implicit grant</description></item>
+        ///     <item><description>Password: Password Credentials grant</description></item>
+        /// </list>
         /// </summary>
         public int Type { get; set; }
 
         /// <summary>
-        /// Requested OAuth scope.
+        /// Grant access type.
+        /// Available values:
+        /// <list type="bullet">
+        ///     <item><description>Online: Access is requested to a limited period of time</description></item>
+        ///     <item><description>Offline: Assess is requested for an unlimited period of time</description></item>
+        /// </list>
         /// </summary>
-        [Required]
-        [StringLength(128)]
-        public string Scope { get; set; }
+        public int AccessType { get; set; }
 
         /// <summary>
         /// OAuth redirect URI specified during authorization.
         /// </summary>
-        [Required]
         [StringLength(128)]
         public string RedirectUri { get; set; }
 
         /// <summary>
-        /// Grant access type.
+        /// Requested OAuth scope.
+        /// The scope should include a space-delimited list of required access key permissions.
         /// </summary>
-        public int AccessType { get; set; }
+        [Required]
+        [StringLength(256)]
+        public string Scope { get; set; }
+
+        /// <summary>
+        /// A comma-separated list of network identifiers requested for access.
+        /// Keep null to request access for all accessible networks.
+        /// </summary>
+        [StringLength(128)]
+        [RegularExpression(@"^[\d\,]+$")]
+        public string NetworkList { get; set; }
 
         #endregion
     }

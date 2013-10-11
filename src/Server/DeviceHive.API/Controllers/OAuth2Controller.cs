@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Web.Http;
 using System.Web.Http.Description;
 using DeviceHive.API.Models;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
+using System.Text;
 
 namespace DeviceHive.API.Controllers
 {
@@ -17,46 +19,166 @@ namespace DeviceHive.API.Controllers
         [HttpPost]
         public JObject Token(FormDataCollection request)
         {
-            var clientId = request.Get("client_id");
-            if (string.IsNullOrEmpty(clientId))
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing client_id parameter!");
+            var client = AuthenticateClient(Request, request);
 
-            var clientSecret = request.Get("client_secret");
-            if (string.IsNullOrEmpty(clientSecret))
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing client_secret parameter!");
+            AccessKey accessKey = null;
+            var grantType = GetRequiredParameter(request, "grant_type");
+            switch (grantType)
+            {
+                case "authorization_code":
+                    {
+                        var code = GetRequiredParameter(request, "code");
+                        var redirectUri = GetRequiredParameter(request, "redirect_uri");
 
-            var code = request.Get("code");
-            if (string.IsNullOrEmpty(code))
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing code parameter!");
+                        Guid authCode;
+                        if (!Guid.TryParse(code, out authCode))
+                            ThrowHttpResponse(HttpStatusCode.Forbidden, "Invalid authorization code!");
 
-            var redirectUri = request.Get("redirect_uri");
-            if (string.IsNullOrEmpty(redirectUri))
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing redirect_uri parameter!");
+                        // find a valid grant by authorization code
+                        var grant = DataContext.OAuthGrant.Get(authCode);
+                        if (grant == null || grant.ClientID != client.ID || grant.Type != (int)OAuthGrantType.Code || grant.RedirectUri != redirectUri)
+                            ThrowHttpResponse(HttpStatusCode.Forbidden, "Invalid authorization code!");
 
-            var grantType = request.Get("grant_type");
-            if (string.IsNullOrEmpty(grantType))
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing grant_type parameter!");
-            if (grantType != "authorization_code")
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Invalid grant_type parameter!");
+                        if (DateTime.UtcNow > grant.Timestamp.AddMinutes(10))
+                            ThrowHttpResponse(HttpStatusCode.Forbidden, "Invalid authorization code!");
 
+                        grant.AuthCode = null; // deny subsequent requests with the same authorization code
+                        DataContext.OAuthGrant.Save(grant);
+
+                        accessKey = grant.AccessKey;
+                    }
+                    break;
+                
+                case "password":
+                    {
+                        var scope = GetRequiredParameter(request, "scope");
+                        var username = GetRequiredParameter(request, "username");
+                        var password = GetRequiredParameter(request, "password");
+
+                        // authenticate user
+                        var user = DataContext.User.Get(username);
+                        if (user == null || user.Status != (int)UserStatus.Active)
+                            ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized!");
+
+                        if (!user.IsValidPassword(password))
+                        {
+                            IncrementUserLoginAttempts(user);
+                            ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized!");
+                        }
+
+                        UpdateUserLastLogin(user);
+
+                        // issue or renew grant
+                        var filter = new OAuthGrantFilter
+                            {
+                                ClientID = client.ID,
+                                Scope = scope,
+                                Type = (int)OAuthGrantType.Password,
+                            };
+
+                        var grant = DataContext.OAuthGrant.GetByUser(user.ID, filter).FirstOrDefault() ??
+                            new OAuthGrant(client, user.ID, new AccessKey(), (int)OAuthGrantType.Password, scope);
+                        RenewGrant(grant);
+
+                        DataContext.AccessKey.Save(grant.AccessKey);
+                        DataContext.OAuthGrant.Save(grant);
+                        accessKey = grant.AccessKey;
+                    }
+                    break;
+                
+                default:
+                    ThrowHttpResponse(HttpStatusCode.BadRequest, "Invalid grant_type parameter!");
+                    break;
+            }
+
+            return new JObject(
+                new JProperty("access_token", accessKey.Key),
+                new JProperty("token_type", "Bearer"),
+                new JProperty("expires_in", accessKey.ExpirationDate == null ? null :
+                    (int?)(int)accessKey.ExpirationDate.Value.Subtract(DateTime.UtcNow).TotalSeconds));
+        }
+
+        private OAuthClient AuthenticateClient(HttpRequestMessage request, FormDataCollection form)
+        {
+            string clientId = null;
+            string clientSecret = null;
+
+            // try to get credentials from Authorization header
+            var auth = request.Headers.Authorization;
+            if (auth != null && auth.Scheme == "Basic" && !string.IsNullOrEmpty(auth.Parameter))
+            {
+                try
+                {
+                    var authParam = Encoding.UTF8.GetString(Convert.FromBase64String(auth.Parameter));
+                    if (!authParam.Contains(":"))
+                        throw new FormatException();
+
+                    clientId = authParam.Substring(0, authParam.IndexOf(':'));
+                    clientSecret = authParam.Substring(authParam.IndexOf(':') + 1);
+                }
+                catch (FormatException)
+                {
+                }
+            }
+
+            // try to get credentials from form parameters
+            if (clientId == null)
+            {
+                clientId = GetRequiredParameter(form, "client_id");
+                clientSecret = GetRequiredParameter(form, "client_secret");
+            }
+
+            // authenticate client
             var client = DataContext.OAuthClient.Get(clientId);
             if (client == null || client.OAuthSecret != clientSecret)
                 ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized!");
 
-            Guid authCode;
-            if (!Guid.TryParse(code, out authCode))
-                ThrowHttpResponse(HttpStatusCode.Forbidden, "Invalid authorization code!");
+            return client;
+        }
 
-            var grant = DataContext.OAuthGrant.Get(authCode);
-            if (grant == null || grant.ClientID != client.ID || grant.Type != (int)OAuthGrantType.Code || grant.RedirectUri != redirectUri)
-                ThrowHttpResponse(HttpStatusCode.Forbidden, "Invalid authorization code!");
+        private string GetRequiredParameter(FormDataCollection request, string parameter)
+        {
+            var value = request.Get(parameter);
+            if (string.IsNullOrEmpty(value))
+                ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing required parameter: " + parameter);
 
-            var accessKey = grant.AccessKey;
-            if (accessKey.ExpirationDate != null && accessKey.ExpirationDate.Value < DataContext.Timestamp.GetCurrentTimestamp())
-                ThrowHttpResponse(HttpStatusCode.Forbidden, "Invalid authorization code!");
+            return value;
+        }
 
-            return new JObject(
-                new JProperty("access_token", accessKey.Key));
+        private void IncrementUserLoginAttempts(User user)
+        {
+            user.LoginAttempts++;
+            if (user.LoginAttempts >= 10)
+                user.Status = (int)UserStatus.LockedOut;
+            DataContext.User.Save(user);
+        }
+
+        private void UpdateUserLastLogin(User user)
+        {
+            user.LoginAttempts = 0;
+            user.LastLogin = DateTime.UtcNow;
+            DataContext.User.Save(user);
+        }
+
+        internal static void RenewGrant(OAuthGrant grant)
+        {
+            grant.AccessKey = grant.AccessKey ?? new AccessKey();
+            grant.AccessKey.GenerateKey();
+            grant.AccessKey.UserID = grant.UserID;
+            grant.AccessKey.Label = "OAuth token for: " + grant.Client.Name;
+            grant.AccessKey.ExpirationDate = grant.AccessType == (int)OAuthGrantAccessType.Online ? (DateTime?)DateTime.UtcNow.AddHours(1) : null;
+
+            grant.AccessKey.Permissions = new List<AccessKeyPermission>();
+            grant.AccessKey.Permissions.Add(new AccessKeyPermission
+                {
+                    Subnets = grant.Client.Subnet == null ? null : grant.Client.Subnet.Split(','),
+                    Domains = new[] { grant.Client.Domain },
+                    Actions = grant.Scope.Split(' '),
+                    Networks = grant.NetworkList == null ? null : grant.NetworkList.Split(',').Select(n => int.Parse(n)).ToArray(),
+                });
+
+            grant.Timestamp = DateTime.UtcNow;
+            grant.AuthCode = grant.Type == (int)OAuthGrantType.Code ? (Guid?)Guid.NewGuid() : null;
         }
     }
 }

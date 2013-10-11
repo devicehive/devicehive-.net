@@ -96,7 +96,6 @@ namespace DeviceHive.Data.EF
             modelBuilder.Entity<DeviceCommand>().Property(e => e.Timestamp).HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed);
             modelBuilder.Entity<DeviceCommand>().HasRequired(e => e.Device).WithMany().HasForeignKey(e => e.DeviceID).WillCascadeOnDelete(true);
             modelBuilder.Entity<DeviceEquipment>().HasRequired(e => e.Device).WithMany().HasForeignKey(e => e.DeviceID).WillCascadeOnDelete(true);
-            modelBuilder.Entity<OAuthGrant>().Property(e => e.Timestamp).HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed);
             modelBuilder.Entity<OAuthGrant>().HasRequired(e => e.Client).WithMany().HasForeignKey(e => e.ClientID).WillCascadeOnDelete(true);
             modelBuilder.Entity<OAuthGrant>().HasRequired(e => e.AccessKey).WithMany().HasForeignKey(e => e.AccessKeyID).WillCascadeOnDelete(false);
         }

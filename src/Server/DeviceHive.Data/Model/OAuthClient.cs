@@ -25,24 +25,24 @@ namespace DeviceHive.Data.Model
         /// </summary>
         /// <param name="name">Client display name.</param>
         /// <param name="domain">Client domain.</param>
+        /// <param name="redirectUrl">Client OAuth redirect URI.</param>
         /// <param name="oauthId">Client OAuth identifier.</param>
-        public OAuthClient(string name, string domain, string oauthId)
+        public OAuthClient(string name, string domain, string redirectUrl, string oauthId)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Name is null or empty!", "name");
             if (string.IsNullOrEmpty(domain))
                 throw new ArgumentException("Domain is null or empty!", "domain");
+            if (string.IsNullOrEmpty(redirectUrl))
+                throw new ArgumentException("RedirectUri is null or empty!", "redirectUrl");
             if (string.IsNullOrEmpty(oauthId))
                 throw new ArgumentException("OAuthID is null or empty!", "oauthId");
 
             this.Name = name;
             this.Domain = domain;
+            this.RedirectUri = redirectUrl;
             this.OAuthID = oauthId;
-
-            // generate random 24-characters OAuth secret
-            var buffer = new byte[18];
-            new Random().NextBytes(buffer);
-            OAuthSecret = Convert.ToBase64String(buffer);
+            this.GenerateSecret();
         }
         #endregion
 
@@ -61,17 +61,24 @@ namespace DeviceHive.Data.Model
         public string Name { get; set; }
 
         /// <summary>
-        /// Client domain.
+        /// Client domain allowed for API access.
         /// </summary>
         [Required]
         [StringLength(128)]
         public string Domain { get; set; }
 
         /// <summary>
-        /// Client IP subnet.
+        /// Client IP subnet allowed for API access.
         /// </summary>
         [StringLength(128)]
         public string Subnet { get; set; }
+
+        /// <summary>
+        /// Client OAuth redirect URI.
+        /// </summary>
+        [Required]
+        [StringLength(128)]
+        public string RedirectUri { get; set; }
 
         /// <summary>
         /// Client OAuth ID.
@@ -87,6 +94,19 @@ namespace DeviceHive.Data.Model
         [StringLength(32)]
         public string OAuthSecret { get; set; }
 
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Generates random OAuthSecret value.
+        /// </summary>
+        public void GenerateSecret()
+        {
+            var buffer = new byte[18];
+            new Random().NextBytes(buffer);
+            OAuthSecret = Convert.ToBase64String(buffer);
+        }
         #endregion
     }
 

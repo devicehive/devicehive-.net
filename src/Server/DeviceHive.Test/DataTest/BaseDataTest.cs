@@ -480,7 +480,7 @@ namespace DeviceHive.Test.DataTest
         [Test]
         public void OAuthClient()
         {
-            var client = new OAuthClient("Test", "test.com", "test_client");
+            var client = new OAuthClient("Test", "test.com", "http://test.com/oauth2", "test_client");
             DataContext.OAuthClient.Save(client);
             RegisterTearDown(() => DataContext.OAuthClient.Delete(client.ID));
 
@@ -493,6 +493,7 @@ namespace DeviceHive.Test.DataTest
             Assert.IsNotNull(client1);
             Assert.AreEqual("Test", client1.Name);
             Assert.AreEqual("test.com", client1.Domain);
+            Assert.AreEqual("http://test.com/oauth2", client1.RedirectUri);
             Assert.AreEqual("test_client", client1.OAuthID);
             Assert.IsNotNull(client1.OAuthSecret);
 
@@ -504,12 +505,14 @@ namespace DeviceHive.Test.DataTest
             client.Name = "Test2";
             client.Domain = "test2.com";
             client.Subnet = "127.0.0.1";
+            client.RedirectUri = "http://test.com/oauth/2";
             client.OAuthID = "test_client2";
             DataContext.OAuthClient.Save(client);
             var client3 = DataContext.OAuthClient.Get(client.ID);
             Assert.AreEqual("Test2", client3.Name);
             Assert.AreEqual("test2.com", client3.Domain);
             Assert.AreEqual("127.0.0.1", client3.Subnet);
+            Assert.AreEqual("http://test.com/oauth/2", client3.RedirectUri);
             Assert.AreEqual("test_client2", client3.OAuthID);
 
             // test Delete
@@ -529,11 +532,11 @@ namespace DeviceHive.Test.DataTest
             DataContext.AccessKey.Save(accessKey);
             RegisterTearDown(() => DataContext.AccessKey.Delete(accessKey.ID));
 
-            var client = new OAuthClient("Test", "test.com", "test_client");
+            var client = new OAuthClient("Test", "test.com", "http://test.com/oauth2", "test_client");
             DataContext.OAuthClient.Save(client);
             RegisterTearDown(() => DataContext.OAuthClient.Delete(client.ID));
 
-            var grant = new OAuthGrant(client, user.ID, accessKey, 0, "scope", "http://test.com/oauth");
+            var grant = new OAuthGrant(client, user.ID, accessKey, 0, "scope");
             grant.AuthCode = Guid.NewGuid();
             DataContext.OAuthGrant.Save(grant);
             RegisterTearDown(() => DataContext.OAuthGrant.Delete(grant.ID));
@@ -546,10 +549,8 @@ namespace DeviceHive.Test.DataTest
             var grant1 = DataContext.OAuthGrant.Get(grant.ID);
             Assert.IsNotNull(grant1);
             Assert.Less(Math.Abs(DateTime.UtcNow.Subtract(grant1.Timestamp).TotalMinutes), 10);
-            Assert.AreEqual(grant.AuthCode, grant1.AuthCode);
             Assert.AreEqual(0, grant1.Type);
             Assert.AreEqual("scope", grant1.Scope);
-            Assert.AreEqual("http://test.com/oauth", grant1.RedirectUri);
             Assert.AreEqual(client.ID, grant1.ClientID);
             Assert.IsNotNull(grant1.Client);
             Assert.AreEqual(user.ID, grant1.UserID);
@@ -559,10 +560,8 @@ namespace DeviceHive.Test.DataTest
             // test Get(authCode)
             var grant2 = DataContext.OAuthGrant.Get(grant.AuthCode.Value);
             Assert.IsNotNull(grant2);
-            Assert.AreEqual(grant.AuthCode, grant2.AuthCode);
             Assert.AreEqual(0, grant2.Type);
             Assert.AreEqual("scope", grant2.Scope);
-            Assert.AreEqual("http://test.com/oauth", grant2.RedirectUri);
             Assert.AreEqual(user.ID, grant2.UserID);
             Assert.AreEqual(client.ID, grant2.ClientID);
             Assert.IsNotNull(grant2.Client);
@@ -572,16 +571,18 @@ namespace DeviceHive.Test.DataTest
             // test Save
             grant.AuthCode = Guid.NewGuid();
             grant.Type = 1;
-            grant.Scope = "scope scope2";
-            grant.RedirectUri = "http://test.com/oauth2";
             grant.AccessType = 1;
+            grant.RedirectUri = "http://test.com/oauth";
+            grant.Scope = "scope scope2";
+            grant.NetworkList = "5,10";
             DataContext.OAuthGrant.Save(grant);
             var grant3 = DataContext.OAuthGrant.Get(grant.ID);
             Assert.AreEqual(grant.AuthCode, grant3.AuthCode);
             Assert.AreEqual(1, grant3.Type);
-            Assert.AreEqual("scope scope2", grant3.Scope);
-            Assert.AreEqual("http://test.com/oauth2", grant3.RedirectUri);
             Assert.AreEqual(1, grant3.AccessType);
+            Assert.AreEqual("http://test.com/oauth", grant3.RedirectUri);
+            Assert.AreEqual("scope scope2", grant3.Scope);
+            Assert.AreEqual("5,10", grant3.NetworkList);
             Assert.AreEqual(user.ID, grant3.UserID);
             Assert.AreEqual(client.ID, grant3.ClientID);
             Assert.IsNotNull(grant3.Client);
@@ -589,7 +590,7 @@ namespace DeviceHive.Test.DataTest
             Assert.IsNotNull(grant3.AccessKey);
 
             // test update relationship
-            var client2 = new OAuthClient("Test2", "test2.com", "test_client2");
+            var client2 = new OAuthClient("Test2", "test2.com", "http://test.com/oauth/2", "test_client2");
             DataContext.OAuthClient.Save(client2);
             RegisterTearDown(() => DataContext.OAuthClient.Delete(client2.ID));
             grant.Client = client2;

@@ -14,6 +14,7 @@ namespace DeviceHive.Data.EF.Migrations
                     Name = c.String(nullable: false, maxLength: 128),
                     Domain = c.String(nullable: false, maxLength: 128),
                     Subnet = c.String(maxLength: 128),
+                    RedirectUri = c.String(nullable: false, maxLength: 128),
                     OAuthID = c.String(nullable: false, maxLength: 32),
                     OAuthSecret = c.String(nullable: false, maxLength: 32),
                 })
@@ -31,26 +32,24 @@ namespace DeviceHive.Data.EF.Migrations
                     UserID = c.Int(nullable: false),
                     AccessKeyID = c.Int(nullable: false),
                     Type = c.Int(nullable: false),
-                    Scope = c.String(nullable: false, maxLength: 128),
-                    RedirectUri = c.String(nullable: false, maxLength: 128),
                     AccessType = c.Int(nullable: false),
+                    RedirectUri = c.String(maxLength: 128),
+                    Scope = c.String(nullable: false, maxLength: 256),
+                    NetworkList = c.String(maxLength: 128),
                 })
                 .PrimaryKey(t => t.ID)
                 .ForeignKey("OAuthClient", t => t.ClientID, cascadeDelete: true)
                 .ForeignKey("User", t => t.UserID, cascadeDelete: true)
                 .ForeignKey("AccessKey", t => t.AccessKeyID, cascadeDelete: false)
-                .Index(t => t.AuthCode, unique: true)
                 .Index(t => t.ClientID)
                 .Index(t => t.UserID)
                 .Index(t => t.AccessKeyID);
 
-            Sql("ALTER TABLE [OAuthGrant] ADD CONSTRAINT DF_OAuthGrant_Timestamp DEFAULT sysutcdatetime() FOR [Timestamp]");
+            Sql("CREATE UNIQUE NONCLUSTERED INDEX [IX_AuthCode] ON [OAuthGrant] ( [AuthCode] ASC ) WHERE [AuthCode] IS NOT NULL");
         }
 
         public override void Down()
         {
-            Sql("ALTER TABLE [OAuthGrant] DROP CONSTRAINT DF_OAuthGrant_Timestamp");
-
             DropIndex("OAuthGrant", new[] { "AccessKeyID" });
             DropIndex("OAuthGrant", new[] { "UserID" });
             DropIndex("OAuthGrant", new[] { "ClientID" });

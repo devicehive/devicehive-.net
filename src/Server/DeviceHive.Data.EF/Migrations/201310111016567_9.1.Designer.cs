@@ -11,7 +11,7 @@ namespace DeviceHive.Data.EF.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201310091826092_9.1"; }
+            get { return "201310111016567_9.1"; }
         }
         
         string IMigrationMetadata.Source
