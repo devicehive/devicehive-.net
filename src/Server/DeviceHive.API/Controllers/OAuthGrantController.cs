@@ -17,8 +17,8 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets list of OAuth grants.
         /// </summary>
-        /// <query cref="DeviceFilter" />
-        /// <param name="userId">User identifier. Use the 'current' keyword to list access keys of the current user.</param>
+        /// <query cref="OAuthGrantFilter" />
+        /// <param name="userId">User identifier. Use the 'current' keyword to list OAuth grants of the current user.</param>
         /// <returns cref="OAuthGrant">If successful, this method returns array of <see cref="OAuthGrant"/> resources in the response body.</returns>
         public JArray Get(int userId)
         {
@@ -36,7 +36,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets information about OAuth grant.
         /// </summary>
-        /// <param name="userId">User identifier. Use the 'current' keyword to get access key of the current user.</param>
+        /// <param name="userId">User identifier. Use the 'current' keyword to get OAuth grant of the current user.</param>
         /// <param name="id">OAuth grant identifier.</param>
         /// <returns cref="OAuthGrant">If successful, this method returns a <see cref="OAuthGrant"/> resource in the response body.</returns>
         public JObject Get(int userId, int id)
@@ -54,8 +54,13 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Creates new OAuth grant.
         /// </summary>
-        /// <param name="userId">User identifier. Use the 'current' keyword to create access key for the current user.</param>
+        /// <param name="userId">User identifier. Use the 'current' keyword to create OAuth grant for the current user.</param>
         /// <param name="json" cref="OAuthGrant">In the request body, supply a <see cref="OAuthGrant"/> resource.</param>
+        /// <request>
+        ///     <parameter name="client">A <see cref="OAuthClient"/> object which includes oauthId property to match.</parameter>
+        ///     <parameter name="accessType" required="false" />
+        ///     <parameter name="redirectUri" required="true" />
+        /// </request>
         /// <returns cref="OAuthGrant" mode="OneWayOnly">If successful, this method returns a <see cref="OAuthGrant"/> resource in the response body.</returns>
         [HttpCreatedResponse]
         public JObject Post(int userId, JObject json)
@@ -88,13 +93,14 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Updates an existing OAuth grant.
         /// </summary>
-        /// <param name="userId">User identifier. Use the 'current' keyword to update access key of the current user.</param>
+        /// <param name="userId">User identifier. Use the 'current' keyword to update OAuth grant of the current user.</param>
         /// <param name="id">OAuth grant identifier.</param>
         /// <param name="json" cref="OAuthGrant">In the request body, supply a <see cref="OAuthGrant"/> resource.</param>
         /// <request>
+        ///     <parameter name="client" required="false">A <see cref="OAuthClient"/> object which includes oauthId property to match.</parameter>
         ///     <parameter name="type" required="false" />
         ///     <parameter name="scope" required="false" />
-        ///     <parameter name="redirectUrl" required="false" />
+        ///     <parameter name="redirectUri" required="false" />
         ///     <parameter name="accessType" required="false" />
         /// </request>
         /// <returns cref="OAuthGrant" mode="OneWayOnly">If successful, this method returns a <see cref="OAuthGrant"/> resource in the response body.</returns>
@@ -127,7 +133,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Deletes an existing OAuth grant.
         /// </summary>
-        /// <param name="userId">User identifier. Use the 'current' keyword to delete access key of the current user.</param>
+        /// <param name="userId">User identifier. Use the 'current' keyword to delete OAuth grant of the current user.</param>
         /// <param name="id">OAuth grant identifier.</param>
         [HttpNoContentResponse]
         public void Delete(int userId, int id)
