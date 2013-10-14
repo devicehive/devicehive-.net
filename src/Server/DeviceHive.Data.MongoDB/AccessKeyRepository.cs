@@ -53,6 +53,9 @@ namespace DeviceHive.Data.MongoDB
             accessKey.Permissions.ForEach(e => _mongo.EnsureIdentity(e));
 
             _mongo.AccessKeys.Save(accessKey);
+
+            _mongo.OAuthGrants.Update(Query<OAuthGrant>.EQ(e => e.AccessKeyID, accessKey.ID),
+                Update<OAuthGrant>.Set(e => e.AccessKey, accessKey), new MongoUpdateOptions { Flags = UpdateFlags.Multi });
         }
 
         public void Delete(int id)
