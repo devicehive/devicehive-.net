@@ -40,8 +40,8 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion("/oauth/client/" + (int)clientResponse.Json["id"]);
 
             // create grants
-            var grantResource1 = Create(new { client = new { oauthId = "_ut_" }, type = "Code", accessType = "Offline", redirectUri = "_ut1.com", scope = "GetNetwork", networkList = "1,2" }, auth: User);
-            var grantResource2 = Create(new { client = new { oauthId = "_ut_2" }, type = "Token", accessType = "Online", redirectUri = "_ut2.com", scope = "GetDevice", networkList = "2,3" }, auth: User);
+            var grantResource1 = Create(new { client = new { oauthId = "_ut_" }, type = "Code", accessType = "Offline", redirectUri = "_ut1.com", scope = "GetNetwork", networkIds = new[] { 1, 2 } }, auth: User);
+            var grantResource2 = Create(new { client = new { oauthId = "_ut_2" }, type = "Token", accessType = "Online", redirectUri = "_ut2.com", scope = "GetDevice", networkIds = new[] { 2, 3 } }, auth: User);
             var grantId1 = GetResourceId(grantResource1);
             var grantId2 = GetResourceId(grantResource2);
 
@@ -79,7 +79,7 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create()
         {
-            var resource = Create(new { client = new { oauthId = "_ut_" }, type = "Code", redirectUri = "_ut.com", scope = "GetNetwork", networkList = "1,2" }, auth: User);
+            var resource = Create(new { client = new { oauthId = "_ut_" }, type = "Code", redirectUri = "_ut.com", scope = "GetNetwork", networkIds = new[] { 1, 2 } }, auth: User);
             Expect((string)resource["authCode"], Is.Not.Null);  // auth code provided as part of response
             Expect((string)resource["accessKey"], Is.Null);     // access key is not exposed in the Code type
 
@@ -118,14 +118,14 @@ namespace DeviceHive.Test.ApiTest
             System.Threading.Thread.Sleep(10); // make sure at least one millisecond ticks
 
             // update the grant
-            var response2 = Client.Put(ResourceUri + "/" + GetResourceId(resource), new { scope = "GetDevice", networkList = "2,3" }, auth: User);
+            var response2 = Client.Put(ResourceUri + "/" + GetResourceId(resource), new { scope = "GetDevice", networkIds = new[] { 2, 3 } }, auth: User);
             Expect(response2.Status, Is.EqualTo(200));
             Expect((string)response2.Json["authCode"], Is.Not.Null);  // auth code is provided as part of the update response
             Expect((string)response2.Json["accessKey"], Is.Null);     // access key is not exposed in the Code type
 
             // check the grant and associated access key were updated
             var resource2 = Get(resource, auth: User);
-            Expect(resource2, Matches(new { timestamp = ResponseMatchesContraint.Timestamp, scope = "GetNetwork", networkList = "2,3" }));
+            Expect(resource2, Matches(new { timestamp = ResponseMatchesContraint.Timestamp, scope = "GetNetwork", networkIds = new[] { 2, 3 } }));
             Expect(resource2["timestamp"].Parent.ToString(), Is.Not.EqualTo(resource["timestamp"].Parent.ToString())); // timestamp must change
             Expect((string)resource2["authCode"], Is.Not.EqualTo((string)resource["authCode"])); // auth code must change
             Expect((string)resource2["accessKey"]["key"], Is.Not.EqualTo((string)resource["accessKey"]["key"])); // access key must change
@@ -143,7 +143,7 @@ namespace DeviceHive.Test.ApiTest
             System.Threading.Thread.Sleep(10); // make sure at least one millisecond ticks
 
             // update the grant
-            var response2 = Client.Put(ResourceUri + "/" + GetResourceId(resource), new { scope = "GetDevice", networkList = "2,3" }, auth: User);
+            var response2 = Client.Put(ResourceUri + "/" + GetResourceId(resource), new { scope = "GetDevice", networkIds = new[] { 2, 3 } }, auth: User);
             Expect(response2.Status, Is.EqualTo(200));
             Expect((string)response2.Json["authCode"], Is.Null);      // auth code is not provided
             Expect((string)response2.Json["accessKey"]["key"], Is.Not.EqualTo((string)resource["accessKey"]["key"])); // access key must change

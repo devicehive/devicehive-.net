@@ -574,7 +574,7 @@ namespace DeviceHive.Test.DataTest
             grant.AccessType = 1;
             grant.RedirectUri = "http://test.com/oauth";
             grant.Scope = "scope scope2";
-            grant.NetworkList = "5,10";
+            grant.Networks = new[] { 5, 10 };
             DataContext.OAuthGrant.Save(grant);
             var grant3 = DataContext.OAuthGrant.Get(grant.ID);
             Assert.AreEqual(grant.AuthCode, grant3.AuthCode);
@@ -582,7 +582,9 @@ namespace DeviceHive.Test.DataTest
             Assert.AreEqual(1, grant3.AccessType);
             Assert.AreEqual("http://test.com/oauth", grant3.RedirectUri);
             Assert.AreEqual("scope scope2", grant3.Scope);
-            Assert.AreEqual("5,10", grant3.NetworkList);
+            Assert.AreEqual(2, grant3.Networks.Length);
+            Assert.AreEqual(5, grant3.Networks[0]);
+            Assert.AreEqual(10, grant3.Networks[1]);
             Assert.AreEqual(user.ID, grant3.UserID);
             Assert.AreEqual(client.ID, grant3.ClientID);
             Assert.IsNotNull(grant3.Client);

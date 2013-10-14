@@ -174,7 +174,7 @@ namespace DeviceHive.API.Controllers
                     Subnets = grant.Client.Subnet == null ? null : grant.Client.Subnet.Split(','),
                     Domains = new[] { grant.Client.Domain },
                     Actions = grant.Scope.Split(' '),
-                    Networks = grant.NetworkList == null ? null : grant.NetworkList.Split(',').Select(n => int.Parse(n)).ToArray(),
+                    Networks = grant.Networks,
                 });
 
             grant.Timestamp = DateTime.UtcNow;

@@ -109,7 +109,7 @@ namespace DeviceHive.API
                 .EnumProperty<OAuthGrantAccessType>(e => e.AccessType, "accessType")
                 .Property(e => e.RedirectUri, "redirectUri")
                 .Property(e => e.Scope, "scope")
-                .Property(e => e.NetworkList, "networkList");
+                .Property(e => e.Networks, "networkIds");
 
             context.Kernel.ConfigureMapping<ApiInfo>()
                 .Property(e => e.ApiVersion, "apiVersion")

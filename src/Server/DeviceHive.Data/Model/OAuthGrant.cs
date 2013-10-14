@@ -162,13 +162,22 @@ namespace DeviceHive.Data.Model
         public string Scope { get; set; }
 
         /// <summary>
+        /// A collection of network identifiers requested for access.
+        /// Set to null to request access for all accessible networks.
+        /// </summary>
+        public int[] Networks { get; set; }
+
+        /// <summary>
         /// A comma-separated list of network identifiers requested for access.
-        /// Keep null to request access for all accessible networks.
+        /// Used for EF serialization only.
         /// </summary>
         [StringLength(128)]
         [RegularExpression(@"^[\d\,]+$")]
-        public string NetworkList { get; set; }
-
+        public string NetworkList
+        {
+            get { return Networks == null ? null : string.Join(",", Networks); }
+            set { Networks = value == null ? null : value.Split(',').Select(v => int.Parse(v)).ToArray(); }
+        }
         #endregion
     }
 
