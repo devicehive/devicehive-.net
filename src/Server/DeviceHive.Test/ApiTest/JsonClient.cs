@@ -11,11 +11,11 @@ namespace DeviceHive.Test
 {
     public class JsonClient
     {
-        private string _baseUrl;
+        public string BaseUrl { get; private set; }
 
         public JsonClient(string baseUrl)
         {
-            _baseUrl = baseUrl;
+            BaseUrl = baseUrl;
         }
 
         public JsonResponse Get(string url, Authorization auth = null)
@@ -46,7 +46,7 @@ namespace DeviceHive.Test
                 throw new ArgumentException("URL is null or empty!", "url");
 
             // prepare request
-            var request = (HttpWebRequest)HttpWebRequest.Create(_baseUrl + url);
+            var request = (HttpWebRequest)HttpWebRequest.Create(BaseUrl + url);
             request.Method = method;
             request.Accept = "application/json";
             if (auth != null)

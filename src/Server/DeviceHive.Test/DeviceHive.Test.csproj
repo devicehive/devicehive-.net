@@ -71,6 +71,9 @@
     <Compile Include="ApiTest\DeviceNotificationTest.cs" />
     <Compile Include="ApiTest\DeviceTest.cs" />
     <Compile Include="ApiTest\EquipmentTest.cs" />
+    <Compile Include="ApiTest\OAuthClientTest.cs" />
+    <Compile Include="ApiTest\OAuthGrantTest.cs" />
+    <Compile Include="ApiTest\OAuthTest.cs" />
     <Compile Include="ApiTest\UserNetworkTest.cs" />
     <Compile Include="ApiTest\UserTest.cs" />
     <Compile Include="DataTest\MongoDbDataTest.cs" />
