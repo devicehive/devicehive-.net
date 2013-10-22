@@ -146,11 +146,13 @@ namespace DeviceHive.Test.ApiTest
             var response2 = Client.Put(ResourceUri + "/" + GetResourceId(resource), new { scope = "GetDevice", networkIds = new[] { 2, 3 } }, auth: User);
             Expect(response2.Status, Is.EqualTo(200));
             Expect((string)response2.Json["authCode"], Is.Null);      // auth code is not provided
-            Expect((string)response2.Json["accessKey"]["key"], Is.Not.EqualTo((string)resource["accessKey"]["key"])); // access key must change
             Expect(response2.Json["accessKey"], Is.Not.Null); // access key is exposed in the Token type
+            Expect((string)response2.Json["accessKey"]["key"], Is.Not.EqualTo((string)resource["accessKey"]["key"])); // access key must change
             Expect((int)response2.Json["accessKey"]["id"], Is.EqualTo((int)resource["accessKey"]["id"])); // access key id should be preserved
-            Expect((string)response2.Json["accessKey"]["expirationDate"], Is.Null); // should be null for the Offline access type
-            Expect(response2.Json["accessKey"]["permissions"][0], Matches(new { domains = new[] { "_ut.com" },
+            
+            var resource2 = Get(response2.Json, auth: User);
+            Expect((string)resource2["accessKey"]["expirationDate"], Is.Null); // should be null for the Offline access type
+            Expect(resource2["accessKey"]["permissions"][0], Matches(new { domains = new[] { "_ut.com" },
                 subnets = new[] { "127.0.0.0/24" }, actions = new[] { "GetDevice" }, networkIds = new[] { 2, 3 } }));
         }
 

@@ -74,7 +74,7 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Update_Partial()
         {
-            var resource = Create(new { label = "_ut" }, auth: Admin);
+            var resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" } } } }, auth: Admin);
             Update(resource, new { expirationDate = new DateTime(2015, 1, 1) }, auth: Admin);
 
             Expect(Get(resource, auth: Admin), Matches(new { label = "_ut", expirationDate = new DateTime(2015, 1, 1) }));
@@ -84,7 +84,7 @@ namespace DeviceHive.Test.ApiTest
         public void Delete()
         {
             // administrator access
-            var resource = Create(new { label = "_ut" }, auth: Admin);
+            var resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" } } } }, auth: Admin);
             Delete(resource, auth: Admin);
             Expect(() => Get(resource, auth: Admin), FailsWith(404));
 
@@ -121,7 +121,7 @@ namespace DeviceHive.Test.ApiTest
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(200));
 
             // check the expiration date is validated
-            key = Create(new { label = "_ut", expirationDate = DateTime.UtcNow.AddHours(-1),
+            key = Create(new { label = "_ut", expirationDate = DateTime.UtcNow.AddHours(-1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff"),
                 permissions = new[] { new { networks = new[] { networkId }, actions = new[] { "GetNetwork" } } } }, auth: user);
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(401));
 
