@@ -59,13 +59,13 @@ namespace DeviceHive.Test.ApiTest
             var resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.1" } } } }, auth: Admin);
 
             // administrator access
-            var key = new { label = "_ut2", permissions = new[] { new { subnets = new[] { "127.0.0.2" } } } };
+            var key = new { label = "_ut2", permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.2" } } } };
             Update(resource, key, auth: Admin);
             Expect(Get(resource, auth: Admin), Matches(key));
 
             // user access
             ResourceUri = "/user/current/accesskey";
-            key = new { label = "_ut3", permissions = new[] { new { subnets = new[] { "127.0.0.3" } } } };
+            key = new { label = "_ut3", permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.3" } } } };
             Update(resource, key, auth: Owner);
             Expect(Get(resource, auth: Owner), Matches(key));
 
@@ -90,7 +90,7 @@ namespace DeviceHive.Test.ApiTest
 
             // user access
             ResourceUri = "/user/current/accesskey";
-            resource = Create(new { label = "_ut" }, auth: Owner);
+            resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" } } } }, auth: Owner);
             Delete(resource, auth: Owner);
             Expect(() => Get(resource, auth: Owner), FailsWith(404));
         }
@@ -130,7 +130,7 @@ namespace DeviceHive.Test.ApiTest
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(401));
 
             // check the action is validated
-            key = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "Dummy" } } } }, auth: user);
+            key = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "UpdateDeviceCommand" } } } }, auth: user);
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(401));
 
             // check the network is validated
