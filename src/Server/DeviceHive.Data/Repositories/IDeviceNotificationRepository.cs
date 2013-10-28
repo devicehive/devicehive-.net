@@ -37,6 +37,9 @@ namespace DeviceHive.Data.Repositories
             if (filter.Notification != null)
                 query = query.Where(e => e.Notification == filter.Notification);
 
+            if (filter.Notifications != null)
+                query = query.Where(e => filter.Notifications.Contains(e.Notification));
+
             if (filter.SortField != DeviceNotificationSortField.None)
             {
                 switch (filter.SortField)

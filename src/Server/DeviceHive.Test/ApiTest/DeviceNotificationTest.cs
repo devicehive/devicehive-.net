@@ -99,23 +99,27 @@ namespace DeviceHive.Test.ApiTest
             // create user account
             var user = CreateUser(1, NetworkID);
 
+            // create resource
+            var resource1 = Create(new { notification = "_ut1" }, auth: user);
+
             // task to poll new resources
             var poll = new Task(() =>
                 {
-                    var response = Client.Get(ResourceUri + "/poll", auth: user);
+                    var response = Client.Get(ResourceUri + "/poll?names=_ut1", auth: user);
                     Expect(response.Status, Is.EqualTo(200));
                     Expect(response.Json, Is.InstanceOf<JArray>());
 
                     var result =  (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { notification = "_ut2" }));
+                    Expect(result[0], Matches(new { notification = "_ut1" }));
                 });
 
-            // create resource, start poll, wait, then create another resource
-            var resource1 = Create(new { notification = "_ut1" }, auth: user);
+            // start poll, wait, then create resources
             poll.Start();
             Thread.Sleep(100);
             var resource2 = Create(new { notification = "_ut2" }, auth: user);
+            Thread.Sleep(100);
+            var resource3 = Create(new { notification = "_ut1" }, auth: user);
 
             Expect(poll.Wait(2000), Is.True); // task should complete
         }
@@ -146,21 +150,23 @@ namespace DeviceHive.Test.ApiTest
 
             // task to poll new resources
             var poll = new Task(() =>
-            {
-                var response = Client.Get("/device/notification/poll?deviceGuids=" + DeviceGUID, auth: user);
-                Expect(response.Status, Is.EqualTo(200));
-                Expect(response.Json, Is.InstanceOf<JArray>());
+                {
+                    var response = Client.Get("/device/notification/poll?names=_ut1&deviceGuids=" + DeviceGUID, auth: user);
+                    Expect(response.Status, Is.EqualTo(200));
+                    Expect(response.Json, Is.InstanceOf<JArray>());
 
-                var result = (JArray)response.Json;
-                Expect(result.Count, Is.EqualTo(1));
-                Expect(result[0], Matches(new { deviceGuid = DeviceGUID, notification = new { notification = "_ut2" }}));
-            });
+                    var result = (JArray)response.Json;
+                    Expect(result.Count, Is.EqualTo(1));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, notification = new { notification = "_ut1" }}));
+                });
 
-            // create resource, start poll, wait, then create another resource
+            // create resource, start poll, wait, then create resources
             var resource1 = Create(new { notification = "_ut1" }, auth: user);
             poll.Start();
             Thread.Sleep(100);
             var resource2 = Create(new { notification = "_ut2" }, auth: user);
+            Thread.Sleep(100);
+            var resource3 = Create(new { notification = "_ut1" }, auth: user);
 
             Expect(poll.Wait(2000), Is.True); // task should complete
         }
@@ -183,15 +189,15 @@ namespace DeviceHive.Test.ApiTest
             // task to poll new resources
             var user = CreateUser(1, NetworkID);
             var poll = new Task(() =>
-            {
-                var response = Client.Get("/device/notification/poll", auth: user);
-                Expect(response.Status, Is.EqualTo(200));
-                Expect(response.Json, Is.InstanceOf<JArray>());
+                {
+                    var response = Client.Get("/device/notification/poll", auth: user);
+                    Expect(response.Status, Is.EqualTo(200));
+                    Expect(response.Json, Is.InstanceOf<JArray>());
 
-                var result = (JArray)response.Json;
-                Expect(result.Count, Is.EqualTo(1));
-                Expect(result[0], Matches(new { deviceGuid = DeviceGUID, notification = new { notification = "_ut2" } }));
-            });
+                    var result = (JArray)response.Json;
+                    Expect(result.Count, Is.EqualTo(1));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, notification = new { notification = "_ut2" } }));
+                });
 
             // start poll, wait, create other response, wait, then create matching resource
             poll.Start();
@@ -213,12 +219,12 @@ namespace DeviceHive.Test.ApiTest
 
             // task to poll new resources
             var poll = Task.Factory.StartNew(() =>
-            {
-                var response = Client.Get("/device/notification/poll?waitTimeout=0", auth: user);
-                Expect(response.Status, Is.EqualTo(200));
-                Expect(response.Json, Is.InstanceOf<JArray>());
-                Expect(response.Json.Count(), Is.EqualTo(0));
-            });
+                {
+                    var response = Client.Get("/device/notification/poll?waitTimeout=0", auth: user);
+                    Expect(response.Status, Is.EqualTo(200));
+                    Expect(response.Json, Is.InstanceOf<JArray>());
+                    Expect(response.Json.Count(), Is.EqualTo(0));
+                });
 
             Expect(poll.Wait(2000), Is.True); // task should complete immediately
         }

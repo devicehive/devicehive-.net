@@ -108,19 +108,21 @@ namespace DeviceHive.Test.ApiTest
             // task to poll new resources
             var poll = new Task(() =>
                 {
-                    var response = Client.Get(ResourceUri + "/poll", auth: user);
+                    var response = Client.Get(ResourceUri + "/poll?names=_ut1", auth: user);
                     Expect(response.Status, Is.EqualTo(200));
                     Expect(response.Json, Is.InstanceOf<JArray>());
 
                     var result = (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { command = "_ut2" }));
+                    Expect(result[0], Matches(new { command = "_ut1" }));
                 });
 
-            // start poll, wait, then create another resource
+            // start poll, wait, then create resources
             poll.Start();
             Thread.Sleep(100);
             var resource2 = Create(new { command = "_ut2" }, auth: user);
+            Thread.Sleep(100);
+            var resource3 = Create(new { command = "_ut1" }, auth: user);
 
             Expect(poll.Wait(2000), Is.True); // task should complete
         }
@@ -152,20 +154,22 @@ namespace DeviceHive.Test.ApiTest
             // task to poll new resources
             var poll = new Task(() =>
                 {
-                    var response = Client.Get("/device/command/poll?deviceGuids=" + DeviceGUID, auth: user);
+                    var response = Client.Get("/device/command/poll?names=_ut1&deviceGuids=" + DeviceGUID, auth: user);
                     Expect(response.Status, Is.EqualTo(200));
                     Expect(response.Json, Is.InstanceOf<JArray>());
 
                     var result = (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = new { command = "_ut2" } }));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = new { command = "_ut1" } }));
                 });
 
-            // create resource, start poll, wait, then create another resource
+            // create resource, start poll, wait, then create resources
             var resource1 = Create(new { command = "_ut1" }, auth: user);
             poll.Start();
             Thread.Sleep(100);
             var resource2 = Create(new { command = "_ut2" }, auth: user);
+            Thread.Sleep(100);
+            var resource3 = Create(new { command = "_ut1" }, auth: user);
 
             Expect(poll.Wait(2000), Is.True); // task should complete
         }

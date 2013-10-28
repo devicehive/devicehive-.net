@@ -105,6 +105,11 @@ namespace DeviceHive.Data.Model
         public string Notification { get; set; }
 
         /// <summary>
+        /// Filter by notification names.
+        /// </summary>
+        public string[] Notifications { get; set; }
+
+        /// <summary>
         /// Result list sort field. Available values are Timestamp (default) and Notification.
         /// </summary>
         [DefaultValue(DeviceNotificationSortField.Timestamp)]
