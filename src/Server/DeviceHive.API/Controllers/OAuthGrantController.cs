@@ -57,9 +57,11 @@ namespace DeviceHive.API.Controllers
         /// <param name="userId">User identifier. Use the 'current' keyword to create OAuth grant for the current user.</param>
         /// <param name="json" cref="OAuthGrant">In the request body, supply a <see cref="OAuthGrant"/> resource.</param>
         /// <request>
-        ///     <parameter name="client">A <see cref="OAuthClient"/> object which includes oauthId property to match.</parameter>
         ///     <parameter name="accessType" required="false" />
         ///     <parameter name="redirectUri" required="true" />
+        ///     <parameter name="client" required="true">A <see cref="OAuthClient"/> object which includes oauthId property to match.</parameter>
+        ///     <parameter name="client." mode="remove" />
+        ///     <parameter name="client.oauthId" type="string" required="true" after="client">Client OAuth identifier.</parameter>
         /// </request>
         /// <returns cref="OAuthGrant" mode="OneWayOnly">If successful, this method returns a <see cref="OAuthGrant"/> resource in the response body.</returns>
         [HttpCreatedResponse]
@@ -98,6 +100,8 @@ namespace DeviceHive.API.Controllers
         /// <param name="json" cref="OAuthGrant">In the request body, supply a <see cref="OAuthGrant"/> resource.</param>
         /// <request>
         ///     <parameter name="client" required="false">A <see cref="OAuthClient"/> object which includes oauthId property to match.</parameter>
+        ///     <parameter name="client." mode="remove" />
+        ///     <parameter name="client.oauthId" type="string" required="true" after="client">Client OAuth identifier.</parameter>
         ///     <parameter name="type" required="false" />
         ///     <parameter name="scope" required="false" />
         ///     <parameter name="redirectUri" required="false" />
