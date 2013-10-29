@@ -45,10 +45,15 @@ namespace DeviceHive.Test.ApiTest
             var user = CreateUser(1, NetworkID);
             var resource1 = Create(new { notification = "_ut1" }, auth: user);
             var resource2 = Create(new { notification = "_ut2" }, auth: user);
+            var resource3 = Create(new { notification = "_ut2" }, auth: user);
 
             // user: get all notifications
             var notifications = List(auth: user);
-            Expect(notifications.Count, Is.GreaterThanOrEqualTo(2)); // adding device creation notification
+            Expect(notifications.Count, Is.EqualTo(4)); // adding device creation notification
+
+            // user: get notifications with grid interval
+            notifications = List(new Dictionary<string, string> { { "gridInterval", Convert.ToString(24 * 3600) } }, auth: user);
+            Expect(notifications.Count, Is.EqualTo(3));
 
             // user: get notifications by name
             notifications = List(new Dictionary<string, string> { { "notification", "_ut1" } }, auth: user);

@@ -13,7 +13,8 @@ namespace DeviceHive.Data.Repositories
 
     public static class DeviceNotificationRepositoryExtension
     {
-        public static IQueryable<DeviceNotification> Filter(this IQueryable<DeviceNotification> query, DeviceNotificationFilter filter)
+        public static IQueryable<DeviceNotification> Filter(this IQueryable<DeviceNotification> query, DeviceNotificationFilter filter,
+            Func<IQueryable<DeviceNotification>, IQueryable<DeviceNotification>> additionalFilter = null)
         {
             if (filter == null)
                 return query;
@@ -39,6 +40,9 @@ namespace DeviceHive.Data.Repositories
 
             if (filter.Notifications != null)
                 query = query.Where(e => filter.Notifications.Contains(e.Notification));
+
+            if (additionalFilter != null)
+                query = additionalFilter(query);
 
             if (filter.SortField != DeviceNotificationSortField.None)
             {

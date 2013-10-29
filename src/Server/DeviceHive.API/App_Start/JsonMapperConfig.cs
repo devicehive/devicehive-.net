@@ -162,6 +162,7 @@ namespace DeviceHive.API
                 .Property(e => e.Start, "start")
                 .Property(e => e.End, "end")
                 .Property(e => e.Notification, "notification")
+                .Property(e => e.GridInterval, "gridInterval")
                 .Property(e => e.SortField, "sortField")
                 .Property(e => e.SortOrder, "sortOrder")
                 .Property(e => e.Take, "take")
