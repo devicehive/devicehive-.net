@@ -65,13 +65,13 @@ namespace DeviceHive.ManagerWin8
                     }
                 }
             }
-            catch (ClientService.EmptyCloudSettingsException)
-            {
-                VisualStateManager.GoToState(this, "EmptySettingsState", true);
-            }
             catch (Exception ex)
             {
-                new MessageDialog(ex.Message + (ex.InnerException != null ? "\n\n" + ex.InnerException.Message : ""), "Error").ShowAsync();
+                VisualStateManager.GoToState(this, "EmptySettingsState", true);
+                if (!(ex is ClientService.EmptyCloudSettingsException))
+                {
+                    new MessageDialog(ex.Message + (ex.InnerException != null ? "\n\n" + ex.InnerException.Message : ""), "Error").ShowAsync();
+                }
             }
             IsLoading = false;
         }

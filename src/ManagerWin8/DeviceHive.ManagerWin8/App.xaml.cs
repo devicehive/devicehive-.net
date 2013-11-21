@@ -109,6 +109,10 @@ namespace DeviceHive.ManagerWin8
             {
                 Windows.System.Launcher.LaunchUriAsync(new Uri("http://devicehive.com"));
             }));
+            args.Request.ApplicationCommands.Add(new SettingsCommand("PrivacyPolicy", "Privacy Policy", (x) =>
+            {
+                Windows.System.Launcher.LaunchUriAsync(new Uri("http://apps.dataart.com/PrivacyPolicy.htm"));
+            }));
         }
 
         public static void ShowCloudSettings()
