@@ -11,6 +11,9 @@ using Newtonsoft.Json.Serialization;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Converters;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace DeviceHive.Client
 {
@@ -417,21 +420,44 @@ namespace DeviceHive.Client
 
         #endregion
 
+        #region Private Properties
+
+        private HttpClient httpClient;
+
+        private HttpClient HttpClient
+        {
+            get
+            {
+                if (httpClient == null)
+                {
+                    var handler = new HttpClientHandler();
+                    handler.Credentials = new NetworkCredential(Login, Password);
+                    httpClient = new HttpClient(handler);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                }
+                return httpClient;
+            }
+        }
+
+        #endregion
+
         #region Private Methods
 
         private async Task<T> GetAsync<T>(string url, CancellationToken? token = null)
         {
-            var request = WebRequest.CreateHttp(ServiceUrl + url);
-            request.Credentials = new NetworkCredential(Login, Password);
             try
             {
-                var task = request.GetResponseAsync();
-                if (token != null)
+                HttpResponseMessage response;
+                if (token.HasValue)
                 {
-                    task = task.WithCancellation((CancellationToken)token);
+                    response = await HttpClient.GetAsync(ServiceUrl + url, token.Value);
                 }
-                var response = await task;
-                using (var stream = response.GetResponseStream())
+                else
+                {
+                    response = await HttpClient.GetAsync(ServiceUrl + url);
+                }
+                response.EnsureSuccessStatusCode();
+                using (var stream = await response.Content.ReadAsStreamAsync())
                 {
                     return Deserialize<T>(stream);
                 }
@@ -440,28 +466,17 @@ namespace DeviceHive.Client
             {
                 throw new ClientServiceException("Network error while sending request to the server", ex);
             }
-            catch (OperationCanceledException ex)
-            {
-                request.Abort();
-                throw ex;
-            }
         }
 
         private async Task<T> PostAsync<T>(string url, T obj)
         {
-            var request = WebRequest.CreateHttp(ServiceUrl + url);
-            request.Method = "POST";
-            request.ContentType = "application/json";
-            request.Credentials = new NetworkCredential(Login, Password);
-            using (var stream = await request.GetRequestStreamAsync())
-            {
-                Serialize(stream, obj);
-            }
-
             try
             {
-                var response = await request.GetResponseAsync();
-                using (var stream = response.GetResponseStream())
+                var content = new ByteArrayContent(Serialize(obj));
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                var response = await HttpClient.PostAsync(ServiceUrl + url, content);
+                response.EnsureSuccessStatusCode();
+                using (var stream = await response.Content.ReadAsStreamAsync())
                 {
                     return Deserialize<T>(stream);
                 }
@@ -474,18 +489,12 @@ namespace DeviceHive.Client
 
         private async Task PutAsync<T>(string url, T obj)
         {
-            var request = WebRequest.CreateHttp(ServiceUrl + url);
-            request.Method = "PUT";
-            request.ContentType = "application/json";
-            request.Credentials = new NetworkCredential(Login, Password);
-            using (var stream = await request.GetRequestStreamAsync())
-            {
-                Serialize(stream, obj);
-            }
-
             try
             {
-                await request.GetResponseAsync();
+                var content = new ByteArrayContent(Serialize(obj));
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                var response = await HttpClient.PutAsync(ServiceUrl + url, content);
+                response.EnsureSuccessStatusCode();
             }
             catch (WebException ex)
             {
@@ -512,18 +521,16 @@ namespace DeviceHive.Client
             return "?" + string.Join("&", jObject.Properties().Select(p => p.Name + "=" + Uri.EscapeDataString(p.Value.ToString())));
         }
 
-        private void Serialize<T>(Stream stream, T obj)
+        private byte[] Serialize<T>(T obj)
         {
             if (obj == null)
                 throw new ArgumentNullException("obj");
 
-            using (var writer = new StreamWriter(stream))
-            {
-                var serializer = new JsonSerializer();
-                serializer.NullValueHandling = NullValueHandling.Ignore;
-                serializer.ContractResolver = new JsonContractResolver();
-                serializer.Serialize(writer, obj);
-            }
+            var s = JsonConvert.SerializeObject(obj, new JsonSerializerSettings { 
+                NullValueHandling = NullValueHandling.Ignore,
+                ContractResolver = new JsonContractResolver()
+            });
+            return Encoding.UTF8.GetBytes(s);
         }
 
         private T Deserialize<T>(Stream stream)
