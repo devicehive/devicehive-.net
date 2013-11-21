@@ -1,0 +1,15 @@
+﻿@model IEnumerable<DeviceHive.Client.Device>
+
+<p>The list of devices received from DeviceHive via OAuth:</p>
+
+<ul>
+    @foreach (var device in Model)
+    {
+        <li>@device.Name</li>
+    }
+</ul>
+
+@using (var form = Html.BeginForm("ClearAccess", "Home"))
+{
+    <input type="submit" class="button" value="Clear Access Token" />
+}

@@ -72,6 +72,7 @@ namespace DeviceHive.DocGenerator
                 var type = (string)parameterElement.Attribute("type");
                 var mode = (string)parameterElement.Attribute("mode");
                 var required = (bool?)parameterElement.Attribute("required");
+                var after = (string)parameterElement.Attribute("after");
 
                 // remove an existing parameter
                 if (mode == "remove")
@@ -85,7 +86,15 @@ namespace DeviceHive.DocGenerator
                 if (param == null)
                 {
                     param = new MetadataParameter { Name = name, Type = type };
-                    parameters.Add(param);
+
+                    var index = parameters.Count;
+                    if (after != null)
+                    {
+                        var target = parameters.FirstOrDefault(p => p.Name == after);
+                        if (target != null)
+                            index = parameters.IndexOf(target) + 1;
+                    }
+                    parameters.Insert(index, param);
                 }
                 if (!string.IsNullOrEmpty(parameterElement.Contents()))
                 {

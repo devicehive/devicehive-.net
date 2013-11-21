@@ -56,7 +56,11 @@
     <Compile Include="Migrations\IMigrator.cs" />
     <Compile Include="Model\AccessKey.cs" />
     <Compile Include="Model\AccessKeyPermission.cs" />
+    <Compile Include="Model\OAuthClient.cs" />
+    <Compile Include="Model\OAuthGrant.cs" />
     <Compile Include="Repositories\IAccessKeyRepository.cs" />
+    <Compile Include="Repositories\IOAuthClientRepository.cs" />
+    <Compile Include="Repositories\IOAuthGrantRepository.cs" />
     <Compile Include="Repositories\QueryableExtensions.cs" />
     <Compile Include="Model\ApiInfo.cs" />
     <Compile Include="Repositories\ITimestampRepository.cs" />

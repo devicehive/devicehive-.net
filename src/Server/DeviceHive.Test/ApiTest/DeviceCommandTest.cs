@@ -87,8 +87,8 @@ namespace DeviceHive.Test.ApiTest
 
             // access key authentication
             var accessKey1 = CreateAccessKey(user1, "GetDeviceCommand");
-            var accessKey2 = CreateAccessKey(user2, "GetDeviceCommand", networks: new[] { 0 });
-            var accessKey3 = CreateAccessKey(user2, "GetDeviceCommand", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user2, "GetDeviceCommand", networkIds: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "GetDeviceCommand", deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey4 = CreateAccessKey(user2, "GetDeviceCommand");
             Expect(() => Get(resource, auth: accessKey1), FailsWith(404)); // should fail with 404
             Expect(() => Get(resource, auth: accessKey2), FailsWith(404)); // should fail with 404
@@ -108,19 +108,21 @@ namespace DeviceHive.Test.ApiTest
             // task to poll new resources
             var poll = new Task(() =>
                 {
-                    var response = Client.Get(ResourceUri + "/poll", auth: user);
+                    var response = Client.Get(ResourceUri + "/poll?names=_ut1", auth: user);
                     Expect(response.Status, Is.EqualTo(200));
                     Expect(response.Json, Is.InstanceOf<JArray>());
 
                     var result = (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { command = "_ut2" }));
+                    Expect(result[0], Matches(new { command = "_ut1" }));
                 });
 
-            // start poll, wait, then create another resource
+            // start poll, wait, then create resources
             poll.Start();
             Thread.Sleep(100);
             var resource2 = Create(new { command = "_ut2" }, auth: user);
+            Thread.Sleep(100);
+            var resource3 = Create(new { command = "_ut1" }, auth: user);
 
             Expect(poll.Wait(2000), Is.True); // task should complete
         }
@@ -152,20 +154,22 @@ namespace DeviceHive.Test.ApiTest
             // task to poll new resources
             var poll = new Task(() =>
                 {
-                    var response = Client.Get("/device/command/poll?deviceGuids=" + DeviceGUID, auth: user);
+                    var response = Client.Get("/device/command/poll?names=_ut1&deviceGuids=" + DeviceGUID, auth: user);
                     Expect(response.Status, Is.EqualTo(200));
                     Expect(response.Json, Is.InstanceOf<JArray>());
 
                     var result = (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = new { command = "_ut2" } }));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = new { command = "_ut1" } }));
                 });
 
-            // create resource, start poll, wait, then create another resource
+            // create resource, start poll, wait, then create resources
             var resource1 = Create(new { command = "_ut1" }, auth: user);
             poll.Start();
             Thread.Sleep(100);
             var resource2 = Create(new { command = "_ut2" }, auth: user);
+            Thread.Sleep(100);
+            var resource3 = Create(new { command = "_ut1" }, auth: user);
 
             Expect(poll.Wait(2000), Is.True); // task should complete
         }
@@ -267,8 +271,8 @@ namespace DeviceHive.Test.ApiTest
 
             // access keys authorization
             var accessKey1 = CreateAccessKey(user1, "CreateDeviceCommand");
-            var accessKey2 = CreateAccessKey(user2, "CreateDeviceCommand", networks: new[] { 0 });
-            var accessKey3 = CreateAccessKey(user2, "CreateDeviceCommand", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user2, "CreateDeviceCommand", networkIds: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "CreateDeviceCommand", deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey4 = CreateAccessKey(user2, "CreateDeviceCommand");
             Expect(() => Create(new { command = "_ut" }, auth: accessKey1), FailsWith(404)); // should fail with 404
             Expect(() => Create(new { command = "_ut" }, auth: accessKey2), FailsWith(404)); // should fail with 404
@@ -293,8 +297,8 @@ namespace DeviceHive.Test.ApiTest
 
             // access keys authorization
             var accessKey1 = CreateAccessKey(user1, "UpdateDeviceCommand");
-            var accessKey2 = CreateAccessKey(user2, "UpdateDeviceCommand", networks: new[] { 0 });
-            var accessKey3 = CreateAccessKey(user2, "UpdateDeviceCommand", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user2, "UpdateDeviceCommand", networkIds: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "UpdateDeviceCommand", deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey4 = CreateAccessKey(user2, "UpdateDeviceCommand");
             Expect(() => Update(resource, new { command = "_ut1" }, auth: accessKey1), FailsWith(404)); // should fail with 404
             Expect(() => Update(resource, new { command = "_ut1" }, auth: accessKey2), FailsWith(404)); // should fail with 404

@@ -1,0 +1,16 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>DeviceHive OAuth Client</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="@Url.Content("~")" />
+    <link href="@Url.Content("Content/styles.css")" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div class="container">
+    @RenderBody()
+    </div>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

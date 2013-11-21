@@ -56,8 +56,8 @@ namespace DeviceHive.Test.ApiTest
 
             // access key authentication
             var accessKey1 = CreateAccessKey(user1, "GetDeviceState");
-            var accessKey2 = CreateAccessKey(user2, "GetDeviceState", networks: new[] { 0 });
-            var accessKey3 = CreateAccessKey(user2, "GetDeviceState", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user2, "GetDeviceState", networkIds: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "GetDeviceState", deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey4 = CreateAccessKey(user2, "GetDeviceState");
             Expect(() => List(auth: accessKey1), FailsWith(404)); // should fail with 404
             Expect(() => List(auth: accessKey2), FailsWith(404)); // should fail with 404
@@ -78,8 +78,8 @@ namespace DeviceHive.Test.ApiTest
 
             // access key authentication
             var accessKey1 = CreateAccessKey(user1, "GetDeviceState");
-            var accessKey2 = CreateAccessKey(user2, "GetDeviceState", networks: new[] { 0 });
-            var accessKey3 = CreateAccessKey(user2, "GetDeviceState", devices: new[] { Guid.NewGuid().ToString() });
+            var accessKey2 = CreateAccessKey(user2, "GetDeviceState", networkIds: new[] { 0 });
+            var accessKey3 = CreateAccessKey(user2, "GetDeviceState", deviceGuids: new[] { Guid.NewGuid().ToString() });
             var accessKey4 = CreateAccessKey(user2, "GetDeviceState");
             Expect(() => Get("test", auth: accessKey1), FailsWith(404)); // should fail with 404
             Expect(() => Get("test", auth: accessKey2), FailsWith(404)); // should fail with 404

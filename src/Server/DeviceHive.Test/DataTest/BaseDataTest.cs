@@ -478,6 +478,136 @@ namespace DeviceHive.Test.DataTest
         }
 
         [Test]
+        public void OAuthClient()
+        {
+            var client = new OAuthClient("Test", "test.com", "http://test.com/oauth2", "test_client");
+            DataContext.OAuthClient.Save(client);
+            RegisterTearDown(() => DataContext.OAuthClient.Delete(client.ID));
+
+            // test GetAll
+            var clients = DataContext.OAuthClient.GetAll();
+            Assert.Greater(clients.Count, 0);
+
+            // test Get(id)
+            var client1 = DataContext.OAuthClient.Get(client.ID);
+            Assert.IsNotNull(client1);
+            Assert.AreEqual("Test", client1.Name);
+            Assert.AreEqual("test.com", client1.Domain);
+            Assert.AreEqual("http://test.com/oauth2", client1.RedirectUri);
+            Assert.AreEqual("test_client", client1.OAuthID);
+            Assert.IsNotNull(client1.OAuthSecret);
+
+            // test Get(oauthId)
+            var client2 = DataContext.OAuthClient.Get("test_client");
+            Assert.IsNotNull(client2);
+
+            // test Save
+            client.Name = "Test2";
+            client.Domain = "test2.com";
+            client.Subnet = "127.0.0.1";
+            client.RedirectUri = "http://test.com/oauth/2";
+            client.OAuthID = "test_client2";
+            DataContext.OAuthClient.Save(client);
+            var client3 = DataContext.OAuthClient.Get(client.ID);
+            Assert.AreEqual("Test2", client3.Name);
+            Assert.AreEqual("test2.com", client3.Domain);
+            Assert.AreEqual("127.0.0.1", client3.Subnet);
+            Assert.AreEqual("http://test.com/oauth/2", client3.RedirectUri);
+            Assert.AreEqual("test_client2", client3.OAuthID);
+
+            // test Delete
+            DataContext.OAuthClient.Delete(client.ID);
+            var client4 = DataContext.OAuthClient.Get(client.ID);
+            Assert.IsNull(client4);
+        }
+
+        [Test]
+        public void OAuthGrant()
+        {
+            var user = new User("Test", "pass", 0, 0);
+            DataContext.User.Save(user);
+            RegisterTearDown(() => DataContext.User.Delete(user.ID));
+
+            var accessKey = new AccessKey(user.ID, "test");
+            DataContext.AccessKey.Save(accessKey);
+            RegisterTearDown(() => DataContext.AccessKey.Delete(accessKey.ID));
+
+            var client = new OAuthClient("Test", "test.com", "http://test.com/oauth2", "test_client");
+            DataContext.OAuthClient.Save(client);
+            RegisterTearDown(() => DataContext.OAuthClient.Delete(client.ID));
+
+            var grant = new OAuthGrant(client, user.ID, accessKey, 0, "scope");
+            grant.AuthCode = Guid.NewGuid();
+            DataContext.OAuthGrant.Save(grant);
+            RegisterTearDown(() => DataContext.OAuthGrant.Delete(grant.ID));
+
+            // test GetByUser
+            var grants = DataContext.OAuthGrant.GetByUser(user.ID);
+            Assert.Greater(grants.Count, 0);
+
+            // test Get(id)
+            var grant1 = DataContext.OAuthGrant.Get(grant.ID);
+            Assert.IsNotNull(grant1);
+            Assert.Less(Math.Abs(DateTime.UtcNow.Subtract(grant1.Timestamp).TotalMinutes), 10);
+            Assert.AreEqual(0, grant1.Type);
+            Assert.AreEqual("scope", grant1.Scope);
+            Assert.AreEqual(client.ID, grant1.ClientID);
+            Assert.IsNotNull(grant1.Client);
+            Assert.AreEqual(user.ID, grant1.UserID);
+            Assert.AreEqual(accessKey.ID, grant1.AccessKeyID);
+            Assert.IsNotNull(grant1.AccessKey);
+
+            // test Get(authCode)
+            var grant2 = DataContext.OAuthGrant.Get(grant.AuthCode.Value);
+            Assert.IsNotNull(grant2);
+            Assert.AreEqual(0, grant2.Type);
+            Assert.AreEqual("scope", grant2.Scope);
+            Assert.AreEqual(user.ID, grant2.UserID);
+            Assert.AreEqual(client.ID, grant2.ClientID);
+            Assert.IsNotNull(grant2.Client);
+            Assert.AreEqual(accessKey.ID, grant2.AccessKeyID);
+            Assert.IsNotNull(grant2.AccessKey);
+
+            // test Save
+            grant.AuthCode = Guid.NewGuid();
+            grant.Type = 1;
+            grant.AccessType = 1;
+            grant.RedirectUri = "http://test.com/oauth";
+            grant.Scope = "scope scope2";
+            grant.Networks = new[] { 5, 10 };
+            DataContext.OAuthGrant.Save(grant);
+            var grant3 = DataContext.OAuthGrant.Get(grant.ID);
+            Assert.AreEqual(grant.AuthCode, grant3.AuthCode);
+            Assert.AreEqual(1, grant3.Type);
+            Assert.AreEqual(1, grant3.AccessType);
+            Assert.AreEqual("http://test.com/oauth", grant3.RedirectUri);
+            Assert.AreEqual("scope scope2", grant3.Scope);
+            Assert.AreEqual(2, grant3.Networks.Length);
+            Assert.AreEqual(5, grant3.Networks[0]);
+            Assert.AreEqual(10, grant3.Networks[1]);
+            Assert.AreEqual(user.ID, grant3.UserID);
+            Assert.AreEqual(client.ID, grant3.ClientID);
+            Assert.IsNotNull(grant3.Client);
+            Assert.AreEqual(accessKey.ID, grant3.AccessKeyID);
+            Assert.IsNotNull(grant3.AccessKey);
+
+            // test update relationship
+            var client2 = new OAuthClient("Test2", "test2.com", "http://test.com/oauth/2", "test_client2");
+            DataContext.OAuthClient.Save(client2);
+            RegisterTearDown(() => DataContext.OAuthClient.Delete(client2.ID));
+            grant.Client = client2;
+            DataContext.OAuthGrant.Save(grant);
+            var grant4 = DataContext.OAuthGrant.Get(grant.ID);
+            Assert.AreEqual(client2.ID, grant4.ClientID);
+            Assert.IsNotNull(grant4.Client);
+
+            // test Delete
+            DataContext.OAuthClient.Delete(grant.ID);
+            var grant5 = DataContext.OAuthClient.Get(grant.ID);
+            Assert.IsNull(grant5);
+        }
+
+        [Test]
         public void Timestamp()
         {
             var timestamp = DataContext.Timestamp.GetCurrentTimestamp();

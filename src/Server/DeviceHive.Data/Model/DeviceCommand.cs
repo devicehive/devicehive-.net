@@ -127,6 +127,11 @@ namespace DeviceHive.Data.Model
         public bool IsDateInclusive { get; set; }
 
         /// <summary>
+        /// Filter by command names.
+        /// </summary>
+        public string[] Commands { get; set; }
+
+        /// <summary>
         /// Filter by command name.
         /// </summary>
         public string Command { get; set; }

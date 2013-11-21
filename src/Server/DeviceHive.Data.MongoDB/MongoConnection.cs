@@ -75,6 +75,16 @@ namespace DeviceHive.Data.MongoDB
         {
             get { return Database.GetCollection<DeviceCommand>("device_commands"); }
         }
+
+        public MongoCollection<OAuthClient> OAuthClients
+        {
+            get { return Database.GetCollection<OAuthClient>("oauth_clients"); }
+        }
+
+        public MongoCollection<OAuthGrant> OAuthGrants
+        {
+            get { return Database.GetCollection<OAuthGrant>("oauth_grants"); }
+        }
         #endregion
 
         #region Constructor
@@ -238,6 +248,18 @@ namespace DeviceHive.Data.MongoDB
                         cm.UnmapField(e => e.Device);
                         cm.SetIdMember(cm.GetMemberMap(e => e.ID));
                         cm.GetMemberMap(e => e.Parameters).SetSerializer(rawJsonSerializer);
+                    });
+
+                BsonClassMap.RegisterClassMap<OAuthClient>(cm =>
+                    {
+                        cm.AutoMap();
+                        cm.SetIdMember(cm.GetMemberMap(e => e.ID));
+                    });
+
+                BsonClassMap.RegisterClassMap<OAuthGrant>(cm =>
+                    {
+                        cm.AutoMap();
+                        cm.SetIdMember(cm.GetMemberMap(e => e.ID));
                     });
 
                 _isClassMapRegistered = true;

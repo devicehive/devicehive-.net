@@ -22,23 +22,16 @@ namespace DeviceHive.API.Controllers
         [AuthorizeUser(AccessKeyAction = "GetNetwork")]
         public JArray Get()
         {
-            var networks = (List<Network>)null;
             var filter = MapObjectFromQuery<NetworkFilter>();
 
-            if (RequestContext.CurrentUser.Role == (int)UserRole.Administrator)
+            var networks = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
+                DataContext.Network.GetAll(filter) :
+                DataContext.Network.GetByUser(RequestContext.CurrentUser.ID, filter);
+
+            if (RequestContext.CurrentUserPermissions != null)
             {
-                // administrators get all networks
-                networks = DataContext.Network.GetAll(filter);
-            }
-            else
-            {
-                // users see a limited set of networks
-                networks = DataContext.Network.GetByUser(RequestContext.CurrentUser.ID, filter);
-                if (RequestContext.CurrentUserPermissions != null)
-                {
-                    // if access key was used, limit networks to allowed ones
-                    networks = networks.Where(n => RequestContext.CurrentUserPermissions.Any(p => p.IsNetworkAllowed(n.ID))).ToList();
-                }
+                // if access key was used, limit networks to allowed ones
+                networks = networks.Where(n => RequestContext.CurrentUserPermissions.Any(p => p.IsNetworkAllowed(n.ID))).ToList();
             }
 
             return new JArray(networks.Select(n => Mapper.Map(n)));

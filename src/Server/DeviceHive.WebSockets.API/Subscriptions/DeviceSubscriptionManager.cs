@@ -15,14 +15,19 @@ namespace DeviceHive.WebSockets.API.Subscriptions
         {
         }
 
-        public void Subscribe(WebSocketConnectionBase connection, int? deviceId)
+        public void Subscribe(WebSocketConnectionBase connection, int? deviceId, object data = null)
         {
-            base.Subscribe(connection, GetKey(deviceId));
+            base.Subscribe(connection, GetKey(deviceId), data);
         }
 
         public void Unsubscribe(WebSocketConnectionBase connection, int? deviceId)
         {
             base.Unsubscribe(connection, GetKey(deviceId));
+        }
+
+        public IEnumerable<Subscription<int>> GetSubscriptions(int deviceId)
+        {
+            return base.GetSubscriptions(deviceId, 0);
         }
 
         public IEnumerable<WebSocketConnectionBase> GetConnections(int deviceId)

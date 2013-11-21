@@ -279,12 +279,12 @@ namespace DeviceHive.Test
         /// </summary>
         /// <param name="user">User authorization object</param>
         /// <param name="action">Allowed access key action</param>
-        /// <param name="networks">Allowed networks</param>
-        /// <param name="devices">Allowed devices</param>
+        /// <param name="networkIds">Allowed networks</param>
+        /// <param name="deviceGuids">Allowed devices</param>
         /// <returns>Coresponding Authorization object</returns>
-        protected Authorization CreateAccessKey(Authorization user, string action, int[] networks = null, string[] devices = null)
+        protected Authorization CreateAccessKey(Authorization user, string action, int[] networkIds = null, string[] deviceGuids = null)
         {
-            return CreateAccessKey(user, new[] { action }, networks, devices);
+            return CreateAccessKey(user, new[] { action }, networkIds, deviceGuids);
         }
 
         /// <summary>
@@ -292,14 +292,14 @@ namespace DeviceHive.Test
         /// </summary>
         /// <param name="user">User authorization object</param>
         /// <param name="actions">Allowed access key actions</param>
-        /// <param name="networks">Allowed networks</param>
-        /// <param name="devices">Allowed devices</param>
+        /// <param name="networkIds">Allowed networks</param>
+        /// <param name="deviceGuids">Allowed devices</param>
         /// <returns>Coresponding Authorization object</returns>
-        protected Authorization CreateAccessKey(Authorization user, string[] actions, int[] networks = null, string[] devices = null)
+        protected Authorization CreateAccessKey(Authorization user, string[] actions, int[] networkIds = null, string[] deviceGuids = null)
         {
             // create access key
             var accessKeyResource = Client.Post("/user/current/accesskey", new { label = "ut", permissions =
-                new[] { new { actions = actions, networks = networks, devices = devices } } }, auth: user);
+                new[] { new { actions = actions, networkIds = networkIds, deviceGuids = deviceGuids } } }, auth: user);
             Expect(accessKeyResource.Status, Is.EqualTo(ExpectedCreatedStatus));
             var accessKeyId = GetResourceId(accessKeyResource.Json);
             RegisterForDeletion("/user/" + user.ID + "/accesskey/" + accessKeyId);

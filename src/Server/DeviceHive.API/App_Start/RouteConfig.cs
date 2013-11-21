@@ -102,6 +102,24 @@ namespace DeviceHive.API
             );
 
             routes.MapHttpRoute(
+                name: "OAuthClient",
+                routeTemplate: "oauth/client/{id}",
+                defaults: new { controller = "OAuthClient", id = RouteParameter.Optional }
+            );
+
+            routes.MapHttpRoute(
+                name: "OAuthGrant",
+                routeTemplate: "user/{userId}/oauth/grant/{id}",
+                defaults: new { controller = "OAuthGrant", id = RouteParameter.Optional }
+            );
+
+            routes.MapHttpRoute(
+                name: "OAuth2",
+                routeTemplate: "oauth2/{action}",
+                defaults: new { controller = "OAuth2" }
+            );
+
+            routes.MapHttpRoute(
                 name: "Info",
                 routeTemplate: "info",
                 defaults: new { controller = "ApiInfo" }

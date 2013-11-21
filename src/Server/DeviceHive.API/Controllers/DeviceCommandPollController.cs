@@ -43,10 +43,11 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="timestamp">Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.</param>
+        /// <param name="names">Comma-separated list of commands names.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
         [AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
-        public Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, int? waitTimeout = null) 
+        public Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null) 
         {
             EnsureDeviceAccess(deviceGuid);
 
@@ -56,9 +57,10 @@ namespace DeviceHive.API.Controllers
 
             var taskSource = new TaskCompletionSource<JArray>();
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
+            var commandNames = names != null ? names.Split(',') : null;
             if (waitTimeout <= 0)
             {
-                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false };
+                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
                 var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
                 taskSource.SetResult(new JArray(commands.Select(n => Mapper.Map(n))));
                 return taskSource.Task;
@@ -77,7 +79,7 @@ namespace DeviceHive.API.Controllers
                         return;
                     }
 
-                    var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false };
+                    var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
                     var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
                     if (commands != null && commands.Any())
                     {
@@ -104,6 +106,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="deviceGuids">Comma-separated list of device unique identifiers.</param>
         /// <param name="timestamp">Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.</param>
+        /// <param name="names">Comma-separated list of commands names.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns>If successful, this method returns array of the following resources in the response body.</returns>
         /// <response>
@@ -111,7 +114,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="command" cref="DeviceCommand"><see cref="DeviceCommand"/> resource.</parameter>
         /// </response>
         [AuthorizeUser(AccessKeyAction = "GetDeviceCommand")]
-        public Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, int? waitTimeout = null)
+        public Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
             var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(deviceGuid =>
                 {
@@ -124,9 +127,10 @@ namespace DeviceHive.API.Controllers
 
             var taskSource = new TaskCompletionSource<JArray>();
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
+            var commandNames = names != null ? names.Split(',') : null;
             if (waitTimeout <= 0)
             {
-                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false };
+                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
                 var commands = DataContext.DeviceCommand.GetByDevices(deviceIds, filter);
                 taskSource.SetResult(MapDeviceCommands(commands.Where(c => IsDeviceAccessible(c.Device))));
                 return taskSource.Task;
@@ -146,7 +150,7 @@ namespace DeviceHive.API.Controllers
                     return;
                 }
 
-                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false };
+                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
                 var commands = DataContext.DeviceCommand.GetByDevices(deviceIds, filter)
                     .Where(c => IsDeviceAccessible(c.Device)).ToArray();
                 if (commands != null && commands.Any())

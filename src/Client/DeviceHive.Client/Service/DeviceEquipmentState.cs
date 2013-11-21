@@ -3,11 +3,11 @@ using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.Client
 {
-	/// <summary>
-	/// Represents information about the current state of particular device equipment.
+    /// <summary>
+    /// Represents information about the current state of particular device equipment.
     /// The DeviceHive service tracks the state of device equipment if device sends "equipment" notifications.
-	/// </summary>
-	public class DeviceEquipmentState
+    /// </summary>
+    public class DeviceEquipmentState
     {
         #region Public Properties
 
@@ -16,15 +16,15 @@ namespace DeviceHive.Client
         /// </summary>
         public string Id { get; set; }
 
-		/// <summary>
-		/// Gets equipment state timestamp.
-		/// </summary>
-		public DateTime? Timestamp { get; set; }
+        /// <summary>
+        /// Gets equipment state timestamp.
+        /// </summary>
+        public DateTime? Timestamp { get; set; }
 
-		/// <summary>
-		/// Gets equipment state parameters.
-		/// </summary>
-		public JToken Parameters { get; set; }
+        /// <summary>
+        /// Gets equipment state parameters.
+        /// </summary>
+        public JToken Parameters { get; set; }
 
         #endregion
 

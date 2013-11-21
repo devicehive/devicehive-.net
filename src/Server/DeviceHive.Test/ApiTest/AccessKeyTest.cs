@@ -41,7 +41,7 @@ namespace DeviceHive.Test.ApiTest
         public void Create()
         {
             var key = new { label = "_ut", expirationDate = new DateTime(2015, 1, 1), permissions = new[] {
-                new { domains = new[] { "www.example.com" }, networks = new[] { 1, 2 }, actions = new[] { "A", "B", "C" } } }};
+                new { domains = new[] { "www.example.com" }, networkIds = new[] { 1, 2 }, actions = new[] { "GetNetwork", "GetDevice" } } }};
 
             // administrator access
             var resource = Create(key, auth: Admin);
@@ -56,16 +56,16 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Update()
         {
-            var resource = Create(new { label = "_ut", permissions = new[] { new { subnets = new[] { "127.0.0.1" } } } }, auth: Admin);
+            var resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.1" } } } }, auth: Admin);
 
             // administrator access
-            var key = new { label = "_ut2", permissions = new[] { new { subnets = new[] { "127.0.0.2" } } } };
+            var key = new { label = "_ut2", permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.2" } } } };
             Update(resource, key, auth: Admin);
             Expect(Get(resource, auth: Admin), Matches(key));
 
             // user access
             ResourceUri = "/user/current/accesskey";
-            key = new { label = "_ut3", permissions = new[] { new { subnets = new[] { "127.0.0.3" } } } };
+            key = new { label = "_ut3", permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.3" } } } };
             Update(resource, key, auth: Owner);
             Expect(Get(resource, auth: Owner), Matches(key));
 
@@ -74,7 +74,7 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Update_Partial()
         {
-            var resource = Create(new { label = "_ut" }, auth: Admin);
+            var resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" } } } }, auth: Admin);
             Update(resource, new { expirationDate = new DateTime(2015, 1, 1) }, auth: Admin);
 
             Expect(Get(resource, auth: Admin), Matches(new { label = "_ut", expirationDate = new DateTime(2015, 1, 1) }));
@@ -84,13 +84,13 @@ namespace DeviceHive.Test.ApiTest
         public void Delete()
         {
             // administrator access
-            var resource = Create(new { label = "_ut" }, auth: Admin);
+            var resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" } } } }, auth: Admin);
             Delete(resource, auth: Admin);
             Expect(() => Get(resource, auth: Admin), FailsWith(404));
 
             // user access
             ResourceUri = "/user/current/accesskey";
-            resource = Create(new { label = "_ut" }, auth: Owner);
+            resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" } } } }, auth: Owner);
             Delete(resource, auth: Owner);
             Expect(() => Get(resource, auth: Owner), FailsWith(404));
         }
@@ -113,7 +113,7 @@ namespace DeviceHive.Test.ApiTest
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(200));
 
             // check the key authorization with explicit network works
-            key = Create(new { label = "_ut", permissions = new[] { new { networks = new[] { networkId }, actions = new[] { "GetNetwork" } } } }, auth: user);
+            key = Create(new { label = "_ut", permissions = new[] { new { networkIds = new[] { networkId }, actions = new[] { "GetNetwork" } } } }, auth: user);
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(200));
 
             // check the key authorization with explicit subnet works
@@ -121,7 +121,7 @@ namespace DeviceHive.Test.ApiTest
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(200));
 
             // check the expiration date is validated
-            key = Create(new { label = "_ut", expirationDate = DateTime.UtcNow.AddHours(-1),
+            key = Create(new { label = "_ut", expirationDate = DateTime.UtcNow.AddHours(-1).ToString("yyyy-MM-ddTHH:mm:ss.ffffff"),
                 permissions = new[] { new { networks = new[] { networkId }, actions = new[] { "GetNetwork" } } } }, auth: user);
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(401));
 
@@ -130,15 +130,15 @@ namespace DeviceHive.Test.ApiTest
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(401));
 
             // check the action is validated
-            key = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "Dummy" } } } }, auth: user);
+            key = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "UpdateDeviceCommand" } } } }, auth: user);
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(401));
 
             // check the network is validated
-            key = Create(new { label = "_ut", permissions = new[] { new { networks = new[] { networkId + 1 }, actions = new[] { "GetNetwork" } } } }, auth: user);
+            key = Create(new { label = "_ut", permissions = new[] { new { networkIds = new[] { networkId + 1 }, actions = new[] { "GetNetwork" } } } }, auth: user);
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(404));
 
             // check the network is validated on admin key
-            key = Create(new { label = "_ut", permissions = new[] { new { networks = new[] { networkId + 1 }, actions = new[] { "GetNetwork" } } } }, auth: Admin);
+            key = Create(new { label = "_ut", permissions = new[] { new { networkIds = new[] { networkId + 1 }, actions = new[] { "GetNetwork" } } } }, auth: Admin);
             Expect(Client.Get("/network/" + networkId, auth: AccessKey((string)key["key"])).Status, Is.EqualTo(404));
         }
 

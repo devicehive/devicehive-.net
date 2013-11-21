@@ -163,9 +163,9 @@ namespace DeviceHive.Data.Model
         /// </summary>
         /// <param name="network">Network to check.</param>
         /// <returns>True if passed network is allowed.</returns>
-        public bool IsNetworkAllowed(int network)
+        public bool IsNetworkAllowed(int? network)
         {
-            return Networks == null || Networks.Contains(network);
+            return Networks == null || (network != null && Networks.Contains(network.Value));
         }
 
         /// <summary>

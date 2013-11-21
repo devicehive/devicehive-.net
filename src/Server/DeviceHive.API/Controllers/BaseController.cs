@@ -95,7 +95,7 @@ namespace DeviceHive.API.Controllers
             }
 
             return RequestContext.CurrentUserPermissions == null || RequestContext.CurrentUserPermissions.Any(p =>
-                p.IsNetworkAllowed(device.NetworkID ?? 0) && p.IsDeviceAllowed(device.GUID.ToString()));
+                p.IsNetworkAllowed(device.NetworkID) && p.IsDeviceAllowed(device.GUID.ToString()));
         }
 
         protected IJsonMapper<T> GetMapper<T>()

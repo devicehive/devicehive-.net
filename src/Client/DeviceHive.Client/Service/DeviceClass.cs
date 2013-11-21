@@ -9,7 +9,7 @@ namespace DeviceHive.Client
     /// Device classes aggregate meta-information about specific type of devices.
     /// </summary>
     public class DeviceClass
-	{
+    {
         #region Public Properties
 
         /// <summary>

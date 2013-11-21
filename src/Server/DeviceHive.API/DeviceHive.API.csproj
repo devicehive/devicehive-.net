@@ -110,6 +110,9 @@
     <Compile Include="Controllers\DeviceNotificationPollController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ApiInfoController.cs" />
+    <Compile Include="Controllers\OAuth2Controller.cs" />
+    <Compile Include="Controllers\OAuthClientController.cs" />
+    <Compile Include="Controllers\OAuthGrantController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\UserNetworkController.cs" />
     <Compile Include="Controllers\BaseController.cs" />

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration.Conventions;
-using System.Linq;
 using DeviceHive.Data.Model;
 
 namespace DeviceHive.Data.EF
@@ -71,6 +68,16 @@ namespace DeviceHive.Data.EF
         /// </summary>
         public DbSet<DeviceEquipment> DeviceEquipments { get; set; }
 
+        /// <summary>
+        /// Gets DbSet for OAuth clients
+        /// </summary>
+        public DbSet<OAuthClient> OAuthClients { get; set; }
+
+        /// <summary>
+        /// Gets DbSet for OAuth grants
+        /// </summary>
+        public DbSet<OAuthGrant> OAuthGrants { get; set; }
+
         #endregion
 
         #region Protected Methods
@@ -89,6 +96,8 @@ namespace DeviceHive.Data.EF
             modelBuilder.Entity<DeviceCommand>().Property(e => e.Timestamp).HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed);
             modelBuilder.Entity<DeviceCommand>().HasRequired(e => e.Device).WithMany().HasForeignKey(e => e.DeviceID).WillCascadeOnDelete(true);
             modelBuilder.Entity<DeviceEquipment>().HasRequired(e => e.Device).WithMany().HasForeignKey(e => e.DeviceID).WillCascadeOnDelete(true);
+            modelBuilder.Entity<OAuthGrant>().HasRequired(e => e.Client).WithMany().HasForeignKey(e => e.ClientID).WillCascadeOnDelete(true);
+            modelBuilder.Entity<OAuthGrant>().HasRequired(e => e.AccessKey).WithMany().HasForeignKey(e => e.AccessKeyID).WillCascadeOnDelete(false);
         }
         #endregion
     }

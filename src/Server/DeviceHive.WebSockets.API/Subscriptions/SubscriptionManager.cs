@@ -17,9 +17,9 @@ namespace DeviceHive.WebSockets.API.Subscriptions
         }
 
 
-        public void Subscribe(WebSocketConnectionBase connection, TKey key)
+        public void Subscribe(WebSocketConnectionBase connection, TKey key, object data = null)
         {
-            var subscription = new Subscription<TKey>(key, connection);
+            var subscription = new Subscription<TKey>(key, connection, data);
              
             var connectionSubscriptions = GetSubscriptions(connection);
                 connectionSubscriptions.Add(subscription);
@@ -35,6 +35,11 @@ namespace DeviceHive.WebSockets.API.Subscriptions
 
             var subscriptionList = _subscriptionCollection.GetSubscriptionList(key);
             subscriptionList.RemoveAll(s => s.Connection == connection);
+        }
+
+        public IEnumerable<Subscription<TKey>> GetSubscriptions(params TKey[] keys)
+        {
+            return keys.SelectMany(k => _subscriptionCollection.GetSubscriptionList(k)).ToArray();
         }
 
         public IEnumerable<WebSocketConnectionBase> GetConnections(params TKey[] keys)
