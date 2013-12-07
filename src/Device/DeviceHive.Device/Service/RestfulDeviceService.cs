@@ -390,7 +390,7 @@ namespace DeviceHive.Device
             var request = WebRequest.Create(ServiceUrl + url);
             try
             {
-                var response = request.GetResponse();
+                using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
                 {
                     return Deserialize<T>(stream);
@@ -410,7 +410,7 @@ namespace DeviceHive.Device
             request.Headers["Auth-DeviceKey"] = deviceKey;
             try
             {
-                var response = request.GetResponse();
+                using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
                 {
                     return Deserialize<T>(stream);
@@ -439,7 +439,7 @@ namespace DeviceHive.Device
 
             try
             {
-                var response = request.EndGetResponse(asyncResult);
+                using (var response = request.EndGetResponse(asyncResult))
                 using (var stream = response.GetResponseStream())
                 {
                     return Deserialize<T>(stream);
@@ -466,7 +466,7 @@ namespace DeviceHive.Device
 
             try
             {
-                var response = request.GetResponse();
+                using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
                 {
                     return Deserialize<T>(stream);
@@ -493,7 +493,14 @@ namespace DeviceHive.Device
 
             try
             {
-                request.GetResponse();
+                using (var response = request.GetResponse())
+                using (var stream = response.GetResponseStream())
+                {
+                    using (var reader = new StreamReader(stream))
+                    {
+                        reader.ReadToEnd();
+                    }
+                }
             }
             catch (WebException ex)
             {
@@ -510,7 +517,7 @@ namespace DeviceHive.Device
             request.Headers["Auth-DeviceKey"] = deviceKey;
             try
             {
-                var response = request.GetResponse();
+                using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
                 {
                     using (var reader = new StreamReader(stream))

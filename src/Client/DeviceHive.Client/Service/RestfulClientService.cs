@@ -527,7 +527,7 @@ namespace DeviceHive.Client
             request.Credentials = new NetworkCredential(Login, Password);
             try
             {
-                var response = request.GetResponse();
+                using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
                 {
                     return Deserialize<T>(stream);
@@ -555,7 +555,7 @@ namespace DeviceHive.Client
 
             try
             {
-                var response = request.EndGetResponse(asyncResult);
+                using (var response = request.EndGetResponse(asyncResult))
                 using (var stream = response.GetResponseStream())
                 {
                     return Deserialize<T>(stream);
@@ -581,7 +581,7 @@ namespace DeviceHive.Client
 
             try
             {
-                var response = request.GetResponse();
+                using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
                 {
                     return Deserialize<T>(stream);
@@ -607,7 +607,14 @@ namespace DeviceHive.Client
 
             try
             {
-                request.GetResponse();
+                using (var response = request.GetResponse())
+                using (var stream = response.GetResponseStream())
+                {
+                    using (var reader = new StreamReader(stream))
+                    {
+                        reader.ReadToEnd();
+                    }
+                }
             }
             catch (WebException ex)
             {
