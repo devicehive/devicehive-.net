@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.API.Controllers
 {
+    [RoutePrefix("cron")]
     [ApiExplorerSettings(IgnoreApi = true)]
     public class CronController : BaseController
     {
@@ -23,8 +24,8 @@ namespace DeviceHive.API.Controllers
             _messageBus = messageBus;
         }
 
-        [HttpGet]
         [HttpNoContentResponse]
+        [HttpGet, Route("RefreshDeviceStatus")]
         public void RefreshDeviceStatus()
         {
             var devices = DataContext.Device.GetOfflineDevices();

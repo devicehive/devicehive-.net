@@ -13,10 +13,11 @@ using System.Text;
 
 namespace DeviceHive.API.Controllers
 {
+    [RoutePrefix("oauth2")]
     [ApiExplorerSettings(IgnoreApi = true)]
     public class OAuth2Controller : BaseController
     {
-        [HttpPost]
+        [HttpPost, Route("token")]
         public JObject Token(FormDataCollection request)
         {
             var client = AuthenticateClient(Request, request);

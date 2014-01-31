@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
@@ -11,6 +12,7 @@ namespace DeviceHive.API.Controllers
 {
     /// <resource cref="OAuthGrant" />
     [AuthorizeUser, ResolveCurrentUser("userId")]
+    [RoutePrefix("user/{userId:idorcurrent}/oauth/grant")]
     public class OAuthGrantController : BaseController
     {
         /// <name>list</name>
@@ -20,6 +22,7 @@ namespace DeviceHive.API.Controllers
         /// <query cref="OAuthGrantFilter" />
         /// <param name="userId">User identifier. Use the 'current' keyword to list OAuth grants of the current user.</param>
         /// <returns cref="OAuthGrant">If successful, this method returns array of <see cref="OAuthGrant"/> resources in the response body.</returns>
+        [Route]
         public JArray Get(int userId)
         {
             EnsureUserAccessTo(userId);
@@ -39,6 +42,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="userId">User identifier. Use the 'current' keyword to get OAuth grant of the current user.</param>
         /// <param name="id">OAuth grant identifier.</param>
         /// <returns cref="OAuthGrant">If successful, this method returns a <see cref="OAuthGrant"/> resource in the response body.</returns>
+        [Route("{id:int}")]
         public JObject Get(int userId, int id)
         {
             EnsureUserAccessTo(userId);
@@ -64,6 +68,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="client.oauthId" type="string" required="true" after="client">Client OAuth identifier.</parameter>
         /// </request>
         /// <returns cref="OAuthGrant" mode="OneWayOnly">If successful, this method returns a <see cref="OAuthGrant"/> resource in the response body.</returns>
+        [Route]
         [HttpCreatedResponse]
         public JObject Post(int userId, JObject json)
         {
@@ -108,6 +113,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="accessType" required="false" />
         /// </request>
         /// <returns cref="OAuthGrant" mode="OneWayOnly">If successful, this method returns a <see cref="OAuthGrant"/> resource in the response body.</returns>
+        [Route("{id:int}")]
         public JObject Put(int userId, int id, JObject json)
         {
             EnsureUserAccessTo(userId);
@@ -139,6 +145,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="userId">User identifier. Use the 'current' keyword to delete OAuth grant of the current user.</param>
         /// <param name="id">OAuth grant identifier.</param>
+        [Route("{id:int}")]
         [HttpNoContentResponse]
         public void Delete(int userId, int id)
         {

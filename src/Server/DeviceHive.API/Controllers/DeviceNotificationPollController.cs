@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using System.Threading.Tasks;
 using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
@@ -43,6 +44,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="names">Comma-separated list of notification names.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
+        [Route("device/{deviceGuid:guid}/notification/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
@@ -108,6 +110,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="deviceGuid" type="guid">Associated device unique identifier.</parameter>
         ///     <parameter name="notification" cref="DeviceNotification"><see cref="DeviceNotification"/> resource.</parameter>
         /// </response>
+        [Route("device/notification/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {

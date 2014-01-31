@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Description;
+using System.Web.Http.Routing;
 using System.Xml.XPath;
 using DeviceHive.API;
 using DeviceHive.API.Filters;
@@ -35,7 +36,12 @@ namespace DeviceHive.DocGenerator
         public Metadata Generate()
         {
             var httpConfiguration = new HttpConfiguration();
-            RouteConfig.RegisterRoutes(httpConfiguration.Routes);
+
+            var constraintResolver = new DefaultInlineConstraintResolver();
+            constraintResolver.ConstraintMap.Add("idorcurrent", typeof(IdOrCurrentConstraint));
+            httpConfiguration.MapHttpAttributeRoutes(constraintResolver);
+
+            httpConfiguration.EnsureInitialized();
 
             var apiExplorer = httpConfiguration.Services.GetApiExplorer();
             var metadata = new Metadata

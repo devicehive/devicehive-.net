@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.Messaging;
@@ -11,6 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="DeviceCommand" />
+    [RoutePrefix("device/{deviceGuid:guid}/command")]
     public class DeviceCommandController : BaseController
     {
         private readonly MessageBus _messageBus;
@@ -27,7 +29,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <query cref="DeviceCommandFilter" />
         /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
-        [AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
+        [Route, AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
         public JToken Get(Guid deviceGuid)
         {
             EnsureDeviceAccess(deviceGuid);
@@ -47,7 +49,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="id">Command identifier.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
-        [AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
+        [Route("{id:int}"), AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
         public JObject Get(Guid deviceGuid, int id)
         {
             EnsureDeviceAccess(deviceGuid);
@@ -75,7 +77,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="result" mode="remove" />
         /// </request>
         [HttpCreatedResponse]
-        [AuthorizeUser(AccessKeyAction = "CreateDeviceCommand")]
+        [Route, AuthorizeUser(AccessKeyAction = "CreateDeviceCommand")]
         public JObject Post(Guid deviceGuid, JObject json)
         {
             var device = DataContext.Device.Get(deviceGuid);
@@ -105,7 +107,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="lifetime" mode="remove" />
         /// </request>
         [HttpNoContentResponse]
-        [AuthorizeUserOrDevice(AccessKeyAction = "UpdateDeviceCommand")]
+        [Route("{id:int}"), AuthorizeUserOrDevice(AccessKeyAction = "UpdateDeviceCommand")]
         public void Put(Guid deviceGuid, int id, JObject json)
         {
             EnsureDeviceAccess(deviceGuid);

@@ -99,11 +99,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\MessageBusConfig.cs" />
     <Compile Include="App_Start\NinjectWebApi.cs" />
     <Compile Include="App_Start\NinjectWebCommon.cs" />
-    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Business\ObjectWaiter.cs" />
     <Compile Include="Controllers\AccessKeyController.cs" />
     <Compile Include="Controllers\CronController.cs" />
@@ -130,6 +129,7 @@
     <Compile Include="Filters\HandleExceptionAttribute.cs" />
     <Compile Include="Filters\HttpCreatedResponseAttribute.cs" />
     <Compile Include="Filters\HttpNoContentResponseAttribute.cs" />
+    <Compile Include="Filters\IdOrCurrentConstraint.cs" />
     <Compile Include="Filters\ResolveCurrentUserAttribute.cs" />
     <Compile Include="Filters\XHttpMethodDelegatingHandler.cs" />
     <Compile Include="Global.asax.cs">

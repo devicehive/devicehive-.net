@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
@@ -11,6 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="Device" />
+    [RoutePrefix("device/{id}/equipment")]
     public class DeviceEquipmentController : BaseController
     {
         /// <name>equipment</name>
@@ -25,7 +27,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         /// <returns cref="DeviceEquipment">If successful, this method returns array of the following structures in the response body.</returns>
-        [AuthorizeUser(AccessKeyAction = "GetDeviceState")]
+        [Route, AuthorizeUser(AccessKeyAction = "GetDeviceState")]
         public JArray Get(Guid id)
         {
             var device = DataContext.Device.Get(id);
@@ -35,7 +37,7 @@ namespace DeviceHive.API.Controllers
             return new JArray(DataContext.DeviceEquipment.GetByDevice(device.ID).Select(n => Mapper.Map(n)));
         }
 
-        [AuthorizeUser(AccessKeyAction = "GetDeviceState")]
+        [Route("{code}"), AuthorizeUser(AccessKeyAction = "GetDeviceState")]
         public JObject Get(Guid id, string code)
         {
             var device = DataContext.Device.Get(id);
@@ -49,6 +51,7 @@ namespace DeviceHive.API.Controllers
             return Mapper.Map(equipment);
         }
 
+        [Route]
         public HttpResponseMessage Post()
         {
             return HttpResponse(HttpStatusCode.MethodNotAllowed, "The method is not allowed");

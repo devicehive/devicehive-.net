@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
@@ -10,6 +11,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="User" />
+    [RoutePrefix("user")]
     public class UserController : BaseController
     {
         /// <name>list</name>
@@ -18,7 +20,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="UserFilter" />
         /// <returns cref="User">If successful, this method returns array of <see cref="User"/> resources in the response body.</returns>
-        [AuthorizeAdmin]
+        [Route, AuthorizeAdmin]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<UserFilter>();
@@ -34,6 +36,7 @@ namespace DeviceHive.API.Controllers
         /// <response>
         ///     <parameter name="networks" type="array" cref="UserNetwork">Array of networks associated with the user</parameter>
         /// </response>
+        [Route("{id:idorcurrent}")]
         [AuthorizeUser, ResolveCurrentUser("id")]
         public JObject Get(int id)
         {
@@ -60,7 +63,7 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="password" type="string" required="true">User password</parameter>
         /// </request>
-        [AuthorizeAdmin]
+        [Route, AuthorizeAdmin]
         [HttpCreatedResponse]
         public JObject Post(JObject json)
         {
@@ -91,6 +94,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="status" required="false" />
         /// </request>
         [HttpNoContentResponse]
+        [Route("{id:idorcurrent}")]
         [AuthorizeUser, ResolveCurrentUser("id")]
         public void Put(int id, JObject json)
         {
@@ -124,8 +128,8 @@ namespace DeviceHive.API.Controllers
         /// Deletes an existing user.
         /// </summary>
         /// <param name="id">User identifier.</param>
-        [AuthorizeAdmin]
         [HttpNoContentResponse]
+        [Route("{id:int}"), AuthorizeAdmin]
         public void Delete(int id)
         {
             DataContext.User.Delete(id);

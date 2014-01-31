@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
@@ -14,6 +15,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="Device" />
+    [RoutePrefix("device")]
     public class DeviceController : BaseController
     {
         private readonly MessageBus _messageBus;
@@ -31,7 +33,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="DeviceFilter" />
         /// <returns cref="Device">If successful, this method returns array of <see cref="Device"/> resources in the response body.</returns>
-        [AuthorizeUser(AccessKeyAction = "GetDevice")]
+        [Route, AuthorizeUser(AccessKeyAction = "GetDevice")]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<DeviceFilter>();
@@ -55,7 +57,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         /// <returns cref="Device">If successful, this method returns a <see cref="Device"/> resource in the response body.</returns>
-        [AuthorizeUserOrDevice(AccessKeyAction = "GetDevice")]
+        [Route("{id:guid}"), AuthorizeUserOrDevice(AccessKeyAction = "GetDevice")]
         public JObject Get(Guid id)
         {
             EnsureDeviceAccess(id);
@@ -67,6 +69,7 @@ namespace DeviceHive.API.Controllers
             return Mapper.Map(device);
         }
 
+        [Route]
         public HttpResponseMessage Post(JObject json)
         {
             return HttpResponse(HttpStatusCode.MethodNotAllowed, "The method is not allowed, please use PUT /device/{id} to register a device");
@@ -88,7 +91,7 @@ namespace DeviceHive.API.Controllers
         ///     </parameter>
         /// </request>
         [HttpNoContentResponse]
-        [AuthorizeDeviceRegistration(AccessKeyAction = "RegisterDevice")]
+        [Route("{id:guid}"), AuthorizeDeviceRegistration(AccessKeyAction = "RegisterDevice")]
         public void Put(Guid id, JObject json)
         {
             // get device as stored in the AuthorizeDeviceRegistration filter
@@ -116,8 +119,8 @@ namespace DeviceHive.API.Controllers
         /// Deletes an existing device.
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
-        [AuthorizeUser]
         [HttpNoContentResponse]
+        [Route("{id:guid}"), AuthorizeUser]
         public void Delete(Guid id)
         {
             var device = DataContext.Device.Get(id);

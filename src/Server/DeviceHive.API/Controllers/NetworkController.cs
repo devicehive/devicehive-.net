@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
@@ -10,6 +11,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="Network" />
+    [RoutePrefix("network")]
     public class NetworkController : BaseController
     {
         /// <name>list</name>
@@ -19,7 +21,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="NetworkFilter" />
         /// <returns cref="Network">If successful, this method returns array of <see cref="Network"/> resources in the response body.</returns>
-        [AuthorizeUser(AccessKeyAction = "GetNetwork")]
+        [Route, AuthorizeUser(AccessKeyAction = "GetNetwork")]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<NetworkFilter>();
@@ -47,7 +49,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="devices" type="array" cref="Device">Array of devices registered in the current network.</parameter>
         ///     <parameter name="devices[].network" mode="remove" />
         /// </response>
-        [AuthorizeUser(AccessKeyAction = "GetNetwork")]
+        [Route("{id:int}"), AuthorizeUser(AccessKeyAction = "GetNetwork")]
         public JObject Get(int id)
         {
             var network = DataContext.Network.Get(id);
@@ -75,8 +77,8 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="json" cref="Network">In the request body, supply a <see cref="Network"/> resource.</param>
         /// <returns cref="Network" mode="OneWayOnly">If successful, this method returns a <see cref="Network"/> resource in the response body.</returns>
-        [AuthorizeAdmin]
         [HttpCreatedResponse]
+        [Route, AuthorizeAdmin]
         public JObject Post(JObject json)
         {
             var network = Mapper.Map(json);
@@ -98,8 +100,8 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="name" required="false" />
         /// </request>
-        [AuthorizeAdmin]
         [HttpNoContentResponse]
+        [Route("{id:int}"), AuthorizeAdmin]
         public void Put(int id, JObject json)
         {
             var network = DataContext.Network.Get(id);
@@ -121,8 +123,8 @@ namespace DeviceHive.API.Controllers
         /// Deletes an existing device network.
         /// </summary>
         /// <param name="id">Network identifier.</param>
-        [AuthorizeAdmin]
         [HttpNoContentResponse]
+        [Route("{id:int}"), AuthorizeAdmin]
         public void Delete(int id)
         {
             DataContext.Network.Delete(id);

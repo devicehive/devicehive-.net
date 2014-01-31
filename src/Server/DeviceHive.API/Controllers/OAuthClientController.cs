@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
@@ -10,6 +11,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="OAuthClient" />
+    [RoutePrefix("oauth/client")]
     public class OAuthClientController : BaseController
     {
         /// <name>list</name>
@@ -18,6 +20,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="OAuthClientFilter" />
         /// <returns cref="OAuthClient">If successful, this method returns array of <see cref="OAuthClient"/> resources in the response body.</returns>
+        [Route]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<OAuthClientFilter>();
@@ -30,6 +33,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">OAuth client identifier.</param>
         /// <returns cref="OAuthClient">If successful, this method returns an <see cref="OAuthClient"/> resource in the response body.</returns>
+        [Route("{id:int}")]
         public JObject Get(int id)
         {
             var oauthClient = DataContext.OAuthClient.Get(id);
@@ -45,8 +49,8 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="json" cref="OAuthClient">In the request body, supply a <see cref="OAuthClient"/> resource.</param>
         /// <returns cref="OAuthClient" mode="OneWayOnly">If successful, this method returns a <see cref="OAuthClient"/> resource in the response body.</returns>
-        [AuthorizeAdmin]
         [HttpCreatedResponse]
+        [Route, AuthorizeAdmin]
         public JObject Post(JObject json)
         {
             var oauthClient = Mapper.Map(json);
@@ -73,8 +77,8 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="redirectUri" required="false" />
         ///     <parameter name="oauthId" required="false" />
         /// </request>
-        [AuthorizeAdmin]
         [HttpNoContentResponse]
+        [Route("{id:int}"), AuthorizeAdmin]
         public void Put(int id, JObject json)
         {
             var oauthClient = DataContext.OAuthClient.Get(id);
@@ -96,8 +100,8 @@ namespace DeviceHive.API.Controllers
         /// Deletes an existing OAuth client.
         /// </summary>
         /// <param name="id">OAuth client identifier.</param>
-        [AuthorizeAdmin]
         [HttpNoContentResponse]
+        [Route("{id:int}"), AuthorizeAdmin]
         public void Delete(int id)
         {
             DataContext.OAuthClient.Delete(id);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
@@ -11,6 +12,7 @@ namespace DeviceHive.API.Controllers
 {
     /// <resource cref="AccessKey" />
     [AuthorizeUser, ResolveCurrentUser("userId")]
+    [RoutePrefix("user/{userId:idorcurrent}/accesskey")]
     public class AccessKeyController : BaseController
     {
         /// <name>list</name>
@@ -19,6 +21,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="userId">User identifier. Use the 'current' keyword to list access keys of the current user.</param>
         /// <returns cref="AccessKey">If successful, this method returns array of <see cref="AccessKey"/> resources in the response body.</returns>
+        [Route]
         public JArray Get(int userId)
         {
             EnsureUserAccessTo(userId);
@@ -37,6 +40,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="userId">User identifier. Use the 'current' keyword to get access key of the current user.</param>
         /// <param name="id">Access key identifier.</param>
         /// <returns cref="AccessKey">If successful, this method returns a <see cref="AccessKey"/> resource in the response body.</returns>
+        [Route("{id:int}")]
         public JObject Get(int userId, int id)
         {
             EnsureUserAccessTo(userId);
@@ -55,6 +59,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="userId">User identifier. Use the 'current' keyword to create access key for the current user.</param>
         /// <param name="json" cref="AccessKey">In the request body, supply a <see cref="AccessKey"/> resource.</param>
         /// <returns cref="AccessKey" mode="OneWayOnly">If successful, this method returns a <see cref="AccessKey"/> resource in the response body.</returns>
+        [Route]
         [HttpCreatedResponse]
         public JObject Post(int userId, JObject json)
         {
@@ -86,6 +91,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="expirationDate" required="false" />
         ///     <parameter name="permissions" required="false" />
         /// </request>
+        [Route("{id:int}")]
         [HttpNoContentResponse]
         public void Put(int userId, int id, JObject json)
         {
@@ -107,6 +113,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="userId">User identifier. Use the 'current' keyword to delete access key of the current user.</param>
         /// <param name="id">Access key identifier.</param>
+        [Route("{id:int}")]
         [HttpNoContentResponse]
         public void Delete(int userId, int id)
         {

@@ -10,9 +10,6 @@ using log4net;
 
 namespace DeviceHive.API
 {
-    // Note: For instructions on enabling IIS6 or IIS7 classic mode, 
-    // visit http://go.microsoft.com/?LinkId=9394801
-
     public class WebApiApplication : System.Web.HttpApplication
     {
         protected void Application_Start()
@@ -21,12 +18,7 @@ namespace DeviceHive.API
             log4net.Config.XmlConfigurator.Configure();
 
             // configure Web API
-            FilterConfig.RegisterFilters(GlobalConfiguration.Configuration);
-            RouteConfig.RegisterRoutes(GlobalConfiguration.Configuration.Routes);
-
-            // use JSON by default
-            var xmlMediaTypes = GlobalConfiguration.Configuration.Formatters.XmlFormatter.SupportedMediaTypes;
-            xmlMediaTypes.Remove(xmlMediaTypes.FirstOrDefault(t => t.MediaType == "application/xml"));
+            GlobalConfiguration.Configure(WebApiConfig.Register);
         }
 
         protected void Application_Error(object sender, EventArgs e)

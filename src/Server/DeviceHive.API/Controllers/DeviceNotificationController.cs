@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
@@ -12,6 +13,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="DeviceNotification" />
+    [RoutePrefix("device/{deviceGuid:guid}/notification")]
     public class DeviceNotificationController : BaseController
     {
         private readonly IMessageManager _messageManager;
@@ -30,7 +32,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <query cref="DeviceNotificationFilter" />
         /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
-        [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
+        [Route, AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public JToken Get(Guid deviceGuid)
         {
             var device = DataContext.Device.Get(deviceGuid);
@@ -48,7 +50,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="id">Notification identifier.</param>
         /// <returns cref="DeviceNotification">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
-        [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
+        [Route("{id:int}"), AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public JObject Get(Guid deviceGuid, int id)
         {
             var device = DataContext.Device.Get(deviceGuid);
@@ -70,7 +72,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="json" cref="DeviceNotification">In the request body, supply a <see cref="DeviceNotification"/> resource.</param>
         /// <returns cref="DeviceNotification" mode="OneWayOnly">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
         [HttpCreatedResponse]
-        [AuthorizeUserOrDevice(AccessKeyAction = "CreateDeviceNotification")]
+        [Route, AuthorizeUserOrDevice(AccessKeyAction = "CreateDeviceNotification")]
         public JObject Post(Guid deviceGuid, JObject json)
         {
             EnsureDeviceAccess(deviceGuid);
