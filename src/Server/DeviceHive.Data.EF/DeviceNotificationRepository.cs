@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
-using System.Data.Objects;
 using System.Linq;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
@@ -18,7 +17,7 @@ namespace DeviceHive.Data.EF
             using (var context = new DeviceHiveContext())
             {
                 var query = context.DeviceNotifications.Where(e => e.Device.ID == deviceId);
-                return query.Filter(filter, FilterByGridInterval(filter.GridInterval)).ToList();
+                return query.Filter(filter, FilterByGridInterval(filter == null ? null : filter.GridInterval)).ToList();
             }
         }
 
@@ -29,7 +28,7 @@ namespace DeviceHive.Data.EF
                 var query = context.DeviceNotifications.Include(e => e.Device);
                 if (deviceIds != null)
                     query = query.Where(e => deviceIds.Contains(e.Device.ID));
-                return query.Filter(filter, FilterByGridInterval(filter.GridInterval)).ToList();
+                return query.Filter(filter, FilterByGridInterval(filter == null ? null : filter.GridInterval)).ToList();
             }
         }
 
@@ -85,7 +84,7 @@ namespace DeviceHive.Data.EF
                 {
                     n.DeviceID,
                     n.Notification,
-                    Interval = (periodSeconds + EntityFunctions.DiffSeconds(n.Timestamp, periodStart)) / gridInterval
+                    Interval = (periodSeconds + DbFunctions.DiffSeconds(n.Timestamp, periodStart)) / gridInterval
                 }).Select(g => g.FirstOrDefault());
         }
         #endregion

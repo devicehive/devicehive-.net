@@ -84,6 +84,8 @@ namespace DeviceHive.Data.EF
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            Database.SetInitializer<DeviceHiveContext>(null);
+
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
             modelBuilder.Entity<AccessKey>().HasMany(e => e.Permissions).WithRequired().HasForeignKey(e => e.AccessKeyID).WillCascadeOnDelete(true);
             modelBuilder.Entity<UserNetwork>().HasRequired(e => e.User).WithMany().HasForeignKey(e => e.UserID).WillCascadeOnDelete(true);

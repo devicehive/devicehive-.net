@@ -521,7 +521,7 @@ namespace DeviceHive.Test
 
         #region Constraint Members
 
-        public override bool Matches(ActualValueDelegate del)
+        public override bool Matches<T>(ActualValueDelegate<T> del)
         {
             try
             {
