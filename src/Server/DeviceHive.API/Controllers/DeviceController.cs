@@ -18,12 +18,10 @@ namespace DeviceHive.API.Controllers
     [RoutePrefix("device")]
     public class DeviceController : BaseController
     {
-        private readonly MessageBus _messageBus;
         private readonly DeviceService _deviceService;
 
-        public DeviceController(MessageBus messageBus, DeviceService deviceService)
+        public DeviceController(DeviceService deviceService)
         {
-            _messageBus = messageBus;
             _deviceService = deviceService;
         }
 
@@ -37,14 +35,14 @@ namespace DeviceHive.API.Controllers
         public JArray Get()
         {
             var filter = MapObjectFromQuery<DeviceFilter>();
-            var devices = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
+            var devices = CallContext.CurrentUser.Role == (int)UserRole.Administrator ?
                 DataContext.Device.GetAll(filter) :
-                DataContext.Device.GetByUser(RequestContext.CurrentUser.ID, filter);
+                DataContext.Device.GetByUser(CallContext.CurrentUser.ID, filter);
 
-            if (RequestContext.CurrentUserPermissions != null)
+            if (CallContext.CurrentUserPermissions != null)
             {
                 // if access key was used, limit devices to allowed ones
-                devices = devices.Where(d => RequestContext.CurrentUserPermissions.Any(p =>
+                devices = devices.Where(d => CallContext.CurrentUserPermissions.Any(p =>
                     p.IsNetworkAllowed(d.NetworkID) && p.IsDeviceAllowed(d.GUID.ToString()))).ToList();
             }
 
@@ -101,7 +99,7 @@ namespace DeviceHive.API.Controllers
 
             try
             {
-                var verifyNetworkKey = RequestContext.CurrentUser == null;
+                var verifyNetworkKey = CallContext.CurrentUser == null;
                 _deviceService.SaveDevice(device, json, verifyNetworkKey, IsNetworkAccessible);
             }
             catch (InvalidDataException e)

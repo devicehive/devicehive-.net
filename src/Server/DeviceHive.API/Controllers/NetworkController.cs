@@ -26,14 +26,14 @@ namespace DeviceHive.API.Controllers
         {
             var filter = MapObjectFromQuery<NetworkFilter>();
 
-            var networks = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
+            var networks = CallContext.CurrentUser.Role == (int)UserRole.Administrator ?
                 DataContext.Network.GetAll(filter) :
-                DataContext.Network.GetByUser(RequestContext.CurrentUser.ID, filter);
+                DataContext.Network.GetByUser(CallContext.CurrentUser.ID, filter);
 
-            if (RequestContext.CurrentUserPermissions != null)
+            if (CallContext.CurrentUserPermissions != null)
             {
                 // if access key was used, limit networks to allowed ones
-                networks = networks.Where(n => RequestContext.CurrentUserPermissions.Any(p => p.IsNetworkAllowed(n.ID))).ToList();
+                networks = networks.Where(n => CallContext.CurrentUserPermissions.Any(p => p.IsNetworkAllowed(n.ID))).ToList();
             }
 
             return new JArray(networks.Select(n => Mapper.Map(n)));
@@ -60,10 +60,10 @@ namespace DeviceHive.API.Controllers
 
             var deviceMapper = GetMapper<Device>();
             var devices = DataContext.Device.GetByNetwork(id);
-            if (RequestContext.CurrentUserPermissions != null)
+            if (CallContext.CurrentUserPermissions != null)
             {
                 // if access key was used, limit devices to allowed ones
-                devices = devices.Where(d => RequestContext.CurrentUserPermissions.Any(p =>
+                devices = devices.Where(d => CallContext.CurrentUserPermissions.Any(p =>
                     p.IsActionAllowed("GetDevice") && p.IsDeviceAllowed(d.GUID.ToString()))).ToList();
             }
             

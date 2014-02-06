@@ -99,7 +99,7 @@ namespace DeviceHive.API
             kernel.Bind<INotificationHandler>().To<EquipmentNotificationHandler>();
 
             // bind request context
-            kernel.Bind<RequestContext>().ToSelf().InRequestScope();
+            kernel.Bind<CallContext>().ToSelf().InRequestScope();
         }
     }
 }

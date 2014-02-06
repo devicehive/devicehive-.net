@@ -6,7 +6,7 @@ using DeviceHive.Data.Model;
 
 namespace DeviceHive.API
 {
-    public class RequestContext
+    public class CallContext
     {
         public User CurrentUser { get; set; }
         public AccessKey CurrentAccessKey { get; set; }

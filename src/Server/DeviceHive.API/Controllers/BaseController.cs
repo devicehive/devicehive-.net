@@ -21,17 +21,17 @@ namespace DeviceHive.API.Controllers
     public class BaseController : ApiController
     {
         protected internal DataContext DataContext { get; private set; }
-        protected internal RequestContext RequestContext { get; private set; }
+        protected internal CallContext CallContext { get; private set; }
         protected internal JsonMapperManager JsonMapperManager { get; private set; }
 
         #region Public Methods
 
         [Inject]
         [NonAction]
-        public void Initialize(DataContext dataContext, RequestContext requestContext, JsonMapperManager jsonMapperManager)
+        public void Initialize(DataContext dataContext, CallContext callContext, JsonMapperManager jsonMapperManager)
         {
             DataContext = dataContext;
-            RequestContext = requestContext;
+            CallContext = callContext;
             JsonMapperManager = jsonMapperManager;
         }
 
@@ -46,55 +46,55 @@ namespace DeviceHive.API.Controllers
 
         protected void EnsureUserAccessTo(int userId)
         {
-            if (RequestContext.CurrentUser.Role != (int)UserRole.Administrator && RequestContext.CurrentUser.ID != userId)
+            if (CallContext.CurrentUser.Role != (int)UserRole.Administrator && CallContext.CurrentUser.ID != userId)
                 ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
         }
 
         protected void EnsureDeviceAccess(Guid deviceGuid)
         {
-            if (RequestContext.CurrentDevice == null)
+            if (CallContext.CurrentDevice == null)
                 return;
 
-            if (RequestContext.CurrentDevice.GUID != deviceGuid)
+            if (CallContext.CurrentDevice.GUID != deviceGuid)
                 ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
         }
 
         protected bool IsNetworkAccessible(Network network)
         {
-            if (RequestContext.CurrentUser == null)
+            if (CallContext.CurrentUser == null)
                 return true;
 
-            if (RequestContext.CurrentUser.Role != (int)UserRole.Administrator)
+            if (CallContext.CurrentUser.Role != (int)UserRole.Administrator)
             {
-                if (RequestContext.CurrentUserNetworks == null)
-                    RequestContext.CurrentUserNetworks = DataContext.UserNetwork.GetByUser(RequestContext.CurrentUser.ID);
+                if (CallContext.CurrentUserNetworks == null)
+                    CallContext.CurrentUserNetworks = DataContext.UserNetwork.GetByUser(CallContext.CurrentUser.ID);
 
-                if (!RequestContext.CurrentUserNetworks.Any(un => un.NetworkID == network.ID))
+                if (!CallContext.CurrentUserNetworks.Any(un => un.NetworkID == network.ID))
                     return false;
             }
 
-            return RequestContext.CurrentUserPermissions == null ||
-                RequestContext.CurrentUserPermissions.Any(p => p.IsNetworkAllowed(network.ID));
+            return CallContext.CurrentUserPermissions == null ||
+                CallContext.CurrentUserPermissions.Any(p => p.IsNetworkAllowed(network.ID));
         }
 
         protected bool IsDeviceAccessible(Device device)
         {
-            if (RequestContext.CurrentUser == null)
+            if (CallContext.CurrentUser == null)
                 return true;
 
-            if (RequestContext.CurrentUser.Role != (int)UserRole.Administrator)
+            if (CallContext.CurrentUser.Role != (int)UserRole.Administrator)
             {
                 if (device.NetworkID == null)
                     return false;
 
-                if (RequestContext.CurrentUserNetworks == null)
-                    RequestContext.CurrentUserNetworks = DataContext.UserNetwork.GetByUser(RequestContext.CurrentUser.ID);
+                if (CallContext.CurrentUserNetworks == null)
+                    CallContext.CurrentUserNetworks = DataContext.UserNetwork.GetByUser(CallContext.CurrentUser.ID);
 
-                if (!RequestContext.CurrentUserNetworks.Any(un => un.NetworkID == device.NetworkID))
+                if (!CallContext.CurrentUserNetworks.Any(un => un.NetworkID == device.NetworkID))
                     return false;
             }
 
-            return RequestContext.CurrentUserPermissions == null || RequestContext.CurrentUserPermissions.Any(p =>
+            return CallContext.CurrentUserPermissions == null || CallContext.CurrentUserPermissions.Any(p =>
                 p.IsNetworkAllowed(device.NetworkID) && p.IsDeviceAllowed(device.GUID.ToString()));
         }
 

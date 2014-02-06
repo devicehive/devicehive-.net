@@ -79,13 +79,13 @@ namespace DeviceHive.API.Filters
 
             if ((Entity & AuthorizeEntity.Device) != 0)
             {
-                if (TryAuthorizeDevice(actionContext, controller.RequestContext))
+                if (TryAuthorizeDevice(actionContext, controller.CallContext))
                     return; // device authorization is successful
             }
 
             if ((Entity & AuthorizeEntity.User) != 0)
             {
-                if (TryAuthorizeUser(actionContext, controller.RequestContext))
+                if (TryAuthorizeUser(actionContext, controller.CallContext))
                     return; // user authorization is successful
             }
 
@@ -96,31 +96,31 @@ namespace DeviceHive.API.Filters
 
         #region Protected Methods
 
-        protected virtual bool TryAuthorizeDevice(HttpActionContext actionContext, RequestContext requestContext)
+        protected virtual bool TryAuthorizeDevice(HttpActionContext actionContext, CallContext callContext)
         {
-            return requestContext.CurrentDevice != null;
+            return callContext.CurrentDevice != null;
         }
 
-        protected virtual bool TryAuthorizeUser(HttpActionContext actionContext, RequestContext requestContext)
+        protected virtual bool TryAuthorizeUser(HttpActionContext actionContext, CallContext callContext)
         {
             // check if user is authenticated
-            if (requestContext.CurrentUser == null)
+            if (callContext.CurrentUser == null)
                 return false;
 
             // allow access key authentication only if AccessKeyAction is specified
-            if (requestContext.CurrentAccessKey != null && AccessKeyAction == null)
+            if (callContext.CurrentAccessKey != null && AccessKeyAction == null)
                 return false;
 
             // check if user role is allowed
             if (Roles != null)
             {
-                var currentUserRole = ((UserRole)requestContext.CurrentUser.Role).ToString();
+                var currentUserRole = ((UserRole)callContext.CurrentUser.Role).ToString();
                 if (!Roles.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Contains(currentUserRole))
                     return false;
             }
 
             // check if access key permissions are sufficient
-            if (requestContext.CurrentAccessKey != null)
+            if (callContext.CurrentAccessKey != null)
             {
                 var httpContext = (HttpContextBase)actionContext.Request.Properties["MS_HttpContext"];
                 var userAddress = httpContext.Request.UserHostAddress;
@@ -128,7 +128,7 @@ namespace DeviceHive.API.Filters
                 var domain = actionContext.Request.Headers.Contains("Origin") ?
                     actionContext.Request.Headers.GetValues("Origin").First() : null;
 
-                var permissions = requestContext.CurrentAccessKey.Permissions
+                var permissions = callContext.CurrentAccessKey.Permissions
                     .Where(p => p.IsActionAllowed(AccessKeyAction) &&
                         p.IsAddressAllowed(userAddress) && (domain == null || p.IsDomainAllowed(domain)))
                     .ToArray();
@@ -136,7 +136,7 @@ namespace DeviceHive.API.Filters
                 if (!permissions.Any())
                     return false;
 
-                requestContext.CurrentUserPermissions = permissions;
+                callContext.CurrentUserPermissions = permissions;
             }
 
             // authorization is successful

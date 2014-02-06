@@ -239,7 +239,7 @@ namespace DeviceHive.API
         {
             base.OnAfterMapToJson(entity, json);
 
-            var context = _kernel.Get<RequestContext>();
+            var context = _kernel.Get<CallContext>();
             if (context.CurrentUser == null)
             {
                 json.Remove("key"); // do not expose network key to devices
@@ -284,7 +284,7 @@ namespace DeviceHive.API
         {
             base.OnAfterMapToJson(entity, json);
 
-            var context = _kernel.Get<RequestContext>();
+            var context = _kernel.Get<CallContext>();
             if (context.CurrentUser == null || context.CurrentUser.Role != (int)UserRole.Administrator)
             {
                 json.Remove("oauthSecret"); // do not expose network key to devices

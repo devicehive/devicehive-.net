@@ -49,7 +49,7 @@ namespace DeviceHive.API.Filters
                     {
                         // authenticate the user
                         UpdateUserLastLogin(user);
-                        controller.RequestContext.CurrentUser = user;
+                        controller.CallContext.CurrentUser = user;
                     }
                     else
                     {
@@ -75,8 +75,8 @@ namespace DeviceHive.API.Filters
                     if (user != null && user.Status == (int)UserStatus.Active)
                     {
                         // authenticate the user
-                        controller.RequestContext.CurrentAccessKey = accessKey;
-                        controller.RequestContext.CurrentUser = user;
+                        controller.CallContext.CurrentAccessKey = accessKey;
+                        controller.CallContext.CurrentUser = user;
                     }
                 }
 
@@ -97,7 +97,7 @@ namespace DeviceHive.API.Filters
                     if (authDeviceKey != null && device.Key == authDeviceKey)
                     {
                         // authenticate the device
-                        controller.RequestContext.CurrentDevice = device;
+                        controller.CallContext.CurrentDevice = device;
                     }
                 }
 

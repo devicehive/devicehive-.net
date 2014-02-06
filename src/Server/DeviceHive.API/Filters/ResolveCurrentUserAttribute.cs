@@ -29,8 +29,8 @@ namespace DeviceHive.API.Filters
             if (string.Equals((string)controllerContext.RouteData.Values[UserIdParamName], CURRENT_VALUE, StringComparison.OrdinalIgnoreCase))
             {
                 var controller = (BaseController)controllerContext.Controller;
-                if (controller.RequestContext.CurrentUser != null)
-                    actionContext.ActionArguments[UserIdParamName] = controller.RequestContext.CurrentUser.ID;
+                if (controller.CallContext.CurrentUser != null)
+                    actionContext.ActionArguments[UserIdParamName] = controller.CallContext.CurrentUser.ID;
             }
         }
     }

@@ -104,7 +104,7 @@ namespace DeviceHive.API.Controllers
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
 
-            if (RequestContext.CurrentUser.Role == (int)UserRole.Administrator)
+            if (CallContext.CurrentUser.Role == (int)UserRole.Administrator)
             {
                 // only administrators can change user properties
                 Mapper.Apply(user, json);
