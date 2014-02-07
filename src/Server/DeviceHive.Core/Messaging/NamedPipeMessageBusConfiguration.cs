@@ -5,12 +5,12 @@ namespace DeviceHive.Core.Messaging
     /// <summary>
     /// Named pipe message bus configuration section handler
     /// </summary>
-    public class NamedPipeMessageBusConfigurationSection : ConfigurationSection
+    public class NamedPipeMessageBusConfiguration : ConfigurationSection
     {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public NamedPipeMessageBusConfigurationSection()
+        public NamedPipeMessageBusConfiguration()
         {
             ConnectTimeout = 100;
         }

@@ -191,8 +191,7 @@ namespace DeviceHive.Core.Messaging
 
         private static Configuration GetConfiguration()
         {
-            var configurationSection = (NamedPipeMessageBusConfigurationSection)
-                ConfigurationManager.GetSection("namedPipeMessageBus");
+            var configurationSection = (NamedPipeMessageBusConfiguration)ConfigurationManager.GetSection("namedPipeMessageBus");
 
             if (configurationSection == null)
                 throw new InvalidOperationException("namedPipeMessageBus configuration sections can't be found");
