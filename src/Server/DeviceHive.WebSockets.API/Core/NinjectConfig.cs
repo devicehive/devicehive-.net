@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using System.Reflection;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.MessageLogic.NotificationHandlers;
@@ -40,6 +41,12 @@ namespace DeviceHive.WebSockets.API.Core
                 kernel.Bind(interfaceType).To(dataContext.GetRepositoryType(interfaceType));
             foreach (var objectType in dataContext.RegisteredObjects)
                 kernel.Bind(typeof(ISimpleRepository<>).MakeGenericType(objectType)).To(dataContext.GetRepositoryTypeFor(objectType));
+
+            // bind configuration
+            var configuration = (DeviceHiveConfiguration)ConfigurationManager.GetSection("deviceHive");
+            if (configuration == null)
+                throw new ConfigurationErrorsException("DeviceHive element is missing in the configuration file!");
+            kernel.Bind<DeviceHiveConfiguration>().ToConstant(configuration);
 
             // bind services
             kernel.Bind<DeviceService>().ToSelf();

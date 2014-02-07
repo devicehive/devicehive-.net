@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
@@ -14,16 +15,18 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         private readonly DataContext _dataContext;
         private readonly JsonMapperManager _jsonMapperManager;
+        private readonly DeviceHiveConfiguration _deviceHiveConfiguration;
 
         #endregion
 
         #region Constructor
 
-        protected ControllerBase(ActionInvoker actionInvoker, DataContext dataContext, JsonMapperManager jsonMapperManager) :
+        protected ControllerBase(ActionInvoker actionInvoker, DataContext dataContext, JsonMapperManager jsonMapperManager, DeviceHiveConfiguration deviceHiveConfiguration) :
             base(actionInvoker)
         {
             _dataContext = dataContext;
             _jsonMapperManager = jsonMapperManager;
+            _deviceHiveConfiguration = deviceHiveConfiguration;
         }
 
         #endregion
@@ -33,6 +36,11 @@ namespace DeviceHive.WebSockets.API.Controllers
         public DataContext DataContext
         {
             get { return _dataContext; }
+        }
+
+        public DeviceHiveConfiguration DeviceHiveConfiguration
+        {
+            get { return _deviceHiveConfiguration; }
         }
 
         #endregion

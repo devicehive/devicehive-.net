@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.Messaging;
@@ -48,11 +49,10 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         #region Constructor
 
-        public DeviceController(ActionInvoker actionInvoker,
-            DataContext dataContext, JsonMapperManager jsonMapperManager,
-            MessageBus messageBus, IMessageManager messageManager,
-            DeviceService deviceService) :
-            base(actionInvoker, dataContext, jsonMapperManager)
+        public DeviceController(ActionInvoker actionInvoker, DataContext dataContext,
+            JsonMapperManager jsonMapperManager, DeviceHiveConfiguration deviceHiveConfiguration,
+            MessageBus messageBus, IMessageManager messageManager, DeviceService deviceService) :
+            base(actionInvoker, dataContext, jsonMapperManager, deviceHiveConfiguration)
         {
             _messageBus = messageBus;
             _messageManager = messageManager;
@@ -265,11 +265,12 @@ namespace DeviceHive.WebSockets.API.Controllers
         [Action("server/info")]
         public void ServerInfo()
         {
+            var restEndpoint = DeviceHiveConfiguration.RestEndpoint;
             var apiInfo = new ApiInfo
             {
                 ApiVersion = DeviceHive.Core.Version.ApiVersion,
                 ServerTimestamp = DataContext.Timestamp.GetCurrentTimestamp(),
-                RestServerUrl = ConfigurationManager.AppSettings["RestServerUrl"]
+                RestServerUrl = restEndpoint.Uri,
             };
 
             SendResponse(new JProperty("info", GetMapper<ApiInfo>().Map(apiInfo)));

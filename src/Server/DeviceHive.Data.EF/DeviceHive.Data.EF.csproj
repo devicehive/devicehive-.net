@@ -53,7 +53,7 @@
     <Compile Include="DeviceClassRepository.cs" />
     <Compile Include="DeviceCommandRepository.cs" />
     <Compile Include="DeviceEquipmentRepository.cs" />
-    <Compile Include="DeviceHiveConfiguration.cs" />
+    <Compile Include="DeviceHiveDbConfiguration.cs" />
     <Compile Include="DeviceHiveContext.cs" />
     <Compile Include="DeviceNotificationRepository.cs" />
     <Compile Include="DeviceRepository.cs" />

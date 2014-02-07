@@ -10,6 +10,7 @@ using System.Web.Http;
 using System.Web.Http.Description;
 using DeviceHive.API.Filters;
 using DeviceHive.API.Models;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
@@ -23,16 +24,18 @@ namespace DeviceHive.API.Controllers
         protected internal DataContext DataContext { get; private set; }
         protected internal CallContext CallContext { get; private set; }
         protected internal JsonMapperManager JsonMapperManager { get; private set; }
+        protected internal DeviceHiveConfiguration DeviceHiveConfiguration { get; private set; }
 
         #region Public Methods
 
         [Inject]
         [NonAction]
-        public void Initialize(DataContext dataContext, CallContext callContext, JsonMapperManager jsonMapperManager)
+        public void Initialize(DataContext dataContext, CallContext callContext, JsonMapperManager jsonMapperManager, DeviceHiveConfiguration deviceHiveConfiguration)
         {
             DataContext = dataContext;
             CallContext = callContext;
             JsonMapperManager = jsonMapperManager;
+            DeviceHiveConfiguration = deviceHiveConfiguration;
         }
 
         [HttpNoContentResponse]

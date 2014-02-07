@@ -5,14 +5,13 @@ namespace DeviceHive.WebSockets.Core.Hosting
 {
     internal class ProxyWebSocketConnection : WebSocketConnectionBase
     {
-        private readonly ApplicationServiceBase _applicationService;
+        private readonly ApplicationService _applicationService;
 
         private readonly Guid _identity;
         private readonly string _host;
         private readonly string _path;
 
-        public ProxyWebSocketConnection(ConnectionOpenedMessage connectionOpenedMessage,
-            ApplicationServiceBase applicationService)
+        public ProxyWebSocketConnection(ConnectionOpenedMessage connectionOpenedMessage, ApplicationService applicationService)
         {
             _applicationService = applicationService;
             _identity = connectionOpenedMessage.ConnectionIdentity;

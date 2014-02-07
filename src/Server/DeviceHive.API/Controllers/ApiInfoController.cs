@@ -28,11 +28,12 @@ namespace DeviceHive.API.Controllers
         [Route]
         public JObject Get()
         {
+            var webSocketEndpoint = DeviceHiveConfiguration.WebSocketEndpoint;
             var apiInfo = new ApiInfo
             {
                 ApiVersion = Version.ApiVersion,
                 ServerTimestamp = _timestampRepository.GetCurrentTimestamp(),
-                WebSocketServerUrl = ConfigurationManager.AppSettings["WebSocketServerUrl"]
+                WebSocketServerUrl = webSocketEndpoint.Enabled ? webSocketEndpoint.Url : null,
             };
 
             return Mapper.Map(apiInfo);

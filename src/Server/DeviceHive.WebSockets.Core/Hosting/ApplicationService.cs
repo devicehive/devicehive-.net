@@ -6,24 +6,27 @@ using log4net;
 
 namespace DeviceHive.WebSockets.Core.Hosting
 {
-    public abstract class ApplicationServiceBase : WebSocketServerBase
+    public class ApplicationService : WebSocketServerBase
     {
-        private readonly ILog _log;
-
         private readonly string _hostPipeName;
         private readonly string _appPipeName;
 
-        private NamedPipeMessageBus _messageBus;
-        
+        private readonly ILog _log;
         private readonly EventWaitHandle _finishedWaitHandle;
 
-        protected ApplicationServiceBase(string hostPipeName, string appPipeName)
+        private NamedPipeMessageBus _messageBus;
+
+        public ApplicationService(string hostPipeName, string appPipeName)
         {
-            _log = LogManager.GetLogger(GetType());
+            if (string.IsNullOrEmpty(hostPipeName))
+                throw new ArgumentException("HostPipeName is null or empty!", "hostPipeName");
+            if (string.IsNullOrEmpty(appPipeName))
+                throw new ArgumentException("AppPipeName is null or empty!", "appPipeName");
 
             _hostPipeName = hostPipeName;
             _appPipeName = appPipeName;
-            
+
+            _log = LogManager.GetLogger(GetType());
             _finishedWaitHandle = new ManualResetEvent(false);
         }
 
@@ -81,11 +84,9 @@ namespace DeviceHive.WebSockets.Core.Hosting
             get { return _finishedWaitHandle; }
         }
 
-
         protected virtual void Init()
         {            
         }
-
 
         internal void SendMessage(Guid connectionIdentity, string data)
         {

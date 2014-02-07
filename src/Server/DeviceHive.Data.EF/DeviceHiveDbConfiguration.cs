@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace DeviceHive.Data.EF
 {
-    public class DeviceHiveConfiguration : DbConfiguration
+    public class DeviceHiveDbConfiguration : DbConfiguration
     {
-        public DeviceHiveConfiguration()
+        public DeviceHiveDbConfiguration()
         {
             // sets default provider services - required for EF6
             // also fixes a reference to EntityFramework.SqlServer.dll so it will be propagated further during a build

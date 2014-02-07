@@ -17,15 +17,16 @@ namespace DeviceHive.Core.Services
     public class DeviceService : ServiceBase
     {
         private readonly MessageBus _messageBus;
-        private static bool _allowNetworkAutoCreate = !string.Equals(ConfigurationManager.AppSettings["AllowNetworkAutoCreate"], "false", StringComparison.OrdinalIgnoreCase);
+        private readonly DeviceHiveConfiguration _configuration;
 
         /// <summary>
         /// Initialize instance of <see cref="DeviceService"/>
         /// </summary>
         public DeviceService(DataContext dataContext, JsonMapperManager jsonMapperManager,
-            MessageBus messageBus) : base(dataContext, jsonMapperManager)
+            MessageBus messageBus, DeviceHiveConfiguration configuration) : base(dataContext, jsonMapperManager)
         {
             _messageBus = messageBus;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -90,7 +91,7 @@ namespace DeviceHive.Core.Services
                 if (network == null)
                 {
                     // auto-create network - only for test environments
-                    if (!_allowNetworkAutoCreate)
+                    if (!_configuration.Network.AllowAutoCreate)
                         throw new UnauthroizedNetworkException("Automatic network creation is not allowed, please specify an existing network!");
 
                     network = device.Network;

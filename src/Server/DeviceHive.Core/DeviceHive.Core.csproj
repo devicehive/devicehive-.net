@@ -59,6 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeviceHiveConfiguration.cs" />
     <Compile Include="MessageLogic\IMessageManager.cs" />
     <Compile Include="Mapping\IJsonMapper.cs" />
     <Compile Include="Mapping\JsonMapper.cs" />

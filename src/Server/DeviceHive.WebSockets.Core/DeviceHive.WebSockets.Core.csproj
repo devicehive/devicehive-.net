@@ -64,7 +64,7 @@
     <Compile Include="ActionsFramework\WebSocketConnectionExtensions.cs" />
     <Compile Include="ActionsFramework\WebSocketRequestException.cs" />
     <Compile Include="Hosting\ApplicationControlMessages.cs" />
-    <Compile Include="Hosting\ApplicationServiceBase.cs" />
+    <Compile Include="Hosting\ApplicationService.cs" />
     <Compile Include="Hosting\IWebSocketApplicationManager.cs" />
     <Compile Include="Hosting\ProxyWebSocketConnection.cs" />
     <Compile Include="Hosting\WebSocketApplicationManagerClient.cs" />
