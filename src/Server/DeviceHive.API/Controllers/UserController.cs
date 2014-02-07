@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Web.Http;
 using DeviceHive.API.Filters;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
@@ -14,6 +15,13 @@ namespace DeviceHive.API.Controllers
     [RoutePrefix("user")]
     public class UserController : BaseController
     {
+        private readonly PasswordPolicyValidator _passwordPolicyValidator;
+
+        public UserController(PasswordPolicyValidator passwordPolicyValidator)
+        {
+            _passwordPolicyValidator = passwordPolicyValidator;
+        }
+
         /// <name>list</name>
         /// <summary>
         /// Gets list of users.
@@ -70,8 +78,11 @@ namespace DeviceHive.API.Controllers
             if (json["password"] == null || json["password"].Type != JTokenType.String)
                 ThrowHttpResponse(HttpStatusCode.BadRequest, "Required 'password' property was not specified!");
 
+            var password = (string)json["password"];
+            ValidatePasswordPolicy(password);
+
             var user = Mapper.Map(json);
-            user.SetPassword((string)json["password"]);
+            user.SetPassword(password);
             Validate(user);
 
             if (DataContext.User.Get(user.Login) != null)
@@ -112,7 +123,9 @@ namespace DeviceHive.API.Controllers
             if (json["password"] != null && json["password"].Type == JTokenType.String)
             {
                 // all users can change their password
-                user.SetPassword((string)json["password"]);
+                var password = (string)json["password"];
+                ValidatePasswordPolicy(password);
+                user.SetPassword(password);
             }
             Validate(user);
 
@@ -133,6 +146,18 @@ namespace DeviceHive.API.Controllers
         public void Delete(int id)
         {
             DataContext.User.Delete(id);
+        }
+
+        private void ValidatePasswordPolicy(string password)
+        {
+            try
+            {
+                _passwordPolicyValidator.Validate(password);
+            }
+            catch (PasswordPolicyViolationException e)
+            {
+                ThrowHttpResponse(HttpStatusCode.Forbidden, e.Message);
+            }
         }
 
         private IJsonMapper<User> Mapper

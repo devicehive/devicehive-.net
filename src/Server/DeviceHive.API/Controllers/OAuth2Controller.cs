@@ -148,8 +148,10 @@ namespace DeviceHive.API.Controllers
 
         private void IncrementUserLoginAttempts(User user)
         {
+            var maxLoginAttempts = DeviceHiveConfiguration.UserPasswordPolicy.MaxLoginAttempts;
+
             user.LoginAttempts++;
-            if (user.LoginAttempts >= 10)
+            if (maxLoginAttempts > 0 && user.LoginAttempts >= maxLoginAttempts)
                 user.Status = (int)UserStatus.LockedOut;
             DataContext.User.Save(user);
         }

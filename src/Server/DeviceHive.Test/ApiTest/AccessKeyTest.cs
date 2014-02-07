@@ -18,12 +18,12 @@ namespace DeviceHive.Test.ApiTest
 
         protected override void OnCreateDependencies()
         {
-            var userResponse = Client.Post("/user", new { login = "_ut_u", password = "pwd", role = 1, status = 0 }, auth: Admin);
+            var userResponse = Client.Post("/user", new { login = "_ut_u", password = NewUserPassword, role = 1, status = 0 }, auth: Admin);
             Assert.That(userResponse.Status, Is.EqualTo(ExpectedCreatedStatus));
             var userId = (int)userResponse.Json["id"];
             RegisterForDeletion("/user/" + userId);
             ResourceUri = "/user/" + userId + "/accesskey";
-            Owner = User("_ut_u", "pwd");
+            Owner = User("_ut_u", NewUserPassword);
         }
 
         [Test]

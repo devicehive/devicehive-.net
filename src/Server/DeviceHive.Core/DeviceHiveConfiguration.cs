@@ -46,6 +46,16 @@ namespace DeviceHive.Core
             get { return (WebSocketEndpointHostingConfigurationElement)base["webSocketEndpointHosting"] ?? new WebSocketEndpointHostingConfigurationElement(); }
             set { base["webSocketEndpointHosting"] = value; }
         }
+
+        /// <summary>
+        /// Gets or sets user password policy configuration element
+        /// </summary>
+        [ConfigurationProperty("userPasswordPolicy")]
+        public UserPasswordPolicyConfigurationElement UserPasswordPolicy
+        {
+            get { return (UserPasswordPolicyConfigurationElement)base["userPasswordPolicy"] ?? new UserPasswordPolicyConfigurationElement(); }
+            set { base["userPasswordPolicy"] = value; }
+        }
     }
 
     /// <summary>
@@ -139,6 +149,56 @@ namespace DeviceHive.Core
         {
             get { return (string)this["appPipeName"]; }
             set { base["appPipeName"] = value; }
+        }
+    }
+
+    /// <summary>
+    /// Represents user password policy configuration element
+    /// </summary>
+    public class UserPasswordPolicyConfigurationElement : ConfigurationElement
+    {
+        /// <summary>
+        /// Gets or sets required password complexity level.
+        /// Available values:
+        /// <list type="bullet">
+        ///     <item><description>0: No password complexity check is performed</description></item>
+        ///     <item><description>1: The password must contain both letters and numbers</description></item>
+        ///     <item><description>2: The password must contain lower and upper letters and numbers</description></item>
+        ///     <item><description>3: The password must contain lower and upper letters, numbers and special characters</description></item>
+        /// </list>
+        /// Default value is 1 (both letters and numbers).
+        /// </summary>
+        [IntegerValidator(MinValue = 0, MaxValue = 3)]
+        [ConfigurationProperty("complexityLevel", DefaultValue = 1)]
+        public int ComplexityLevel
+        {
+            get { return (int)this["complexityLevel"]; }
+            set { base["complexityLevel"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets minumum password length.
+        /// Default value is 8.
+        /// </summary>
+        [IntegerValidator(MinValue = 0)]
+        [ConfigurationProperty("minLength", DefaultValue = 8)]
+        public int MinLength
+        {
+            get { return (int)this["minLength"]; }
+            set { base["minLength"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets maximum number of invalid login attempts before the user account is locked out.
+        /// Set 0 to disable lockout mechanism.
+        /// Default value is 10.
+        /// </summary>
+        [IntegerValidator(MinValue = 0)]
+        [ConfigurationProperty("maxLoginAttempts", DefaultValue = 10)]
+        public int MaxLoginAttempts
+        {
+            get { return (int)this["maxLoginAttempts"]; }
+            set { base["maxLoginAttempts"] = value; }
         }
     }
 }

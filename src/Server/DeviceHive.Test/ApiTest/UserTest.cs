@@ -18,7 +18,7 @@ namespace DeviceHive.Test.ApiTest
         public void GetAll()
         {
             // create user
-            var resource = Create(new { login = "_ut", password = "pwd", role = 1, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 1, status = 0 }, auth: Admin);
             var resourceId = GetResourceId(resource);
 
             // get all users
@@ -40,10 +40,10 @@ namespace DeviceHive.Test.ApiTest
         public void Get_Current()
         {
             // create user
-            var resource = Create(new { login = "_ut", password = "pwd", role = 1, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 1, status = 0 }, auth: Admin);
 
             // get current user
-            var current = Client.Get(ResourceUri + "/current", auth: User("_ut", "pwd"));
+            var current = Client.Get(ResourceUri + "/current", auth: User("_ut", NewUserPassword));
             Expect(current.Status, Is.EqualTo(200));
             Expect(current.Json, Is.InstanceOf<JObject>());
             Expect(current.Json, Matches(new { id = (int)resource["id"], login = "_ut", role = 1, status = 0 }));
@@ -53,7 +53,7 @@ namespace DeviceHive.Test.ApiTest
         public void Create()
         {
             // create user
-            var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
 
             // verify server response
             Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 0, status = 0, lastLogin = (DateTime?)null }));
@@ -63,15 +63,15 @@ namespace DeviceHive.Test.ApiTest
         public void Create_Existing()
         {
             // create user with an existing login
-            var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
-            Expect(() => Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin), FailsWith(403));
+            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
+            Expect(() => Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin), FailsWith(403));
         }
 
         [Test]
         public void Create_UserNetworks()
         {
             // create user
-            var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
             var userId = GetResourceId(resource);
 
             // create network
@@ -95,8 +95,8 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             // create and update user
-            var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
-            Update(resource, new { login = "_ut2", password = "pwd2", role = 1, status = 1 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
+            Update(resource, new { login = "_ut2", password = NewUserPassword, role = 1, status = 1 }, auth: Admin);
 
             // verify server response
             Expect(Get(resource, auth: Admin), Matches(new { login = "_ut2", role = 1, status = 1, lastLogin = (DateTime?)null }));
@@ -106,7 +106,7 @@ namespace DeviceHive.Test.ApiTest
         public void Update_Partial()
         {
             // create and update user
-            var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
             Update(resource, new { status = 1 }, auth: Admin);
 
             // verify server response
@@ -117,20 +117,20 @@ namespace DeviceHive.Test.ApiTest
         public void Update_Current()
         {
             // create user
-            var resource = Create(new { login = "_ut", password = "pwd", role = 1, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 1, status = 0 }, auth: Admin);
 
             // update user password
-            var current = Client.Put(ResourceUri + "/current", new { password = "pwd2" }, auth: User("_ut", "pwd"));
+            var current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "*" }, auth: User("_ut", NewUserPassword));
             Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus));
 
             // verify user password has been changed
-            Expect(Client.Get(ResourceUri + "/current", auth: User("_ut", "pwd")).Status, Is.EqualTo(401));
+            Expect(Client.Get(ResourceUri + "/current", auth: User("_ut", NewUserPassword)).Status, Is.EqualTo(401));
         }
 
         [Test]
         public void Delete()
         {
-            var resource = Create(new { login = "_ut", password = "pwd", role = 0, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
             Delete(resource, auth: Admin);
 
             Expect(() => Get(resource, auth: Admin), FailsWith(404));

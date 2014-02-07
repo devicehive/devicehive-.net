@@ -5,6 +5,7 @@ using System.Text;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 using DeviceHive.API.Controllers;
+using DeviceHive.Core;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
 
@@ -12,13 +13,10 @@ namespace DeviceHive.API.Filters
 {
     public class AuthenticateAttribute : AuthorizationFilterAttribute
     {
-        protected DataContext DataContext { get; private set; }
-
         public override void OnAuthorization(HttpActionContext actionContext)
         {
-            // initialize current filter
+            // retrieve controller object
             var controller = (BaseController)actionContext.ControllerContext.Controller;
-            DataContext = controller.DataContext;
 
             // check basic authentication
             var auth = actionContext.Request.Headers.Authorization;
@@ -41,19 +39,19 @@ namespace DeviceHive.API.Filters
                 }
 
                 // get the user object
-                var user = DataContext.User.Get(login);
+                var user = controller.DataContext.User.Get(login);
                 if (user != null && user.Status == (int)UserStatus.Active)
                 {
                     // check user password
                     if (user.IsValidPassword(password))
                     {
                         // authenticate the user
-                        UpdateUserLastLogin(user);
+                        UpdateUserLastLogin(controller, user);
                         controller.CallContext.CurrentUser = user;
                     }
                     else
                     {
-                        IncrementUserLoginAttempts(user);
+                        IncrementUserLoginAttempts(controller, user);
                     }
                 }
                 
@@ -67,11 +65,11 @@ namespace DeviceHive.API.Filters
                 var token = auth.Parameter;
 
                 // get the access key object
-                var accessKey = DataContext.AccessKey.Get(token);
+                var accessKey = controller.DataContext.AccessKey.Get(token);
                 if (accessKey != null && (accessKey.ExpirationDate == null || accessKey.ExpirationDate > DateTime.UtcNow))
                 {
                     // get the user object
-                    var user = DataContext.User.Get(accessKey.UserID);
+                    var user = controller.DataContext.User.Get(accessKey.UserID);
                     if (user != null && user.Status == (int)UserStatus.Active)
                     {
                         // authenticate the user
@@ -89,7 +87,7 @@ namespace DeviceHive.API.Filters
             if (!string.IsNullOrEmpty(authDeviceId) && Guid.TryParse(authDeviceId, out deviceId))
             {
                 // get the device object
-                var device = DataContext.Device.Get(deviceId);
+                var device = controller.DataContext.Device.Get(deviceId);
                 if (device != null)
                 {
                     // check device key authentication
@@ -105,22 +103,24 @@ namespace DeviceHive.API.Filters
             }
         }
 
-        private void IncrementUserLoginAttempts(User user)
+        private void IncrementUserLoginAttempts(BaseController controller, User user)
         {
+            var maxLoginAttempts = controller.DeviceHiveConfiguration.UserPasswordPolicy.MaxLoginAttempts;
+
             user.LoginAttempts++;
-            if (user.LoginAttempts >= 10)
+            if (maxLoginAttempts > 0 && user.LoginAttempts >= maxLoginAttempts)
                 user.Status = (int)UserStatus.LockedOut;
-            DataContext.User.Save(user);
+            controller.DataContext.User.Save(user);
         }
 
-        private void UpdateUserLastLogin(User user)
+        private void UpdateUserLastLogin(BaseController controller, User user)
         {
             // update LastLogin only if it's too far behind - save database resources
             if (user.LoginAttempts > 0 || user.LastLogin == null || user.LastLogin.Value.AddHours(1) < DateTime.UtcNow)
             {
                 user.LoginAttempts = 0;
                 user.LastLogin = DateTime.UtcNow;
-                DataContext.User.Save(user);
+                controller.DataContext.User.Save(user);
             }
         }
 

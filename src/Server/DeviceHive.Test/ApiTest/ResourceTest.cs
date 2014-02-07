@@ -61,6 +61,11 @@ namespace DeviceHive.Test
         /// </summary>
         protected string ExistingAdminPassword { get; set; }
 
+        /// <summary>
+        /// Gets or sets default password set for new users
+        /// </summary>
+        protected string NewUserPassword { get; set; }
+
         #endregion
 
         #region Constructor
@@ -83,6 +88,7 @@ namespace DeviceHive.Test
             UnexistingResourceID = 999999;
             ExistingAdminUsername = "dhadmin";
             ExistingAdminPassword = "dhadmin_#911";
+            NewUserPassword = "Qwe12345!";
         }
         #endregion
 
@@ -251,12 +257,11 @@ namespace DeviceHive.Test
         /// <returns>Coresponding Authorization object</returns>
         protected Authorization CreateUser(int role, params object[] networks)
         {
-            // assign login and password
+            // assign login
             var login = "_ut_" + Guid.NewGuid().ToString();
-            var password = "pwd";
 
             // create user
-            var userResource = Client.Post("/user", new { login = login, password = password, role = role, status = 0 }, auth: Admin);
+            var userResource = Client.Post("/user", new { login = login, password = NewUserPassword, role = role, status = 0 }, auth: Admin);
             Expect(userResource.Status, Is.EqualTo(ExpectedCreatedStatus));
             var userId = GetResourceId(userResource.Json);
             RegisterForDeletion("/user/" + userId);
@@ -271,7 +276,7 @@ namespace DeviceHive.Test
             }
 
             // return user authorization object
-            return User(login, password, userId);
+            return User(login, NewUserPassword, userId);
         }
 
         /// <summary>

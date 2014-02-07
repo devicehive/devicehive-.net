@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DeviceHive.WebSockets.Core.ActionsFramework;
+using DeviceHive.Core;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
+using DeviceHive.WebSockets.Core.ActionsFramework;
 
 namespace DeviceHive.WebSockets.API.Filters
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class AuthenticateClientAttribute : ActionFilterAttribute
     {
-        private const int _maxLoginAttempts = 10;
-
         #region ActionFilterAttribute Members
 
         public override void OnAuthentication(ActionContext actionContext)
@@ -39,7 +38,7 @@ namespace DeviceHive.WebSockets.API.Filters
                 }
                 else
                 {
-                    IncrementUserLoginAttempts(controller.DataContext, user);
+                    IncrementUserLoginAttempts(controller.DataContext, controller.DeviceHiveConfiguration, user);
                     throw new WebSocketRequestException("Invalid login or password");
                 }
 
@@ -68,10 +67,12 @@ namespace DeviceHive.WebSockets.API.Filters
 
         #region Private Methods
 
-        private void IncrementUserLoginAttempts(DataContext dataContext, User user)
+        private void IncrementUserLoginAttempts(DataContext dataContext, DeviceHiveConfiguration configuration, User user)
         {
+            var maxLoginAttempts = configuration.UserPasswordPolicy.MaxLoginAttempts;
+
             user.LoginAttempts++;
-            if (user.LoginAttempts >= _maxLoginAttempts)
+            if (maxLoginAttempts > 0 && user.LoginAttempts >= maxLoginAttempts)
                 user.Status = (int)UserStatus.LockedOut;
             dataContext.User.Save(user);
         }
