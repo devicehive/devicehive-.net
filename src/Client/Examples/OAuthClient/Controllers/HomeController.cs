@@ -35,7 +35,7 @@ namespace OAuthClient.Controllers
             set { Session["AccessKey"] = value; }
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             // if DeviceHive access key is uavailable - offer OAuth authentication
             if (AccessKey == null)
@@ -44,18 +44,15 @@ namespace OAuthClient.Controllers
             // otherwise, read and display a list of DeviceHive devices
             try
             {
-                var service = new RestfulClientService(DeviceHiveUrl, AccessKey, true);
-                var devices = service.GetDevices();
+                var connectionInfo = new DeviceHiveConnectionInfo(DeviceHiveUrl, AccessKey);
+                var client = new DeviceHiveClient(connectionInfo);
+                var devices = await client.GetDevices();
                 return View("Devices", devices);
             }
-            catch (ClientServiceException ex)
+            catch (DeviceHiveUnauthorizedException)
             {
-                var webException = (System.Net.WebException)ex.InnerException;
-                var response = (System.Net.HttpWebResponse)webException.Response;
-                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                    return View();
-
-                throw;
+                // credentials are invalid or expired
+                return View();
             }
         }
 

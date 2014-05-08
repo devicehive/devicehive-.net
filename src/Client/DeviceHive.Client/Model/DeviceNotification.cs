@@ -8,9 +8,14 @@ namespace DeviceHive.Client
     public class DeviceNotification
     {
         /// <summary>
+        /// Associated subscription identifier.
+        /// </summary>
+        public Guid SubscriptionId { get; set; }
+
+        /// <summary>
         /// Device unique identifier.
         /// </summary>
-        public Guid DeviceGuid { get; set; }
+        public string DeviceGuid { get; set; }
 
         /// <summary>
         /// <see cref="Notification"/> object.

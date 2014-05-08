@@ -4,42 +4,32 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.Client
 {
     /// <summary>
-    /// Represents a DeviceHive command.
-    /// Commands are sent by clients to devices.
+    /// Represents a DeviceHive notification.
+    /// Notifications are sent by devices to clients.
     /// </summary>
-    public class Command
+    public class Notification
     {
         #region Public Properties
 
         /// <summary>
-        /// Gets or sets command identifier (server-assigned).
+        /// Gets or sets notification identifier (server-assigned).
         /// </summary>
         public int? Id { get; set; }
 
         /// <summary>
-        /// Gets or sets command timestamp (server-assigned).
+        /// Gets or sets notification timestamp (server-assigned).
         /// </summary>
         public DateTime? Timestamp { get; set; }
 
         /// <summary>
-        /// Gets or sets command name.
+        /// Gets or sets notification name.
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets command parameters.
+        /// Gets or sets notification parameters.
         /// </summary>
         public JToken Parameters { get; set; }
-
-        /// <summary>
-        /// Gets or sets command execution status.
-        /// </summary>
-        public string Status { get; set; }
-
-        /// <summary>
-        /// Gets or sets command result (optional).
-        /// </summary>
-        public JToken Result { get; set; }
 
         #endregion
 
@@ -48,26 +38,26 @@ namespace DeviceHive.Client
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public Command()
+        public Notification()
         {
         }
 
         /// <summary>
-        /// Initializes command name property.
+        /// Initializes notification name property.
         /// </summary>
-        /// <param name="name">Command name.</param>
-        public Command(string name)
+        /// <param name="name">Notification name.</param>
+        public Notification(string name)
             : this()
         {
             Name = name;
         }
 
         /// <summary>
-        /// Initializes all command properties.
+        /// Initializes all notification properties.
         /// </summary>
-        /// <param name="name">Command name.</param>
-        /// <param name="parameters">Command parameters.</param>
-        public Command(string name, JToken parameters)
+        /// <param name="name">Notification name.</param>
+        /// <param name="parameters">Notification parameters.</param>
+        public Notification(string name, JToken parameters)
             : this(name)
         {
             Parameters = parameters;
@@ -77,7 +67,7 @@ namespace DeviceHive.Client
         #region Public Methods
 
         /// <summary>
-        /// Sets a value of command parameter with specified name.
+        /// Sets a value of notification parameter with specified name.
         /// </summary>
         /// <typeparam name="TValue">Type of the value.</typeparam>
         /// <param name="name">Parameter name.</param>
@@ -97,7 +87,7 @@ namespace DeviceHive.Client
         }
 
         /// <summary>
-        /// Gets a value of command parameter with specified name.
+        /// Gets a value of notification parameter with specified name.
         /// </summary>
         /// <typeparam name="TValue">Type of the value.</typeparam>
         /// <param name="name">Parameter name.</param>

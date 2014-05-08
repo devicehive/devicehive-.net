@@ -10,10 +10,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DeviceHive.Client</RootNamespace>
     <AssemblyName>DeviceHive.Client</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,8 +24,9 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DocumentationFile>bin\Debug\DeviceHive.Client.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,6 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\DeviceHive.Client.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -42,57 +45,60 @@
     <AssemblyOriginatorKeyFile>..\..\DeviceHive.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="WebSocket4Net, Version=0.8.0.0, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Formatting, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\WebSocket4Net.0.8\lib\net40\WebSocket4Net.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.AspNet.WebApi.Client.5.1.2\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSocket4Net, Version=0.9.0.0, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\WebSocket4Net.0.9\lib\net45\WebSocket4Net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Service\ApiInfo.cs" />
-    <Compile Include="Service\CommandEventArgs.cs" />
-    <Compile Include="Service\CommandFilter.cs" />
-    <Compile Include="Service\DeviceEquipmentState.cs" />
-    <Compile Include="Service\DeviceFilter.cs" />
-    <Compile Include="Service\DeviceNotification.cs" />
-    <Compile Include="Service\NotificationEventArgs.cs" />
-    <Compile Include="Service\IClientService.cs" />
-    <Compile Include="Service\ClientServiceException.cs" />
-    <Compile Include="Service\Command.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Service\Device.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Service\DeviceClass.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Service\Equipment.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Service\Network.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Service\NetworkFilter.cs" />
-    <Compile Include="Service\Notification.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Channels\Channel.cs" />
+    <Compile Include="Channels\ChannelState.cs" />
+    <Compile Include="Channels\ChannelStateEventArgs.cs" />
+    <Compile Include="Channels\ISubscription.cs" />
+    <Compile Include="Channels\LongPollingChannel.cs" />
+    <Compile Include="Channels\SubscriptionType.cs" />
+    <Compile Include="Channels\WebSocketChannel.cs" />
+    <Compile Include="DeviceHiveClient.cs" />
+    <Compile Include="DeviceHiveConnectionInfo.cs" />
+    <Compile Include="DeviceHiveException.cs" />
+    <Compile Include="Internal\AsyncLock.cs" />
+    <Compile Include="Internal\AsyncSemaphore.cs" />
+    <Compile Include="Internal\CommandCallback.cs" />
+    <Compile Include="Internal\JsonContractResolver.cs" />
+    <Compile Include="Internal\RestClient.cs" />
+    <Compile Include="Internal\Subscription.cs" />
+    <Compile Include="Model\ApiInfo.cs" />
+    <Compile Include="Model\Command.cs" />
+    <Compile Include="Model\CommandFilter.cs" />
+    <Compile Include="Model\Device.cs" />
+    <Compile Include="Model\DeviceClass.cs" />
+    <Compile Include="Model\DeviceCommand.cs" />
+    <Compile Include="Model\DeviceEquipmentState.cs" />
+    <Compile Include="Model\DeviceFilter.cs" />
+    <Compile Include="Model\DeviceNotification.cs" />
+    <Compile Include="Model\Equipment.cs" />
+    <Compile Include="Model\Network.cs" />
+    <Compile Include="Model\NetworkFilter.cs" />
+    <Compile Include="Model\Notification.cs" />
+    <Compile Include="Model\NotificationFilter.cs" />
+    <Compile Include="Model\SortOrder.cs" />
+    <Compile Include="Model\User.cs" />
+    <Compile Include="Model\UserNetwork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Service\NotificationFilter.cs" />
-    <Compile Include="Service\RestfulClientService.cs" />
-    <Compile Include="Service\SortOrder.cs" />
-    <Compile Include="Service\User.cs" />
-    <Compile Include="Service\UserNetwork.cs" />
-    <Compile Include="Service\WebSocketsClientService.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

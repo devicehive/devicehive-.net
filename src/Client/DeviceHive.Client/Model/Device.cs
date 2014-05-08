@@ -13,7 +13,12 @@ namespace DeviceHive.Client
         /// <summary>
         /// Gets or sets unique device identifier (device-assigned).
         /// </summary>
-        public Guid? Id { get; set; }
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets device key (used only when updating a device).
+        /// </summary>
+        public string Key { get; set; }
 
         /// <summary>
         /// Gets or sets device name.
