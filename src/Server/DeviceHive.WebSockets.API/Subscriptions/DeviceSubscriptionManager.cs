@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using DeviceHive.WebSockets.Core.Network;
+﻿using DeviceHive.WebSockets.Core.Network;
+using System;
+using System.Collections.Generic;
 
 namespace DeviceHive.WebSockets.API.Subscriptions
 {
@@ -15,29 +16,19 @@ namespace DeviceHive.WebSockets.API.Subscriptions
         {
         }
 
-        public void Subscribe(WebSocketConnectionBase connection, int? deviceId, object data = null)
+        public Subscription<int> Subscribe(Guid subscriptionId, WebSocketConnectionBase connection, int[] deviceIds, string[] names)
         {
-            base.Subscribe(connection, GetKey(deviceId), data);
+            return base.Subscribe(subscriptionId, connection, deviceIds ?? new int[] { 0 }, names);
         }
 
-        public void Unsubscribe(WebSocketConnectionBase connection, int? deviceId)
+        public Subscription<int> Subscribe(WebSocketConnectionBase connection, int deviceId)
         {
-            base.Unsubscribe(connection, GetKey(deviceId));
+            return base.Subscribe(Guid.NewGuid(), connection, new int[] { deviceId }, null);
         }
 
         public IEnumerable<Subscription<int>> GetSubscriptions(int deviceId)
         {
             return base.GetSubscriptions(deviceId, 0);
-        }
-
-        public IEnumerable<WebSocketConnectionBase> GetConnections(int deviceId)
-        {
-            return base.GetConnections(deviceId, 0);
-        }
-
-        private int GetKey(int? deviceId)
-        {
-            return deviceId ?? 0;
         }
     }
 }

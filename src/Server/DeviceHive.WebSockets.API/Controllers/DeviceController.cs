@@ -175,16 +175,14 @@ namespace DeviceHive.WebSockets.API.Controllers
         [AuthenticateDevice, AuthorizeDevice]
         public void SubsrcibeToDeviceCommands(DateTime? timestamp)
         {
-            if (timestamp != null)
+            var initialCommandList = GetInitialCommandList(Connection);
+            lock (initialCommandList)
             {
-                var initialCommandList = GetInitialCommandList(Connection);
-
-                lock (initialCommandList)
+                _subscriptionManager.Subscribe(Connection, CurrentDevice.ID);
+                if (timestamp != null)
                 {
                     var filter = new DeviceCommandFilter { Start = timestamp, IsDateInclusive = false };
-                    var initialCommands = DataContext.DeviceCommand.GetByDevice(
-                        CurrentDevice.ID, filter);
-
+                    var initialCommands = DataContext.DeviceCommand.GetByDevice(CurrentDevice.ID, filter);
                     foreach (var command in initialCommands)
                     {
                         initialCommandList.Add(command.ID);
@@ -193,7 +191,6 @@ namespace DeviceHive.WebSockets.API.Controllers
                 }
             }
             
-            _subscriptionManager.Subscribe(Connection, CurrentDevice.ID);
             SendSuccessResponse();
         }
 
@@ -204,7 +201,13 @@ namespace DeviceHive.WebSockets.API.Controllers
         [AuthenticateDevice, AuthorizeDevice]
         public void UnsubsrcibeFromDeviceCommands()
         {
-            _subscriptionManager.Unsubscribe(Connection, CurrentDevice.ID); 
+            var subscriptions = _subscriptionManager.GetSubscriptions(Connection);
+            foreach (var subscription in subscriptions)
+            {
+                if (subscription.Keys.Contains(CurrentDevice.ID))
+                    _subscriptionManager.Unsubscribe(Connection, subscription.Id);
+            }
+
             SendSuccessResponse();
         }
 
@@ -282,14 +285,14 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         public void HandleDeviceCommand(int deviceId, int commandId)
         {
-            var connections = _subscriptionManager.GetConnections(deviceId);
-            if (connections.Any())
+            var subscriptions = _subscriptionManager.GetSubscriptions(deviceId);
+            if (subscriptions.Any())
             {
                 var command = DataContext.DeviceCommand.Get(commandId);
                 var device = DataContext.Device.Get(deviceId);
 
-                foreach (var connection in connections)
-                    Notify(connection, device, command);
+                foreach (var subscription in subscriptions)
+                    Notify(subscription.Connection, device, command);
             }
         }
 
@@ -307,7 +310,7 @@ namespace DeviceHive.WebSockets.API.Controllers
             if (!isInitialCommand)
             {
                 var initialCommandList = GetInitialCommandList(connection);
-                lock (initialCommandList)
+                lock (initialCommandList) // wait until all initial commands are sent
                 {
                     if (initialCommandList.Contains(command.ID))
                         return;
