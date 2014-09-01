@@ -143,7 +143,7 @@ namespace DeviceHive.Data.MongoDB
             var getter = GetTimestampGetter(typeof(T));
             if (getter(entity) == default(DateTime))
             {
-                var timestamp = Database.Eval("return new Date()").ToUniversalTime();
+                var timestamp = Database.Eval(EvalFlags.NoLock, "return new Date()").ToUniversalTime();
                 var setter = GetTimestampSetter(typeof(T));
                 setter(entity, timestamp);
             }

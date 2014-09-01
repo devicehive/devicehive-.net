@@ -97,7 +97,7 @@ namespace DeviceHive.Data.MongoDB
                 .Select(d => new { ID = d.ID, OfflineTimeout = d.DeviceClass.OfflineTimeout }).ToList();
 
             var deviceIds = new List<int>();
-            var timestamp = _mongo.Database.Eval("return new Date()").ToUniversalTime();
+            var timestamp = _mongo.Database.Eval(EvalFlags.NoLock, "return new Date()").ToUniversalTime();
             foreach (var device in devices)
             {
                 var ts = timestamp.AddSeconds(-device.OfflineTimeout.Value);
