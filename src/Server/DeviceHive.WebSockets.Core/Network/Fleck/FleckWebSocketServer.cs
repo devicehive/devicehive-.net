@@ -24,7 +24,9 @@ namespace DeviceHive.WebSockets.Core.Network.Fleck
 
         public override void Start(string url, string sslCertificateSerialNumber)
         {
-            _webSocketServer = new WebSocketServer(url);
+            var uri = new Uri(url);
+            var listenUrl = string.Format("{0}://0.0.0.0:{1}", uri.Scheme, uri.Port);
+            _webSocketServer = new WebSocketServer(listenUrl);
 
             if (sslCertificateSerialNumber != null)
             {
