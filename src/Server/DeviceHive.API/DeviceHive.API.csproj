@@ -130,6 +130,7 @@
     <Compile Include="Filters\HttpCreatedResponseAttribute.cs" />
     <Compile Include="Filters\HttpNoContentResponseAttribute.cs" />
     <Compile Include="Filters\IdOrCurrentConstraint.cs" />
+    <Compile Include="Filters\ActionSelector.cs" />
     <Compile Include="Filters\ResolveCurrentUserAttribute.cs" />
     <Compile Include="Filters\XHttpMethodDelegatingHandler.cs" />
     <Compile Include="Global.asax.cs">

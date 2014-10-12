@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Http;
+using System.Web.Http.Controllers;
 using System.Web.Http.Routing;
 
 namespace DeviceHive.API
@@ -28,6 +29,9 @@ namespace DeviceHive.API
 
             // message handlers
             config.MessageHandlers.Add(new XHttpMethodDelegatingHandler());
+
+            // action selector which handles options method
+            config.Services.Replace(typeof(IHttpActionSelector), new ActionSelector());
 
             // global filters
             config.Filters.Add(new HandleExceptionAttribute());
