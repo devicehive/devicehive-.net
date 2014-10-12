@@ -24,6 +24,7 @@ namespace DeviceHive.WebSockets.API.Service
             _server = server;
             _server.ConnectionOpened += (s, e) => router.HandleNewConnection(e.Connection);
             _server.MessageReceived += (s, e) => router.RouteRequest(e.Connection, e.Message);
+            _server.PingReceived += (s, e) => router.RoutePing(e.Connection);
             _server.ConnectionClosed += (s, e) => router.CleanupConnection(e.Connection);
         }
 

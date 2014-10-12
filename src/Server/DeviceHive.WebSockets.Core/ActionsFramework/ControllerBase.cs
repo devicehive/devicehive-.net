@@ -68,6 +68,17 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
             }
         }
 
+        public void InvokePingAction(ActionContext actionContext)
+        {
+            if (actionContext == null)
+                throw new ArgumentNullException("actionContext");
+
+            ActionContext = actionContext;
+
+            _logger.DebugFormat("Invoking ping on connection: {0}", Connection.Identity);
+            _actionInvoker.InvokePingAction(ActionContext);
+        }
+
         public virtual void CleanupConnection(WebSocketConnectionBase connection)
         {
         }

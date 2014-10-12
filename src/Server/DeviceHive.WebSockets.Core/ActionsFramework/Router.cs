@@ -40,6 +40,21 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
             }
         }
 
+        public void RoutePing(WebSocketConnectionBase connection)
+        {
+            try
+            {
+                var controller = GetController(connection);
+                
+                var actionContext = new ActionContext(connection, controller, null, null);
+                controller.InvokePingAction(actionContext);
+            }
+            catch (Exception e)
+            {
+                LogManager.GetLogger(typeof(Router)).Error("WebSocket ping error", e);
+            }
+        }
+
         public void CleanupConnection(WebSocketConnectionBase connection)
         {
             var controller = GetController(connection, allowNullResult: true);

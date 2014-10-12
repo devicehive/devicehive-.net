@@ -22,17 +22,27 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
             action.Invoke(actionContext);
         }
 
+        public void InvokePingAction(ActionContext actionContext)
+        {
+            var actionCollection = _controllerCollection.GetActionCollection(actionContext.Controller.GetType());
+            if (actionCollection.PingAction != null)
+            {
+                actionCollection.PingAction.Invoke(actionContext);
+            }
+        }
+
         #region ActionCollection class
 
         private class ActionCollection
         {
-            private readonly Dictionary<string, ActionInfo> _actions =
-                new Dictionary<string, ActionInfo>();
+            private readonly Dictionary<string, ActionInfo> _actions = new Dictionary<string, ActionInfo>();
 
             public ActionCollection(Type controllerType)
             {
                 FindActions(controllerType);
             }
+
+            public ActionInfo PingAction { get; private set; }
 
             public ActionInfo GetAction(string name)
             {
@@ -46,6 +56,13 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
 
                 foreach (var methodInfo in methods)
                 {
+                    var pingAttrs = methodInfo.GetCustomAttributes(typeof(PingAttribute), true);
+                    if (pingAttrs.Length > 0)
+                    {
+                        PingAction = new ActionInfo(methodInfo);
+                        continue;
+                    }
+
                     var actionAttrs = methodInfo.GetCustomAttributes(typeof (ActionAttribute), true);
                     if (actionAttrs.Length == 0)
                         continue;

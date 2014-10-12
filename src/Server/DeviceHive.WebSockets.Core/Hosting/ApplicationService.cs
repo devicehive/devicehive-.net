@@ -65,6 +65,18 @@ namespace DeviceHive.WebSockets.Core.Hosting
                 OnMessageReceived(new WebSocketMessageEventArgs(c, msg.Data));
             });
 
+            _messageBus.Subscribe((PingReceivedMessage msg) =>
+            {
+                var c = GetConnection(msg.ConnectionIdentity);
+                if (c == null)
+                {
+                    _log.Error("Received message for not existing connection");
+                    return;
+                }
+
+                OnPingReceived(new WebSocketConnectionEventArgs(c));
+            });
+
             _messageBus.Subscribe((CloseApplicationMessage msg) =>
             {
                 Stop();

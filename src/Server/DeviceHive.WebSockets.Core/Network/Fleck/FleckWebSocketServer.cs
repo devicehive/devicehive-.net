@@ -68,6 +68,23 @@ namespace DeviceHive.WebSockets.Core.Network.Fleck
                         var e = new WebSocketMessageEventArgs(fc, msg);
                         OnMessageReceived(e);
                     };
+
+                c.OnPing = data =>
+                    {
+                        _logger.Debug("Received ping for connection: " + c.ConnectionInfo.Id);
+
+                        var fc = WaitConnection(c.ConnectionInfo.Id);
+                        if (fc == null)
+                        {
+                            _logger.ErrorFormat("Connection {0} is not registered", c.ConnectionInfo.Id);
+                            return;
+                        }
+
+                        var e = new WebSocketConnectionEventArgs(fc);
+                        OnPingReceived(e);
+
+                        c.SendPong(data);
+                    };
             });
         }
 

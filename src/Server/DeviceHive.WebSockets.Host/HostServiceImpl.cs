@@ -31,7 +31,8 @@ namespace DeviceHive.WebSockets.Host
             _server = server;
             _server.ConnectionOpened += OnConnectionOpened;
             _server.MessageReceived += OnMessageReceived;
-            _server.ConnectionClosed += OnConnectionClosed;            
+            _server.PingReceived += OnPingReceived;
+            _server.ConnectionClosed += OnConnectionClosed;
             _managerServiceHost = new ServiceHost(this);
         }
 
@@ -172,6 +173,13 @@ namespace DeviceHive.WebSockets.Host
             var app = _applications.GetApplicationByHost(args.Connection.Host);
             if (app != null)
                 app.NotifyMessageReceived(args.Connection, args.Message);
+        }
+
+        private void OnPingReceived(object sender, WebSocketConnectionEventArgs args)
+        {
+            var app = _applications.GetApplicationByHost(args.Connection.Host);
+            if (app != null)
+                app.NotifyPingReceived(args.Connection);
         }
 
         private void OnConnectionClosed(object sender, WebSocketConnectionEventArgs args)

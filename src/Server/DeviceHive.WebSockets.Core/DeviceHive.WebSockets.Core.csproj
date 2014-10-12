@@ -60,6 +60,7 @@
     <Compile Include="ActionsFramework\ActionInfo.cs" />
     <Compile Include="ActionsFramework\ActionInvoker.cs" />
     <Compile Include="ActionsFramework\ControllerBase.cs" />
+    <Compile Include="ActionsFramework\PingAttribute.cs" />
     <Compile Include="ActionsFramework\Router.cs" />
     <Compile Include="ActionsFramework\WebSocketConnectionExtensions.cs" />
     <Compile Include="ActionsFramework\WebSocketRequestException.cs" />

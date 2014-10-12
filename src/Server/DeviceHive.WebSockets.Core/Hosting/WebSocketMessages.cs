@@ -71,6 +71,20 @@ namespace DeviceHive.WebSockets.Core.Hosting
         }
     }
 
+    public class PingReceivedMessage
+    {
+        public Guid ConnectionIdentity { get; set; }
+
+        public PingReceivedMessage()
+        {
+        }
+
+        public PingReceivedMessage(Guid connectionIdentity)
+        {
+            ConnectionIdentity = connectionIdentity;
+        }
+    }
+    
     public class SendDataMessage
     {
         public Guid ConnectionIdentity { get; set; }
