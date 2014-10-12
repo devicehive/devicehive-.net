@@ -16,7 +16,7 @@ namespace DeviceHive.API.Filters
 
         public static void AppendCorsHeaders(HttpRequestMessage request, HttpResponseMessage response)
         {
-            if (!request.Headers.Contains("Origin"))
+            if (!request.Headers.Contains("Origin") || response == null)
                 return;
 
             var origin = request.Headers.GetValues("Origin").First();
