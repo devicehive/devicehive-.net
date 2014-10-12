@@ -46,50 +46,35 @@ namespace DeviceHive.API.Controllers
         /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
         [Route("device/{deviceGuid:guid}/notification/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
-        public Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
+        public async Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
-            var taskSource = new TaskCompletionSource<JArray>();
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             var notificationNames = names != null ? names.Split(',') : null;
             if (waitTimeout <= 0)
             {
                 var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false, Notifications = notificationNames };
                 var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, filter);
-                taskSource.SetResult(new JArray(notifications.Select(n => Mapper.Map(n))));
-                return taskSource.Task;
+                return new JArray(notifications.Select(n => Mapper.Map(n)));
             }
 
-            var delayTask = Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
-            var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(device.ID);
-            taskSource.Task.ContinueWith(t => waiterHandle.Dispose());
-
-            Action<bool> wait = null;
-            Action<bool> wait2 = cancel =>
+            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(device.ID))
+            {
+                do
                 {
-                    if (cancel)
-                    {
-                        taskSource.SetResult(new JArray());
-                        return;
-                    }
-
                     var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false, Notifications = notificationNames };
                     var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, filter);
                     if (notifications != null && notifications.Any())
-                    {
-                        taskSource.SetResult(new JArray(notifications.Select(n => Mapper.Map(n))));
-                        return;
-                    }
+                        return new JArray(notifications.Select(n => Mapper.Map(n)));
+                }
+                while (await Task.WhenAny(waiterHandle.Wait(), delayTask) != delayTask);
+            }
 
-                    Task.Factory.ContinueWhenAny(new[] { waiterHandle.Wait(), delayTask }, t => wait(t == delayTask));
-                };
-            wait = wait2;
-            wait(false);
-
-            return taskSource.Task;
+            return new JArray();
         }
 
         /// <name>pollMany</name>
@@ -112,7 +97,7 @@ namespace DeviceHive.API.Controllers
         /// </response>
         [Route("device/notification/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
-        public Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
+        public async Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
             var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(deviceGuid =>
                 {
@@ -123,46 +108,31 @@ namespace DeviceHive.API.Controllers
                     return device.ID;
                 }).ToArray();
 
-            var taskSource = new TaskCompletionSource<JArray>();
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             var notificationNames = names != null ? names.Split(',') : null;
             if (waitTimeout <= 0)
             {
                 var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false, Notifications = notificationNames };
                 var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter);
-                taskSource.SetResult(MapDeviceNotifications(notifications.Where(n => IsDeviceAccessible(n.Device))));
-                return taskSource.Task;
+                return MapDeviceNotifications(notifications.Where(n => IsDeviceAccessible(n.Device)));
             }
 
-            var delayTask = Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
-            var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(
-                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray());
-            taskSource.Task.ContinueWith(t => waiterHandle.Dispose());
-
-            Action<bool> wait = null;
-            Action<bool> wait2 = cancel =>
+            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(
+                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray()))
             {
-                if (cancel)
+                do
                 {
-                    taskSource.SetResult(new JArray());
-                    return;
+                    var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false, Notifications = notificationNames };
+                    var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter)
+                        .Where(n => IsDeviceAccessible(n.Device)).ToArray();
+                    if (notifications != null && notifications.Any())
+                        return MapDeviceNotifications(notifications);
                 }
+                while (await Task.WhenAny(waiterHandle.Wait(), delayTask) != delayTask);
+            }
 
-                var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false, Notifications = notificationNames };
-                var notifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter)
-                    .Where(n => IsDeviceAccessible(n.Device)).ToArray();
-                if (notifications != null && notifications.Any())
-                {
-                    taskSource.SetResult(MapDeviceNotifications(notifications));
-                    return;
-                }
-
-                Task.Factory.ContinueWhenAny(new[] { waiterHandle.Wait(), delayTask }, t => wait(t == delayTask));
-            };
-            wait = wait2;
-            wait(false);
-
-            return taskSource.Task;
+            return new JArray();
         }
 
         private JArray MapDeviceNotifications(IEnumerable<DeviceNotification> notifications)

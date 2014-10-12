@@ -49,7 +49,7 @@ namespace DeviceHive.API.Controllers
         /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
         [Route("device/{deviceGuid:guid}/command/poll")]
         [AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
-        public Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null) 
+        public async Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null) 
         {
             EnsureDeviceAccess(deviceGuid);
 
@@ -57,44 +57,29 @@ namespace DeviceHive.API.Controllers
             if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
-            var taskSource = new TaskCompletionSource<JArray>();
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             var commandNames = names != null ? names.Split(',') : null;
             if (waitTimeout <= 0)
             {
                 var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
                 var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
-                taskSource.SetResult(new JArray(commands.Select(n => Mapper.Map(n))));
-                return taskSource.Task;
+                return new JArray(commands.Select(n => Mapper.Map(n)));
             }
 
-            var delayTask = Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
-            var waiterHandle = _commandByDeviceIdWaiter.BeginWait(device.ID);
-            taskSource.Task.ContinueWith(t => waiterHandle.Dispose());
-
-            Action<bool> wait = null;
-            Action<bool> wait2 = cancel =>
+            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            using (var waiterHandle = _commandByDeviceIdWaiter.BeginWait(device.ID))
+            {
+                do
                 {
-                    if (cancel)
-                    {
-                        taskSource.SetResult(new JArray());
-                        return;
-                    }
-
                     var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
                     var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
                     if (commands != null && commands.Any())
-                    {
-                        taskSource.SetResult(new JArray(commands.Select(n => Mapper.Map(n))));
-                        return;
-                    }
+                        return new JArray(commands.Select(n => Mapper.Map(n)));
+                }
+                while (await Task.WhenAny(waiterHandle.Wait(), delayTask) != delayTask);
+            }
 
-                    Task.Factory.ContinueWhenAny(new[] { waiterHandle.Wait(), delayTask }, t => wait(t == delayTask));
-                };
-            wait = wait2;
-            wait(false);
-
-            return taskSource.Task;
+            return new JArray();
         }
 
         /// <name>pollMany</name>
@@ -117,7 +102,7 @@ namespace DeviceHive.API.Controllers
         /// </response>
         [Route("device/command/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceCommand")]
-        public Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
+        public async Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
             var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(deviceGuid =>
                 {
@@ -128,46 +113,31 @@ namespace DeviceHive.API.Controllers
                     return device.ID;
                 }).ToArray();
 
-            var taskSource = new TaskCompletionSource<JArray>();
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             var commandNames = names != null ? names.Split(',') : null;
             if (waitTimeout <= 0)
             {
                 var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
                 var commands = DataContext.DeviceCommand.GetByDevices(deviceIds, filter);
-                taskSource.SetResult(MapDeviceCommands(commands.Where(c => IsDeviceAccessible(c.Device))));
-                return taskSource.Task;
+                return MapDeviceCommands(commands.Where(c => IsDeviceAccessible(c.Device)));
             }
 
-            var delayTask = Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
-            var waiterHandle = _commandByDeviceIdWaiter.BeginWait(
-                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray());
-            taskSource.Task.ContinueWith(t => waiterHandle.Dispose());
-
-            Action<bool> wait = null;
-            Action<bool> wait2 = cancel =>
+            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            using (var waiterHandle = _commandByDeviceIdWaiter.BeginWait(
+                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray()))
             {
-                if (cancel)
+                do
                 {
-                    taskSource.SetResult(new JArray());
-                    return;
+                    var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
+                    var commands = DataContext.DeviceCommand.GetByDevices(deviceIds, filter)
+                        .Where(c => IsDeviceAccessible(c.Device)).ToArray();
+                    if (commands != null && commands.Any())
+                        return MapDeviceCommands(commands);
                 }
+                while (await Task.WhenAny(waiterHandle.Wait(), delayTask) != delayTask);
+            }
 
-                var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
-                var commands = DataContext.DeviceCommand.GetByDevices(deviceIds, filter)
-                    .Where(c => IsDeviceAccessible(c.Device)).ToArray();
-                if (commands != null && commands.Any())
-                {
-                    taskSource.SetResult(MapDeviceCommands(commands));
-                    return;
-                }
-
-                Task.Factory.ContinueWhenAny(new[] { waiterHandle.Wait(), delayTask }, t => wait(t == delayTask));
-            };
-            wait = wait2;
-            wait(false);
-
-            return taskSource.Task;
+            return new JArray();
         }
 
         /// <name>wait</name>
@@ -185,7 +155,7 @@ namespace DeviceHive.API.Controllers
         /// <returns cref="DeviceCommand">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
         [Route("device/{deviceGuid:guid}/command/{id:int}/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceCommand")]
-        public Task<JObject> Get(Guid deviceGuid, int id, int? waitTimeout = null)
+        public async Task<JObject> Get(Guid deviceGuid, int id, int? waitTimeout = null)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsDeviceAccessible(device))
@@ -195,44 +165,25 @@ namespace DeviceHive.API.Controllers
             if (command == null || command.DeviceID != device.ID)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device command not found!");
 
-            var taskSource = new TaskCompletionSource<JObject>();
             if (command.Status != null)
-            {
-                taskSource.SetResult(Mapper.Map(command));
-                return taskSource.Task;
-            }
+                return Mapper.Map(command);
+
             if (waitTimeout <= 0)
+                return null;
+
+            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            using (var waiterHandle = _commandByCommandIdWaiter.BeginWait(id))
             {
-                taskSource.SetResult(null);
-                return taskSource.Task;
+                do
+                {
+                    command = DataContext.DeviceCommand.Get(id);
+                    if (command != null && command.Status != null)
+                        return Mapper.Map(command);
+                }
+                while (await Task.WhenAny(waiterHandle.Wait(), delayTask) != delayTask);
             }
 
-            var delayTask = Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
-            var waiterHandle = _commandByCommandIdWaiter.BeginWait(id);
-            taskSource.Task.ContinueWith(t => waiterHandle.Dispose());
-
-            Action<bool> wait = null;
-            Action<bool> wait2 = cancel =>
-            {
-                if (cancel)
-                {
-                    taskSource.SetResult(null);
-                    return;
-                }
-
-                command = DataContext.DeviceCommand.Get(id);
-                if (command != null && command.Status != null)
-                {
-                    taskSource.SetResult(Mapper.Map(command));
-                    return;
-                }
-
-                Task.Factory.ContinueWhenAny(new[] { waiterHandle.Wait(), delayTask }, t => wait(t == delayTask));
-            };
-            wait = wait2;
-            wait(false);
-
-            return taskSource.Task;
+            return null;
         }
 
         private JArray MapDeviceCommands(IEnumerable<DeviceCommand> commands)

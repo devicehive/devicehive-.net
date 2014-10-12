@@ -130,17 +130,6 @@ namespace DeviceHive.API.Controllers
         {
             throw new HttpResponseException(HttpResponse(status, message));
         }
-
-        protected Task Delay(int timeout)
-        {
-            var taskSource = new TaskCompletionSource<bool>();
-            new Timer(self =>
-                {
-                    ((IDisposable)self).Dispose();
-                    taskSource.TrySetResult(true);
-                }).Change(timeout, Timeout.Infinite);
-            return taskSource.Task;
-        }
         #endregion
     }
 }
