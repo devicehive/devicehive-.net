@@ -251,6 +251,9 @@ namespace DeviceHive.WebSockets.API.Controllers
             try
             {
                 _deviceService.SaveDevice(deviceEntity, device);
+                if (!ActionContext.Parameters.ContainsKey("Device"))
+                    DataContext.Device.SetLastOnline(deviceEntity.ID);
+
                 SendSuccessResponse();
             }
             catch (ServiceException e)
@@ -277,6 +280,15 @@ namespace DeviceHive.WebSockets.API.Controllers
             };
 
             SendResponse(new JProperty("info", GetMapper<ApiInfo>().Map(apiInfo)));
+        }
+
+        [Ping]
+        public void Ping()
+        {
+            if (SessionDevice != null)
+            {
+                DataContext.Device.SetLastOnline(SessionDevice.ID);
+            }
         }
 
         #endregion

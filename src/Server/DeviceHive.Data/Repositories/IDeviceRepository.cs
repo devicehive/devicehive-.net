@@ -12,6 +12,7 @@ namespace DeviceHive.Data.Repositories
         List<Device> GetByNetwork(int networkId, DeviceFilter filter = null);
         List<Device> GetByUser(int userId, DeviceFilter filter = null);
         List<Device> GetOfflineDevices();
+        void SetLastOnline(int id);
     }
 
     public static class DeviceRepositoryExtension

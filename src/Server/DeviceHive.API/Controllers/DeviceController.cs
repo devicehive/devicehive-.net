@@ -110,6 +110,10 @@ namespace DeviceHive.API.Controllers
             {
                 ThrowHttpResponse(HttpStatusCode.Forbidden, e.Message);
             }
+
+            // if new device registered by itself - set online timestamp
+            if (CallContext.CurrentUser == null && !Request.Properties.ContainsKey("Device"))
+                DataContext.Device.SetLastOnline(device.ID);
         }
 
         /// <name>delete</name>

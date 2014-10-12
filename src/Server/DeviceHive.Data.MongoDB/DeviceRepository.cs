@@ -90,22 +90,22 @@ namespace DeviceHive.Data.MongoDB
             _mongo.DeviceCommands.Remove(Query<DeviceCommand>.EQ(e => e.DeviceID, id));
         }
 
+        public void SetLastOnline(int id)
+        {
+            _mongo.Database.Eval(string.Format("db.devices.update({{ _id: {0} }}, {{ $set: {{ LastOnline: new Date() }}}});", id));
+        }
+
         public List<Device> GetOfflineDevices()
         {
             var devices = _mongo.Devices.AsQueryable()
                 .Where(d => d.DeviceClass.OfflineTimeout != null)
-                .Select(d => new { ID = d.ID, OfflineTimeout = d.DeviceClass.OfflineTimeout }).ToList();
+                .Select(d => new { ID = d.ID, LastOnline = d.LastOnline, OfflineTimeout = d.DeviceClass.OfflineTimeout }).ToList();
 
             var deviceIds = new List<int>();
             var timestamp = _mongo.Database.Eval("return new Date()").ToUniversalTime();
             foreach (var device in devices)
             {
-                var ts = timestamp.AddSeconds(-device.OfflineTimeout.Value);
-                var alive = _mongo.DeviceNotifications.FindOne(Query.And(
-                    Query<DeviceNotification>.EQ(e => e.DeviceID, device.ID),
-                    Query<DeviceNotification>.GTE(e => e.Timestamp, ts))) != null;
-                
-                if (!alive)
+                if (device.LastOnline == null || device.LastOnline < timestamp.AddSeconds(-device.OfflineTimeout.Value))
                     deviceIds.Add(device.ID);
             }
 

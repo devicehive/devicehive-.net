@@ -94,8 +94,9 @@ namespace DeviceHive.API.Filters
                     var authDeviceKey = GetCustomHeader(actionContext, "Auth-DeviceKey");
                     if (authDeviceKey != null && device.Key == authDeviceKey)
                     {
-                        // authenticate the device
+                        // authenticate the device and update last online
                         controller.CallContext.CurrentDevice = device;
+                        controller.DataContext.Device.SetLastOnline(device.ID);
                     }
                 }
 

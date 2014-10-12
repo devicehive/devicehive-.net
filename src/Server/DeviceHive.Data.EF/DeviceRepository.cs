@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
@@ -105,6 +106,16 @@ namespace DeviceHive.Data.EF
             }
         }
 
+        public void SetLastOnline(int id)
+        {
+            using (var context = new DeviceHiveContext())
+            {
+                context.Database.ExecuteSqlCommand(
+                    "update [Device] set [LastOnline] = sysutcdatetime() where [ID] = @ID",
+                    new SqlParameter("ID", id));
+            }
+        }
+
         public List<Device> GetOfflineDevices()
         {
             using (var context = new DeviceHiveContext())
@@ -113,8 +124,7 @@ namespace DeviceHive.Data.EF
                     .Include(e => e.Network)
                     .Include(e => e.DeviceClass.Equipment)
                     .Where(e => e.DeviceClass.OfflineTimeout != null)
-                    .Where(d => !context.DeviceNotifications.Any(n => n.Device == d &&
-                        DbFunctions.AddSeconds(n.Timestamp, d.DeviceClass.OfflineTimeout) >= DateTime.UtcNow))
+                    .Where(d => d.LastOnline == null || DbFunctions.AddSeconds(d.LastOnline, d.DeviceClass.OfflineTimeout) < DateTime.UtcNow)
                     .ToList();
             }
         }

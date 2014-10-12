@@ -53,6 +53,7 @@ namespace DeviceHive.WebSockets.API.Filters
                 return;
             }
 
+            controller.DataContext.Device.SetLastOnline(device.ID);
             actionContext.Parameters["AuthDevice"] = device;
         }
 

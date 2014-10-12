@@ -101,6 +101,11 @@ namespace DeviceHive.Data.Model
         public string Data { get; set; }
 
         /// <summary>
+        /// Timestamp of the last online status
+        /// </summary>
+        public DateTime? LastOnline { get; set; }
+
+        /// <summary>
         /// Associated network identifier.
         /// </summary>
         public int? NetworkID { get; set; }
