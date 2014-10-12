@@ -6,6 +6,7 @@ using System.Web.Http;
 using System.Threading.Tasks;
 using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
@@ -17,9 +18,6 @@ namespace DeviceHive.API.Controllers
     /// <resource cref="DeviceCommand" />
     public class DeviceCommandPollController : BaseController
     {
-        private static readonly int _defaultWaitTimeout = 30;
-        private static readonly int _maxWaitTimeout = 60;
-
         private ITimestampRepository _timestampRepository;
         private ObjectWaiter _commandByDeviceIdWaiter;
         private ObjectWaiter _commandByCommandIdWaiter;
@@ -66,7 +64,8 @@ namespace DeviceHive.API.Controllers
                 return new JArray(commands.Select(n => Mapper.Map(n)));
             }
 
-            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            var config = DeviceHiveConfiguration.RestEndpoint;
+            var delayTask = Task.Delay(1000 * Math.Min(config.CommandPollMaxInterval, waitTimeout ?? config.CommandPollDefaultInterval));
             using (var waiterHandle = _commandByDeviceIdWaiter.BeginWait(device.ID))
             {
                 do
@@ -122,7 +121,8 @@ namespace DeviceHive.API.Controllers
                 return MapDeviceCommands(commands.Where(c => IsDeviceAccessible(c.Device)));
             }
 
-            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            var config = DeviceHiveConfiguration.RestEndpoint;
+            var delayTask = Task.Delay(1000 * Math.Min(config.CommandPollMaxInterval, waitTimeout ?? config.CommandPollDefaultInterval));
             using (var waiterHandle = _commandByDeviceIdWaiter.BeginWait(
                 deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray()))
             {
@@ -171,7 +171,8 @@ namespace DeviceHive.API.Controllers
             if (waitTimeout <= 0)
                 return null;
 
-            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            var config = DeviceHiveConfiguration.RestEndpoint;
+            var delayTask = Task.Delay(1000 * Math.Min(config.CommandPollMaxInterval, waitTimeout ?? config.CommandPollDefaultInterval));
             using (var waiterHandle = _commandByCommandIdWaiter.BeginWait(id))
             {
                 do

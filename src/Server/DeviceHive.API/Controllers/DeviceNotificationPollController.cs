@@ -6,6 +6,7 @@ using System.Web.Http;
 using System.Threading.Tasks;
 using DeviceHive.API.Business;
 using DeviceHive.API.Filters;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
@@ -17,9 +18,6 @@ namespace DeviceHive.API.Controllers
     /// <resource cref="DeviceNotification" />
     public class DeviceNotificationPollController : BaseController
     {
-        private static readonly int _defaultWaitTimeout = 30;
-        private static readonly int _maxWaitTimeout = 60;
-
         private ITimestampRepository _timestampRepository;
         private ObjectWaiter _notificationByDeviceIdWaiter;
 
@@ -61,7 +59,8 @@ namespace DeviceHive.API.Controllers
                 return new JArray(notifications.Select(n => Mapper.Map(n)));
             }
 
-            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            var config = DeviceHiveConfiguration.RestEndpoint;
+            var delayTask = Task.Delay(1000 * Math.Min(config.NotificationPollMaxInterval, waitTimeout ?? config.NotificationPollDefaultInterval));
             using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(device.ID))
             {
                 do
@@ -117,7 +116,8 @@ namespace DeviceHive.API.Controllers
                 return MapDeviceNotifications(notifications.Where(n => IsDeviceAccessible(n.Device)));
             }
 
-            var delayTask = Task.Delay(1000 * Math.Min(_maxWaitTimeout, waitTimeout ?? _defaultWaitTimeout));
+            var config = DeviceHiveConfiguration.RestEndpoint;
+            var delayTask = Task.Delay(1000 * Math.Min(config.NotificationPollMaxInterval, waitTimeout ?? config.NotificationPollDefaultInterval));
             using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(
                 deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray()))
             {

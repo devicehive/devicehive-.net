@@ -88,6 +88,46 @@ namespace DeviceHive.Core
             get { return (string)this["url"]; }
             set { base["url"] = value; }
         }
+
+        /// <summary>
+        /// Gets or sets default notification polling interval
+        /// </summary>
+        [ConfigurationProperty("notificationPollDefaultInterval", DefaultValue = 30)]
+        public int NotificationPollDefaultInterval
+        {
+            get { return (int)this["notificationPollDefaultInterval"]; }
+            set { base["notificationPollDefaultInterval"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets maximum notification polling interval
+        /// </summary>
+        [ConfigurationProperty("notificationPollMaxInterval", DefaultValue = 60)]
+        public int NotificationPollMaxInterval
+        {
+            get { return (int)this["notificationPollMaxInterval"]; }
+            set { base["notificationPollMaxInterval"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets default command polling interval
+        /// </summary>
+        [ConfigurationProperty("commandPollDefaultInterval", DefaultValue = 30)]
+        public int CommandPollDefaultInterval
+        {
+            get { return (int)this["commandPollDefaultInterval"]; }
+            set { base["commandPollDefaultInterval"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets maximum command polling interval
+        /// </summary>
+        [ConfigurationProperty("commandPollMaxInterval", DefaultValue = 60)]
+        public int CommandPollMaxInterval
+        {
+            get { return (int)this["commandPollMaxInterval"]; }
+            set { base["commandPollMaxInterval"] = value; }
+        }
     }
 
     /// <summary>
