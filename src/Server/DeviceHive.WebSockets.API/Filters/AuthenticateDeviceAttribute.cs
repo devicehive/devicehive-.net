@@ -9,6 +9,25 @@ namespace DeviceHive.WebSockets.API.Filters
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class AuthenticateDeviceAttribute : ActionFilterAttribute
     {
+        #region Public Properties
+
+        public bool ThrowDeviceNotFoundException { get; set; }
+
+        #endregion
+
+        #region Constructor
+
+        public AuthenticateDeviceAttribute()
+            : this(true)
+        {
+        }
+
+        public AuthenticateDeviceAttribute(bool throwDeviceNotFoundException)
+        {
+            ThrowDeviceNotFoundException = throwDeviceNotFoundException;
+        }
+        #endregion
+
         #region ActionFilterAttribute Members
 
         public override void OnAuthentication(ActionContext actionContext)
@@ -28,7 +47,11 @@ namespace DeviceHive.WebSockets.API.Filters
             var controller = (DeviceHive.WebSockets.API.Controllers.ControllerBase)actionContext.Controller;
             var device = controller.DataContext.Device.Get(deviceId);
             if (device == null || device.Key != deviceKey)
-                throw new WebSocketRequestException("Device not found");
+            {
+                if (ThrowDeviceNotFoundException)
+                    throw new WebSocketRequestException("Device not found");
+                return;
+            }
 
             actionContext.Parameters["AuthDevice"] = device;
         }
