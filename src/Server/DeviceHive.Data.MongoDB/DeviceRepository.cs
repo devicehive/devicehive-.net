@@ -102,7 +102,7 @@ namespace DeviceHive.Data.MongoDB
                 .Select(d => new { ID = d.ID, LastOnline = d.LastOnline, OfflineTimeout = d.DeviceClass.OfflineTimeout }).ToList();
 
             var deviceIds = new List<int>();
-            var timestamp = _mongo.Database.Eval("return new Date()").ToUniversalTime();
+            var timestamp = _mongo.Database.Eval(EvalFlags.NoLock, "return new Date()").ToUniversalTime();
             foreach (var device in devices)
             {
                 if (device.LastOnline == null || device.LastOnline < timestamp.AddSeconds(-device.OfflineTimeout.Value))
