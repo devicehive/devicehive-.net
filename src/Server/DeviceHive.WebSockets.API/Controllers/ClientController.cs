@@ -120,9 +120,9 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </response>
         [Action("notification/insert")]
         [AuthorizeClient(AccessKeyAction = "CreateDeviceNotification")]
-        public void InsertDeviceNotification(Guid deviceGuid, JObject notification)
+        public void InsertDeviceNotification(string deviceGuid, JObject notification)
         {
-            if (deviceGuid == Guid.Empty)
+            if (string.IsNullOrEmpty(deviceGuid))
                 throw new WebSocketRequestException("Please specify valid deviceGuid");
 
             if (notification == null)
@@ -154,9 +154,9 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </response>
         [Action("command/insert")]
         [AuthorizeClient(AccessKeyAction = "CreateDeviceCommand")]
-        public void InsertDeviceCommand(Guid deviceGuid, JObject command)
+        public void InsertDeviceCommand(string deviceGuid, JObject command)
         {
-            if (deviceGuid == Guid.Empty)
+            if (string.IsNullOrEmpty(deviceGuid))
                 throw new WebSocketRequestException("Please specify valid deviceGuid");
 
             if (command == null)
@@ -190,9 +190,9 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </request>
         [Action("command/update")]
         [AuthorizeClient(AccessKeyAction = "UpdateDeviceCommand")]
-        public void UpdateDeviceCommand(Guid deviceGuid, int commandId, JObject command)
+        public void UpdateDeviceCommand(string deviceGuid, int commandId, JObject command)
         {
-            if (deviceGuid == Guid.Empty)
+            if (string.IsNullOrEmpty(deviceGuid))
                 throw new WebSocketRequestException("Please specify valid deviceGuid");
 
             if (commandId == 0)
@@ -525,7 +525,7 @@ namespace DeviceHive.WebSockets.API.Controllers
 
             return deviceGuids.Select(deviceGuid =>
                 {
-                    var device = DataContext.Device.Get(new Guid(deviceGuid));
+                    var device = DataContext.Device.Get(deviceGuid);
                     if (device == null || !IsDeviceAccessible(device, accessKeyAction))
                         throw new WebSocketRequestException("Invalid deviceGuid: " + deviceGuid);
 

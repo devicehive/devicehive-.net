@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="DeviceCommand" />
-    [RoutePrefix("device/{deviceGuid:guid}/command")]
+    [RoutePrefix("device/{deviceGuid:deviceGuid}/command")]
     public class DeviceCommandController : BaseController
     {
         private readonly MessageBus _messageBus;
@@ -30,7 +30,7 @@ namespace DeviceHive.API.Controllers
         /// <query cref="DeviceCommandFilter" />
         /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
         [Route, AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
-        public JToken Get(Guid deviceGuid)
+        public JToken Get(string deviceGuid)
         {
             EnsureDeviceAccess(deviceGuid);
 
@@ -50,7 +50,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="id">Command identifier.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
         [Route("{id:int}"), AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
-        public JObject Get(Guid deviceGuid, int id)
+        public JObject Get(string deviceGuid, int id)
         {
             EnsureDeviceAccess(deviceGuid);
 
@@ -78,7 +78,7 @@ namespace DeviceHive.API.Controllers
         /// </request>
         [HttpCreatedResponse]
         [Route, AuthorizeUser(AccessKeyAction = "CreateDeviceCommand")]
-        public JObject Post(Guid deviceGuid, JObject json)
+        public JObject Post(string deviceGuid, JObject json)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsDeviceAccessible(device))
@@ -108,7 +108,7 @@ namespace DeviceHive.API.Controllers
         /// </request>
         [HttpNoContentResponse]
         [Route("{id:int}"), AuthorizeUserOrDevice(AccessKeyAction = "UpdateDeviceCommand")]
-        public void Put(Guid deviceGuid, int id, JObject json)
+        public void Put(string deviceGuid, int id, JObject json)
         {
             EnsureDeviceAccess(deviceGuid);
 

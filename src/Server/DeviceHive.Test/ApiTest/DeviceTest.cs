@@ -9,7 +9,7 @@ namespace DeviceHive.Test.ApiTest
     [TestFixture]
     public class DeviceTest : ResourceTest
     {
-        private static readonly string ID = "a97266f4-6e8a-4008-8242-022b49ea484f";
+        private static readonly string ID = "a97266f4-6e8a";
         private int? NetworkID { get; set; }
         private int? DeviceClassID { get; set; }
 

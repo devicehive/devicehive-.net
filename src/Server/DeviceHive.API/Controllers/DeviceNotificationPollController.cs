@@ -42,9 +42,9 @@ namespace DeviceHive.API.Controllers
         /// <param name="names">Comma-separated list of notification names.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
-        [Route("device/{deviceGuid:guid}/notification/poll")]
+        [Route("device/{deviceGuid:deviceGuid}/notification/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
-        public async Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
+        public async Task<JArray> Get(string deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsDeviceAccessible(device))
@@ -96,7 +96,7 @@ namespace DeviceHive.API.Controllers
         /// </response>
         [Route("device/notification/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
-        public async Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
+        public async Task<JArray> GetMany(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
             var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(deviceGuid =>
                 {
@@ -145,17 +145,9 @@ namespace DeviceHive.API.Controllers
                 }));
         }
 
-        private Guid[] ParseDeviceGuids(string deviceGuids)
+        private string[] ParseDeviceGuids(string deviceGuids)
         {
-            try
-            {
-                return deviceGuids.Split(',').Select(g => new Guid(g)).ToArray();
-            }
-            catch (FormatException)
-            {
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Format of the deviceGuids parameter is invalid!");
-                return null;
-            }
+            return deviceGuids.Split(',').ToArray();
         }
 
         private IJsonMapper<DeviceNotification> Mapper

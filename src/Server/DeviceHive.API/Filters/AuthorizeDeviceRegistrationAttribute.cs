@@ -38,7 +38,7 @@ namespace DeviceHive.API.Filters
             if (controller == null)
                 throw new InvalidOperationException("Controller must inherit from BaseController class!");
 
-            var deviceId = Guid.Parse((string)controllerContext.RouteData.Values[DeviceIdParamName]);
+            var deviceId = (string)controllerContext.RouteData.Values[DeviceIdParamName];
             var device = controller.DataContext.Device.Get(deviceId);
             if (device != null)
             {

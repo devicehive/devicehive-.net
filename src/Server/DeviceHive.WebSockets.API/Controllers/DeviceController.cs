@@ -243,7 +243,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </request>
         [Action("device/save")]
         [AuthenticateDevice(false), AuthorizeDeviceRegistration]
-        public void SaveDevice(Guid deviceId, JObject device)
+        public void SaveDevice(string deviceId, JObject device)
         {
             // get device as stored in the AuthorizeDeviceRegistration filter
             var deviceEntity = ActionContext.Parameters.ContainsKey("Device") ? (Device)ActionContext.Parameters["Device"] : new Device(deviceId);

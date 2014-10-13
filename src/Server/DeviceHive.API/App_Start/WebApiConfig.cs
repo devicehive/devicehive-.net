@@ -17,6 +17,7 @@ namespace DeviceHive.API
             // attribute routing
             var constraintResolver = new DefaultInlineConstraintResolver();
             constraintResolver.ConstraintMap.Add("idorcurrent", typeof(IdOrCurrentConstraint));
+            constraintResolver.ConstraintMap.Add("deviceGuid", typeof(DeviceGuidConstraint));
             config.MapHttpAttributeRoutes(constraintResolver);
 
             // use JSON by default

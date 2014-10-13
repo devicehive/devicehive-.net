@@ -53,7 +53,7 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
         }
 
-        protected void EnsureDeviceAccess(Guid deviceGuid)
+        protected void EnsureDeviceAccess(string deviceGuid)
         {
             if (CallContext.CurrentDevice == null)
                 return;

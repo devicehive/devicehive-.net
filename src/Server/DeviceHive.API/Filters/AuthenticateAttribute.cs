@@ -82,9 +82,8 @@ namespace DeviceHive.API.Filters
             }
 
             // check device authentication
-            Guid deviceId;
-            var authDeviceId = GetCustomHeader(actionContext, "Auth-DeviceID");
-            if (!string.IsNullOrEmpty(authDeviceId) && Guid.TryParse(authDeviceId, out deviceId))
+            var deviceId = GetCustomHeader(actionContext, "Auth-DeviceID");
+            if (!string.IsNullOrEmpty(deviceId))
             {
                 // get the device object
                 var device = controller.DataContext.Device.Get(deviceId);

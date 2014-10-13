@@ -44,7 +44,7 @@ namespace DeviceHive.Data.MongoDB
             return _mongo.Devices.FindOneById(id);
         }
 
-        public Device Get(Guid guid)
+        public Device Get(string guid)
         {
             return _mongo.Devices.FindOne(Query<Device>.EQ(e => e.GUID, guid));
         }
@@ -53,8 +53,8 @@ namespace DeviceHive.Data.MongoDB
         {
             if (device == null)
                 throw new ArgumentNullException("device");
-            if (device.GUID == Guid.Empty)
-                throw new ArgumentException("Device.ID must have a valid value!", "device.ID");
+            if (string.IsNullOrEmpty(device.GUID))
+                throw new ArgumentException("Device.GUID must have a valid value!", "device.GUID");
 
             if (device.Network != null)
             {

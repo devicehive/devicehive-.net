@@ -25,10 +25,10 @@ namespace DeviceHive.Data.Model
         /// Initializes device global identifier
         /// </summary>
         /// <param name="guid">Device global identifier</param>
-        public Device(Guid guid)
+        public Device(string guid)
         {
-            if (guid == Guid.Empty)
-                throw new ArgumentException("GUID is empty!", "guid");
+            if (string.IsNullOrEmpty(guid))
+                throw new ArgumentException("GUID is null or empty!", "guid");
 
             this.GUID = guid;
         }
@@ -41,7 +41,7 @@ namespace DeviceHive.Data.Model
         /// <param name="name">Device name</param>
         /// <param name="network">Associated network object</param>
         /// <param name="deviceClass">Associated device class object</param>
-        public Device(Guid guid, string key, string name, Network network, DeviceClass deviceClass)
+        public Device(string guid, string key, string name, Network network, DeviceClass deviceClass)
             : this(guid)
         {
             if (string.IsNullOrEmpty(key))
@@ -68,7 +68,9 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// Device unique identifier.
         /// </summary>
-        public Guid GUID { get; private set; }
+        [Required]
+        [StringLength(64)]
+        public string GUID { get; private set; }
 
         /// <summary>
         /// Device authentication key.

@@ -36,13 +36,10 @@ namespace DeviceHive.WebSockets.API.Filters
             if (request == null)
                 return;
 
-            var deviceIdValue = request["deviceId"];
-            var deviceKeyValue = request["deviceKey"];
-            if (deviceIdValue == null || deviceKeyValue == null)
+            var deviceId = (string)request["deviceId"];
+            var deviceKey = (string)request["deviceKey"];
+            if (deviceId == null || deviceKey == null)
                 return;
-
-            var deviceId = Guid.Parse((string)deviceIdValue);
-            var deviceKey = (string)deviceKeyValue;
 
             var controller = (DeviceHive.WebSockets.API.Controllers.ControllerBase)actionContext.Controller;
             var device = controller.DataContext.Device.Get(deviceId);

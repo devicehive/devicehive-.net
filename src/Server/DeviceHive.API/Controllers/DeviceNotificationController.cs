@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="DeviceNotification" />
-    [RoutePrefix("device/{deviceGuid:guid}/notification")]
+    [RoutePrefix("device/{deviceGuid:deviceGuid}/notification")]
     public class DeviceNotificationController : BaseController
     {
         private readonly IMessageManager _messageManager;
@@ -33,7 +33,7 @@ namespace DeviceHive.API.Controllers
         /// <query cref="DeviceNotificationFilter" />
         /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
         [Route, AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
-        public JToken Get(Guid deviceGuid)
+        public JToken Get(string deviceGuid)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsDeviceAccessible(device))
@@ -51,7 +51,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="id">Notification identifier.</param>
         /// <returns cref="DeviceNotification">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
         [Route("{id:int}"), AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
-        public JObject Get(Guid deviceGuid, int id)
+        public JObject Get(string deviceGuid, int id)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsDeviceAccessible(device))
@@ -73,7 +73,7 @@ namespace DeviceHive.API.Controllers
         /// <returns cref="DeviceNotification" mode="OneWayOnly">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
         [HttpCreatedResponse]
         [Route, AuthorizeUserOrDevice(AccessKeyAction = "CreateDeviceNotification")]
-        public JObject Post(Guid deviceGuid, JObject json)
+        public JObject Post(string deviceGuid, JObject json)
         {
             EnsureDeviceAccess(deviceGuid);
 

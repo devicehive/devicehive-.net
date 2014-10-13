@@ -13,7 +13,7 @@ namespace DeviceHive.WebSockets.API.Filters
         {
             var controller = (DeviceHive.WebSockets.API.Controllers.ControllerBase)actionContext.Controller;
 
-            var deviceId = (Guid)actionContext.Request["deviceId"];
+            var deviceId = (string)actionContext.Request["deviceId"];
             var device = controller.DataContext.Device.Get(deviceId);
             if (device != null)
             {

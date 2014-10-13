@@ -45,9 +45,9 @@ namespace DeviceHive.API.Controllers
         /// <param name="names">Comma-separated list of commands names.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
-        [Route("device/{deviceGuid:guid}/command/poll")]
+        [Route("device/{deviceGuid:deviceGuid}/command/poll")]
         [AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
-        public async Task<JArray> Get(Guid deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null) 
+        public async Task<JArray> Get(string deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null) 
         {
             EnsureDeviceAccess(deviceGuid);
 
@@ -101,7 +101,7 @@ namespace DeviceHive.API.Controllers
         /// </response>
         [Route("device/command/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceCommand")]
-        public async Task<JArray> Get(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
+        public async Task<JArray> GetMany(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
             var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(deviceGuid =>
                 {
@@ -153,9 +153,9 @@ namespace DeviceHive.API.Controllers
         /// <param name="id">Command identifier.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
-        [Route("device/{deviceGuid:guid}/command/{id:int}/poll")]
+        [Route("device/{deviceGuid:deviceGuid}/command/{id:int}/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceCommand")]
-        public async Task<JObject> Get(Guid deviceGuid, int id, int? waitTimeout = null)
+        public async Task<JObject> Get(string deviceGuid, int id, int? waitTimeout = null)
         {
             var device = DataContext.Device.Get(deviceGuid);
             if (device == null || !IsDeviceAccessible(device))
@@ -197,17 +197,9 @@ namespace DeviceHive.API.Controllers
                 }));
         }
 
-        private Guid[] ParseDeviceGuids(string deviceGuids)
+        private string[] ParseDeviceGuids(string deviceGuids)
         {
-            try
-            {
-                return deviceGuids.Split(',').Select(g => new Guid(g)).ToArray();
-            }
-            catch (FormatException)
-            {
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Format of the deviceGuids parameter is invalid!");
-                return null;
-            }
+            return deviceGuids.Split(',').ToArray();
         }
 
         private IJsonMapper<DeviceCommand> Mapper

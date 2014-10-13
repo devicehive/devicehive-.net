@@ -62,6 +62,7 @@
     <Compile Include="Migrations\Migration_3.cs" />
     <Compile Include="Migrations\Migration_4.cs" />
     <Compile Include="Migrations\Migration_5.cs" />
+    <Compile Include="Migrations\Migration_6.cs" />
     <Compile Include="Migrations\Migrator.cs" />
     <Compile Include="MongoConnection.cs" />
     <Compile Include="NetworkRepository.cs" />

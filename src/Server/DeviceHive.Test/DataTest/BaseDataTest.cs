@@ -280,7 +280,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -349,7 +349,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -392,7 +392,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -441,7 +441,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 

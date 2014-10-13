@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="Device" />
-    [RoutePrefix("device/{id}/equipment")]
+    [RoutePrefix("device/{id:deviceGuid}/equipment")]
     public class DeviceEquipmentController : BaseController
     {
         /// <name>equipment</name>
@@ -28,7 +28,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="id">Device unique identifier.</param>
         /// <returns cref="DeviceEquipment">If successful, this method returns array of the following structures in the response body.</returns>
         [Route, AuthorizeUser(AccessKeyAction = "GetDeviceState")]
-        public JArray Get(Guid id)
+        public JArray Get(string id)
         {
             var device = DataContext.Device.Get(id);
             if (device == null || !IsDeviceAccessible(device))
@@ -38,7 +38,7 @@ namespace DeviceHive.API.Controllers
         }
 
         [Route("{code}"), AuthorizeUser(AccessKeyAction = "GetDeviceState")]
-        public JObject Get(Guid id, string code)
+        public JObject Get(string id, string code)
         {
             var device = DataContext.Device.Get(id);
             if (device == null || !IsDeviceAccessible(device))

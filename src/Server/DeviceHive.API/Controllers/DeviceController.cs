@@ -55,8 +55,8 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         /// <returns cref="Device">If successful, this method returns a <see cref="Device"/> resource in the response body.</returns>
-        [Route("{id:guid}"), AuthorizeUserOrDevice(AccessKeyAction = "GetDevice")]
-        public JObject Get(Guid id)
+        [Route("{id:deviceGuid}"), AuthorizeUserOrDevice(AccessKeyAction = "GetDevice")]
+        public JObject Get(string id)
         {
             EnsureDeviceAccess(id);
 
@@ -89,8 +89,8 @@ namespace DeviceHive.API.Controllers
         ///     </parameter>
         /// </request>
         [HttpNoContentResponse]
-        [Route("{id:guid}"), AuthorizeDeviceRegistration(AccessKeyAction = "RegisterDevice")]
-        public void Put(Guid id, JObject json)
+        [Route("{id:deviceGuid}"), AuthorizeDeviceRegistration(AccessKeyAction = "RegisterDevice")]
+        public void Put(string id, JObject json)
         {
             // get device as stored in the AuthorizeDeviceRegistration filter
             var device = Request.Properties.ContainsKey("Device") ? (Device)Request.Properties["Device"] : new Device(id);
@@ -122,8 +122,8 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         [HttpNoContentResponse]
-        [Route("{id:guid}"), AuthorizeUser]
-        public void Delete(Guid id)
+        [Route("{id:deviceGuid}"), AuthorizeUser]
+        public void Delete(string id)
         {
             var device = DataContext.Device.Get(id);
             if (device != null && IsDeviceAccessible(device))

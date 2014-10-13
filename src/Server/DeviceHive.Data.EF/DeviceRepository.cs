@@ -59,7 +59,7 @@ namespace DeviceHive.Data.EF
             }
         }
 
-        public Device Get(Guid guid)
+        public Device Get(string guid)
         {
             using (var context = new DeviceHiveContext())
             {
@@ -74,8 +74,8 @@ namespace DeviceHive.Data.EF
         {
             if (device == null)
                 throw new ArgumentNullException("device");
-            if (device.GUID == Guid.Empty)
-                throw new ArgumentException("Device.ID must have a valid value!", "device.ID");
+            if (string.IsNullOrEmpty(device.GUID))
+                throw new ArgumentException("Device.GUID must have a valid value!", "device.GUID");
 
             using (var context = new DeviceHiveContext())
             {
