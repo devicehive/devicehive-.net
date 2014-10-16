@@ -175,7 +175,7 @@ namespace DeviceHive.Data.Model
         [RegularExpression(@"^[\d\,]+$")]
         public string NetworkList
         {
-            get { return Networks == null ? null : string.Join(",", Networks); }
+            get { return Networks == null || Networks.Length == 0 ? null : string.Join(",", Networks); }
             set { Networks = value == null ? null : value.Split(',').Select(v => int.Parse(v)).ToArray(); }
         }
         #endregion
