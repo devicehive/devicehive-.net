@@ -43,7 +43,7 @@ namespace DeviceHive.API.Controllers
             {
                 // if access key was used, limit devices to allowed ones
                 devices = devices.Where(d => CallContext.CurrentUserPermissions.Any(p =>
-                    p.IsNetworkAllowed(d.NetworkID) && p.IsDeviceAllowed(d.GUID.ToString()))).ToList();
+                    p.IsNetworkAllowed(d.NetworkID) && p.IsDeviceAllowed(d.GUID))).ToList();
             }
 
             return new JArray(devices.Select(n => Mapper.Map(n)));

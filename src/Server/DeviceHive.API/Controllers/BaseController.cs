@@ -58,7 +58,7 @@ namespace DeviceHive.API.Controllers
             if (CallContext.CurrentDevice == null)
                 return;
 
-            if (CallContext.CurrentDevice.GUID != deviceGuid)
+            if (!string.Equals(CallContext.CurrentDevice.GUID, deviceGuid, StringComparison.OrdinalIgnoreCase))
                 ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
         }
 
@@ -98,7 +98,7 @@ namespace DeviceHive.API.Controllers
             }
 
             return CallContext.CurrentUserPermissions == null || CallContext.CurrentUserPermissions.Any(p =>
-                p.IsNetworkAllowed(device.NetworkID) && p.IsDeviceAllowed(device.GUID.ToString()));
+                p.IsNetworkAllowed(device.NetworkID) && p.IsDeviceAllowed(device.GUID));
         }
 
         protected IJsonMapper<T> GetMapper<T>()

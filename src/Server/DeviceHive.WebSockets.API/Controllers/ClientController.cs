@@ -515,7 +515,7 @@ namespace DeviceHive.WebSockets.API.Controllers
             var accessKey = (AccessKey)connection.Session["AccessKey"];
             return accessKey == null || accessKey.Permissions.Any(p =>
                 p.IsActionAllowed(accessKeyAction) && p.IsAddressAllowed(connection.Host) &&
-                p.IsNetworkAllowed(device.NetworkID) && p.IsDeviceAllowed(device.GUID.ToString()));
+                p.IsNetworkAllowed(device.NetworkID) && p.IsDeviceAllowed(device.GUID));
         }
 
         private Device[] GetDevices(string[] deviceGuids, string accessKeyAction)

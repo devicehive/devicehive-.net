@@ -70,6 +70,7 @@ namespace DeviceHive.Data.Model
         /// </summary>
         [Required]
         [StringLength(64)]
+        [RegularExpression(@"^[\w\-]+$")]
         public string GUID { get; private set; }
 
         /// <summary>
