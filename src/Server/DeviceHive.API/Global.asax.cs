@@ -24,6 +24,9 @@ namespace DeviceHive.API
         protected void Application_Error(object sender, EventArgs e)
         {
             var exception = Server.GetLastError();
+            if (exception is OperationCanceledException)
+                return;
+
             LogManager.GetLogger("DeviceHive.API").Fatal("Application Error!", exception);
         }
     }
