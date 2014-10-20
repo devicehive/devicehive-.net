@@ -15,7 +15,7 @@ namespace DeviceHive.Data.EF.Migrations
                     Description = c.String(maxLength: 128),
                 })
                 .PrimaryKey(t => t.ID)
-                .Index(t => t.Name, true);
+                .Index(t => t.Name, unique: true);
 
             CreateTable(
                 "EquipmentType",
@@ -26,7 +26,7 @@ namespace DeviceHive.Data.EF.Migrations
                     Capabilities = c.String(),
                 })
                 .PrimaryKey(t => t.ID)
-                .Index(t => t.Name, true);
+                .Index(t => t.Name, unique: true);
 
             CreateTable(
                 "DeviceClass",
@@ -71,7 +71,7 @@ namespace DeviceHive.Data.EF.Migrations
                 .ForeignKey("DeviceClass", t => t.DeviceClassID, cascadeDelete: true)
                 .Index(t => t.NetworkID)
                 .Index(t => t.DeviceClassID)
-                .Index(t => t.GUID, true);
+                .Index(t => t.GUID, unique: true);
 
             CreateTable(
                 "DeviceNotification",
@@ -117,7 +117,7 @@ namespace DeviceHive.Data.EF.Migrations
                 })
                 .PrimaryKey(t => t.ID)
                 .ForeignKey("Device", t => t.DeviceID, cascadeDelete: true)
-                .Index(t => new { t.DeviceID, t.Code }, true);
+                .Index(t => new { t.DeviceID, t.Code }, unique: true);
         }
         
         public override void Down()
