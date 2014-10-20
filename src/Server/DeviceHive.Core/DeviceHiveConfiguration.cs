@@ -56,6 +56,16 @@ namespace DeviceHive.Core
             get { return (UserPasswordPolicyConfigurationElement)base["userPasswordPolicy"] ?? new UserPasswordPolicyConfigurationElement(); }
             set { base["userPasswordPolicy"] = value; }
         }
+
+        /// <summary>
+        /// Gets or sets message handlers configuration element
+        /// </summary>
+        [ConfigurationProperty("messageHandlers")]
+        public MessageHandlersConfigurationElement MessageHandlers
+        {
+            get { return (MessageHandlersConfigurationElement)base["messageHandlers"] ?? new MessageHandlersConfigurationElement(); }
+            set { base["messageHandlers"] = value; }
+        }
     }
 
     /// <summary>
@@ -239,6 +249,115 @@ namespace DeviceHive.Core
         {
             get { return (int)this["maxLoginAttempts"]; }
             set { base["maxLoginAttempts"] = value; }
+        }
+    }
+
+    /// <summary>
+    /// Represents message handlers configuration element
+    /// </summary>
+    public class MessageHandlersConfigurationElement : ConfigurationElementCollection
+    {
+        /// <summary>
+        /// Gets collection type.
+        /// </summary>
+        public override ConfigurationElementCollectionType CollectionType
+        {
+            get { return ConfigurationElementCollectionType.AddRemoveClearMap; }
+        }
+
+        /// <summary>
+        /// Creates new child element.
+        /// </summary>
+        /// <returns>MessageHandlerConfigurationElement object.</returns>
+        protected override ConfigurationElement CreateNewElement()
+        {
+            return new MessageHandlerConfigurationElement();
+        }
+
+        /// <summary>
+        /// Gets element key.
+        /// </summary>
+        /// <param name="element">MessageHandlerConfigurationElement object.</param>
+        /// <returns>Element key.</returns>
+        protected override object GetElementKey(ConfigurationElement element)
+        {
+            return (element as MessageHandlerConfigurationElement).Type;
+        }
+    }
+
+    /// <summary>
+    /// Represents message handlers configuration element
+    /// </summary>
+    public class MessageHandlerConfigurationElement : ConfigurationElement
+    {
+        /// <summary>
+        /// Gets or sets type of the message handler.
+        /// </summary>
+        [ConfigurationProperty("type", IsKey = true, IsRequired = true)]
+        public string Type
+        {
+            get { return (string)this["type"]; }
+            set { base["type"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a custom argument to pass into the handler constructor.
+        /// </summary>
+        [ConfigurationProperty("argument")]
+        public string Argument
+        {
+            get { return (string)this["argument"]; }
+            set { base["argument"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a comma-separated list of notification names to handle.
+        /// </summary>
+        [ConfigurationProperty("notificationNames")]
+        public string NotificationNames
+        {
+            get { return (string)this["notificationNames"]; }
+            set { base["notificationNames"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a comma-separated list of command names to handle.
+        /// </summary>
+        [ConfigurationProperty("commandNames")]
+        public string CommandNames
+        {
+            get { return (string)this["commandNames"]; }
+            set { base["commandNames"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a comma-separated list of device guids to handle.
+        /// </summary>
+        [ConfigurationProperty("deviceGuids")]
+        public string DeviceGuids
+        {
+            get { return (string)this["deviceGuids"]; }
+            set { base["deviceGuids"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a comma-separated list of device class ids to handle.
+        /// </summary>
+        [ConfigurationProperty("deviceClassIds")]
+        public string DeviceClassIds
+        {
+            get { return (string)this["deviceClassIds"]; }
+            set { base["deviceClassIds"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a comma-separated list of network ids to handle.
+        /// </summary>
+        [ConfigurationProperty("networkIds")]
+        public string NetworkIds
+        {
+            get { return (string)this["networkIds"]; }
+            set { base["networkIds"] = value; }
         }
     }
 }

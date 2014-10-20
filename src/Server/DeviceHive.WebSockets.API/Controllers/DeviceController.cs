@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
-using DeviceHive.Core.Messaging;
 using DeviceHive.Core.Services;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
@@ -14,7 +12,6 @@ using DeviceHive.WebSockets.API.Subscriptions;
 using DeviceHive.WebSockets.Core.ActionsFramework;
 using DeviceHive.WebSockets.Core.Network;
 using Newtonsoft.Json.Linq;
-using Ninject;
 
 namespace DeviceHive.WebSockets.API.Controllers
 {
@@ -41,7 +38,6 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         private static readonly DeviceSubscriptionManager _subscriptionManager = new DeviceSubscriptionManager();
 
-        private readonly MessageBus _messageBus;
         private readonly IMessageManager _messageManager;
         private readonly DeviceService _deviceService;
 
@@ -51,10 +47,9 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         public DeviceController(ActionInvoker actionInvoker, DataContext dataContext,
             JsonMapperManager jsonMapperManager, DeviceHiveConfiguration deviceHiveConfiguration,
-            MessageBus messageBus, IMessageManager messageManager, DeviceService deviceService) :
+            IMessageManager messageManager, DeviceService deviceService) :
             base(actionInvoker, dataContext, jsonMapperManager, deviceHiveConfiguration)
         {
-            _messageBus = messageBus;
             _messageManager = messageManager;
             _deviceService = deviceService;
         }
@@ -126,9 +121,8 @@ namespace DeviceHive.WebSockets.API.Controllers
             notificationEntity.Device = CurrentDevice;
             Validate(notificationEntity);
 
-            DataContext.DeviceNotification.Save(notificationEntity);
-            _messageManager.ProcessNotification(notificationEntity);
-            _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.ID, notificationEntity.ID));
+            var context = new MessageHandlerContext(notificationEntity, null);
+            _messageManager.HandleNotification(context);
 
             notification = GetMapper<DeviceNotification>().Map(notificationEntity, oneWayOnly: true);
             SendResponse(new JProperty("notification", notification));
@@ -160,8 +154,8 @@ namespace DeviceHive.WebSockets.API.Controllers
             commandEntity.Device = CurrentDevice;
             Validate(commandEntity);
 
-            DataContext.DeviceCommand.Save(commandEntity);
-            _messageBus.Notify(new DeviceCommandUpdatedMessage(CurrentDevice.ID, commandEntity.ID));
+            var context = new MessageHandlerContext(commandEntity, null);
+            _messageManager.HandleCommandUpdate(context);
 
             SendSuccessResponse();
         }

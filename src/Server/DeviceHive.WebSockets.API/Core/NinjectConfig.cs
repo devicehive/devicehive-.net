@@ -3,7 +3,6 @@ using System.Reflection;
 using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
-using DeviceHive.Core.MessageLogic.NotificationHandlers;
 using DeviceHive.Core.Messaging;
 using DeviceHive.Core.Services;
 using DeviceHive.Data;
@@ -69,10 +68,8 @@ namespace DeviceHive.WebSockets.API.Core
             // bind web socket server
             kernel.Bind<WebSocketServerBase>().To<FleckWebSocketServer>();
 
-            // bind notification handlers
-            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();
-            kernel.Bind<INotificationHandler>().To<DeviceStatusNotificationHandler>();
-            kernel.Bind<INotificationHandler>().To<EquipmentNotificationHandler>();
+            // bind message logic manager
+            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope().OnActivation(m => m.Initialize(kernel));
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Net;
 using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
-using DeviceHive.Core.Messaging;
+using DeviceHive.Core.MessageLogic;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 
@@ -15,11 +15,11 @@ namespace DeviceHive.API.Controllers
     [RoutePrefix("device/{deviceGuid:deviceGuid}/command")]
     public class DeviceCommandController : BaseController
     {
-        private readonly MessageBus _messageBus;
+        private readonly IMessageManager _messageManager;
 
-        public DeviceCommandController(MessageBus messageBus)
+        public DeviceCommandController(IMessageManager messageManager)
         {
-            _messageBus = messageBus;
+            _messageManager = messageManager;
         }
 
         /// <name>query</name>
@@ -89,8 +89,9 @@ namespace DeviceHive.API.Controllers
             command.UserID = CallContext.CurrentUser.ID;
             Validate(command);
 
-            DataContext.DeviceCommand.Save(command);
-            _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, command.ID));
+            var context = new MessageHandlerContext(command, CallContext.CurrentUser);
+            _messageManager.HandleCommand(context);
+
             return Mapper.Map(command, oneWayOnly: true);
         }
 
@@ -124,8 +125,8 @@ namespace DeviceHive.API.Controllers
             command.Device = device;
             Validate(command);
 
-            DataContext.DeviceCommand.Save(command);
-            _messageBus.Notify(new DeviceCommandUpdatedMessage(device.ID, command.ID));
+            var context = new MessageHandlerContext(command, CallContext.CurrentUser);
+            _messageManager.HandleCommandUpdate(context);
         }
 
         private IJsonMapper<DeviceCommand> Mapper

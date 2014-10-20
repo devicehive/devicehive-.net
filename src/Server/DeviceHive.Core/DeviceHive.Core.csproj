@@ -68,9 +68,11 @@
     <Compile Include="Mapping\JsonMapperEntry.cs" />
     <Compile Include="Mapping\JsonMapperException.cs" />
     <Compile Include="Mapping\JsonMapperManager.cs" />
-    <Compile Include="MessageLogic\INotificationHandler.cs" />
-    <Compile Include="MessageLogic\NotificationHandlers\DeviceStatusNotificationHandler.cs" />
-    <Compile Include="MessageLogic\NotificationHandlers\EquipmentNotificationHandler.cs" />
+    <Compile Include="MessageLogic\MessageHandler.cs" />
+    <Compile Include="MessageLogic\MessageHandlerContext.cs" />
+    <Compile Include="MessageLogic\MessageHandlerInfo.cs" />
+    <Compile Include="MessageLogic\MessageHandlers\DeviceStatusNotificationHandler.cs" />
+    <Compile Include="MessageLogic\MessageHandlers\EquipmentNotificationHandler.cs" />
     <Compile Include="MessageLogic\MessageManager.cs" />
     <Compile Include="MessageLogic\SpecialNotifications.cs" />
     <Compile Include="Messaging\NamedPipeMessageBusConfiguration.cs" />
