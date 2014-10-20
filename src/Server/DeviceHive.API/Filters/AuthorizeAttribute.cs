@@ -77,6 +77,9 @@ namespace DeviceHive.API.Filters
             if (controller == null)
                 throw new InvalidOperationException("Controller must inherit from BaseController class!");
 
+            if (actionContext.Request.Method == HttpMethod.Options)
+                return; // do not require authorization for CORS preflight requests
+
             if ((Entity & AuthorizeEntity.Device) != 0)
             {
                 if (TryAuthorizeDevice(actionContext, controller.CallContext))
