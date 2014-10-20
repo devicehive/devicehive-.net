@@ -39,6 +39,7 @@ namespace DeviceHive.DocGenerator
 
             var constraintResolver = new DefaultInlineConstraintResolver();
             constraintResolver.ConstraintMap.Add("idorcurrent", typeof(IdOrCurrentConstraint));
+            constraintResolver.ConstraintMap.Add("deviceGuid", typeof(DeviceGuidConstraint));
             httpConfiguration.MapHttpAttributeRoutes(constraintResolver);
 
             httpConfiguration.EnsureInitialized();

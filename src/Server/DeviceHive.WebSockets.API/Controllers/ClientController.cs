@@ -347,7 +347,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <action>notification/insert</action>
         /// <response>
         ///     <parameter name="subscriptionId" type="guid">Identifier of the associated subscription.</parameter>
-        ///     <parameter name="deviceGuid" type="guid">Device unique identifier.</parameter>
+        ///     <parameter name="deviceGuid" type="string">Device unique identifier.</parameter>
         ///     <parameter name="notification" cref="DeviceNotification">A <see cref="DeviceNotification"/> resource representing the notification.</parameter>
         /// </response>
         public void HandleDeviceNotification(int deviceId, int notificationId)
@@ -403,7 +403,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <action>command/insert</action>
         /// <response>
         ///     <parameter name="subscriptionId" type="guid">Identifier of the associated subscription.</parameter>
-        ///     <parameter name="deviceGuid" type="guid">Device unique identifier.</parameter>
+        ///     <parameter name="deviceGuid" type="string">Device unique identifier.</parameter>
         ///     <parameter name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource representing the command.</parameter>
         /// </response>
         public void HandleDeviceCommand(int deviceId, int commandId)

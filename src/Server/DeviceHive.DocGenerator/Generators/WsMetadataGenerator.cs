@@ -118,7 +118,7 @@ namespace DeviceHive.DocGenerator
             {
                 if (GetAuthorization(method) == "Device")
                 {
-                    parameters.Add(new MetadataParameter("deviceId", _helper.ToJsonType(typeof(Guid)), "Device unique identifier (specify if not authenticated).", false));
+                    parameters.Add(new MetadataParameter("deviceId", _helper.ToJsonType(typeof(string)), "Device unique identifier (specify if not authenticated).", false));
                     parameters.Add(new MetadataParameter("deviceKey", _helper.ToJsonType(typeof(string)), "Device authentication key (specify if not authenticated).", false));
                 }
             }

@@ -88,7 +88,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// After successful authentication, all subsequent messages may exclude deviceId and deviceKey parameters.
         /// </summary>
         /// <request>
-        ///     <parameter name="deviceId" type="guid" required="true">Device unique identifier.</parameter>
+        ///     <parameter name="deviceId" type="string" required="true">Device unique identifier.</parameter>
         ///     <parameter name="deviceKey" type="string" required="true">Device authentication key.</parameter>
         /// </request>
         [Action("authenticate")]
@@ -307,7 +307,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </summary>
         /// <action>command/insert</action>
         /// <response>
-        ///     <parameter name="deviceGuid" type="guid">Device unique identifier.</parameter>
+        ///     <parameter name="deviceGuid" type="string">Device unique identifier.</parameter>
         ///     <parameter name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource representing the command.</parameter>
         /// </response>
         private void Notify(WebSocketConnectionBase connection, Device device, DeviceCommand command,
