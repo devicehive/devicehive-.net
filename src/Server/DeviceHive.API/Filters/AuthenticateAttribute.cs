@@ -27,7 +27,7 @@ namespace DeviceHive.API.Filters
                 try
                 {
                     var authParam = Encoding.UTF8.GetString(Convert.FromBase64String(auth.Parameter));
-                    if (!authParam.Contains(":"))
+                    if (!authParam.Contains(":") || authParam.IndexOf(":") == 0)
                         throw new FormatException();
 
                     login = authParam.Substring(0, authParam.IndexOf(':'));

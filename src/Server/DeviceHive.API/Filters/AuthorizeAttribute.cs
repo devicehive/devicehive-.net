@@ -152,7 +152,6 @@ namespace DeviceHive.API.Filters
 
             if ((Entity & AuthorizeEntity.User) != 0)
             {
-                response.Headers.WwwAuthenticate.Add(new AuthenticationHeaderValue("Basic"));
                 AllowCrossDomainOrigin.AppendCorsHeaders(actionContext.Request, response);
             }
 
