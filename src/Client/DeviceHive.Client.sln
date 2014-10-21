@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Client", "DeviceHive.Client\DeviceHive.Client.csproj", "{7C50A4A9-3564-42F2-BE2B-267664925A16}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualLedClient", "Examples\VirtualLedClient\VirtualLedClient.csproj", "{9B1A0ACD-5CE0-43FE-BD19-5CFC632475B7}"
