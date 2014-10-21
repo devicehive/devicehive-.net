@@ -3,13 +3,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 using DeviceHive.API.Controllers;
 using DeviceHive.API.Models;
 using DeviceHive.Data.Model;
-using System.Web;
 
 namespace DeviceHive.API.Filters
 {
@@ -130,6 +131,8 @@ namespace DeviceHive.API.Filters
 
                 var domain = actionContext.Request.Headers.Contains("Origin") ?
                     actionContext.Request.Headers.GetValues("Origin").First() : null;
+                if (domain != null)
+                    domain = Regex.Replace(domain, @"^https?://", string.Empty, RegexOptions.IgnoreCase);
 
                 var permissions = callContext.CurrentAccessKey.Permissions
                     .Where(p => p.IsActionAllowed(AccessKeyAction) &&
