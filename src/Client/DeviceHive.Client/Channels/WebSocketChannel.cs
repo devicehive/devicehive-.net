@@ -72,7 +72,7 @@ namespace DeviceHive.Client
                 SetChannelState(ChannelState.Connecting);
 
                 var webSocketUrl = (await GetApiInfo()).WebSocketServerUrl + "/client";
-                _webSocket = new WebSocket(webSocketUrl) { EnableAutoSendPing = false };
+                _webSocket = new WebSocket(webSocketUrl);
                 _webSocket.MessageReceived += (s, e) => Task.Run(() => HandleMessage(e.Message));
                 _webSocket.Opened += (s, e) => Task.Run(() => Authenticate());
                 _webSocket.Closed += (s, e) =>
