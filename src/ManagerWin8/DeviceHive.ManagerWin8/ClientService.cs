@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DeviceHive.ManagerWin8
 {
-    class ClientService : RestfulClientService
+    class ClientService : DeviceHiveClient
     {
         public class EmptyCloudSettingsException : Exception
         {
@@ -17,7 +17,7 @@ namespace DeviceHive.ManagerWin8
 
         static ClientService current;
 
-        ClientService(string serviceUrl, string login, string password) : base(serviceUrl, login, password) { }
+        ClientService(DeviceHiveConnectionInfo connectionInfo) : base(connectionInfo) { }
 
         static ClientService()
         {
@@ -42,7 +42,7 @@ namespace DeviceHive.ManagerWin8
                     {
                         throw new EmptyCloudSettingsException();
                     }
-                    current = new ClientService(Settings.Instance.CloudServerUrl, Settings.Instance.CloudUsername, Settings.Instance.CloudPassword);
+                    current = new ClientService(new DeviceHiveConnectionInfo(Settings.Instance.CloudServerUrl, Settings.Instance.CloudUsername, Settings.Instance.CloudPassword));
                 }
                 return current;
             }

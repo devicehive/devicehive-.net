@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeviceHive.Client
@@ -65,19 +66,19 @@ namespace DeviceHive.Client
         /// Checks if current channel object can be used to eshtablish connection to the DeviceHive server.
         /// </summary>
         /// <returns>True if connection can be eshtablished.</returns>
-        public abstract Task<bool> CanConnect();
+        public abstract Task<bool> CanConnectAsync();
 
         /// <summary>
         /// Opens a persistent connection to the DeviceHive server.
         /// </summary>
         /// <returns></returns>
-        public abstract Task Open();
+        public abstract Task OpenAsync();
 
         /// <summary>
         /// Closes the persistent connection to the DeviceHive server.
         /// </summary>
         /// <returns></returns>
-        public abstract Task Close();
+        public abstract Task CloseAsync();
 
         /// <summary>
         /// Gets active subscriptions for DeviceHive commands and notifications.
@@ -99,7 +100,7 @@ namespace DeviceHive.Client
         /// <param name="notificationNames">Array of notification names to subsribe to. Specify null to subscribe to all notifications.</param>
         /// <param name="callback">A callback which will be invoken when a notification is retrieved.</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        public async Task<ISubscription> AddNotificationSubscription(string[] deviceGuids, string[] notificationNames, Action<DeviceNotification> callback)
+        public async Task<ISubscription> AddNotificationSubscriptionAsync(string[] deviceGuids, string[] notificationNames, Action<DeviceNotification> callback)
         {
             CheckConnection();
 
@@ -124,7 +125,7 @@ namespace DeviceHive.Client
         /// <param name="commandNames">Array of command names to subsribe to. Specify null to subscribe to all commands.</param>
         /// <param name="callback">A callback which will be invoken when a command is retrieved.</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        public async Task<ISubscription> AddCommandSubscription(string[] deviceGuids, string[] commandNames, Action<DeviceCommand> callback)
+        public async Task<ISubscription> AddCommandSubscriptionAsync(string[] deviceGuids, string[] commandNames, Action<DeviceCommand> callback)
         {
             CheckConnection();
 
@@ -147,7 +148,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="subscription">An <see cref="ISubscription"/> object representing the subscription to remove.</param>
         /// <returns></returns>
-        public async Task RemoveSubscription(ISubscription subscription)
+        public async Task RemoveSubscriptionAsync(ISubscription subscription)
         {
             if (subscription == null)
                 throw new ArgumentNullException("subscription");
@@ -171,7 +172,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="notification">A <see cref="Notification"/> object to be sent.</param>
-        public abstract Task SendNotification(string deviceGuid, Notification notification);
+        public abstract Task SendNotificationAsync(string deviceGuid, Notification notification);
 
         /// <summary>
         /// Sends a command to the device.
@@ -179,14 +180,15 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
-        public abstract Task SendCommand(string deviceGuid, Command command, Action<Command> callback = null);
+        /// <param name="token">Cancellation token to cancel polling command result.</param>
+        public abstract Task SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null);
 
         /// <summary>
         /// Updates a command on behalf of the device.
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to update.</param>
-        public abstract Task UpdateCommand(string deviceGuid, Command command);
+        public abstract Task UpdateCommandAsync(string deviceGuid, Command command);
 
         #endregion
 
@@ -196,12 +198,12 @@ namespace DeviceHive.Client
         /// Gets DeviceHive API information.
         /// </summary>
         /// <returns>The <see cref="ApiInfo"/> object.</returns>
-        protected async Task<ApiInfo> GetApiInfo()
+        protected async Task<ApiInfo> GetApiInfoAsync()
         {
             if (_apiInfo == null)
             {
                 var restClient = new RestClient(ConnectionInfo);
-                _apiInfo = await restClient.Get<ApiInfo>("info");
+                _apiInfo = await restClient.GetAsync<ApiInfo>("info");
             }
             return _apiInfo;
         }
@@ -460,7 +462,7 @@ namespace DeviceHive.Client
         /// </summary>
         public virtual void Dispose()
         {
-            var task = Close();
+            var task = CloseAsync();
             // does not need to wait
         }
         #endregion

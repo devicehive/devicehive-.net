@@ -37,7 +37,7 @@ namespace VirtualLedClient
 
             // get information about the VirtualLed device
             var deviceGuid = "E50D6085-2ABA-48E9-B1C3-73C673E414BE";
-            var device = await client.GetDevice(deviceGuid);
+            var device = await client.GetDeviceAsync(deviceGuid);
             if (device == null)
             {
                 Console.WriteLine("VirtualLed device does not exist on the server, please run VirtualLed device first!");
@@ -47,7 +47,7 @@ namespace VirtualLedClient
             Console.WriteLine("Found VirtualLed device with status: " + device.Status);
 
             // get information about current LED state
-            var equipmentState = await client.GetEquipmentState(device.Id);
+            var equipmentState = await client.GetEquipmentStateAsync(device.Id);
             var ledEquipmentState = equipmentState.FirstOrDefault(e => e.Id == LED_CODE);
             if (ledEquipmentState != null)
             {
@@ -55,7 +55,7 @@ namespace VirtualLedClient
             }
 
             // subscribe to device notifications
-            var subscription = await client.AddNotificationSubscription(new[] { deviceGuid }, null, HandleNotification);
+            var subscription = await client.AddNotificationSubscriptionAsync(new[] { deviceGuid }, null, HandleNotification);
 
             // read user input to send corresponding commands to the VirtualLed device
             Console.WriteLine("\nPlease enter a desired state of the led (either 0 or 1) or ESC to exit\n");
@@ -72,12 +72,12 @@ namespace VirtualLedClient
                     var command = new Command("UpdateLedState");
                     command.Parameter("equipment", LED_CODE);
                     command.Parameter("state", key.KeyChar);
-                    await client.SendCommand(device.Id, command);
+                    await client.SendCommandAsync(device.Id, command);
                 }
             }
 
             // unsubscribe from notifications and dispose the client
-            await client.RemoveSubscription(subscription);
+            await client.RemoveSubscriptionAsync(subscription);
             client.Dispose();
         }
 

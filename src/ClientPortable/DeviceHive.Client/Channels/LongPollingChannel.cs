@@ -33,7 +33,7 @@ namespace DeviceHive.Client
         /// Checks if current channel object can be used to eshtablish connection to the DeviceHive server.
         /// </summary>
         /// <returns>True if connection can be eshtablished.</returns>
-        public override Task<bool> CanConnect()
+        public override Task<bool> CanConnectAsync()
         {
             return Task.FromResult(true);
         }
@@ -42,7 +42,7 @@ namespace DeviceHive.Client
         /// Opens a persistent connection to the DeviceHive server.
         /// </summary>
         /// <returns></returns>
-        public override Task Open()
+        public override Task OpenAsync()
         {
             SetChannelState(ChannelState.Connected);
             return Task.FromResult(true);
@@ -52,7 +52,7 @@ namespace DeviceHive.Client
         /// Closes the persistent connection to the DeviceHive server.
         /// </summary>
         /// <returns></returns>
-        public override async Task Close()
+        public override async Task CloseAsync()
         {
             SetChannelState(ChannelState.Disconnected); // that clears all subscriptions
 
@@ -76,14 +76,14 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="notification">A <see cref="Notification"/> object to be sent.</param>
-        public override async Task SendNotification(string deviceGuid, Notification notification)
+        public override async Task SendNotificationAsync(string deviceGuid, Notification notification)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
             if (notification == null)
                 throw new ArgumentNullException("notification");
 
-            var result = await _restClient.Post(string.Format("device/{0}/notification", deviceGuid), notification);
+            var result = await _restClient.PostAsync(string.Format("device/{0}/notification", deviceGuid), notification);
             notification.Id = result.Id;
             notification.Timestamp = result.Timestamp;
         }
@@ -94,14 +94,17 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
-        public override async Task SendCommand(string deviceGuid, Command command, Action<Command> callback = null)
+        /// <param name="token">Cancellation token to cancel polling command result.</param>
+        public override async Task SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
             if (command == null)
                 throw new ArgumentNullException("command");
+            if (!token.HasValue)
+                token = CancellationToken.None;
 
-            var result = await _restClient.Post(string.Format("device/{0}/command", deviceGuid), command);
+            var result = await _restClient.PostAsync(string.Format("device/{0}/command", deviceGuid), command);
             command.Id = result.Id;
             command.Timestamp = result.Timestamp;
             command.UserId = result.UserId;
@@ -110,7 +113,7 @@ namespace DeviceHive.Client
             {
                 var task = Task.Run(async () =>
                 {
-                    var update = await PollCommandUpdate(deviceGuid, command.Id.Value, CancellationToken.None);
+                    var update = await PollCommandUpdateAsync(deviceGuid, command.Id.Value, token.Value);
                     if (update != null)
                         callback(update);
                 });
@@ -122,7 +125,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to update.</param>
-        public override async Task UpdateCommand(string deviceGuid, Command command)
+        public override async Task UpdateCommandAsync(string deviceGuid, Command command)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
@@ -132,7 +135,7 @@ namespace DeviceHive.Client
                 throw new ArgumentException("Command ID is null!", "command");
 
             var update = new Command { Status = command.Status, Result = command.Result };
-            await _restClient.Put(string.Format("device/{0}/command/{1}", deviceGuid, command.Id), update);
+            await _restClient.PutAsync(string.Format("device/{0}/command/{1}", deviceGuid, command.Id), update);
         }
         #endregion
 
@@ -152,10 +155,10 @@ namespace DeviceHive.Client
             switch (subscription.Type)
             {
                 case SubscriptionType.Notification:
-                    subscriptionTask.Run(async () => await PollNotificationTaskMethod(subscription, cancellationToken));
+                    subscriptionTask.Run(async () => await PollNotificationTaskMethodAsync(subscription, cancellationToken));
                     break;
                 case SubscriptionType.Command:
-                    subscriptionTask.Run(async () => await PollCommandTaskMethod(subscription, cancellationToken));
+                    subscriptionTask.Run(async () => await PollCommandTaskMethodAsync(subscription, cancellationToken));
                     break;
             }
 
@@ -195,16 +198,16 @@ namespace DeviceHive.Client
 
         #region Private Methods
 
-        private async Task PollNotificationTaskMethod(ISubscription subscription, CancellationToken cancellationToken)
+        private async Task PollNotificationTaskMethodAsync(ISubscription subscription, CancellationToken cancellationToken)
         {
-            var apiInfo = await _restClient.Get<ApiInfo>("info");
+            var apiInfo = await _restClient.GetAsync<ApiInfo>("info");
             var timestamp = apiInfo.ServerTimestamp;
 
             while (true)
             {
                 try
                 {
-                    var notifications = await PollNotifications(subscription.DeviceGuids, subscription.EventNames, timestamp, cancellationToken);
+                    var notifications = await PollNotificationsAsync(subscription.DeviceGuids, subscription.EventNames, timestamp, cancellationToken);
                     foreach (var notification in notifications)
                     {
                         notification.SubscriptionId = subscription.Id;
@@ -224,16 +227,16 @@ namespace DeviceHive.Client
             }
         }
 
-        private async Task PollCommandTaskMethod(ISubscription subscription, CancellationToken cancellationToken)
+        private async Task PollCommandTaskMethodAsync(ISubscription subscription, CancellationToken cancellationToken)
         {
-            var apiInfo = await _restClient.Get<ApiInfo>("info", cancellationToken);
+            var apiInfo = await _restClient.GetAsync<ApiInfo>("info", cancellationToken);
             var timestamp = apiInfo.ServerTimestamp;
 
             while (true)
             {
                 try
                 {
-                    var commands = await PollCommands(subscription.DeviceGuids, subscription.EventNames, timestamp, cancellationToken);
+                    var commands = await PollCommandsAsync(subscription.DeviceGuids, subscription.EventNames, timestamp, cancellationToken);
                     foreach (var command in commands)
                     {
                         command.SubscriptionId = subscription.Id;
@@ -253,7 +256,7 @@ namespace DeviceHive.Client
             }
         }
 
-        private async Task<List<DeviceNotification>> PollNotifications(string[] deviceGuids, string[] names, DateTime? timestamp, CancellationToken token)
+        private async Task<List<DeviceNotification>> PollNotificationsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, CancellationToken token)
         {
             var url = "device/notification/poll";
             var parameters = new[]
@@ -267,13 +270,13 @@ namespace DeviceHive.Client
 
             while (true)
             {
-                var notifications = await _restClient.Get<List<DeviceNotification>>(url, token);
+                var notifications = await _restClient.GetAsync<List<DeviceNotification>>(url, token);
                 if (notifications != null && notifications.Any())
                     return notifications;
             }
         }
 
-        private async Task<List<DeviceCommand>> PollCommands(string[] deviceGuids, string[] names, DateTime? timestamp, CancellationToken token)
+        private async Task<List<DeviceCommand>> PollCommandsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, CancellationToken token)
         {
             var url = "device/command/poll";
             var parameters = new[]
@@ -287,15 +290,15 @@ namespace DeviceHive.Client
 
             while (true)
             {
-                var commands = await _restClient.Get<List<DeviceCommand>>(url, token);
+                var commands = await _restClient.GetAsync<List<DeviceCommand>>(url, token);
                 if (commands != null && commands.Any())
                     return commands;
             }
         }
 
-        private async Task<Command> PollCommandUpdate(string deviceGuid, int commandId, CancellationToken token)
+        private async Task<Command> PollCommandUpdateAsync(string deviceGuid, int commandId, CancellationToken token)
         {
-            return await _restClient.Get<Command>(string.Format("device/{0}/command/{1}/poll", deviceGuid, commandId), token);
+            return await _restClient.GetAsync<Command>(string.Format("device/{0}/command/{1}/poll", deviceGuid, commandId), token);
         }
         #endregion
 
