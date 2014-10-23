@@ -89,7 +89,7 @@ namespace DeviceHive.ManagerWin8
             });
             tabList.Add(new Tab("Notifications", "NotificationsState")
             {
-                Select = () =>
+                Select = async () =>
                 {
                     if (NotificationsObservable == null)
                     {
@@ -97,14 +97,39 @@ namespace DeviceHive.ManagerWin8
                     }
                     else if (NotificationsObservable.WasAnySuccessLoading)
                     {
-                        StartPollNotifications();
+                        var filter = new NotificationFilter
+                        {
+                            End = filterNotificationsEnd,
+                            SortOrder = SortOrder.DESC
+                        };
+                        if (NotificationsObservable.Any())
+                        {
+                            filter.Start = NotificationsObservable.Max(c => c.Timestamp);
+                        }
+                        await StartPollNotifications();
+                        try
+                        {
+                            var notifications = await ClientService.Current.GetNotificationsAsync(deviceId, filter);
+                            lock (NotificationsObservable)
+                            {
+                                notifications = notifications.Where(c => !NotificationsObservable.Any(co => co.Id == c.Id)).ToList();
+                                foreach (var notification in notifications)
+                                {
+                                    var insertAfter = NotificationsObservable.FirstOrDefault(c => c.Timestamp > notification.Timestamp);
+                                    var insertIndex = insertAfter != null ? NotificationsObservable.IndexOf(insertAfter) + 1 : 0;
+                                    NotificationsObservable.Insert(insertIndex, notification);
+                                }
+                            }
+                        }
+                        catch { }
                     }
                 },
-                Deselect = StopPollNotifications,
+                Deselect = () => { StopPollNotifications(); },
                 Refresh = RefreshNotifications,
                 Filter = (sender) =>
                 {
-                    ShowFilterFlyout(sender, filterNotificationsStart, filterNotificationsEnd, (s, e) => {
+                    ShowFilterFlyout(sender, filterNotificationsStart, filterNotificationsEnd, (s, e) =>
+                    {
                         filterNotificationsStart = s;
                         filterNotificationsEnd = e;
                         RefreshNotifications();
@@ -121,7 +146,31 @@ namespace DeviceHive.ManagerWin8
                     }
                     else if (CommandsObservable.WasAnySuccessLoading)
                     {
-                        StartPollCommands();
+                        var filter = new CommandFilter
+                        {
+                            End = filterCommandsEnd,
+                            SortOrder = SortOrder.DESC
+                        };
+                        if (CommandsObservable.Any())
+                        {
+                            filter.Start = CommandsObservable.Max(c => c.Timestamp);
+                        }
+                        await StartPollCommands();
+                        try
+                        {
+                            var commands = await ClientService.Current.GetCommandsAsync(deviceId, filter);
+                            lock (CommandsObservable)
+                            {
+                                commands = commands.Where(c => !CommandsObservable.Any(co => co.Id == c.Id)).ToList();
+                                foreach (var command in commands)
+                                {
+                                    var insertAfter = CommandsObservable.FirstOrDefault(c => c.Timestamp > command.Timestamp);
+                                    var insertIndex = insertAfter != null ? CommandsObservable.IndexOf(insertAfter) + 1 : 0;
+                                    CommandsObservable.Insert(insertIndex, command);
+                                }
+                            }
+                        }
+                        catch { }
                     }
                 },
                 Deselect = () =>
@@ -277,22 +326,22 @@ namespace DeviceHive.ManagerWin8
             }
         }
 
-        void StopPollNotifications()
+        async Task StopPollNotifications()
         {
             if (notificationsPollSubscription != null)
             {
                 Debug.WriteLine("NTF POLL CANCEL");
-                ClientService.Current.RemoveSubscriptionAsync(notificationsPollSubscription);
+                await ClientService.Current.RemoveSubscriptionAsync(notificationsPollSubscription);
                 notificationsPollSubscription = null;
             }
         }
 
-        void StopPollCommands()
+        async Task StopPollCommands()
         {
             if (commandsPollSubscription != null)
             {
                 Debug.WriteLine("CMD POLL CANCEL");
-                ClientService.Current.RemoveSubscriptionAsync(commandsPollSubscription);
+                await ClientService.Current.RemoveSubscriptionAsync(commandsPollSubscription);
                 commandsPollSubscription = null;
             }
         }
@@ -358,13 +407,13 @@ namespace DeviceHive.ManagerWin8
             NotificationsObservable = list;
         }
 
-        async void StartPollNotifications()
+        async Task StartPollNotifications()
         {
             if (filterNotificationsEnd != null)
             {
                 return;
             }
-            StopPollNotifications();
+            await StopPollNotifications();
 
             Debug.WriteLine("NTF POLL START");
             notificationsPollSubscription = await ClientService.Current.AddNotificationSubscriptionAsync(new[] { deviceId }, null, async (notificationPolled) =>
@@ -373,7 +422,10 @@ namespace DeviceHive.ManagerWin8
                 {
                     lock (NotificationsObservable)
                     {
-                        NotificationsObservable.Insert(0, notificationPolled.Notification);
+                        if (!NotificationsObservable.Any(c => c.Id == notificationPolled.Notification.Id))
+                        {
+                            NotificationsObservable.Insert(0, notificationPolled.Notification);
+                        }
                     }
                 });
             });
@@ -427,13 +479,13 @@ namespace DeviceHive.ManagerWin8
             CommandsObservable = list;
         }
 
-        async void StartPollCommands()
+        async Task StartPollCommands()
         {
             if (CommandsObservable == null || filterCommandsEnd != null)
             {
                 return;
             }
-            StopPollCommands();
+            await StopPollCommands();
             
             Debug.WriteLine("CMD POLL START");
             commandsPollSubscription = await ClientService.Current.AddCommandSubscriptionAsync(new[] { deviceId }, null, async (commandPolled) =>
@@ -442,7 +494,10 @@ namespace DeviceHive.ManagerWin8
                 {
                     lock (CommandsObservable)
                     {
-                        CommandsObservable.Insert(0, commandPolled.Command);
+                        if (!CommandsObservable.Any(c => c.Id == commandPolled.Command.Id))
+                        {
+                            CommandsObservable.Insert(0, commandPolled.Command);
+                        }
                     }
                 });
             });
