@@ -266,7 +266,7 @@ namespace DeviceHive.Client
         /// <summary>
         /// Sets an array of available channels to use for maintaining a persistent connection with the DeviceHive server.
         /// The actual channel to be used will be selected as the first object which returns the true <see cref="DeviceHive.Client.Channel.CanConnectAsync()"/> value.
-        /// The default list of channels consists of the <see cref="WebSocketChannel"/> and <see cref="LongPollingChannel"/> objects.
+        /// The default list of channels consists of the <see cref="LongPollingChannel"/> object.
         /// </summary>
         /// <param name="channels">The array of <see cref="Channel"/> objects to be used.</param>
         public void SetAvailableChannels(Channel[] channels)
