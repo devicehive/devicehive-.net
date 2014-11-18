@@ -40,7 +40,7 @@ namespace DeviceHive.DocGenerator
 
         public string ID()
         {
-            return Name.Replace("/", "");
+            return Name.Replace("/", "").Replace(": ", "");
         }
 
         public string UriNoQuery()

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
@@ -10,15 +12,23 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="User" />
-    [AuthorizeUser(Roles = "Administrator")]
+    [RoutePrefix("user")]
     public class UserController : BaseController
     {
+        private readonly PasswordPolicyValidator _passwordPolicyValidator;
+
+        public UserController(PasswordPolicyValidator passwordPolicyValidator)
+        {
+            _passwordPolicyValidator = passwordPolicyValidator;
+        }
+
         /// <name>list</name>
         /// <summary>
         /// Gets list of users.
         /// </summary>
         /// <query cref="UserFilter" />
         /// <returns cref="User">If successful, this method returns array of <see cref="User"/> resources in the response body.</returns>
+        [Route, AuthorizeAdmin]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<UserFilter>();
@@ -29,13 +39,17 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets information about user and its assigned networks.
         /// </summary>
-        /// <param name="id">User identifier.</param>
+        /// <param name="id">User identifier. Use the 'current' keyword to get information about the current user.</param>
         /// <returns cref="User">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
         /// <response>
         ///     <parameter name="networks" type="array" cref="UserNetwork">Array of networks associated with the user</parameter>
         /// </response>
+        [Route("{id:idorcurrent}")]
+        [AuthorizeUser, ResolveCurrentUser("id")]
         public JObject Get(int id)
         {
+            EnsureUserAccessTo(id);
+
             var user = DataContext.User.Get(id);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -57,14 +71,18 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="password" type="string" required="true">User password</parameter>
         /// </request>
+        [Route, AuthorizeAdmin]
         [HttpCreatedResponse]
         public JObject Post(JObject json)
         {
             if (json["password"] == null || json["password"].Type != JTokenType.String)
                 ThrowHttpResponse(HttpStatusCode.BadRequest, "Required 'password' property was not specified!");
 
+            var password = (string)json["password"];
+            ValidatePasswordPolicy(password);
+
             var user = Mapper.Map(json);
-            user.SetPassword((string)json["password"]);
+            user.SetPassword(password);
             Validate(user);
 
             if (DataContext.User.Get(user.Login) != null)
@@ -78,7 +96,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Updates an existing user.
         /// </summary>
-        /// <param name="id">User identifier.</param>
+        /// <param name="id">User identifier. Use the 'current' keyword to update information of the current user.</param>
         /// <param name="json" cref="User">In the request body, supply a <see cref="User"/> resource.</param>
         /// <request>
         ///     <parameter name="password" type="string">User password</parameter>
@@ -87,15 +105,28 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="status" required="false" />
         /// </request>
         [HttpNoContentResponse]
+        [Route("{id:idorcurrent}")]
+        [AuthorizeUser, ResolveCurrentUser("id")]
         public void Put(int id, JObject json)
         {
+            EnsureUserAccessTo(id);
+
             var user = DataContext.User.Get(id);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
 
-            Mapper.Apply(user, json);
+            if (CallContext.CurrentUser.Role == (int)UserRole.Administrator)
+            {
+                // only administrators can change user properties
+                Mapper.Apply(user, json);
+            }
             if (json["password"] != null && json["password"].Type == JTokenType.String)
-                user.SetPassword((string)json["password"]);
+            {
+                // all users can change their password
+                var password = (string)json["password"];
+                ValidatePasswordPolicy(password);
+                user.SetPassword(password);
+            }
             Validate(user);
 
             var existing = DataContext.User.Get(user.Login);
@@ -111,9 +142,22 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">User identifier.</param>
         [HttpNoContentResponse]
+        [Route("{id:int}"), AuthorizeAdmin]
         public void Delete(int id)
         {
             DataContext.User.Delete(id);
+        }
+
+        private void ValidatePasswordPolicy(string password)
+        {
+            try
+            {
+                _passwordPolicyValidator.Validate(password);
+            }
+            catch (PasswordPolicyViolationException e)
+            {
+                ThrowHttpResponse(HttpStatusCode.Forbidden, e.Message);
+            }
         }
 
         private IJsonMapper<User> Mapper

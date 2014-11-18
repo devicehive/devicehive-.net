@@ -24,7 +24,9 @@ namespace DeviceHive.WebSockets.Core.Network.Fleck
 
         public override void Start(string url, string sslCertificateSerialNumber)
         {
-            _webSocketServer = new WebSocketServer(url);
+            var uri = new Uri(url);
+            var listenUrl = string.Format("{0}://0.0.0.0:{1}", uri.Scheme, uri.Port);
+            _webSocketServer = new WebSocketServer(listenUrl);
 
             if (sslCertificateSerialNumber != null)
             {
@@ -65,6 +67,23 @@ namespace DeviceHive.WebSockets.Core.Network.Fleck
 
                         var e = new WebSocketMessageEventArgs(fc, msg);
                         OnMessageReceived(e);
+                    };
+
+                c.OnPing = data =>
+                    {
+                        _logger.Debug("Received ping for connection: " + c.ConnectionInfo.Id);
+
+                        var fc = WaitConnection(c.ConnectionInfo.Id);
+                        if (fc == null)
+                        {
+                            _logger.ErrorFormat("Connection {0} is not registered", c.ConnectionInfo.Id);
+                            return;
+                        }
+
+                        var e = new WebSocketConnectionEventArgs(fc);
+                        OnPingReceived(e);
+
+                        c.SendPong(data);
                     };
             });
         }

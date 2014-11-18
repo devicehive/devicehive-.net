@@ -34,7 +34,7 @@ namespace DeviceHive.ManagerWin8
     /// </summary>
     public sealed partial class DevicePage : DeviceHive.ManagerWin8.Common.LayoutAwarePage
     {
-        Guid deviceId;
+        string deviceId;
         Device device;
 
         List<Tab> tabList = new List<Tab>();
@@ -43,9 +43,9 @@ namespace DeviceHive.ManagerWin8
         bool equipmentInited;
         IncrementalLoadingCollection<Notification> notificationsObservable;
         IncrementalLoadingCollection<Command> commandsObservable;
-        CancellationTokenSource notificationsCancellationSource;
-        CancellationTokenSource commandsCancellationSource;
         CancellationTokenSource commandResultCancellatonSource;
+        ISubscription commandsPollSubscription;
+        ISubscription notificationsPollSubscription;
         DateTime? filterNotificationsStart;
         DateTime? filterNotificationsEnd;
         DateTime? filterCommandsStart;
@@ -68,7 +68,7 @@ namespace DeviceHive.ManagerWin8
         /// session.  This will be null the first time a page is visited.</param>
         protected override async void LoadState(Object navigationParameter, Dictionary<String, Object> pageState)
         {
-            deviceId = (Guid)navigationParameter;
+            deviceId = (string)navigationParameter;
 
             filterNotificationsStart = DateTime.Now.AddDays(-7);
             filterCommandsStart = DateTime.Now.AddDays(-7);
@@ -89,7 +89,7 @@ namespace DeviceHive.ManagerWin8
             });
             tabList.Add(new Tab("Notifications", "NotificationsState")
             {
-                Select = () =>
+                Select = async () =>
                 {
                     if (NotificationsObservable == null)
                     {
@@ -97,14 +97,39 @@ namespace DeviceHive.ManagerWin8
                     }
                     else if (NotificationsObservable.WasAnySuccessLoading)
                     {
-                        StartPollNotifications();
+                        var filter = new NotificationFilter
+                        {
+                            End = filterNotificationsEnd,
+                            SortOrder = SortOrder.DESC
+                        };
+                        if (NotificationsObservable.Any())
+                        {
+                            filter.Start = NotificationsObservable.Max(c => c.Timestamp);
+                        }
+                        await StartPollNotifications();
+                        try
+                        {
+                            var notifications = await ClientService.Current.GetNotificationsAsync(deviceId, filter);
+                            lock (NotificationsObservable)
+                            {
+                                notifications = notifications.Where(c => !NotificationsObservable.Any(co => co.Id == c.Id)).ToList();
+                                foreach (var notification in notifications)
+                                {
+                                    var insertAfter = NotificationsObservable.FirstOrDefault(c => c.Timestamp > notification.Timestamp);
+                                    var insertIndex = insertAfter != null ? NotificationsObservable.IndexOf(insertAfter) + 1 : 0;
+                                    NotificationsObservable.Insert(insertIndex, notification);
+                                }
+                            }
+                        }
+                        catch { }
                     }
                 },
-                Deselect = StopPollNotifications,
+                Deselect = () => { StopPollNotifications(); },
                 Refresh = RefreshNotifications,
                 Filter = (sender) =>
                 {
-                    ShowFilterFlyout(sender, filterNotificationsStart, filterNotificationsEnd, (s, e) => {
+                    ShowFilterFlyout(sender, filterNotificationsStart, filterNotificationsEnd, (s, e) =>
+                    {
                         filterNotificationsStart = s;
                         filterNotificationsEnd = e;
                         RefreshNotifications();
@@ -121,7 +146,31 @@ namespace DeviceHive.ManagerWin8
                     }
                     else if (CommandsObservable.WasAnySuccessLoading)
                     {
-                        StartPollCommands();
+                        var filter = new CommandFilter
+                        {
+                            End = filterCommandsEnd,
+                            SortOrder = SortOrder.DESC
+                        };
+                        if (CommandsObservable.Any())
+                        {
+                            filter.Start = CommandsObservable.Max(c => c.Timestamp);
+                        }
+                        await StartPollCommands();
+                        try
+                        {
+                            var commands = await ClientService.Current.GetCommandsAsync(deviceId, filter);
+                            lock (CommandsObservable)
+                            {
+                                commands = commands.Where(c => !CommandsObservable.Any(co => co.Id == c.Id)).ToList();
+                                foreach (var command in commands)
+                                {
+                                    var insertAfter = CommandsObservable.FirstOrDefault(c => c.Timestamp > command.Timestamp);
+                                    var insertIndex = insertAfter != null ? CommandsObservable.IndexOf(insertAfter) + 1 : 0;
+                                    CommandsObservable.Insert(insertIndex, command);
+                                }
+                            }
+                        }
+                        catch { }
                     }
                 },
                 Deselect = () =>
@@ -277,22 +326,24 @@ namespace DeviceHive.ManagerWin8
             }
         }
 
-        void StopPollNotifications()
+        async Task StopPollNotifications()
         {
-            if (notificationsCancellationSource != null && !notificationsCancellationSource.IsCancellationRequested)
+            if (notificationsPollSubscription != null)
             {
                 Debug.WriteLine("NTF POLL CANCEL");
-                notificationsCancellationSource.Cancel();
+                await ClientService.Current.RemoveSubscriptionAsync(notificationsPollSubscription);
+                notificationsPollSubscription = null;
             }
         }
 
-        void StopPollCommands()
+        async Task StopPollCommands()
         {
-            if (commandsCancellationSource != null && !commandsCancellationSource.IsCancellationRequested)
+            if (commandsPollSubscription != null)
             {
                 Debug.WriteLine("CMD POLL CANCEL");
-                commandsCancellationSource.Cancel();
-            } 
+                await ClientService.Current.RemoveSubscriptionAsync(commandsPollSubscription);
+                commandsPollSubscription = null;
+            }
         }
 
         async Task LoadDevice()
@@ -356,23 +407,28 @@ namespace DeviceHive.ManagerWin8
             NotificationsObservable = list;
         }
 
-        async void StartPollNotifications()
+        async Task StartPollNotifications()
         {
             if (filterNotificationsEnd != null)
             {
                 return;
             }
-            StopPollNotifications();
-            notificationsCancellationSource = new CancellationTokenSource();
+            await StopPollNotifications();
 
             Debug.WriteLine("NTF POLL START");
-            await ClientService.Current.PollNotifications((notificationsPolled) =>
+            notificationsPollSubscription = await ClientService.Current.AddNotificationSubscriptionAsync(new[] { deviceId }, null, async (notificationPolled) =>
             {
-                foreach (Notification notification in notificationsPolled)
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
-                    NotificationsObservable.Insert(0, notification);
-                }
-            }, deviceId, NotificationsObservable.Any() ? (DateTime?)NotificationsObservable.Max(n => n.Timestamp.Value) : filterNotificationsStart, notificationsCancellationSource.Token);
+                    lock (NotificationsObservable)
+                    {
+                        if (!NotificationsObservable.Any(c => c.Id == notificationPolled.Notification.Id))
+                        {
+                            NotificationsObservable.Insert(0, notificationPolled.Notification);
+                        }
+                    }
+                });
+            });
             Debug.WriteLine("NTF POLL END");
         }
 
@@ -423,23 +479,28 @@ namespace DeviceHive.ManagerWin8
             CommandsObservable = list;
         }
 
-        async void StartPollCommands()
+        async Task StartPollCommands()
         {
             if (CommandsObservable == null || filterCommandsEnd != null)
             {
                 return;
             }
-            StopPollCommands();
-            commandsCancellationSource = new CancellationTokenSource();
-
+            await StopPollCommands();
+            
             Debug.WriteLine("CMD POLL START");
-            await ClientService.Current.PollCommands((commandsPolled) =>
+            commandsPollSubscription = await ClientService.Current.AddCommandSubscriptionAsync(new[] { deviceId }, null, async (commandPolled) =>
             {
-                foreach (Command command in commandsPolled)
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
-                    CommandsObservable.Insert(0, command);
-                }
-            }, deviceId, CommandsObservable.Any() ? (DateTime?)CommandsObservable.Max(n => n.Timestamp.Value) : filterCommandsStart, commandsCancellationSource.Token);
+                    lock (CommandsObservable)
+                    {
+                        if (!CommandsObservable.Any(c => c.Id == commandPolled.Command.Id))
+                        {
+                            CommandsObservable.Insert(0, commandPolled.Command);
+                        }
+                    }
+                });
+            });
             Debug.WriteLine("CMD POLL END");
         }
 
@@ -450,8 +511,7 @@ namespace DeviceHive.ManagerWin8
             {
                 GC.Collect();
                 Debug.WriteLine("EQP LOAD START");
-                var equipment = await ClientService.Current.GetEquipmentAsync((int)device.DeviceClass.Id);
-                Debug.WriteLine("EQP LOAD 50%");
+                var equipment = device.DeviceClass.Equipment;
                 var equipmentState = await ClientService.Current.GetEquipmentStateAsync(deviceId);
                 Debug.WriteLine("EQP LOAD END");
                 var equipmentInfo = new List<EquipmentStateInfo>();
@@ -642,9 +702,9 @@ namespace DeviceHive.ManagerWin8
                     var command = new Command(commandName.Text, JObject.Parse(commandParams.Text));
                     StopPollCommandResult();
                     Debug.WriteLine("CMD SEND START");
-                    var commandSent = await ClientService.Current.SendCommandAsync(deviceId, command);
+                    commandResultCancellatonSource = new CancellationTokenSource();
+                    await ClientService.Current.SendCommandAsync(deviceId, command, CommandResultCallback, commandResultCancellatonSource.Token);
                     Debug.WriteLine("CMD SEND END");
-                    StartPollCommandResult((int)commandSent.Id);
                     flyOut.IsOpen = false;
                 }
                 catch (Exception ex)
@@ -659,34 +719,28 @@ namespace DeviceHive.ManagerWin8
             flyOut.IsOpen = true;
         }
 
-        async void StartPollCommandResult(int commandId)
+        async void CommandResultCallback(Command command)
         {
-            StopPollCommandResult();
-            commandResultCancellatonSource = new CancellationTokenSource();
-            Debug.WriteLine("CMD SENT POLL START");
-            var commandResult = await ClientService.Current.WaitCommandAsync(deviceId, commandId, commandResultCancellatonSource.Token);
-            Debug.WriteLine("CMD SENT POLL END");
-            if (commandResult != null)
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                if (CommandsObservable == null)
+                lock (commandsObservable)
                 {
-                    return;
-                }
-                foreach (Command command in CommandsObservable)
-                {
-                    if (commandResult.Id == command.Id)
+                    foreach (Command cmd in CommandsObservable)
                     {
-                        // Command class doesn't implement INotifyPropertyChanded,
-                        // so replace old command by command with result
-                        var index = commandsObservable.IndexOf(command);
-                        commandsObservable.RemoveAt(index);
-                        commandsObservable.Insert(index, commandResult);
-                        break;
+                        if (command.Id == command.Id)
+                        {
+                            // Command class doesn't implement INotifyPropertyChanded,
+                            // so replace old command by command with result
+                            var index = commandsObservable.IndexOf(cmd);
+                            commandsObservable.RemoveAt(index);
+                            commandsObservable.Insert(index, command);
+                            break;
+                        }
                     }
                 }
-            }
+            });
         }
-
+        
         void StopPollCommandResult()
         {
             if (commandResultCancellatonSource != null && !commandResultCancellatonSource.IsCancellationRequested)

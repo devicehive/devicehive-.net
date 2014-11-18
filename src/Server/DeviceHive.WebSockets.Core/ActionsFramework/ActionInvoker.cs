@@ -7,32 +7,42 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
     {
         private readonly ControllerCollection _controllerCollection = new ControllerCollection();
 
-        public void InvokeAction(ControllerBase controller, string actionName)
+        public void InvokeAction(ActionContext actionContext)
         {
-            var actionCollection = _controllerCollection.GetActionCollection(controller.GetType());
-            var action = actionCollection.GetAction(actionName);
+            var actionCollection = _controllerCollection.GetActionCollection(actionContext.Controller.GetType());
+            var action = actionCollection.GetAction(actionContext.Action);
 
             if (action == null)
             {
                 throw new WebSocketRequestException(string.Format(
                     "Can't find action {0} in controller {1}",
-                    actionName, controller.GetType().FullName));
+                    actionContext.Action, actionContext.Controller.GetType().FullName));
             }
 
-            action.Invoke(controller);
+            action.Invoke(actionContext);
+        }
+
+        public void InvokePingAction(ActionContext actionContext)
+        {
+            var actionCollection = _controllerCollection.GetActionCollection(actionContext.Controller.GetType());
+            if (actionCollection.PingAction != null)
+            {
+                actionCollection.PingAction.Invoke(actionContext);
+            }
         }
 
         #region ActionCollection class
 
         private class ActionCollection
         {
-            private readonly Dictionary<string, ActionInfo> _actions =
-                new Dictionary<string, ActionInfo>();
+            private readonly Dictionary<string, ActionInfo> _actions = new Dictionary<string, ActionInfo>();
 
             public ActionCollection(Type controllerType)
             {
                 FindActions(controllerType);
             }
+
+            public ActionInfo PingAction { get; private set; }
 
             public ActionInfo GetAction(string name)
             {
@@ -46,12 +56,19 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
 
                 foreach (var methodInfo in methods)
                 {
+                    var pingAttrs = methodInfo.GetCustomAttributes(typeof(PingAttribute), true);
+                    if (pingAttrs.Length > 0)
+                    {
+                        PingAction = new ActionInfo(methodInfo);
+                        continue;
+                    }
+
                     var actionAttrs = methodInfo.GetCustomAttributes(typeof (ActionAttribute), true);
                     if (actionAttrs.Length == 0)
                         continue;
 
                     var actionAttr = (ActionAttribute) actionAttrs[0];
-                    var action = new ActionInfo(methodInfo, actionAttr.NeedAuthentication);
+                    var action = new ActionInfo(methodInfo);
                     _actions.Add(actionAttr.ActionName, action);
                 }
             }

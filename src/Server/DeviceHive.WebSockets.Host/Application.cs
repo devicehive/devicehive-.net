@@ -150,6 +150,11 @@ namespace DeviceHive.WebSockets.Host
             SendMessage(new DataReceivedMessage(connection.Identity, message));
         }
 
+        public void NotifyPingReceived(WebSocketConnectionBase connection)
+        {
+            SendMessage(new PingReceivedMessage(connection.Identity));
+        }
+
         public void TryDeactivate(DateTime minAccessTime)
         {
             if (_state != ApplicationState.Active || _connections.Count > 0)

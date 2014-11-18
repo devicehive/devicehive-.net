@@ -28,6 +28,22 @@ namespace DeviceHive.Data.MongoDB
             return _mongo.DeviceCommands.AsQueryable().Where(e => e.DeviceID == deviceId).Filter(filter).ToList();
         }
 
+        public List<DeviceCommand> GetByDevices(int[] deviceIds, DeviceCommandFilter filter = null)
+        {
+            var query = _mongo.DeviceCommands.AsQueryable();
+            if (deviceIds != null)
+                query = query.Where(e => deviceIds.Contains(e.DeviceID));
+            var commands = query.Filter(filter).ToList();
+
+            var actualDeviceIds = commands.Select(e => e.DeviceID).Distinct().ToArray();
+            var deviceLookup = _mongo.Devices.Find(Query<Device>.In(e => e.ID, actualDeviceIds)).ToDictionary(e => e.ID);
+
+            foreach (var command in commands)
+                command.Device = deviceLookup[command.DeviceID];
+
+            return commands;
+        }
+
         public DeviceCommand Get(int id)
         {
             return _mongo.DeviceCommands.FindOneById(id);

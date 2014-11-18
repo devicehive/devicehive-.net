@@ -26,8 +26,7 @@ namespace DeviceHive.Data.Model
         /// <param name="name">Equipment name</param>
         /// <param name="code">Equipment code</param>
         /// <param name="type">Equipment type</param>
-        /// <param name="deviceClass">Associated device class object</param>
-        public Equipment(string name, string code, string type, DeviceClass deviceClass)
+        public Equipment(string name, string code, string type)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Name is null or empty!", "name");
@@ -35,14 +34,10 @@ namespace DeviceHive.Data.Model
                 throw new ArgumentException("Code is null or empty!", "code");
             if (string.IsNullOrEmpty(type))
                 throw new ArgumentException("Type is null or empty!", "type");
-            if (deviceClass == null)
-                throw new ArgumentNullException("deviceClass");
 
             this.Name = name;
             this.Code = code;
             this.Type = type;
-            this.DeviceClass = deviceClass;
-            this.DeviceClassID = deviceClass.ID;
         }
         #endregion
 
@@ -52,6 +47,11 @@ namespace DeviceHive.Data.Model
         /// Equipment identifier.
         /// </summary>
         public int ID { get; private set; }
+
+        /// <summary>
+        /// Associated device class identifier (used internally by EF repository).
+        /// </summary>
+        public int DeviceClassID { get; private set; }
 
         /// <summary>
         /// Equipment display name.
@@ -82,17 +82,6 @@ namespace DeviceHive.Data.Model
         [JsonField]
         public string Data { get; set; }
         
-        /// <summary>
-        /// Gets associated device class identifier.
-        /// </summary>
-        public int DeviceClassID { get; set; }
-
-        /// <summary>
-        /// Associated device class object.
-        /// </summary>
-        [Required]
-        public DeviceClass DeviceClass { get; set; }
-
         #endregion
     }
 }

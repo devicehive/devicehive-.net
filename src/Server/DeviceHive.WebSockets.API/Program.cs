@@ -77,17 +77,15 @@ namespace DeviceHive.WebSockets.API
         private static void RunHostedApp(IKernel kernel)
         {
             var service = kernel.Get<HostedAppServiceImpl>();
-            service.Start();
-            service.FinishedWaitHandle.WaitOne();
+            service.Run();
         }
 
         private static void RunSelfHostApp(IKernel kernel)
         {
             var service = kernel.Get<SelfHostServiceImpl>();
-
-            Console.WriteLine("Press 'q' to quit");
             service.Start();
 
+            Console.WriteLine("Press 'q' to quit");
             while (true)
             {
                 try

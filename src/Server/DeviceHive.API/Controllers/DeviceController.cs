@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
@@ -14,14 +15,13 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="Device" />
+    [RoutePrefix("device")]
     public class DeviceController : BaseController
     {
-        private readonly MessageBus _messageBus;
         private readonly DeviceService _deviceService;
 
-        public DeviceController(MessageBus messageBus, DeviceService deviceService)
+        public DeviceController(DeviceService deviceService)
         {
-            _messageBus = messageBus;
             _deviceService = deviceService;
         }
 
@@ -31,13 +31,20 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="DeviceFilter" />
         /// <returns cref="Device">If successful, this method returns array of <see cref="Device"/> resources in the response body.</returns>
-        [AuthorizeUser]
+        [Route, AuthorizeUser(AccessKeyAction = "GetDevice")]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<DeviceFilter>();
-            var devices = RequestContext.CurrentUser.Role == (int)UserRole.Administrator ?
+            var devices = CallContext.CurrentUser.Role == (int)UserRole.Administrator ?
                 DataContext.Device.GetAll(filter) :
-                DataContext.Device.GetByUser(RequestContext.CurrentUser.ID, filter);
+                DataContext.Device.GetByUser(CallContext.CurrentUser.ID, filter);
+
+            if (CallContext.CurrentUserPermissions != null)
+            {
+                // if access key was used, limit devices to allowed ones
+                devices = devices.Where(d => CallContext.CurrentUserPermissions.Any(p =>
+                    p.IsNetworkAllowed(d.NetworkID) && p.IsDeviceAllowed(d.GUID))).ToList();
+            }
 
             return new JArray(devices.Select(n => Mapper.Map(n)));
         }
@@ -48,72 +55,52 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         /// <returns cref="Device">If successful, this method returns a <see cref="Device"/> resource in the response body.</returns>
-        [AuthorizeDeviceOrUser]
-        public JObject Get(Guid id)
+        [Route("{id:deviceGuid}"), AuthorizeUserOrDevice(AccessKeyAction = "GetDevice")]
+        public JObject Get(string id)
         {
             EnsureDeviceAccess(id);
 
             var device = DataContext.Device.Get(id);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             return Mapper.Map(device);
         }
 
+        [Route]
         public HttpResponseMessage Post(JObject json)
         {
             return HttpResponse(HttpStatusCode.MethodNotAllowed, "The method is not allowed, please use PUT /device/{id} to register a device");
         }
 
         /// <name>register</name>
-        /// <summary>
-        ///     <para>Registers a device.</para>
-        ///     <para>If device with specified identifier has already been registered, it gets updated in case when valid key is provided in the authorization header.</para>
-        /// </summary>
+        /// <summary>Registers or updates a device.</summary>
         /// <param name="id">Device unique identifier.</param>
         /// <param name="json" cref="Device">In the request body, supply a <see cref="Device"/> resource.</param>
         /// <request>
-        ///     <parameter name="network" mode="remove" />
-        ///     <parameter name="deviceClass" mode="remove" />
-        ///     <parameter name="network" type="integer or object" required="false">
-        ///         <para>Network identifier or <see cref="Network"/> object.</para>
-        ///         <para>If object is passed, the target network will be searched by name and automatically created if not found.</para>
-        ///         <para>In case when existing network is protected with the key, the key value must be included.</para>
+        ///     <parameter name="network">
+        ///         <para>A <see cref="Network"/> object which includes name property to match.</para>
+        ///         <para>In case when the target network is protected with a key, the key value must also be included.</para>
+        ///         <para>For test deployments, any non-existing networks are automatically created.</para>
         ///     </parameter>
-        ///     <parameter name="deviceClass" type="integer or object" required="true">
-        ///         <para>Device class identifier or <see cref="DeviceClass"/> object.</para>
-        ///         <para>If object is passed, the target device class will be searched by name and version, and automatically created if not found.</para>
-        ///         <para>The device class object will be also updated accordingly unless the DeviceClass.IsPermanent flag is set.</para>
-        ///     </parameter>
-        ///     <parameter name="equipment" type="array" required="false" cref="Equipment">
-        ///         <para>Array of <see cref="Equipment"/> objects to be associated with the device class. If specified, all existing values will be replaced.</para>
-        ///         <para>In case when device class is permanent, this value is ignored.</para>
+        ///     <parameter name="deviceClass">
+        ///         <para>A <see cref="DeviceClass"/> object which includes name and version properties to match.</para>
+        ///         <para>The device class objects are automatically created/updated unless the DeviceClass.IsPermanent flag is set.</para>
         ///     </parameter>
         /// </request>
         [HttpNoContentResponse]
-        public void Put(Guid id, JObject json)
+        [Route("{id:deviceGuid}"), AuthorizeDeviceRegistration(AccessKeyAction = "RegisterDevice")]
+        public void Put(string id, JObject json)
         {
-            // load device from repository
-            var device = DataContext.Device.Get(id);
-            if (device != null)
-            {
-                // if device exists, administrator or device authorization is required
-                if ((RequestContext.CurrentUser == null || RequestContext.CurrentUser.Role != (int)UserRole.Administrator) &&
-                    (RequestContext.CurrentDevice == null || RequestContext.CurrentDevice.GUID != id))
-                {
-                    ThrowHttpResponse(HttpStatusCode.Unauthorized,  "Not authorized");
-                }
-            }
-            else
-            {
-                // otherwise, create new device
-                device = new Device(id);
-            }
+            // get device as stored in the AuthorizeDeviceRegistration filter
+            var device = Request.Properties.ContainsKey("Device") ? (Device)Request.Properties["Device"] : new Device(id);
+            if (device.ID > 0 && !IsDeviceAccessible(device))
+                ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
 
             try
             {
-                _deviceService.SaveDevice(device, json,
-                    RequestContext.CurrentUser == null);
+                var verifyNetworkKey = CallContext.CurrentUser == null;
+                _deviceService.SaveDevice(device, json, verifyNetworkKey, IsNetworkAccessible);
             }
             catch (InvalidDataException e)
             {
@@ -123,6 +110,10 @@ namespace DeviceHive.API.Controllers
             {
                 ThrowHttpResponse(HttpStatusCode.Forbidden, e.Message);
             }
+
+            // if new device registered by itself - set online timestamp
+            if (CallContext.CurrentUser == null && !Request.Properties.ContainsKey("Device"))
+                DataContext.Device.SetLastOnline(device.ID);
         }
 
         /// <name>delete</name>
@@ -131,11 +122,11 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         [HttpNoContentResponse]
-        [AuthorizeUser(Roles = "Administrator")]
-        public void Delete(Guid id)
+        [Route("{id:deviceGuid}"), AuthorizeUser]
+        public void Delete(string id)
         {
             var device = DataContext.Device.Get(id);
-            if (device != null)
+            if (device != null && IsDeviceAccessible(device))
             {
                 DataContext.Device.Delete(device.ID);
             }

@@ -88,6 +88,62 @@ namespace DeviceHive.Test.DataTest
         }
 
         [Test]
+        public void AccessKey()
+        {
+            var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);
+            DataContext.User.Save(user);
+            RegisterTearDown(() => DataContext.User.Delete(user.ID));
+
+            var accessKey = new AccessKey(user.ID, "Test");
+            accessKey.Permissions.Add(new AccessKeyPermission { Subnets = new[] { "127.0.0.1" } });
+            accessKey.Permissions.Add(new AccessKeyPermission { Subnets = new[] { "127.0.0.2" } });
+            DataContext.AccessKey.Save(accessKey);
+            RegisterTearDown(() => DataContext.AccessKey.Delete(accessKey.ID));
+
+            // test GetByUser
+            var accessKeys = DataContext.AccessKey.GetByUser(user.ID);
+            Assert.AreEqual(1, accessKeys.Count);
+            Assert.AreEqual(accessKey.ID, accessKeys[0].ID);
+            Assert.AreEqual(user.ID, accessKeys[0].UserID);
+
+            // test Get(id)
+            var accessKey1 = DataContext.AccessKey.Get(accessKey.ID);
+            Assert.IsNotNull(accessKey1);
+            Assert.AreEqual("Test", accessKey1.Label);
+            Assert.AreEqual(accessKey.Key, accessKey1.Key);
+            Assert.IsNotNull(accessKey1.Permissions);
+            Assert.AreEqual(2, accessKey1.Permissions.Count);
+            Assert.AreEqual(new[] { "127.0.0.1" }, accessKey1.Permissions[0].Subnets);
+            Assert.AreEqual(new[] { "127.0.0.2" }, accessKey1.Permissions[1].Subnets);
+
+            // test Save
+            accessKey.Label = "Test2";
+            accessKey.GenerateKey();
+            accessKey.ExpirationDate = DateTime.UtcNow;
+            accessKey.Permissions.RemoveAt(1);
+            accessKey.Permissions.Add(new AccessKeyPermission {
+                Subnets = new[] { "127.0.0.3" },
+                Domains = new[] { "www.example.com" },
+                Networks = new[] { 1, 2, 3 }});
+            DataContext.AccessKey.Save(accessKey);
+            var accessKey2 = DataContext.AccessKey.Get(accessKey.ID);
+            Assert.AreEqual("Test2", accessKey2.Label);
+            Assert.AreEqual(accessKey.Key, accessKey2.Key);
+            Assert.IsNotNull(accessKey2.ExpirationDate);
+            Assert.IsNotNull(accessKey2.Permissions);
+            Assert.AreEqual(2, accessKey2.Permissions.Count);
+            Assert.AreEqual(new[] { "127.0.0.1" }, accessKey2.Permissions[0].Subnets);
+            Assert.AreEqual(new[] { "127.0.0.3" }, accessKey2.Permissions[1].Subnets);
+            Assert.AreEqual(new[] { "www.example.com" }, accessKey2.Permissions[1].Domains);
+            Assert.AreEqual(new[] { 1, 2, 3 }, accessKey2.Permissions[1].Networks);
+
+            // test Delete
+            DataContext.AccessKey.Delete(accessKey.ID);
+            var accessKey3 = DataContext.AccessKey.Get(accessKey.ID);
+            Assert.IsNull(accessKey3);
+        }
+
+        [Test]
         public void UserNetwork()
         {
             var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);
@@ -166,6 +222,8 @@ namespace DeviceHive.Test.DataTest
         public void DeviceClass()
         {
             var deviceClass = new DeviceClass("Test", "V1");
+            deviceClass.Equipment.Add(new Equipment("name1", "code1", "type1"));
+            deviceClass.Equipment.Add(new Equipment("name2", "code2", "type2"));
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
@@ -177,6 +235,10 @@ namespace DeviceHive.Test.DataTest
             var deviceClass1 = DataContext.DeviceClass.Get(deviceClass.ID);
             Assert.IsNotNull(deviceClass1);
             Assert.AreEqual("Test", deviceClass1.Name);
+            Assert.IsNotNull(deviceClass1.Equipment);
+            Assert.AreEqual(2, deviceClass1.Equipment.Count);
+            Assert.AreEqual("name1", deviceClass1.Equipment[0].Name);
+            Assert.AreEqual("name2", deviceClass1.Equipment[1].Name);
 
             // test Get(name, version)
             var deviceClass2 = DataContext.DeviceClass.Get("Test", "V1");
@@ -188,6 +250,8 @@ namespace DeviceHive.Test.DataTest
             deviceClass.IsPermanent = true;
             deviceClass.OfflineTimeout = 10;
             deviceClass.Data = "{ }";
+            deviceClass.Equipment.RemoveAt(1);
+            deviceClass.Equipment.Add(new Equipment("name3", "code3", "type3"));
             DataContext.DeviceClass.Save(deviceClass);
             var deviceClass3 = DataContext.DeviceClass.Get(deviceClass.ID);
             Assert.AreEqual("Test2", deviceClass3.Name);
@@ -195,66 +259,14 @@ namespace DeviceHive.Test.DataTest
             Assert.AreEqual(true, deviceClass3.IsPermanent);
             Assert.AreEqual(10, deviceClass3.OfflineTimeout);
             Assert.AreEqual("{ }", deviceClass3.Data);
+            Assert.AreEqual(2, deviceClass3.Equipment.Count);
+            Assert.AreEqual("name1", deviceClass3.Equipment[0].Name);
+            Assert.AreEqual("name3", deviceClass3.Equipment[1].Name);
 
             // test Delete
             DataContext.DeviceClass.Delete(deviceClass.ID);
             var deviceClass4 = DataContext.DeviceClass.Get(deviceClass.ID);
             Assert.IsNull(deviceClass4);
-        }
-
-        [Test]
-        public void Equipment()
-        {
-            var deviceClass = new DeviceClass("D1", "V1");
-            DataContext.DeviceClass.Save(deviceClass);
-            RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
-
-            var equipment = new Equipment("Test", "Code", "Type", deviceClass);
-            DataContext.Equipment.Save(equipment);
-            RegisterTearDown(() => DataContext.Equipment.Delete(equipment.ID));
-
-            // test GetByDeviceClass
-            var equipments = DataContext.Equipment.GetByDeviceClass(deviceClass.ID);
-            Assert.AreEqual(1, equipments.Count);
-            Assert.AreEqual(equipment.ID, equipments[0].ID);
-            Assert.AreEqual(deviceClass.ID, equipments[0].DeviceClassID);
-            Assert.IsNotNull(equipments[0].DeviceClass);
-
-            // test Get(id)
-            var equipment1 = DataContext.Equipment.Get(equipment.ID);
-            Assert.IsNotNull(equipment1);
-            Assert.AreEqual("Test", equipment1.Name);
-            Assert.AreEqual("Code", equipment1.Code);
-            Assert.AreEqual("Type", equipment1.Type);
-            Assert.AreEqual(deviceClass.ID, equipment1.DeviceClassID);
-            Assert.IsNotNull(equipment1.DeviceClass);
-
-            // test Save
-            equipment.Name = "Test2";
-            equipment.Code = "Code2";
-            equipment.Type = "Type2";
-            equipment.Data = "{ }";
-            DataContext.Equipment.Save(equipment);
-            var equipment2 = DataContext.Equipment.Get(equipment.ID);
-            Assert.AreEqual("Test2", equipment2.Name);
-            Assert.AreEqual("Code2", equipment2.Code);
-            Assert.AreEqual("Type2", equipment2.Type);
-            Assert.AreEqual("{ }", equipment2.Data);
-
-            // test update relationship
-            var deviceClass2 = new DeviceClass("D2", "V2");
-            DataContext.DeviceClass.Save(deviceClass2);
-            RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass2.ID));
-            equipment.DeviceClass = deviceClass2;
-            DataContext.Equipment.Save(equipment);
-            var equipment3 = DataContext.Equipment.Get(equipment.ID);
-            Assert.AreEqual(deviceClass2.ID, equipment3.DeviceClassID);
-            Assert.IsNotNull(equipment3.DeviceClass);
-
-            // test Delete
-            DataContext.Equipment.Delete(equipment.ID);
-            var equipment4 = DataContext.Equipment.Get(equipment.ID);
-            Assert.IsNull(equipment4);
         }
 
         [Test]
@@ -268,7 +280,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -337,7 +349,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -380,7 +392,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -429,7 +441,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -463,6 +475,136 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceEquipment.Delete(equipment.ID);
             var equipment3 = DataContext.DeviceEquipment.Get(equipment.ID);
             Assert.IsNull(equipment3);
+        }
+
+        [Test]
+        public void OAuthClient()
+        {
+            var client = new OAuthClient("Test", "test.com", "http://test.com/oauth2", "test_client");
+            DataContext.OAuthClient.Save(client);
+            RegisterTearDown(() => DataContext.OAuthClient.Delete(client.ID));
+
+            // test GetAll
+            var clients = DataContext.OAuthClient.GetAll();
+            Assert.Greater(clients.Count, 0);
+
+            // test Get(id)
+            var client1 = DataContext.OAuthClient.Get(client.ID);
+            Assert.IsNotNull(client1);
+            Assert.AreEqual("Test", client1.Name);
+            Assert.AreEqual("test.com", client1.Domain);
+            Assert.AreEqual("http://test.com/oauth2", client1.RedirectUri);
+            Assert.AreEqual("test_client", client1.OAuthID);
+            Assert.IsNotNull(client1.OAuthSecret);
+
+            // test Get(oauthId)
+            var client2 = DataContext.OAuthClient.Get("test_client");
+            Assert.IsNotNull(client2);
+
+            // test Save
+            client.Name = "Test2";
+            client.Domain = "test2.com";
+            client.Subnet = "127.0.0.1";
+            client.RedirectUri = "http://test.com/oauth/2";
+            client.OAuthID = "test_client2";
+            DataContext.OAuthClient.Save(client);
+            var client3 = DataContext.OAuthClient.Get(client.ID);
+            Assert.AreEqual("Test2", client3.Name);
+            Assert.AreEqual("test2.com", client3.Domain);
+            Assert.AreEqual("127.0.0.1", client3.Subnet);
+            Assert.AreEqual("http://test.com/oauth/2", client3.RedirectUri);
+            Assert.AreEqual("test_client2", client3.OAuthID);
+
+            // test Delete
+            DataContext.OAuthClient.Delete(client.ID);
+            var client4 = DataContext.OAuthClient.Get(client.ID);
+            Assert.IsNull(client4);
+        }
+
+        [Test]
+        public void OAuthGrant()
+        {
+            var user = new User("Test", "pass", 0, 0);
+            DataContext.User.Save(user);
+            RegisterTearDown(() => DataContext.User.Delete(user.ID));
+
+            var accessKey = new AccessKey(user.ID, "test");
+            DataContext.AccessKey.Save(accessKey);
+            RegisterTearDown(() => DataContext.AccessKey.Delete(accessKey.ID));
+
+            var client = new OAuthClient("Test", "test.com", "http://test.com/oauth2", "test_client");
+            DataContext.OAuthClient.Save(client);
+            RegisterTearDown(() => DataContext.OAuthClient.Delete(client.ID));
+
+            var grant = new OAuthGrant(client, user.ID, accessKey, 0, "scope");
+            grant.AuthCode = Guid.NewGuid();
+            DataContext.OAuthGrant.Save(grant);
+            RegisterTearDown(() => DataContext.OAuthGrant.Delete(grant.ID));
+
+            // test GetByUser
+            var grants = DataContext.OAuthGrant.GetByUser(user.ID);
+            Assert.Greater(grants.Count, 0);
+
+            // test Get(id)
+            var grant1 = DataContext.OAuthGrant.Get(grant.ID);
+            Assert.IsNotNull(grant1);
+            Assert.Less(Math.Abs(DateTime.UtcNow.Subtract(grant1.Timestamp).TotalMinutes), 10);
+            Assert.AreEqual(0, grant1.Type);
+            Assert.AreEqual("scope", grant1.Scope);
+            Assert.AreEqual(client.ID, grant1.ClientID);
+            Assert.IsNotNull(grant1.Client);
+            Assert.AreEqual(user.ID, grant1.UserID);
+            Assert.AreEqual(accessKey.ID, grant1.AccessKeyID);
+            Assert.IsNotNull(grant1.AccessKey);
+
+            // test Get(authCode)
+            var grant2 = DataContext.OAuthGrant.Get(grant.AuthCode.Value);
+            Assert.IsNotNull(grant2);
+            Assert.AreEqual(0, grant2.Type);
+            Assert.AreEqual("scope", grant2.Scope);
+            Assert.AreEqual(user.ID, grant2.UserID);
+            Assert.AreEqual(client.ID, grant2.ClientID);
+            Assert.IsNotNull(grant2.Client);
+            Assert.AreEqual(accessKey.ID, grant2.AccessKeyID);
+            Assert.IsNotNull(grant2.AccessKey);
+
+            // test Save
+            grant.AuthCode = Guid.NewGuid();
+            grant.Type = 1;
+            grant.AccessType = 1;
+            grant.RedirectUri = "http://test.com/oauth";
+            grant.Scope = "scope scope2";
+            grant.Networks = new[] { 5, 10 };
+            DataContext.OAuthGrant.Save(grant);
+            var grant3 = DataContext.OAuthGrant.Get(grant.ID);
+            Assert.AreEqual(grant.AuthCode, grant3.AuthCode);
+            Assert.AreEqual(1, grant3.Type);
+            Assert.AreEqual(1, grant3.AccessType);
+            Assert.AreEqual("http://test.com/oauth", grant3.RedirectUri);
+            Assert.AreEqual("scope scope2", grant3.Scope);
+            Assert.AreEqual(2, grant3.Networks.Length);
+            Assert.AreEqual(5, grant3.Networks[0]);
+            Assert.AreEqual(10, grant3.Networks[1]);
+            Assert.AreEqual(user.ID, grant3.UserID);
+            Assert.AreEqual(client.ID, grant3.ClientID);
+            Assert.IsNotNull(grant3.Client);
+            Assert.AreEqual(accessKey.ID, grant3.AccessKeyID);
+            Assert.IsNotNull(grant3.AccessKey);
+
+            // test update relationship
+            var client2 = new OAuthClient("Test2", "test2.com", "http://test.com/oauth/2", "test_client2");
+            DataContext.OAuthClient.Save(client2);
+            RegisterTearDown(() => DataContext.OAuthClient.Delete(client2.ID));
+            grant.Client = client2;
+            DataContext.OAuthGrant.Save(grant);
+            var grant4 = DataContext.OAuthGrant.Get(grant.ID);
+            Assert.AreEqual(client2.ID, grant4.ClientID);
+            Assert.IsNotNull(grant4.Client);
+
+            // test Delete
+            DataContext.OAuthClient.Delete(grant.ID);
+            var grant5 = DataContext.OAuthClient.Get(grant.ID);
+            Assert.IsNull(grant5);
         }
 
         [Test]

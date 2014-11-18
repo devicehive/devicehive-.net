@@ -54,6 +54,7 @@ namespace DeviceHive.Data.MongoDB
         {
             _mongo.Users.Remove(Query<User>.EQ(e => e.ID, id));
             _mongo.UserNetworks.Remove(Query<UserNetwork>.EQ(e => e.UserID, id));
+            _mongo.AccessKeys.Remove(Query<AccessKey>.EQ(e => e.UserID, id));
         }
         #endregion
     }

@@ -23,20 +23,21 @@ namespace DeviceHive.WebSockets.API.Core
             context.Kernel.ConfigureMapping<UserNetwork>()
                 .ReferenceProperty(e => e.Network, "network");
 
-            context.Kernel.ConfigureMapping<DeviceClass>()
-                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
-                .Property(e => e.Name, "name")
-                .Property(e => e.Version, "version")
-                .Property(e => e.IsPermanent, "isPermanent")
-                .Property(e => e.OfflineTimeout, "offlineTimeout")
-                .RawJsonProperty(e => e.Data, "data");
-
             context.Kernel.ConfigureMapping<Equipment>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Name, "name")
                 .Property(e => e.Code, "code")
                 .Property(e => e.Type, "type")
                 .RawJsonProperty(e => e.Data, "data");
+
+            context.Kernel.ConfigureMapping<DeviceClass>()
+                .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Name, "name")
+                .Property(e => e.Version, "version")
+                .Property(e => e.IsPermanent, "isPermanent")
+                .Property(e => e.OfflineTimeout, "offlineTimeout")
+                .RawJsonProperty(e => e.Data, "data")
+                .CollectionProperty(e => e.Equipment, "equipment");
 
             context.Kernel.ConfigureMapping<Device>()
                 .Property(e => e.GUID, "id", JsonMapperEntryMode.ToJson)

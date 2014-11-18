@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
-using DeviceHive.Core.MessageLogic.NotificationHandlers;
 using DeviceHive.Core.Messaging;
 using DeviceHive.Data;
 using DeviceHive.Data.Repositories;
@@ -61,10 +60,8 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
             kernel.Bind<WebSocketServerBase>().To<Stubs.StubWebSocketServer>().InSingletonScope();
             kernel.Bind<SelfHostServiceImpl>().ToSelf().InSingletonScope();
 
-            // bind notification handlers
-            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();
-            kernel.Bind<INotificationHandler>().To<DeviceStatusNotificationHandler>();
-            kernel.Bind<INotificationHandler>().To<EquipmentNotificationHandler>();
+            // bind message logic manager
+            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope().OnActivation(m => m.Initialize(kernel));
         }
     }
 }

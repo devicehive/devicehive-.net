@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
-using DeviceHive.Core.Messaging;
+using DeviceHive.Core.MessageLogic;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
+using DeviceHive.WebSockets.API.Filters;
 using DeviceHive.WebSockets.API.Subscriptions;
 using DeviceHive.WebSockets.Core.ActionsFramework;
 using DeviceHive.WebSockets.Core.Network;
@@ -19,7 +21,7 @@ namespace DeviceHive.WebSockets.API.Controllers
     /// The service allows clients to exchange messages with the DeviceHive server using a single persistent connection.
     /// </para>
     /// <para>
-    /// After connection is eshtablished, clients need to authenticate using their login and password,
+    /// After connection is eshtablished, clients need to authenticate using their login and password or access key,
     /// and then start sending commands to devices using the command/insert message.
     /// As soon as a command is processed by a device, the server sends the command/update message.
     /// </para>
@@ -32,26 +34,21 @@ namespace DeviceHive.WebSockets.API.Controllers
     {        
         #region Private Fields
 
-        private const int _maxLoginAttempts = 10;
-
-        private readonly DeviceSubscriptionManager _subscriptionManager;
-        private readonly CommandSubscriptionManager _commandSubscriptionManager;
-        private readonly MessageBus _messageBus;
+        private static readonly DeviceSubscriptionManager _deviceSubscriptionManagerForNotifications = new DeviceSubscriptionManager("DeviceSubscriptions_Notification");
+        private static readonly DeviceSubscriptionManager _deviceSubscriptionManagerForCommands = new DeviceSubscriptionManager("DeviceSubscriptions_Command");
+        private static readonly CommandSubscriptionManager _commandSubscriptionManager = new CommandSubscriptionManager();
+        
+        private readonly IMessageManager _messageManager;
 
         #endregion
 
         #region Constructor
 
-        public ClientController(ActionInvoker actionInvoker,
-            DataContext dataContext, JsonMapperManager jsonMapperManager,
-            [Named("DeviceNotification")] DeviceSubscriptionManager subscriptionManager,
-            CommandSubscriptionManager commandSubscriptionManager,
-            MessageBus messageBus) :
-            base(actionInvoker, dataContext, jsonMapperManager)
+        public ClientController(ActionInvoker actionInvoker, DataContext dataContext,
+            JsonMapperManager jsonMapperManager, DeviceHiveConfiguration deviceHiveConfiguration, IMessageManager messageManager) :
+            base(actionInvoker, dataContext, jsonMapperManager, deviceHiveConfiguration)
         {
-            _subscriptionManager = subscriptionManager;
-            _commandSubscriptionManager = commandSubscriptionManager;
-            _messageBus = messageBus;
+            _messageManager = messageManager;
         }
 
         #endregion
@@ -60,23 +57,27 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         private User CurrentUser
         {
-            get { return (User) Connection.Session["user"]; }
-            set { Connection.Session["user"] = value; }
+            get { return (User) Connection.Session["User"]; }
+            set { Connection.Session["User"] = value; }
+        }
+
+        private AccessKey CurrentAccessKey
+        {
+            get { return (AccessKey)Connection.Session["AccessKey"]; }
+            set { Connection.Session["AccessKey"] = value; }
         }
 
         #endregion
 
         #region ControllerBase Members
 
-        public override bool IsAuthenticated
-        {
-            get { return CurrentUser != null; }
-        }
-
         public override void CleanupConnection(WebSocketConnectionBase connection)
         {
             base.CleanupConnection(connection);
-            CleanupNotifications(connection);
+
+            _deviceSubscriptionManagerForNotifications.Cleanup(connection);
+            _deviceSubscriptionManagerForCommands.Cleanup(connection);
+            _commandSubscriptionManager.Cleanup(connection);
         }
 
         #endregion
@@ -84,32 +85,58 @@ namespace DeviceHive.WebSockets.API.Controllers
         #region Actions Methods
 
         /// <summary>
-        /// Authenticates a user.
+        /// Authenticates a client.
+        /// Either login and password or accessKey parameters must be passed.
         /// </summary>
-        /// <param name="login">User login.</param>
-        /// <param name="password">User password.</param>
+        /// <request>
+        ///     <parameter name="login" type="string">User login.</parameter>
+        ///     <parameter name="password" type="string">User password.</parameter>
+        ///     <parameter name="accessKey" type="string">User access key.</parameter>
+        /// </request>
         [Action("authenticate")]
-        public void Authenticate(string login, string password)
+        [AuthenticateClient]
+        public void Authenticate()
         {
-            if (login == null || password == null)
-                throw new WebSocketRequestException("Please specify 'login' and 'password'");
+            if (ActionContext.GetParameter("AuthUser") == null)
+                throw new WebSocketRequestException("Please specify 'login' and 'password' or 'accessKey'");
 
-            var user = DataContext.User.Get(login);
-            if (user == null || user.Status != (int)UserStatus.Active)
-                throw new WebSocketRequestException("Invalid login or password");
+            CurrentUser = (User)ActionContext.GetParameter("AuthUser");
+            CurrentAccessKey = (AccessKey)ActionContext.GetParameter("AuthAccessKey");
 
-            if (user.IsValidPassword(password))
-            {
-                UpdateUserLastLogin(user);
-            }
-            else
-            {
-                IncrementUserLoginAttempts(user);
-                throw new WebSocketRequestException("Invalid login or password");
-            }
-
-            CurrentUser = user;
             SendSuccessResponse();
+        }
+
+        /// <summary>
+        /// Creates new device notification on behalf of device.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="notification" cref="DeviceNotification">A <see cref="DeviceNotification"/> resource to create.</param>
+        /// <response>
+        ///     <parameter name="notification" cref="DeviceNotification" mode="OneWayOnly">An inserted <see cref="DeviceNotification"/> resource.</parameter>
+        /// </response>
+        [Action("notification/insert")]
+        [AuthorizeClient(AccessKeyAction = "CreateDeviceNotification")]
+        public void InsertDeviceNotification(string deviceGuid, JObject notification)
+        {
+            if (string.IsNullOrEmpty(deviceGuid))
+                throw new WebSocketRequestException("Please specify valid deviceGuid");
+
+            if (notification == null)
+                throw new WebSocketRequestException("Please specify notification");
+
+            var device = DataContext.Device.Get(deviceGuid);
+            if (device == null || !IsDeviceAccessible(device, "CreateDeviceNotification"))
+                throw new WebSocketRequestException("Device not found");
+
+            var notificationEntity = GetMapper<DeviceNotification>().Map(notification);
+            notificationEntity.Device = device;
+            Validate(notificationEntity);
+
+            var context = new MessageHandlerContext(notificationEntity, CurrentUser);
+            _messageManager.HandleNotification(context);
+
+            notification = GetMapper<DeviceNotification>().Map(notificationEntity, oneWayOnly: true);
+            SendResponse(new JProperty("notification", notification));
         }
 
         /// <summary>
@@ -120,30 +147,72 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <response>
         ///     <parameter name="command" cref="DeviceCommand" mode="OneWayOnly">An inserted <see cref="DeviceCommand"/> resource.</parameter>
         /// </response>
-        [Action("command/insert", NeedAuthentication = true)]
-        public void InsertDeviceCommand(Guid deviceGuid, JObject command)
+        [Action("command/insert")]
+        [AuthorizeClient(AccessKeyAction = "CreateDeviceCommand")]
+        public void InsertDeviceCommand(string deviceGuid, JObject command)
         {
-            if (deviceGuid == Guid.Empty)
+            if (string.IsNullOrEmpty(deviceGuid))
                 throw new WebSocketRequestException("Please specify valid deviceGuid");
 
             if (command == null)
                 throw new WebSocketRequestException("Please specify command");
 
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device, "CreateDeviceCommand"))
                 throw new WebSocketRequestException("Device not found");
 
-            var commandEntity = CommandMapper.Map(command);
+            var commandEntity = GetMapper<DeviceCommand>().Map(command);
             commandEntity.Device = device;
             commandEntity.UserID = CurrentUser.ID;
             Validate(commandEntity);
 
-            DataContext.DeviceCommand.Save(commandEntity);
-            _commandSubscriptionManager.Subscribe(Connection, commandEntity.ID);
-            _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, commandEntity.ID));
-            
-            command = CommandMapper.Map(commandEntity, oneWayOnly: true);
+            var context = new MessageHandlerContext(commandEntity, CurrentUser);
+            _messageManager.HandleCommand(context);
+            if (!context.IgnoreMessage)
+                _commandSubscriptionManager.Subscribe(Connection, commandEntity.ID);
+
+            command = GetMapper<DeviceCommand>().Map(commandEntity, oneWayOnly: true);
             SendResponse(new JProperty("command", command));
+        }
+
+        /// <summary>
+        /// Updates an existing device command on behalf of device.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Device command identifier.</param>
+        /// <param name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource to update.</param>
+        /// <request>
+        ///     <parameter name="command.command" required="false" />
+        /// </request>
+        [Action("command/update")]
+        [AuthorizeClient(AccessKeyAction = "UpdateDeviceCommand")]
+        public void UpdateDeviceCommand(string deviceGuid, int commandId, JObject command)
+        {
+            if (string.IsNullOrEmpty(deviceGuid))
+                throw new WebSocketRequestException("Please specify valid deviceGuid");
+
+            if (commandId == 0)
+                throw new WebSocketRequestException("Please specify valid commandId");
+            
+            if (command == null)
+                throw new WebSocketRequestException("Please specify command");
+
+            var device = DataContext.Device.Get(deviceGuid);
+            if (device == null || !IsDeviceAccessible(device, "UpdateDeviceCommand"))
+                throw new WebSocketRequestException("Device not found");
+
+            var commandEntity = DataContext.DeviceCommand.Get(commandId);
+            if (commandEntity == null || commandEntity.DeviceID != device.ID)
+                throw new WebSocketRequestException("Device command not found");
+
+            GetMapper<DeviceCommand>().Apply(commandEntity, command);
+            commandEntity.Device = device;
+            Validate(commandEntity);
+
+            var context = new MessageHandlerContext(commandEntity, CurrentUser);
+            _messageManager.HandleCommandUpdate(context);
+
+            SendSuccessResponse();
         }
 
         /// <summary>
@@ -151,37 +220,100 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// After subscription is completed, the server will start to send notification/insert messages to the connected user.
         /// </summary>
         /// <param name="timestamp">Timestamp of the last received notification (UTC). If not specified, the server's timestamp is taken instead.</param>
-        /// <request>
-        ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to subscribe to. If not specified, the subscription is made to all accessible devices.</parameter>
-        /// </request>
-        [Action("notification/subscribe", NeedAuthentication = true)]
-        public void SubsrcibeToDeviceNotifications(DateTime? timestamp)
+        /// <param name="deviceGuids">Array of device unique identifiers to subscribe to. If not specified, the subscription is made to all accessible devices.</param>
+        /// <param name="names">Array of notification names to subscribe to.</param>
+        /// <response>
+        ///     <parameter name="subscriptionId" type="guid">A unique identifier of the subscription made.</parameter>
+        /// </response>
+        [Action("notification/subscribe")]
+        [AuthorizeClient(AccessKeyAction = "GetDeviceNotification")]
+        public void SubsrcibeToDeviceNotifications(DateTime? timestamp, string[] deviceGuids = null, string[] names = null)
         {
-            var devices = GetSubscriptionDevices().ToArray();
+            var subscriptionId = Guid.NewGuid();
+            var devices = GetDevices(deviceGuids, "GetDeviceNotification");
+            var deviceIds = devices == null ? null : devices.Select(d => d.ID).ToArray();
 
-            if (timestamp != null)
-                SendInitialNotifications(devices, timestamp);
+            var initialNotificationList = GetInitialNotificationList(Connection, subscriptionId);
+            lock (initialNotificationList)
+            {
+                _deviceSubscriptionManagerForNotifications.Subscribe(subscriptionId, Connection, deviceIds, names);
+                SendResponse(new JProperty("subscriptionId", subscriptionId));
 
-            var deviceIds = GetSubscriptionDeviceIds(devices);
-            foreach (var deviceId in deviceIds)
-                _subscriptionManager.Subscribe(Connection, deviceId);
+                if (timestamp != null)
+                {
+                    var filter = new DeviceNotificationFilter { Start = timestamp, IsDateInclusive = false, Notifications = names };
+                    var initialNotifications = DataContext.DeviceNotification.GetByDevices(deviceIds, filter)
+                        .Where(n => IsDeviceAccessible(n.Device, "GetDeviceNotification")).ToArray();
 
+                    foreach (var notification in initialNotifications)
+                    {
+                        initialNotificationList.Add(notification.ID);
+                        Notify(Connection, subscriptionId, notification, notification.Device, isInitialNotification: true);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Subscribes to device commands.
+        /// After subscription is completed, the server will start to send command/insert messages to the connected user.
+        /// </summary>
+        /// <param name="timestamp">Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.</param>
+        /// <param name="deviceGuids">Array of device unique identifiers to subscribe to. If not specified, the subscription is made to all accessible devices.</param>
+        /// <param name="names">Array of command names to subscribe to.</param>
+        /// <response>
+        ///     <parameter name="subscriptionId" type="guid">A unique identifier of the subscription made.</parameter>
+        /// </response>
+        [Action("command/subscribe")]
+        [AuthorizeClient(AccessKeyAction = "GetDeviceCommand")]
+        public void SubsrcibeToDeviceCommands(DateTime? timestamp, string[] deviceGuids = null, string[] names = null)
+        {
+            var subscriptionId = Guid.NewGuid();
+            var devices = GetDevices(deviceGuids, "GetDeviceCommand");
+            var deviceIds = devices == null ? null : devices.Select(d => d.ID).ToArray();
+
+            var initialCommandList = GetInitialCommandList(Connection, subscriptionId);
+            lock (initialCommandList)
+            {
+                _deviceSubscriptionManagerForCommands.Subscribe(subscriptionId, Connection, deviceIds, names);
+                SendResponse(new JProperty("subscriptionId", subscriptionId));
+
+                if (timestamp != null)
+                {
+                    var filter = new DeviceCommandFilter { Start = timestamp, IsDateInclusive = false, Commands = names };
+                    var initialCommands = DataContext.DeviceCommand.GetByDevices(deviceIds, filter)
+                        .Where(n => IsDeviceAccessible(n.Device, "GetDeviceCommand")).ToArray();
+
+                    foreach (var command in initialCommands)
+                    {
+                        initialCommandList.Add(command.ID);
+                        Notify(Connection, subscriptionId, command, command.Device, isInitialCommand: true);
+                    }
+                }
+            }
+       }
+
+        /// <summary>
+        /// Unsubscribes from device notifications.
+        /// </summary>
+        /// <param name="subscriptionId">An identifier of the previously made subscription to unsubscribe from.</param>
+        [Action("notification/unsubscribe")]
+        [AuthorizeClient(AccessKeyAction = "GetDeviceNotification")]
+        public void UnsubsrcibeFromDeviceNotifications(Guid subscriptionId)
+        {
+            _deviceSubscriptionManagerForNotifications.Unsubscribe(Connection, subscriptionId);
             SendSuccessResponse();
         }
 
         /// <summary>
         /// Unsubscribes from device commands.
         /// </summary>
-        /// <request>
-        ///     <parameter name="deviceGuids" type="guid[]">Array of device unique identifiers to unsubscribe from. Keep null to unsubscribe from previously made subscription to all accessible devices.</parameter>
-        /// </request>
-        [Action("notification/unsubscribe", NeedAuthentication = true)]
-        public void UnsubsrcibeFromDeviceNotifications()
+        /// <param name="subscriptionId">An identifier of the previously made subscription to unsubscribe from.</param>
+        [Action("command/unsubscribe")]
+        [AuthorizeClient(AccessKeyAction = "GetDeviceCommand")]
+        public void UnsubsrcibeFromDeviceCommands(Guid subscriptionId)
         {
-            var deviceIds = GetSubscriptionDeviceIds().ToArray();
-            foreach (var deviceId in deviceIds)
-                _subscriptionManager.Unsubscribe(Connection, deviceId);
-
+            _deviceSubscriptionManagerForCommands.Unsubscribe(Connection, subscriptionId);
             SendSuccessResponse();
         }
 
@@ -194,92 +326,133 @@ namespace DeviceHive.WebSockets.API.Controllers
         [Action("server/info")]
         public void ServerInfo()
         {
+            var restEndpoint = DeviceHiveConfiguration.RestEndpoint;
             var apiInfo = new ApiInfo
             {
                 ApiVersion = DeviceHive.Core.Version.ApiVersion,
                 ServerTimestamp = DataContext.Timestamp.GetCurrentTimestamp(),
-                RestServerUrl = ConfigurationManager.AppSettings["RestServerUrl"]
+                RestServerUrl = restEndpoint.Uri,
             };
 
-            SendResponse(new JProperty("info", ApiInfoMapper.Map(apiInfo)));
+            SendResponse(new JProperty("info", GetMapper<ApiInfo>().Map(apiInfo)));
         }
 
         #endregion
 
-        #region Notification Handling
-
-        public void HandleDeviceNotification(int deviceId, int notificationId)
-        {
-            var connections = _subscriptionManager.GetConnections(deviceId);
-            if (connections.Any())
-            {
-                var notification = DataContext.DeviceNotification.Get(notificationId);
-                var device = DataContext.Device.Get(deviceId);
-
-                foreach (var connection in connections)
-                    Notify(connection, notification, device);
-            }
-        }
-
-        private void CleanupNotifications(WebSocketConnectionBase connection)
-        {
-            _subscriptionManager.Cleanup(connection);
-        }
-
-        private void SendInitialNotifications(Device[] devices, DateTime? timestamp)
-        {
-            var initialNotificationList = GetInitialNotificationList(Connection);
-
-            if (devices.Length == 1 && devices[0] == null)
-                devices = DataContext.Device.GetByUser(CurrentUser.ID).ToArray();
-
-            lock (initialNotificationList)
-            {
-                var filter = new DeviceNotificationFilter { Start = timestamp, IsDateInclusive = false };
-                var initialNotifications = DataContext.DeviceNotification.GetByDevices(
-                    devices.Select(d => d.ID).ToArray(), filter);
-
-                foreach (var notification in initialNotifications)
-                {
-                    initialNotificationList.Add(notification.ID);
-                    Notify(Connection, notification, notification.Device, isInitialNotification: true);
-                }
-            }
-        }
+        #region Notification Subscription Handling
 
         /// <summary>
         /// Notifies the user about new device notification.
         /// </summary>
         /// <action>notification/insert</action>
         /// <response>
-        ///     <parameter name="deviceGuid" type="guid">Device unique identifier.</parameter>
+        ///     <parameter name="subscriptionId" type="guid">Identifier of the associated subscription.</parameter>
+        ///     <parameter name="deviceGuid" type="string">Device unique identifier.</parameter>
         ///     <parameter name="notification" cref="DeviceNotification">A <see cref="DeviceNotification"/> resource representing the notification.</parameter>
         /// </response>
-        private void Notify(WebSocketConnectionBase connection, DeviceNotification notification, Device device,
+        public void HandleDeviceNotification(int deviceId, int notificationId)
+        {
+            var subscriptions = _deviceSubscriptionManagerForNotifications.GetSubscriptions(deviceId);
+            if (subscriptions.Any())
+            {
+                Device device = null;
+                var notification = DataContext.DeviceNotification.Get(notificationId);
+                foreach (var subscription in subscriptions)
+                {
+                    var names = (string[])subscription.Data;
+                    if (names != null && !names.Contains(notification.Notification))
+                        continue;
+
+                    if (device == null)
+                        device = DataContext.Device.Get(deviceId);
+
+                    Notify(subscription.Connection, subscription.Id, notification, device);
+                }
+            }
+        }
+
+        private void Notify(WebSocketConnectionBase connection, Guid subscriptionId, DeviceNotification notification, Device device,
             bool isInitialNotification = false)
         {
             if (!isInitialNotification)
             {
-                var initialNotificationList = GetInitialNotificationList(connection);
-                lock (initialNotificationList)
+                var initialNotificationList = GetInitialNotificationList(connection, subscriptionId);
+                lock (initialNotificationList) // wait until all initial notifications are sent
                 {
                     if (initialNotificationList.Contains(notification.ID))
                         return;
                 }
 
-                var user = (User) connection.Session["user"];
-                if (user == null || !IsNetworkAccessible(device.NetworkID, user))
+                if (!IsDeviceAccessible(connection, device, "GetDeviceNotification"))
                     return;
             }
 
             connection.SendResponse("notification/insert",
+                new JProperty("subscriptionId", subscriptionId),
                 new JProperty("deviceGuid", device.GUID),
-                new JProperty("notification", NotificationMapper.Map(notification)));
+                new JProperty("notification", GetMapper<DeviceNotification>().Map(notification)));
         }
 
         #endregion
 
-        #region Command Update Handling
+        #region Command Subscription Handling
+
+        /// <summary>
+        /// Notifies the user about new device command.
+        /// </summary>
+        /// <action>command/insert</action>
+        /// <response>
+        ///     <parameter name="subscriptionId" type="guid">Identifier of the associated subscription.</parameter>
+        ///     <parameter name="deviceGuid" type="string">Device unique identifier.</parameter>
+        ///     <parameter name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource representing the command.</parameter>
+        /// </response>
+        public void HandleDeviceCommand(int deviceId, int commandId)
+        {
+            var subscriptions = _deviceSubscriptionManagerForCommands.GetSubscriptions(deviceId);
+            if (subscriptions.Any())
+            {
+                Device device = null;
+                var command = DataContext.DeviceCommand.Get(commandId);
+
+                foreach (var subscription in subscriptions)
+                {
+                    var names = (string[])subscription.Data;
+                    if (names != null && !names.Contains(command.Command))
+                        continue;
+
+                    if (device == null)
+                        device = DataContext.Device.Get(deviceId);
+
+                    Notify(subscription.Connection, subscription.Id, command, device);
+                }
+            }
+        }
+
+        private void Notify(WebSocketConnectionBase connection, Guid subscriptionId, DeviceCommand command, Device device,
+            bool isInitialCommand = false)
+        {
+            if (!isInitialCommand)
+            {
+                var initialCommandList = GetInitialCommandList(connection, subscriptionId);
+                lock (initialCommandList) // wait until all initial commands are sent
+                {
+                    if (initialCommandList.Contains(command.ID))
+                        return;
+                }
+
+                if (!IsDeviceAccessible(connection, device, "GetDeviceCommand"))
+                    return;
+            }
+
+            connection.SendResponse("command/insert",
+                new JProperty("subscriptionId", subscriptionId),
+                new JProperty("deviceGuid", device.GUID),
+                new JProperty("command", GetMapper<DeviceCommand>().Map(command)));
+        }
+
+        #endregion
+
+        #region Command Update Subscription Handling
 
         /// <summary>
         /// Notifies the user about a command has been processed by a device.
@@ -291,14 +464,14 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </response>
         public void HandleCommandUpdate(int commandId)
         {
-            var connections = _commandSubscriptionManager.GetConnections(commandId);
-            if (connections.Any())
+            var subscriptions = _commandSubscriptionManager.GetSubscriptions(commandId);
+            if (subscriptions.Any())
             {
                 var command = DataContext.DeviceCommand.Get(commandId);
-                foreach (var connection in connections)
+                foreach (var subscription in subscriptions)
                 {
-                    connection.SendResponse("command/update",
-                        new JProperty("command", CommandMapper.Map(command)));
+                    subscription.Connection.SendResponse("command/update",
+                        new JProperty("command", GetMapper<DeviceCommand>().Map(command)));
                 }
             }
         }
@@ -307,96 +480,63 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         #region Private Methods
 
-        private bool IsNetworkAccessible(int? networkId, User user = null)
+        private bool IsDeviceAccessible(Device device, string accessKeyAction)
         {
+            return IsDeviceAccessible(Connection, device, accessKeyAction);
+        }
+        
+        private bool IsDeviceAccessible(WebSocketConnectionBase connection, Device device, string accessKeyAction)
+        {
+            var user = (User)connection.Session["User"];
             if (user == null)
-                user = CurrentUser;
-
-            if (user.Role == (int) UserRole.Administrator)
-                return true;
-
-            if (networkId == null)
                 return false;
 
-            var userNetworks = DataContext.UserNetwork.GetByUser(user.ID);
-            return userNetworks.Any(un => un.NetworkID == networkId);
-        }
-
-        private void IncrementUserLoginAttempts(User user)
-        {
-            user.LoginAttempts++;
-            if (user.LoginAttempts >= _maxLoginAttempts)
-                user.Status = (int)UserStatus.LockedOut;
-            DataContext.User.Save(user);
-        }
-
-        private void UpdateUserLastLogin(User user)
-        {
-            // update LastLogin only if it's too far behind - save database resources
-            if (user.LoginAttempts > 0 || user.LastLogin == null || user.LastLogin.Value.AddHours(1) < DateTime.UtcNow)
+            if (user.Role != (int)UserRole.Administrator)
             {
-                user.LoginAttempts = 0;
-                user.LastLogin = DateTime.UtcNow;
-                DataContext.User.Save(user);
-            }
-        }
+                if (device.NetworkID == null)
+                    return false;
 
-        private IEnumerable<int?> GetSubscriptionDeviceIds(IEnumerable<Device> devices = null)
-        {
-            if (devices == null)
-                devices = GetSubscriptionDevices();
-
-            foreach (var device in devices)
-            {
-                if (device == null)
+                var userNetworks = (List<UserNetwork>)connection.Session["UserNetworks"];
+                if (userNetworks == null)
                 {
-                    yield return null;
+                    userNetworks = DataContext.UserNetwork.GetByUser(user.ID);
+                    connection.Session["UserNetworks"] = userNetworks;
                 }
-                else
-                {
-                    yield return device.ID;
-                }
+
+                if (!userNetworks.Any(un => un.NetworkID == device.NetworkID))
+                    return false;
             }
+
+            // check if access key permissions are sufficient
+            var accessKey = (AccessKey)connection.Session["AccessKey"];
+            return accessKey == null || accessKey.Permissions.Any(p =>
+                p.IsActionAllowed(accessKeyAction) && p.IsAddressAllowed(connection.Host) &&
+                p.IsNetworkAllowed(device.NetworkID) && p.IsDeviceAllowed(device.GUID));
         }
 
-        private IEnumerable<Device> GetSubscriptionDevices()
+        private Device[] GetDevices(string[] deviceGuids, string accessKeyAction)
         {
-            var deviceGuids = ParseDeviceGuids();
-            if (deviceGuids == null)
-            {
-                yield return null;
-                yield break;
-            }
-
-            foreach (var deviceGuid in deviceGuids)
-            {
-                var device = DataContext.Device.Get(deviceGuid);
-                if (device == null || !IsNetworkAccessible(device.NetworkID))
-                    throw new WebSocketRequestException("Invalid deviceGuid: " + deviceGuid);
-
-                yield return device;
-            }
-        }
-
-        private IEnumerable<Guid> ParseDeviceGuids()
-        {
-            if (ActionArgs == null)
-                return null;
-
-            var deviceGuids = ActionArgs["deviceGuids"];
             if (deviceGuids == null)
                 return null;
 
-            var deviceGuidsArray = deviceGuids as JArray;
-            if (deviceGuidsArray != null)
-                return deviceGuidsArray.Select(t => (Guid) t).ToArray();
+            return deviceGuids.Select(deviceGuid =>
+                {
+                    var device = DataContext.Device.Get(deviceGuid);
+                    if (device == null || !IsDeviceAccessible(device, accessKeyAction))
+                        throw new WebSocketRequestException("Invalid deviceGuid: " + deviceGuid);
 
-            return new[] {(Guid) deviceGuids};
+                    return device;
+                }).ToArray();
         }
 
-        private ISet<int> GetInitialNotificationList(WebSocketConnectionBase connection)
+        private ISet<int> GetInitialNotificationList(WebSocketConnectionBase connection, Guid subscriptionId)
         {
-            return (ISet<int>)connection.Session.GetOrAdd("InitialNotifications", () => new HashSet<int>());
+            return (ISet<int>)connection.Session.GetOrAdd("InitialNotifications_" + subscriptionId, () => new HashSet<int>());
+        }
+
+        private ISet<int> GetInitialCommandList(WebSocketConnectionBase connection, Guid subscriptionId)
+        {
+            return (ISet<int>)connection.Session.GetOrAdd("InitialCommands_" + subscriptionId, () => new HashSet<int>());
         }
 
         #endregion

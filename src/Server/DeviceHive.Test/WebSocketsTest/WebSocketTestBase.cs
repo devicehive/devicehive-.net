@@ -15,8 +15,8 @@ namespace DeviceHive.Test.WebSocketsTest
         protected const string Login = "dhadmin";
         protected const string Password = "dhadmin_#911";
 
-        protected static readonly Guid DeviceGUID = new Guid("6a887d33-03cc-40c4-bd33-ef5a7f495291");
-        protected static readonly Guid OtherDeviceGUID = new Guid("b306bfdf-a1cf-4711-bfcb-36b825b3f778");
+        protected static readonly string DeviceGUID = "6a887d33-03cc-40c4-bd33-ef5a7f495291";
+        protected static readonly string OtherDeviceGUID = "b306bfdf-a1cf-4711-bfcb-36b825b3f778";
         protected const string DeviceKey = "key";
 
         [SetUp]
@@ -32,7 +32,7 @@ namespace DeviceHive.Test.WebSocketsTest
             EnsureDeviceExists(dataContext, OtherDeviceGUID);
         }
 
-        private void EnsureDeviceExists(DataContext dataContext, Guid deviceGuid)
+        private void EnsureDeviceExists(DataContext dataContext, string deviceGuid)
         {
             var device = dataContext.Device.Get(deviceGuid);
             if (device != null)

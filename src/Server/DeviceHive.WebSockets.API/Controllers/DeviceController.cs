@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
-using DeviceHive.Core.Messaging;
 using DeviceHive.Core.Services;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
+using DeviceHive.WebSockets.API.Filters;
 using DeviceHive.WebSockets.API.Subscriptions;
 using DeviceHive.WebSockets.Core.ActionsFramework;
 using DeviceHive.WebSockets.Core.Network;
 using Newtonsoft.Json.Linq;
-using Ninject;
 
 namespace DeviceHive.WebSockets.API.Controllers
 {
@@ -37,30 +36,22 @@ namespace DeviceHive.WebSockets.API.Controllers
     {
         #region Private Fields
 
-        private readonly DeviceSubscriptionManager _subscriptionManager;
-        private readonly MessageBus _messageBus;
+        private static readonly DeviceSubscriptionManager _subscriptionManager = new DeviceSubscriptionManager();
+
         private readonly IMessageManager _messageManager;
         private readonly DeviceService _deviceService;
-
-        private readonly IJsonMapper<Device> _deviceMapper;
 
         #endregion
 
         #region Constructor
 
-        public DeviceController(ActionInvoker actionInvoker,
-            DataContext dataContext, JsonMapperManager jsonMapperManager,
-            [Named("DeviceCommand")] DeviceSubscriptionManager subscriptionManager,
-            MessageBus messageBus, IMessageManager messageManager,
-            DeviceService deviceService) :
-            base(actionInvoker, dataContext, jsonMapperManager)
+        public DeviceController(ActionInvoker actionInvoker, DataContext dataContext,
+            JsonMapperManager jsonMapperManager, DeviceHiveConfiguration deviceHiveConfiguration,
+            IMessageManager messageManager, DeviceService deviceService) :
+            base(actionInvoker, dataContext, jsonMapperManager, deviceHiveConfiguration)
         {
-            _subscriptionManager = subscriptionManager;
-            _messageBus = messageBus;
             _messageManager = messageManager;
             _deviceService = deviceService;
-
-            _deviceMapper = jsonMapperManager.GetMapper<Device>();
         }
 
         #endregion
@@ -69,39 +60,23 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         private Device CurrentDevice
         {
-            get { return RequestDevice ?? SessionDevice; }
+            get { return (Device)ActionContext.GetParameter("AuthDevice") ?? SessionDevice; }
         }
 
         private Device SessionDevice
         {
-            get { return (Device)Connection.Session["device"]; }
-            set { Connection.Session["device"] = value; }
+            get { return (Device)Connection.Session["Device"]; }
+            set { Connection.Session["Device"] = value; }
         }
-
-        private Device RequestDevice { get; set; }
 
         #endregion
 
         #region ControllerBase Members
 
-        public override bool IsAuthenticated
-        {
-            get
-            {
-                AuthenticateImpl();
-                return CurrentDevice != null;
-            }
-        }
-
-        protected override void BeforeActionInvoke()
-        {
-            RequestDevice = null;
-        }
-
         public override void CleanupConnection(WebSocketConnectionBase connection)
         {
             base.CleanupConnection(connection);
-            CleanupNotifications(connection);
+            _subscriptionManager.Cleanup(connection);
         }
 
         #endregion
@@ -112,17 +87,20 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// Authenticates a device.
         /// After successful authentication, all subsequent messages may exclude deviceId and deviceKey parameters.
         /// </summary>
+        /// <request>
+        ///     <parameter name="deviceId" type="string" required="true">Device unique identifier.</parameter>
+        ///     <parameter name="deviceKey" type="string" required="true">Device authentication key.</parameter>
+        /// </request>
         [Action("authenticate")]
+        [AuthenticateDevice]
         public void Authenticate()
         {
-            if (AuthenticateImpl())
-            {
-                SessionDevice = RequestDevice;
-                SendSuccessResponse();
-                return;
-            }
+            var device = (Device)ActionContext.GetParameter("AuthDevice");
+            if (device == null)
+                throw new WebSocketRequestException("Please specify valid authentication data");
 
-            throw new WebSocketRequestException("Please specify valid authentication data");
+            SessionDevice = device;
+            SendSuccessResponse();
         }
 
         /// <summary>
@@ -132,21 +110,21 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <response>
         ///     <parameter name="notification" cref="DeviceNotification" mode="OneWayOnly">An inserted <see cref="DeviceNotification"/> resource.</parameter>
         /// </response>
-        [Action("notification/insert", NeedAuthentication = true)]
+        [Action("notification/insert")]
+        [AuthenticateDevice, AuthorizeDevice]
         public void InsertDeviceNotification(JObject notification)
         {
             if (notification == null)
                 throw new WebSocketRequestException("Please specify notification");
 
-            var notificationEntity = NotificationMapper.Map(notification);
+            var notificationEntity = GetMapper<DeviceNotification>().Map(notification);
             notificationEntity.Device = CurrentDevice;
             Validate(notificationEntity);
 
-            DataContext.DeviceNotification.Save(notificationEntity);
-            _messageManager.ProcessNotification(notificationEntity);
-            _messageBus.Notify(new DeviceNotificationAddedMessage(CurrentDevice.ID, notificationEntity.ID));
+            var context = new MessageHandlerContext(notificationEntity, null);
+            _messageManager.HandleNotification(context);
 
-            notification = NotificationMapper.Map(notificationEntity, oneWayOnly: true);
+            notification = GetMapper<DeviceNotification>().Map(notificationEntity, oneWayOnly: true);
             SendResponse(new JProperty("notification", notification));
         }
 
@@ -158,7 +136,8 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <request>
         ///     <parameter name="command.command" required="false" />
         /// </request>
-        [Action("command/update", NeedAuthentication = true)]
+        [Action("command/update")]
+        [AuthenticateDevice, AuthorizeDevice]
         public void UpdateDeviceCommand(int commandId, JObject command)
         {
             if (commandId == 0)
@@ -171,12 +150,12 @@ namespace DeviceHive.WebSockets.API.Controllers
             if (commandEntity == null || commandEntity.DeviceID != CurrentDevice.ID)
                 throw new WebSocketRequestException("Device command not found");
 
-            CommandMapper.Apply(commandEntity, command);
+            GetMapper<DeviceCommand>().Apply(commandEntity, command);
             commandEntity.Device = CurrentDevice;
             Validate(commandEntity);
 
-            DataContext.DeviceCommand.Save(commandEntity);
-            _messageBus.Notify(new DeviceCommandUpdatedMessage(CurrentDevice.ID, commandEntity.ID));
+            var context = new MessageHandlerContext(commandEntity, null);
+            _messageManager.HandleCommandUpdate(context);
 
             SendSuccessResponse();
         }
@@ -186,19 +165,18 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// After subscription is completed, the server will start to send command/insert messages to the connected device.
         /// </summary>
         /// <param name="timestamp">Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.</param>
-        [Action("command/subscribe", NeedAuthentication = true)]
+        [Action("command/subscribe")]
+        [AuthenticateDevice, AuthorizeDevice]
         public void SubsrcibeToDeviceCommands(DateTime? timestamp)
         {
-            if (timestamp != null)
+            var initialCommandList = GetInitialCommandList(Connection);
+            lock (initialCommandList)
             {
-                var initialCommandList = GetInitialCommandList(Connection);
-
-                lock (initialCommandList)
+                _subscriptionManager.Subscribe(Connection, CurrentDevice.ID);
+                if (timestamp != null)
                 {
                     var filter = new DeviceCommandFilter { Start = timestamp, IsDateInclusive = false };
-                    var initialCommands = DataContext.DeviceCommand.GetByDevice(
-                        CurrentDevice.ID, filter);
-
+                    var initialCommands = DataContext.DeviceCommand.GetByDevice(CurrentDevice.ID, filter);
                     foreach (var command in initialCommands)
                     {
                         initialCommandList.Add(command.ID);
@@ -207,17 +185,23 @@ namespace DeviceHive.WebSockets.API.Controllers
                 }
             }
             
-            _subscriptionManager.Subscribe(Connection, CurrentDevice.ID);
             SendSuccessResponse();
         }
 
         /// <summary>
         /// Unsubscribes the device from commands.
         /// </summary>
-        [Action("command/unsubscribe", NeedAuthentication = true)]
+        [Action("command/unsubscribe")]
+        [AuthenticateDevice, AuthorizeDevice]
         public void UnsubsrcibeFromDeviceCommands()
         {
-            _subscriptionManager.Unsubscribe(Connection, CurrentDevice.ID); 
+            var subscriptions = _subscriptionManager.GetSubscriptions(Connection);
+            foreach (var subscription in subscriptions)
+            {
+                if (subscription.Keys.Contains(CurrentDevice.ID))
+                    _subscriptionManager.Unsubscribe(Connection, subscription.Id);
+            }
+
             SendSuccessResponse();
         }
 
@@ -227,62 +211,43 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// <response>
         ///     <parameter name="device" cref="Device">The <see cref="Device"/> resource representing the current device.</parameter>
         /// </response>
-        [Action("device/get", NeedAuthentication = true)]
+        [Action("device/get")]
+        [AuthenticateDevice, AuthorizeDevice]
         public void GetDevice()
         {
             var device = DataContext.Device.Get(CurrentDevice.ID);
-            SendResponse(new JProperty("device", _deviceMapper.Map(device)));
+            SendResponse(new JProperty("device", GetMapper<Device>().Map(device)));
         }
 
         /// <summary>
         /// Registers or updates a device.
-        /// A valid device key is required in the deviceKey parameter in order to update an existing device.
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
         /// <param name="device" cref="Device">A <see cref="Device"/> resource to register or update.</param>
         /// <request>
-        ///     <parameter name="device.network" mode="remove" />
-        ///     <parameter name="device.deviceClass" mode="remove" />
-        ///     <parameter name="device.network" type="integer or object" required="false">
-        ///         <para>Network identifier or <see cref="Network"/> object.</para>
-        ///         <para>If object is passed, the target network will be searched by name and automatically created if not found.</para>
-        ///         <para>In case when existing network is protected with the key, the key value must be included.</para>
+        ///     <parameter name="device.network">
+        ///         <para>A <see cref="Network"/> object which includes name property to match.</para>
+        ///         <para>In case when the target network is protected with a key, the key value must also be included.</para>
+        ///         <para>For test deployments, any non-existing networks are automatically created.</para>
         ///     </parameter>
-        ///     <parameter name="device.deviceClass" type="integer or object" required="true">
-        ///         <para>Device class identifier or <see cref="DeviceClass"/> object.</para>
-        ///         <para>If object is passed, the target device class will be searched by name and version, and automatically created if not found.</para>
-        ///         <para>The device class object will be also updated accordingly unless the DeviceClass.IsPermanent flag is set.</para>
-        ///     </parameter>
-        ///     <parameter name="device.equipment" type="array" required="false" cref="Equipment">
-        ///         <para>Array of <see cref="Equipment"/> objects to be associated with the device class. If specified, all existing values will be replaced.</para>
-        ///         <para>In case when device class is permanent, this value is ignored.</para>
+        ///     <parameter name="device.deviceClass">
+        ///         <para>A <see cref="DeviceClass"/> object which includes name and version properties to match.</para>
+        ///         <para>The device class objects are automatically created/updated unless the DeviceClass.IsPermanent flag is set.</para>
         ///     </parameter>
         /// </request>
-        [Action("device/save", NeedAuthentication = false)]
-        public void SaveDevice(Guid deviceId, JObject device)
+        [Action("device/save")]
+        [AuthenticateDevice(false), AuthorizeDeviceRegistration]
+        public void SaveDevice(string deviceId, JObject device)
         {
+            // get device as stored in the AuthorizeDeviceRegistration filter
+            var deviceEntity = ActionContext.Parameters.ContainsKey("Device") ? (Device)ActionContext.Parameters["Device"] : new Device(deviceId);
+
             try
             {
-                // load device from repository
-                var deviceEntity = DataContext.Device.Get(deviceId);
-                if (deviceEntity != null)
-                {
-                    if (CurrentDevice == null)
-                    {
-                        if (!AuthenticateImpl())
-                            throw new WebSocketRequestException("Not authorized");
-                    }
-
-                    if (CurrentDevice.GUID != deviceId)
-                        throw new WebSocketRequestException("Not authorized");
-                }
-                else
-                {
-                    // otherwise, create new device
-                    deviceEntity = new Device(deviceId);
-                }
-
                 _deviceService.SaveDevice(deviceEntity, device);
+                if (!ActionContext.Parameters.ContainsKey("Device"))
+                    DataContext.Device.SetLastOnline(deviceEntity.ID);
+
                 SendSuccessResponse();
             }
             catch (ServiceException e)
@@ -300,14 +265,24 @@ namespace DeviceHive.WebSockets.API.Controllers
         [Action("server/info")]
         public void ServerInfo()
         {
+            var restEndpoint = DeviceHiveConfiguration.RestEndpoint;
             var apiInfo = new ApiInfo
             {
                 ApiVersion = DeviceHive.Core.Version.ApiVersion,
                 ServerTimestamp = DataContext.Timestamp.GetCurrentTimestamp(),
-                RestServerUrl = ConfigurationManager.AppSettings["RestServerUrl"]
+                RestServerUrl = restEndpoint.Uri,
             };
 
-            SendResponse(new JProperty("info", ApiInfoMapper.Map(apiInfo)));
+            SendResponse(new JProperty("info", GetMapper<ApiInfo>().Map(apiInfo)));
+        }
+
+        [Ping]
+        public void Ping()
+        {
+            if (SessionDevice != null)
+            {
+                DataContext.Device.SetLastOnline(SessionDevice.ID);
+            }
         }
 
         #endregion
@@ -316,20 +291,15 @@ namespace DeviceHive.WebSockets.API.Controllers
 
         public void HandleDeviceCommand(int deviceId, int commandId)
         {
-            var connections = _subscriptionManager.GetConnections(deviceId);
-            if (connections.Any())
+            var subscriptions = _subscriptionManager.GetSubscriptions(deviceId);
+            if (subscriptions.Any())
             {
                 var command = DataContext.DeviceCommand.Get(commandId);
                 var device = DataContext.Device.Get(deviceId);
 
-                foreach (var connection in connections)
-                    Notify(connection, device, command);
+                foreach (var subscription in subscriptions)
+                    Notify(subscription.Connection, device, command);
             }
-        }
-
-        private void CleanupNotifications(WebSocketConnectionBase connection)
-        {
-            _subscriptionManager.Cleanup(connection);
         }
 
         /// <summary>
@@ -337,7 +307,7 @@ namespace DeviceHive.WebSockets.API.Controllers
         /// </summary>
         /// <action>command/insert</action>
         /// <response>
-        ///     <parameter name="deviceGuid" type="guid">Device unique identifier.</parameter>
+        ///     <parameter name="deviceGuid" type="string">Device unique identifier.</parameter>
         ///     <parameter name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource representing the command.</parameter>
         /// </response>
         private void Notify(WebSocketConnectionBase connection, Device device, DeviceCommand command,
@@ -346,7 +316,7 @@ namespace DeviceHive.WebSockets.API.Controllers
             if (!isInitialCommand)
             {
                 var initialCommandList = GetInitialCommandList(connection);
-                lock (initialCommandList)
+                lock (initialCommandList) // wait until all initial commands are sent
                 {
                     if (initialCommandList.Contains(command.ID))
                         return;
@@ -355,34 +325,12 @@ namespace DeviceHive.WebSockets.API.Controllers
 
             connection.SendResponse("command/insert",
                 new JProperty("deviceGuid", device.GUID),
-                new JProperty("command", CommandMapper.Map(command)));
+                new JProperty("command", GetMapper<DeviceCommand>().Map(command)));
         }
 
         #endregion
 
         #region Private Methods
-
-        private bool AuthenticateImpl()
-        {
-            if (ActionArgs == null)
-                return false;
-
-            var deviceIdValue = ActionArgs["deviceId"];
-            var deviceKeyValue = ActionArgs["deviceKey"];
-
-            if (deviceIdValue == null || deviceKeyValue == null)
-                return false;
-
-            var deviceId = Guid.Parse((string)deviceIdValue);
-            var deviceKey = (string)deviceKeyValue;
-
-            var device = DataContext.Device.Get(deviceId);
-            if (device == null || device.Key != deviceKey)
-                throw new WebSocketRequestException("Device not found");
-
-            RequestDevice = device;
-            return true;
-        }
 
         private ISet<int> GetInitialCommandList(WebSocketConnectionBase connection)
         {

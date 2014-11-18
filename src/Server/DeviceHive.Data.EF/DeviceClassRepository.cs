@@ -16,7 +16,9 @@ namespace DeviceHive.Data.EF
         {
             using (var context = new DeviceHiveContext())
             {
-                return context.DeviceClasses.Filter(filter).ToList();
+                return context.DeviceClasses
+                    .Include(e => e.Equipment)
+                    .Filter(filter).ToList();
             }
         }
 
@@ -24,7 +26,9 @@ namespace DeviceHive.Data.EF
         {
             using (var context = new DeviceHiveContext())
             {
-                return context.DeviceClasses.Find(id);
+                return context.DeviceClasses
+                    .Include(e => e.Equipment)
+                    .FirstOrDefault(e => e.ID == id);
             }
         }
 
@@ -35,7 +39,9 @@ namespace DeviceHive.Data.EF
 
             using (var context = new DeviceHiveContext())
             {
-                return context.DeviceClasses.SingleOrDefault(dc => dc.Name == name && dc.Version == version);
+                return context.DeviceClasses
+                    .Include(e => e.Equipment)
+                    .SingleOrDefault(dc => dc.Name == name && dc.Version == version);
             }
         }
 
@@ -50,7 +56,18 @@ namespace DeviceHive.Data.EF
                 if (deviceClass.ID > 0)
                 {
                     context.Entry(deviceClass).State = EntityState.Modified;
+
+                    foreach (var equipment in deviceClass.Equipment.Where(e => e.ID > 0))
+                    {
+                        context.Entry(equipment).State = EntityState.Modified;
+                    }
+                    foreach (var equipment in context.Equipments.Where(e => e.DeviceClassID == deviceClass.ID))
+                    {
+                        if (context.Entry(equipment).State == EntityState.Unchanged)
+                            context.Equipments.Remove(equipment);
+                    }
                 }
+                
                 context.SaveChanges();
             }
         }

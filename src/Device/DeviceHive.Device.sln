@@ -1,22 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Device", "DeviceHive.Device\DeviceHive.Device.csproj", "{58E2ACDB-877F-4C0E-B24E-B11A95E502F5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualLed", "Examples\VirtualLed\VirtualLed.csproj", "{D814742F-05CB-4BC9-A232-4196B6A6C9FE}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{B705ED4A-07DA-47B1-BF73-A179B15A3D1C}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{CD09A2F9-7931-4C47-832E-40604D8AF5B6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Binary", "DeviceHive.Binary\DeviceHive.Binary.csproj", "{2125C7E3-AA56-4DE2-A0F8-7551D6198BDE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway", "Examples\Gateway\Gateway.csproj", "{5121CC24-FBA9-439F-BAB5-8D8C0994F685}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinaryClient", "Examples\BinaryClient\BinaryClient.csproj", "{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,6 +65,16 @@ Global
 		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Release|Mixed Platforms.Build.0 = Release|x86
 		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Release|x86.ActiveCfg = Release|x86
 		{5121CC24-FBA9-439F-BAB5-8D8C0994F685}.Release|x86.Build.0 = Release|x86
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -75,5 +82,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{D814742F-05CB-4BC9-A232-4196B6A6C9FE} = {CD09A2F9-7931-4C47-832E-40604D8AF5B6}
 		{5121CC24-FBA9-439F-BAB5-8D8C0994F685} = {CD09A2F9-7931-4C47-832E-40604D8AF5B6}
+		{AE9F9BFB-0B68-4A51-A7CA-76A064318AE4} = {CD09A2F9-7931-4C47-832E-40604D8AF5B6}
 	EndGlobalSection
 EndGlobal

@@ -2,22 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
-using DeviceHive.Core.Messaging;
+using DeviceHive.Core.MessageLogic;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="DeviceCommand" />
+    [RoutePrefix("device/{deviceGuid:deviceGuid}/command")]
     public class DeviceCommandController : BaseController
     {
-        private readonly MessageBus _messageBus;
+        private readonly IMessageManager _messageManager;
 
-        public DeviceCommandController(MessageBus messageBus)
+        public DeviceCommandController(IMessageManager messageManager)
         {
-            _messageBus = messageBus;
+            _messageManager = messageManager;
         }
 
         /// <name>query</name>
@@ -27,13 +29,13 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <query cref="DeviceCommandFilter" />
         /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
-        [AuthorizeDeviceOrUser]
-        public JToken Get(Guid deviceGuid)
+        [Route, AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
+        public JToken Get(string deviceGuid)
         {
             EnsureDeviceAccess(deviceGuid);
 
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var filter = MapObjectFromQuery<DeviceCommandFilter>();
@@ -47,13 +49,13 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="id">Command identifier.</param>
         /// <returns cref="DeviceCommand">If successful, this method returns a <see cref="DeviceCommand"/> resource in the response body.</returns>
-        [AuthorizeDeviceOrUser]
-        public JObject Get(Guid deviceGuid, int id)
+        [Route("{id:int}"), AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
+        public JObject Get(string deviceGuid, int id)
         {
             EnsureDeviceAccess(deviceGuid);
 
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var command = DataContext.DeviceCommand.Get(id);
@@ -74,21 +76,22 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="status" mode="remove" />
         ///     <parameter name="result" mode="remove" />
         /// </request>
-        [AuthorizeUser]
         [HttpCreatedResponse]
-        public JObject Post(Guid deviceGuid, JObject json)
+        [Route, AuthorizeUser(AccessKeyAction = "CreateDeviceCommand")]
+        public JObject Post(string deviceGuid, JObject json)
         {
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var command = Mapper.Map(json);
             command.Device = device;
-            command.UserID = RequestContext.CurrentUser.ID;
+            command.UserID = CallContext.CurrentUser.ID;
             Validate(command);
 
-            DataContext.DeviceCommand.Save(command);
-            _messageBus.Notify(new DeviceCommandAddedMessage(device.ID, command.ID));
+            var context = new MessageHandlerContext(command, CallContext.CurrentUser);
+            _messageManager.HandleCommand(context);
+
             return Mapper.Map(command, oneWayOnly: true);
         }
 
@@ -105,13 +108,13 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="lifetime" mode="remove" />
         /// </request>
         [HttpNoContentResponse]
-        [AuthorizeDeviceOrUser(Roles = "Administrator")]
-        public void Put(Guid deviceGuid, int id, JObject json)
+        [Route("{id:int}"), AuthorizeUserOrDevice(AccessKeyAction = "UpdateDeviceCommand")]
+        public void Put(string deviceGuid, int id, JObject json)
         {
             EnsureDeviceAccess(deviceGuid);
 
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var command = DataContext.DeviceCommand.Get(id);
@@ -122,8 +125,8 @@ namespace DeviceHive.API.Controllers
             command.Device = device;
             Validate(command);
 
-            DataContext.DeviceCommand.Save(command);
-            _messageBus.Notify(new DeviceCommandUpdatedMessage(device.ID, command.ID));
+            var context = new MessageHandlerContext(command, CallContext.CurrentUser);
+            _messageManager.HandleCommandUpdate(context);
         }
 
         private IJsonMapper<DeviceCommand> Mapper

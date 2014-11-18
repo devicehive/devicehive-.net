@@ -1,8 +1,8 @@
 ﻿using System.Configuration;
 using System.Reflection;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
-using DeviceHive.Core.MessageLogic.NotificationHandlers;
 using DeviceHive.Core.Messaging;
 using DeviceHive.Core.Services;
 using DeviceHive.Data;
@@ -41,6 +41,12 @@ namespace DeviceHive.WebSockets.API.Core
             foreach (var objectType in dataContext.RegisteredObjects)
                 kernel.Bind(typeof(ISimpleRepository<>).MakeGenericType(objectType)).To(dataContext.GetRepositoryTypeFor(objectType));
 
+            // bind configuration
+            var configuration = (DeviceHiveConfiguration)ConfigurationManager.GetSection("deviceHive");
+            if (configuration == null)
+                throw new ConfigurationErrorsException("DeviceHive element is missing in the configuration file!");
+            kernel.Bind<DeviceHiveConfiguration>().ToConstant(configuration);
+
             // bind services
             kernel.Bind<DeviceService>().ToSelf();
 
@@ -62,15 +68,8 @@ namespace DeviceHive.WebSockets.API.Core
             // bind web socket server
             kernel.Bind<WebSocketServerBase>().To<FleckWebSocketServer>();
 
-            // bind subscription managers
-            kernel.Bind<DeviceSubscriptionManager>().ToSelf().InSingletonScope().Named("DeviceCommand");
-            kernel.Bind<DeviceSubscriptionManager>().ToSelf().InSingletonScope().Named("DeviceNotification");
-            kernel.Bind<CommandSubscriptionManager>().ToSelf().InSingletonScope();
-
-            // bind notification handlers
-            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();
-            kernel.Bind<INotificationHandler>().To<DeviceStatusNotificationHandler>();
-            kernel.Bind<INotificationHandler>().To<EquipmentNotificationHandler>();
+            // bind message logic manager
+            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope().OnActivation(m => m.Initialize(kernel));
         }
     }
 }

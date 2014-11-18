@@ -71,6 +71,16 @@ namespace DeviceHive.WebSockets.Core.Network
         }
 
 
+        public event EventHandler<WebSocketConnectionEventArgs> PingReceived;
+
+        protected void OnPingReceived(WebSocketConnectionEventArgs e)
+        {
+            var handler = PingReceived;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        
         public event EventHandler<WebSocketConnectionEventArgs> ConnectionOpened;
 
         protected void OnConnectionOpened(WebSocketConnectionEventArgs e)

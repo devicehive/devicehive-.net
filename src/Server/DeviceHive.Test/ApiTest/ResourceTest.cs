@@ -61,6 +61,11 @@ namespace DeviceHive.Test
         /// </summary>
         protected string ExistingAdminPassword { get; set; }
 
+        /// <summary>
+        /// Gets or sets default password set for new users
+        /// </summary>
+        protected string NewUserPassword { get; set; }
+
         #endregion
 
         #region Constructor
@@ -83,6 +88,7 @@ namespace DeviceHive.Test
             UnexistingResourceID = 999999;
             ExistingAdminUsername = "dhadmin";
             ExistingAdminPassword = "dhadmin_#911";
+            NewUserPassword = "Qwe12345!";
         }
         #endregion
 
@@ -124,7 +130,7 @@ namespace DeviceHive.Test
         /// </summary>
         /// <param name="auth">Authorization info</param>
         /// <returns>JArray that represents server response</returns>
-        protected virtual JArray Get(Authorization auth = null)
+        protected virtual JArray List(Authorization auth = null)
         {
             // invoke get
             var response = Client.Get(ResourceUri, auth: auth);
@@ -141,7 +147,7 @@ namespace DeviceHive.Test
         /// <param name="query">Optional query parameters</param>
         /// <param name="auth">Authorization info</param>
         /// <returns>JArray that represents server response</returns>
-        protected virtual JArray Get(Dictionary<string, string> query, Authorization auth = null)
+        protected virtual JArray List(Dictionary<string, string> query, Authorization auth = null)
         {
             // invoke get
             var response = Client.Get(ResourceUri + "?" +
@@ -251,12 +257,11 @@ namespace DeviceHive.Test
         /// <returns>Coresponding Authorization object</returns>
         protected Authorization CreateUser(int role, params object[] networks)
         {
-            // assign login and password
+            // assign login
             var login = "_ut_" + Guid.NewGuid().ToString();
-            var password = "pwd";
 
             // create user
-            var userResource = Client.Post("/user", new { login = login, password = password, role = role, status = 0 }, auth: Admin);
+            var userResource = Client.Post("/user", new { login = login, password = NewUserPassword, role = role, status = 0 }, auth: Admin);
             Expect(userResource.Status, Is.EqualTo(ExpectedCreatedStatus));
             var userId = GetResourceId(userResource.Json);
             RegisterForDeletion("/user/" + userId);
@@ -271,7 +276,40 @@ namespace DeviceHive.Test
             }
 
             // return user authorization object
-            return User(login, password);
+            return User(login, NewUserPassword, userId);
+        }
+
+        /// <summary>
+        /// Creates an access key and returns corresponding Authorization object
+        /// </summary>
+        /// <param name="user">User authorization object</param>
+        /// <param name="action">Allowed access key action</param>
+        /// <param name="networkIds">Allowed networks</param>
+        /// <param name="deviceGuids">Allowed devices</param>
+        /// <returns>Coresponding Authorization object</returns>
+        protected Authorization CreateAccessKey(Authorization user, string action, int[] networkIds = null, string[] deviceGuids = null)
+        {
+            return CreateAccessKey(user, new[] { action }, networkIds, deviceGuids);
+        }
+
+        /// <summary>
+        /// Creates an access key and returns corresponding Authorization object
+        /// </summary>
+        /// <param name="user">User authorization object</param>
+        /// <param name="actions">Allowed access key actions</param>
+        /// <param name="networkIds">Allowed networks</param>
+        /// <param name="deviceGuids">Allowed devices</param>
+        /// <returns>Coresponding Authorization object</returns>
+        protected Authorization CreateAccessKey(Authorization user, string[] actions, int[] networkIds = null, string[] deviceGuids = null)
+        {
+            // create access key
+            var accessKeyResource = Client.Post("/user/current/accesskey", new { label = "ut", permissions =
+                new[] { new { actions = actions, networkIds = networkIds, deviceGuids = deviceGuids } } }, auth: user);
+            Expect(accessKeyResource.Status, Is.EqualTo(ExpectedCreatedStatus));
+            var accessKeyId = GetResourceId(accessKeyResource.Json);
+            RegisterForDeletion("/user/" + user.ID + "/accesskey/" + accessKeyId);
+
+            return AccessKey((string)accessKeyResource.Json["key"]);
         }
 
         /// <summary>
@@ -294,11 +332,21 @@ namespace DeviceHive.Test
         /// <summary>
         /// Gets authorization for a user
         /// </summary>
-        /// <param name="username">User login</param>
+        /// <param name="login">User login</param>
         /// <param name="password">User password</param>
-        protected Authorization User(string login, string password)
+        /// <param name="id">User identifier (optional)</param>
+        protected Authorization User(string login, string password, string id = null)
         {
-            return new Authorization("User", login, password);
+            return new Authorization("User", login, password, id);
+        }
+
+        /// <summary>
+        /// Gets authorization for an access key
+        /// </summary>
+        /// <param name="key">Access key</param>
+        protected Authorization AccessKey(string key)
+        {
+            return new Authorization("AccessKey", key, null);
         }
 
         /// <summary>
@@ -395,29 +443,34 @@ namespace DeviceHive.Test
 
         private bool IsMatches(JToken actual, object expected)
         {
+            if (expected == null || (expected is string) || expected.GetType().IsValueType)
+            {
+                var jvalue = actual as JValue;
+                if (jvalue == null)
+                    return false;
+
+                if (expected is TimestampValue)
+                {
+                    // a timestamp is expected
+                    return jvalue.Value is DateTime && _timestampRegex.IsMatch(jvalue.Parent.ToString());
+                }
+                else
+                {
+                    if (expected is int)
+                        expected = (long)(int)expected;
+
+                    return object.Equals(jvalue.Value, expected);
+                }
+            }
+
             foreach (var property in expected.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 var expectedProperty = property.GetValue(expected, null);
                 var actualProperty = actual[property.Name];
 
-                if (expectedProperty is TimestampValue)
-                {
-                    // a timestamp is expected
-                    var jvalue = actualProperty as JValue;
-                    if (jvalue == null || !(jvalue.Value is DateTime))
-                        return false;
-                    if (!_timestampRegex.IsMatch(jvalue.Parent.ToString()))
-                        return false;
-                    continue;
-                }
-
                 if (actualProperty is JValue)
                 {
-                    if (expectedProperty is int)
-                        expectedProperty = (long)(int)expectedProperty;
-
-                    if (!object.Equals(((JValue)actualProperty).Value, expectedProperty))
-                        return false;
+                    return IsMatches(actualProperty, expectedProperty);
                 }
                 else if (actualProperty is JObject)
                 {
@@ -473,7 +526,7 @@ namespace DeviceHive.Test
 
         #region Constraint Members
 
-        public override bool Matches(ActualValueDelegate del)
+        public override bool Matches<T>(ActualValueDelegate<T> del)
         {
             try
             {
@@ -490,6 +543,10 @@ namespace DeviceHive.Test
 
         public override bool Matches(object actual)
         {
+            if (actual is TestDelegate)
+            {
+                return Matches(() => { ((TestDelegate)actual)(); return false; });
+            }
             return false;
         }
 

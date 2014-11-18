@@ -45,7 +45,7 @@ namespace DeviceHive.Data.EF.Migrations
                         LastLogin = c.DateTime(storeType: "datetime2"),
                     })
                 .PrimaryKey(t => t.ID)
-                .Index(t => t.Login, true);
+                .Index(t => t.Login, unique: true);
 
             // user network
             CreateTable(
@@ -59,7 +59,7 @@ namespace DeviceHive.Data.EF.Migrations
                 .PrimaryKey(t => t.ID)
                 .ForeignKey("User", t => t.UserID, cascadeDelete: true)
                 .ForeignKey("Network", t => t.NetworkID, cascadeDelete: true)
-                .Index(t => new { t.UserID, t.NetworkID }, true)
+                .Index(t => new { t.UserID, t.NetworkID }, unique: true)
                 .Index(t => t.NetworkID);
 
             // default admin user, the password is: dhadmin_#911

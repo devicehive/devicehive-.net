@@ -4,9 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Web;
 using DeviceHive.API.Business;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
-using DeviceHive.Core.MessageLogic.NotificationHandlers;
 using DeviceHive.Core.Messaging;
 using DeviceHive.Core.Services;
 using DeviceHive.Data;
@@ -17,8 +17,8 @@ using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Ninject;
 using Ninject.Web.Common;
 
-[assembly: WebActivator.PreApplicationStartMethod(typeof(DeviceHive.API.NinjectWebCommon), "Start")]
-[assembly: WebActivator.ApplicationShutdownMethodAttribute(typeof(DeviceHive.API.NinjectWebCommon), "Stop")]
+[assembly: WebActivatorEx.PreApplicationStartMethod(typeof(DeviceHive.API.NinjectWebCommon), "Start")]
+[assembly: WebActivatorEx.ApplicationShutdownMethodAttribute(typeof(DeviceHive.API.NinjectWebCommon), "Stop")]
 
 namespace DeviceHive.API
 {
@@ -51,11 +51,19 @@ namespace DeviceHive.API
         private static IKernel CreateKernel()
         {
             var kernel = new StandardKernel();
-            kernel.Bind<Func<IKernel>>().ToMethod(ctx => () => new Bootstrapper().Kernel);
-            kernel.Bind<IHttpModule>().To<HttpApplicationInitializationHttpModule>();
+            try
+            {
+                kernel.Bind<Func<IKernel>>().ToMethod(ctx => () => new Bootstrapper().Kernel);
+                kernel.Bind<IHttpModule>().To<HttpApplicationInitializationHttpModule>();
 
-            RegisterServices(kernel);
-            return kernel;
+                RegisterServices(kernel);
+                return kernel;
+            }
+            catch
+            {
+                kernel.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -79,6 +87,10 @@ namespace DeviceHive.API
             foreach (var objectType in dataContext.RegisteredObjects)
                 kernel.Bind(typeof(ISimpleRepository<>).MakeGenericType(objectType)).To(dataContext.GetRepositoryTypeFor(objectType));
 
+            // bind configuration
+            var configuration = (DeviceHiveConfiguration)ConfigurationManager.GetSection("deviceHive") ?? new DeviceHiveConfiguration();
+            kernel.Bind<DeviceHiveConfiguration>().ToConstant(configuration);
+
             // bind services
             kernel.Bind<DeviceService>().ToSelf();
 
@@ -93,13 +105,11 @@ namespace DeviceHive.API
             kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand.DeviceID");
             kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand.CommandID");
 
-            // bind message logic handlers
-            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope();
-            kernel.Bind<INotificationHandler>().To<DeviceStatusNotificationHandler>();
-            kernel.Bind<INotificationHandler>().To<EquipmentNotificationHandler>();
+            // bind message logic manager
+            kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope().OnActivation(m => m.Initialize(kernel));
 
             // bind request context
-            kernel.Bind<RequestContext>().ToSelf().InRequestScope();
+            kernel.Bind<CallContext>().ToSelf().InRequestScope();
         }
     }
 }

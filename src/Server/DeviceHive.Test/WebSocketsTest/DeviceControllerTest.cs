@@ -12,7 +12,7 @@ namespace DeviceHive.Test.WebSocketsTest
         public void Authenticate_InvalidDevice()
         {
             var connection = DeviceController.Connect();
-            var msg = DeviceController.Authenticate(connection, Guid.NewGuid(), "bbb");
+            var msg = DeviceController.Authenticate(connection, Guid.NewGuid().ToString(), "bbb");
             Expect((string) msg["status"], EqualTo("error"));
         }
 

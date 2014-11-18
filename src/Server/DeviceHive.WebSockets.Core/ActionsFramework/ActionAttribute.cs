@@ -8,11 +8,8 @@ namespace DeviceHive.WebSockets.Core.ActionsFramework
         public ActionAttribute(string actionName)
         {
             ActionName = actionName;
-            NeedAuthentication = false;
         }
 
         public string ActionName { get; private set; }
-
-        public bool NeedAuthentication { get; set; }
     }
 }

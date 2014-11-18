@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
@@ -13,59 +14,49 @@ namespace DeviceHive.WebSockets.API.Controllers
         #region Private Fields
 
         private readonly DataContext _dataContext;
-
-        private readonly IJsonMapper<DeviceCommand> _commandMapper;
-        private readonly IJsonMapper<DeviceNotification> _notificationMapper;
-        private readonly IJsonMapper<ApiInfo> _apiInfoMapper;
+        private readonly JsonMapperManager _jsonMapperManager;
+        private readonly DeviceHiveConfiguration _deviceHiveConfiguration;
 
         #endregion
 
         #region Constructor
 
-        protected ControllerBase(ActionInvoker actionInvoker,
-            DataContext dataContext, JsonMapperManager jsonMapperManager) :
+        protected ControllerBase(ActionInvoker actionInvoker, DataContext dataContext, JsonMapperManager jsonMapperManager, DeviceHiveConfiguration deviceHiveConfiguration) :
             base(actionInvoker)
         {
             _dataContext = dataContext;
-        
-            _commandMapper = jsonMapperManager.GetMapper<DeviceCommand>();
-            _notificationMapper = jsonMapperManager.GetMapper<DeviceNotification>();
-            _apiInfoMapper = jsonMapperManager.GetMapper<ApiInfo>();
+            _jsonMapperManager = jsonMapperManager;
+            _deviceHiveConfiguration = deviceHiveConfiguration;
         }
 
         #endregion
 
-        #region Properties
+        #region Public Properties
 
-        protected DataContext DataContext
+        public DataContext DataContext
         {
             get { return _dataContext; }
         }
 
-        protected IJsonMapper<DeviceCommand> CommandMapper
+        public DeviceHiveConfiguration DeviceHiveConfiguration
         {
-            get { return _commandMapper; }
-        }
-
-        protected IJsonMapper<DeviceNotification> NotificationMapper
-        {
-            get { return _notificationMapper; }
-        }
-
-        public IJsonMapper<ApiInfo> ApiInfoMapper
-        {
-            get { return _apiInfoMapper; }
+            get { return _deviceHiveConfiguration; }
         }
 
         #endregion
 
-        #region Protected methods
+        #region Protected Methods
 
         protected void Validate(object entity)
         {
             var result = new List<ValidationResult>();
             if (!Validator.TryValidateObject(entity, new ValidationContext(entity, null, null), result, true))
                 throw new WebSocketRequestException(result.First().ErrorMessage);
+        }
+
+        protected IJsonMapper<T> GetMapper<T>()
+        {
+            return _jsonMapperManager.GetMapper<T>();
         }
 
         #endregion

@@ -10,6 +10,7 @@ using System.Web.Http;
 using System.Web.Http.Description;
 using DeviceHive.API.Filters;
 using DeviceHive.API.Models;
+using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data;
 using DeviceHive.Data.Model;
@@ -21,18 +22,20 @@ namespace DeviceHive.API.Controllers
     public class BaseController : ApiController
     {
         protected internal DataContext DataContext { get; private set; }
-        protected internal RequestContext RequestContext { get; private set; }
+        protected internal CallContext CallContext { get; private set; }
         protected internal JsonMapperManager JsonMapperManager { get; private set; }
+        protected internal DeviceHiveConfiguration DeviceHiveConfiguration { get; private set; }
 
         #region Public Methods
 
         [Inject]
         [NonAction]
-        public void Initialize(DataContext dataContext, RequestContext requestContext, JsonMapperManager jsonMapperManager)
+        public void Initialize(DataContext dataContext, CallContext callContext, JsonMapperManager jsonMapperManager, DeviceHiveConfiguration deviceHiveConfiguration)
         {
             DataContext = dataContext;
-            RequestContext = requestContext;
+            CallContext = callContext;
             JsonMapperManager = jsonMapperManager;
+            DeviceHiveConfiguration = deviceHiveConfiguration;
         }
 
         [HttpNoContentResponse]
@@ -44,30 +47,58 @@ namespace DeviceHive.API.Controllers
 
         #region Protected Methods
 
-        protected void EnsureDeviceAccess(Guid deviceGuid)
+        protected void EnsureUserAccessTo(int userId)
         {
-            if (RequestContext.CurrentDevice == null)
-                return;
-
-            if (RequestContext.CurrentDevice.GUID != deviceGuid)
+            if (CallContext.CurrentUser.Role != (int)UserRole.Administrator && CallContext.CurrentUser.ID != userId)
                 ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
         }
 
-        protected bool IsNetworkAccessible(int? networkId)
+        protected void EnsureDeviceAccess(string deviceGuid)
         {
-            if (RequestContext.CurrentUser == null)
+            if (CallContext.CurrentDevice == null)
+                return;
+
+            if (!string.Equals(CallContext.CurrentDevice.GUID, deviceGuid, StringComparison.OrdinalIgnoreCase))
+                ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
+        }
+
+        protected bool IsNetworkAccessible(Network network)
+        {
+            if (CallContext.CurrentUser == null)
                 return true;
 
-            if (RequestContext.CurrentUser.Role == (int)UserRole.Administrator)
+            if (CallContext.CurrentUser.Role != (int)UserRole.Administrator)
+            {
+                if (CallContext.CurrentUserNetworks == null)
+                    CallContext.CurrentUserNetworks = DataContext.UserNetwork.GetByUser(CallContext.CurrentUser.ID);
+
+                if (!CallContext.CurrentUserNetworks.Any(un => un.NetworkID == network.ID))
+                    return false;
+            }
+
+            return CallContext.CurrentUserPermissions == null ||
+                CallContext.CurrentUserPermissions.Any(p => p.IsNetworkAllowed(network.ID));
+        }
+
+        protected bool IsDeviceAccessible(Device device)
+        {
+            if (CallContext.CurrentUser == null)
                 return true;
 
-            if (networkId == null)
-                return false;
+            if (CallContext.CurrentUser.Role != (int)UserRole.Administrator)
+            {
+                if (device.NetworkID == null)
+                    return false;
 
-            if (RequestContext.CurrentUserNetworks == null)
-                RequestContext.CurrentUserNetworks = DataContext.UserNetwork.GetByUser(RequestContext.CurrentUser.ID);
+                if (CallContext.CurrentUserNetworks == null)
+                    CallContext.CurrentUserNetworks = DataContext.UserNetwork.GetByUser(CallContext.CurrentUser.ID);
 
-            return RequestContext.CurrentUserNetworks.Any(un => un.NetworkID == networkId);
+                if (!CallContext.CurrentUserNetworks.Any(un => un.NetworkID == device.NetworkID))
+                    return false;
+            }
+
+            return CallContext.CurrentUserPermissions == null || CallContext.CurrentUserPermissions.Any(p =>
+                p.IsNetworkAllowed(device.NetworkID) && p.IsDeviceAllowed(device.GUID));
         }
 
         protected IJsonMapper<T> GetMapper<T>()
@@ -98,17 +129,6 @@ namespace DeviceHive.API.Controllers
         protected void ThrowHttpResponse(HttpStatusCode status, string message)
         {
             throw new HttpResponseException(HttpResponse(status, message));
-        }
-
-        protected Task Delay(int timeout)
-        {
-            var taskSource = new TaskCompletionSource<bool>();
-            new Timer(self =>
-                {
-                    ((IDisposable)self).Dispose();
-                    taskSource.TrySetResult(true);
-                }).Change(timeout, Timeout.Infinite);
-            return taskSource.Task;
         }
         #endregion
     }

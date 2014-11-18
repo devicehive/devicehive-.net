@@ -13,7 +13,7 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
         {
         }
 
-        public JObject Authenticate(StubWebSocketConnection connection, Guid deviceId, string deviceKey)
+        public JObject Authenticate(StubWebSocketConnection connection, string deviceId, string deviceKey)
         {
             return InvokeAction(connection, "authenticate", new JObject(
                 new JProperty("deviceId", deviceId),
@@ -27,7 +27,7 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
                 new JProperty("command", command)));
         }
 
-        public JObject UpdateDeviceCommand(StubWebSocketConnection connection, Guid deviceId, string deviceKey,
+        public JObject UpdateDeviceCommand(StubWebSocketConnection connection, string deviceId, string deviceKey,
             int commandId, JObject command)
         {
             return InvokeAction(connection, "command/update", new JObject(
@@ -58,7 +58,7 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
             return InvokeAction(connection, "device/get", null);
         }
 
-        public JObject SaveDevice(StubWebSocketConnection connection, Guid deviceGuid, JObject device)
+        public JObject SaveDevice(StubWebSocketConnection connection, string deviceGuid, JObject device)
         {
             return InvokeAction(connection, "device/save", new JObject(
                 new JProperty("deviceId", deviceGuid),

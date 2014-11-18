@@ -9,6 +9,7 @@ using DeviceHive.WebSockets.Core.ActionsFramework;
 using Newtonsoft.Json.Linq;
 using Ninject;
 using ControllerBase = DeviceHive.WebSockets.API.Controllers.ControllerBase;
+using DeviceHive.WebSockets.API.Filters;
 
 namespace DeviceHive.DocGenerator
 {
@@ -67,7 +68,7 @@ namespace DeviceHive.DocGenerator
 
                     methods.Add(new MetadataMethod
                     {
-                        Name = actionElement.Contents(),
+                        Name = "srv: " + actionElement.Contents(),
                         Documentation = methodElement.ElementContents("summary"),
                         Originator = "Server",
                         Authorization = "n/a",
@@ -80,7 +81,7 @@ namespace DeviceHive.DocGenerator
                     Name = controller.Name.Replace("Controller", ""),
                     Uri = "/" + controller.Name.Replace("Controller", "").ToLower(),
                     Documentation = _wsXmlCommentReader.GetTypeElement(controller).ElementContents("summary"),
-                    Methods = methods.ToArray(),
+                    Methods = methods.OrderBy(m => m.Name).ToArray(),
                 });
             }
             var metadata = new Metadata { Services = services.ToArray() };
@@ -89,11 +90,18 @@ namespace DeviceHive.DocGenerator
 
         private string GetAuthorization(MethodInfo method)
         {
-            var actionAttribute = method.GetCustomAttributes(typeof(ActionAttribute), true).Cast<ActionAttribute>().First();
-            if (!actionAttribute.NeedAuthentication)
-                return "None";
+            var actionAttributes = method.GetCustomAttributes(typeof(ActionFilterAttribute), true).Cast<ActionFilterAttribute>().ToArray();
 
-            return IsDeviceMethod(method) ? "Device" : "User";
+            var authorizeClient = actionAttributes.OfType<AuthorizeClientAttribute>().FirstOrDefault();
+            if (authorizeClient != null)
+                return "User" + (authorizeClient.AccessKeyAction == null ? null : " or Key (" + authorizeClient.AccessKeyAction + ")");
+
+            var authorizeDevice = actionAttributes.OfType<AuthorizeDeviceAttribute>().FirstOrDefault();
+            var authorizeDeviceRegistration = actionAttributes.OfType<AuthorizeDeviceRegistrationAttribute>().FirstOrDefault();
+            if (authorizeDevice != null || authorizeDeviceRegistration != null)
+                return "Device";
+
+            return "None";
         }
 
         private MetadataParameter[] GetRequestParameters(MethodInfo method)
@@ -108,15 +116,10 @@ namespace DeviceHive.DocGenerator
             // add device authentication parameters
             if (IsDeviceMethod(method))
             {
-                if (actionAttribute.NeedAuthentication)
+                if (GetAuthorization(method) == "Device")
                 {
-                    parameters.Add(new MetadataParameter("deviceId", _helper.ToJsonType(typeof(Guid)), "Device unique identifier (specify if not authenticated).", false));
+                    parameters.Add(new MetadataParameter("deviceId", _helper.ToJsonType(typeof(string)), "Device unique identifier (specify if not authenticated).", false));
                     parameters.Add(new MetadataParameter("deviceKey", _helper.ToJsonType(typeof(string)), "Device authentication key (specify if not authenticated).", false));
-                }
-                else if (actionAttribute.ActionName == "authenticate")
-                {
-                    parameters.Add(new MetadataParameter("deviceId", _helper.ToJsonType(typeof(Guid)), "Device unique identifier.", true));
-                    parameters.Add(new MetadataParameter("deviceKey", _helper.ToJsonType(typeof(string)), "Device authentication key.", true));
                 }
             }
 
@@ -138,7 +141,7 @@ namespace DeviceHive.DocGenerator
                     var resourceType = _helper.GetCrefType(methodParamElement);
                     if (resourceType != null)
                     {
-                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson, p.Name));
+                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson, p.Name + "."));
                     }
                 }
             }

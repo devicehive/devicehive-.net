@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration.Conventions;
-using System.Linq;
 using DeviceHive.Data.Model;
 
 namespace DeviceHive.Data.EF
@@ -25,6 +22,16 @@ namespace DeviceHive.Data.EF
         /// Gets DbSet for user/network associations
         /// </summary>
         public DbSet<UserNetwork> UserNetworks { get; set; }
+
+        /// <summary>
+        /// Gets DbSet for access keys
+        /// </summary>
+        public DbSet<AccessKey> AccessKeys { get; set; }
+
+        /// <summary>
+        /// Gets DbSet for access key permissions
+        /// </summary>
+        public DbSet<AccessKeyPermission> AccessKeyPermissions { get; set; }
 
         /// <summary>
         /// Gets DbSet for networks
@@ -61,16 +68,29 @@ namespace DeviceHive.Data.EF
         /// </summary>
         public DbSet<DeviceEquipment> DeviceEquipments { get; set; }
 
+        /// <summary>
+        /// Gets DbSet for OAuth clients
+        /// </summary>
+        public DbSet<OAuthClient> OAuthClients { get; set; }
+
+        /// <summary>
+        /// Gets DbSet for OAuth grants
+        /// </summary>
+        public DbSet<OAuthGrant> OAuthGrants { get; set; }
+
         #endregion
 
         #region Protected Methods
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            Database.SetInitializer<DeviceHiveContext>(null);
+
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
+            modelBuilder.Entity<AccessKey>().HasMany(e => e.Permissions).WithRequired().HasForeignKey(e => e.AccessKeyID).WillCascadeOnDelete(true);
             modelBuilder.Entity<UserNetwork>().HasRequired(e => e.User).WithMany().HasForeignKey(e => e.UserID).WillCascadeOnDelete(true);
             modelBuilder.Entity<UserNetwork>().HasRequired(e => e.Network).WithMany().HasForeignKey(e => e.NetworkID).WillCascadeOnDelete(true);
-            modelBuilder.Entity<Equipment>().HasRequired(e => e.DeviceClass).WithMany().HasForeignKey(e => e.DeviceClassID).WillCascadeOnDelete(true);
+            modelBuilder.Entity<DeviceClass>().HasMany(e => e.Equipment).WithRequired().HasForeignKey(e => e.DeviceClassID).WillCascadeOnDelete(true);
             modelBuilder.Entity<Device>().HasOptional(e => e.Network).WithMany().HasForeignKey(e => e.NetworkID).WillCascadeOnDelete(true);
             modelBuilder.Entity<Device>().HasRequired(e => e.DeviceClass).WithMany().HasForeignKey(e => e.DeviceClassID).WillCascadeOnDelete(true);
             modelBuilder.Entity<DeviceNotification>().Property(e => e.Timestamp).HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed);
@@ -78,6 +98,8 @@ namespace DeviceHive.Data.EF
             modelBuilder.Entity<DeviceCommand>().Property(e => e.Timestamp).HasDatabaseGeneratedOption(DatabaseGeneratedOption.Computed);
             modelBuilder.Entity<DeviceCommand>().HasRequired(e => e.Device).WithMany().HasForeignKey(e => e.DeviceID).WillCascadeOnDelete(true);
             modelBuilder.Entity<DeviceEquipment>().HasRequired(e => e.Device).WithMany().HasForeignKey(e => e.DeviceID).WillCascadeOnDelete(true);
+            modelBuilder.Entity<OAuthGrant>().HasRequired(e => e.Client).WithMany().HasForeignKey(e => e.ClientID).WillCascadeOnDelete(true);
+            modelBuilder.Entity<OAuthGrant>().HasRequired(e => e.AccessKey).WithMany().HasForeignKey(e => e.AccessKeyID).WillCascadeOnDelete(false);
         }
         #endregion
     }

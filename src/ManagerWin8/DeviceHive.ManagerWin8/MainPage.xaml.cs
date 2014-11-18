@@ -1,4 +1,5 @@
 ﻿using DeviceHive.Client;
+using DeviceHive.ManagerWin8.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -49,29 +50,28 @@ namespace DeviceHive.ManagerWin8
             try
             {
                 VisualStateManager.GoToState(this, "DevicesViewState", true);
-                ObservableCollection<Network> networkWithDevicesList = new ObservableCollection<Network>();
+                var networkWithDevicesList = new ObservableCollection<NetworkViewModel>();
                 DefaultViewModel["Groups"] = networkWithDevicesList;
                 (itemSemanticZoomView.ZoomedOutView as ListViewBase).ItemsSource = groupedItemsViewSource.View.CollectionGroups;
 
-                List<Device> deviceList = await ClientService.Current.GetDevicesAsync();
-                List<Network> networkList = (await ClientService.Current.GetNetworksAsync()).FindAll(n => n.Id != null);
+                var deviceList = await ClientService.Current.GetDevicesAsync();
+                var networkList = (await ClientService.Current.GetNetworksAsync()).FindAll(n => n.Id != null);
                 foreach (Network network in networkList)
                 {
                     var devices = deviceList.FindAll(d => d.Network.Id == network.Id);
                     if (devices.Count > 0)
                     {
-                        network.Devices = devices;
-                        networkWithDevicesList.Add(network);
+                        networkWithDevicesList.Add(new NetworkViewModel(network) { Devices = devices });
                     }
                 }
             }
-            catch (ClientService.EmptyCloudSettingsException)
-            {
-                VisualStateManager.GoToState(this, "EmptySettingsState", true);
-            }
             catch (Exception ex)
             {
-                new MessageDialog(ex.Message + (ex.InnerException != null ? "\n\n" + ex.InnerException.Message : ""), "Error").ShowAsync();
+                VisualStateManager.GoToState(this, "EmptySettingsState", true);
+                if (!(ex is ClientService.EmptyCloudSettingsException))
+                {
+                    new MessageDialog(ex.Message + (ex.InnerException != null ? "\n\n" + ex.InnerException.Message : ""), "Error").ShowAsync();
+                }
             }
             IsLoading = false;
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Web.Http;
 using System.Web.Http.Description;
 using DeviceHive.Data.Repositories;
 using Version = DeviceHive.Core.Version;
@@ -18,6 +19,7 @@ namespace DeviceHive.API.Controllers
             _timestampRepository = timestampRepository;
         }
 
+        [Route]
         public HttpResponseMessage Get()
         {
             var timestamp = _timestampRepository.GetCurrentTimestamp();

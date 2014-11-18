@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
@@ -10,7 +11,8 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="User" />
-    [AuthorizeUser(Roles = "Administrator")]
+    [AuthorizeAdmin]
+    [RoutePrefix("user/{id:int}/network/{networkId:int}")]
     public class UserNetworkController : BaseController
     {
         /// <name>getNetwork</name>
@@ -20,6 +22,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="id">User identifier.</param>
         /// <param name="networkId">Network identifier.</param>
         /// <returns cref="UserNetwork">If successful, this method returns the following structure in the response body.</returns>
+        [Route]
         public JObject Get(int id, int networkId)
         {
             var user = DataContext.User.Get(id);
@@ -47,6 +50,7 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="network" mode="remove" />
         /// </request>
+        [Route]
         [HttpNoContentResponse]
         public void Put(int id, int networkId, JObject json)
         {
@@ -74,6 +78,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">User identifier.</param>
         /// <param name="networkId">Network identifier.</param>
+        [Route]
         [HttpNoContentResponse]
         public void Delete(int id, int networkId)
         {

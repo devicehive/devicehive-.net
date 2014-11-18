@@ -8,6 +8,7 @@ namespace DeviceHive.Data.Repositories
     public interface IDeviceCommandRepository : ISimpleRepository<DeviceCommand>
     {
         List<DeviceCommand> GetByDevice(int deviceId, DeviceCommandFilter filter = null);
+        List<DeviceCommand> GetByDevices(int[] deviceIds, DeviceCommandFilter filter = null);
     }
 
     public static class DeviceCommandRepositoryExtension
@@ -35,6 +36,9 @@ namespace DeviceHive.Data.Repositories
 
             if (filter.Command != null)
                 query = query.Where(e => e.Command == filter.Command);
+
+            if (filter.Commands != null)
+                query = query.Where(e => filter.Commands.Contains(e.Command));
 
             if (filter.Status != null)
                 query = query.Where(e => e.Status == filter.Status);

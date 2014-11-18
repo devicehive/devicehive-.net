@@ -17,7 +17,7 @@ namespace DeviceHive.Data.EF
             using (var context = new DeviceHiveContext())
             {
                 var query = context.DeviceNotifications.Where(e => e.Device.ID == deviceId);
-                return query.Filter(filter).ToList();
+                return query.Filter(filter, FilterByGridInterval(filter == null ? null : filter.GridInterval)).ToList();
             }
         }
 
@@ -28,7 +28,7 @@ namespace DeviceHive.Data.EF
                 var query = context.DeviceNotifications.Include(e => e.Device);
                 if (deviceIds != null)
                     query = query.Where(e => deviceIds.Contains(e.Device.ID));
-                return query.Filter(filter).ToList();
+                return query.Filter(filter, FilterByGridInterval(filter == null ? null : filter.GridInterval)).ToList();
             }
         }
 
@@ -68,6 +68,24 @@ namespace DeviceHive.Data.EF
                     context.SaveChanges();
                 }
             }
+        }
+        #endregion
+
+        #region Private Methods
+
+        private Func<IQueryable<DeviceNotification>, IQueryable<DeviceNotification>> FilterByGridInterval(int? gridInterval)
+        {
+            if (gridInterval == null)
+                return null;
+
+            var periodStart = DateTime.SpecifyKind(new DateTime(2000, 1, 1), DateTimeKind.Utc);
+            var periodSeconds = periodStart.Ticks / 10000000;
+            return query => query.OrderBy(n => n.Timestamp).GroupBy(n => new
+                {
+                    n.DeviceID,
+                    n.Notification,
+                    Interval = (periodSeconds + DbFunctions.DiffSeconds(n.Timestamp, periodStart)) / gridInterval
+                }).Select(g => g.FirstOrDefault());
         }
         #endregion
     }

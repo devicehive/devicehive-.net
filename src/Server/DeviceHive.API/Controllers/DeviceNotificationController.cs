@@ -2,25 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Web.Http;
 using DeviceHive.API.Filters;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
-using DeviceHive.Core.Messaging;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="DeviceNotification" />
+    [RoutePrefix("device/{deviceGuid:deviceGuid}/notification")]
     public class DeviceNotificationController : BaseController
     {
         private readonly IMessageManager _messageManager;
-        private readonly MessageBus _messageBus;
 
-        public DeviceNotificationController(IMessageManager messageManager, MessageBus messageBus)
+        public DeviceNotificationController(IMessageManager messageManager)
         {
             _messageManager = messageManager;
-            _messageBus = messageBus;
         }
 
         /// <name>query</name>
@@ -30,11 +29,11 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <query cref="DeviceNotificationFilter" />
         /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
-        [AuthorizeUser]
-        public JToken Get(Guid deviceGuid)
+        [Route, AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
+        public JToken Get(string deviceGuid)
         {
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var filter = MapObjectFromQuery<DeviceNotificationFilter>();
@@ -48,11 +47,11 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="id">Notification identifier.</param>
         /// <returns cref="DeviceNotification">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
-        [AuthorizeUser]
-        public JObject Get(Guid deviceGuid, int id)
+        [Route("{id:int}"), AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
+        public JObject Get(string deviceGuid, int id)
         {
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var notification = DataContext.DeviceNotification.Get(id);
@@ -70,22 +69,21 @@ namespace DeviceHive.API.Controllers
         /// <param name="json" cref="DeviceNotification">In the request body, supply a <see cref="DeviceNotification"/> resource.</param>
         /// <returns cref="DeviceNotification" mode="OneWayOnly">If successful, this method returns a <see cref="DeviceNotification"/> resource in the response body.</returns>
         [HttpCreatedResponse]
-        [AuthorizeDeviceOrUser(Roles = "Administrator")]
-        public JObject Post(Guid deviceGuid, JObject json)
+        [Route, AuthorizeUserOrDevice(AccessKeyAction = "CreateDeviceNotification")]
+        public JObject Post(string deviceGuid, JObject json)
         {
             EnsureDeviceAccess(deviceGuid);
 
             var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsNetworkAccessible(device.NetworkID))
+            if (device == null || !IsDeviceAccessible(device))
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
 
             var notification = Mapper.Map(json);
             notification.Device = device;
             Validate(notification);
 
-            DataContext.DeviceNotification.Save(notification);
-            _messageManager.ProcessNotification(notification);
-            _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
+            var context = new MessageHandlerContext(notification, CallContext.CurrentUser);
+            _messageManager.HandleNotification(context);
 
             return Mapper.Map(notification, oneWayOnly: true);
         }

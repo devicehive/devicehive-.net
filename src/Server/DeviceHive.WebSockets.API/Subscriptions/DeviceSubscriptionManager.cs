@@ -1,32 +1,34 @@
-﻿using System.Collections.Generic;
-using DeviceHive.WebSockets.Core.Network;
+﻿using DeviceHive.WebSockets.Core.Network;
+using System;
+using System.Collections.Generic;
 
 namespace DeviceHive.WebSockets.API.Subscriptions
 {
     public class DeviceSubscriptionManager : SubscriptionManager<int>
     {
-        public DeviceSubscriptionManager() : base("DeviceSubscriptions")
+        public DeviceSubscriptionManager()
+            : base("DeviceSubscriptions")
         {
         }
 
-        public void Subscribe(WebSocketConnectionBase connection, int? deviceId)
+        public DeviceSubscriptionManager(string subscriptionsValueKey)
+            : base(subscriptionsValueKey)
         {
-            base.Subscribe(connection, GetKey(deviceId));
         }
 
-        public void Unsubscribe(WebSocketConnectionBase connection, int? deviceId)
+        public Subscription<int> Subscribe(Guid subscriptionId, WebSocketConnectionBase connection, int[] deviceIds, string[] names)
         {
-            base.Unsubscribe(connection, GetKey(deviceId));
+            return base.Subscribe(subscriptionId, connection, deviceIds ?? new int[] { 0 }, names);
         }
 
-        public IEnumerable<WebSocketConnectionBase> GetConnections(int deviceId)
+        public Subscription<int> Subscribe(WebSocketConnectionBase connection, int deviceId)
         {
-            return base.GetConnections(deviceId, 0);
+            return base.Subscribe(Guid.NewGuid(), connection, new int[] { deviceId }, null);
         }
 
-        private int GetKey(int? deviceId)
+        public IEnumerable<Subscription<int>> GetSubscriptions(int deviceId)
         {
-            return deviceId ?? 0;
+            return base.GetSubscriptions(deviceId, 0);
         }
     }
 }

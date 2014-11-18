@@ -45,7 +45,7 @@ namespace DeviceHive.Test.WebSocketsTest
         {
             var connection = ClientController.Connect();
             ClientController.Authenticate(connection, Login, Password);
-            var res = ClientController.InsertDeviceCommand(connection, Guid.Empty, null);
+            var res = ClientController.InsertDeviceCommand(connection, string.Empty, null);
             Expect((string) res["status"], EqualTo("error"));
         }
 
@@ -99,7 +99,7 @@ namespace DeviceHive.Test.WebSocketsTest
         {
             var clientConnection = ClientController.Connect();
             ClientController.Authenticate(clientConnection, Login, Password);
-            var msg = ClientController.SubscribeToDeviceNotifications(clientConnection, new[] {Guid.NewGuid()});
+            var msg = ClientController.SubscribeToDeviceNotifications(clientConnection, new[] { Guid.NewGuid().ToString() });
             Expect((string) msg["status"], EqualTo("error"));
         }
 

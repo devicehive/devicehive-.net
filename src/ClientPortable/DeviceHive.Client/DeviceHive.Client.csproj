@@ -1,21 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
+    <MinimumVisualStudioVersion>11.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D7F93BDD-EDD0-48A8-B1A5-6C2274319260}</ProjectGuid>
+    <ProjectGuid>{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DeviceHive.Client</RootNamespace>
     <AssemblyName>DeviceHive.Client</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile88</TargetFrameworkProfile>
+    <DefaultLanguage>en-US</DefaultLanguage>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile>Profile259</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\DeviceHive.Client.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +33,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\DeviceHive.Client.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -41,53 +42,66 @@
     <AssemblyOriginatorKeyFile>..\..\DeviceHive.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Helpers\TaskHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Service\ApiInfo.cs" />
-    <Compile Include="Service\ClientServiceException.cs" />
-    <Compile Include="Service\Command.cs" />
-    <Compile Include="Service\CommandFilter.cs" />
-    <Compile Include="Service\Device.cs" />
-    <Compile Include="Service\DeviceClass.cs" />
-    <Compile Include="Service\DeviceEquipmentState.cs" />
-    <Compile Include="Service\DeviceFilter.cs" />
-    <Compile Include="Service\DeviceNotification.cs" />
-    <Compile Include="Service\Equipment.cs" />
-    <Compile Include="Service\IClientService.cs" />
-    <Compile Include="Service\Network.cs" />
-    <Compile Include="Service\NetworkFilter.cs" />
-    <Compile Include="Service\Notification.cs" />
-    <Compile Include="Service\NotificationFilter.cs" />
-    <Compile Include="Service\RestfulClientService.cs" />
-    <Compile Include="Service\SortOrder.cs" />
-    <Compile Include="Service\User.cs" />
-    <Compile Include="Service\UserNetwork.cs" />
+    <Compile Include="Channels\Channel.cs" />
+    <Compile Include="Channels\ChannelState.cs" />
+    <Compile Include="Channels\ChannelStateEventArgs.cs" />
+    <Compile Include="Channels\ISubscription.cs" />
+    <Compile Include="Channels\LongPollingChannel.cs" />
+    <Compile Include="Channels\SubscriptionType.cs" />
+    <Compile Include="DeviceHiveClient.cs" />
+    <Compile Include="DeviceHiveConnectionInfo.cs" />
+    <Compile Include="DeviceHiveException.cs" />
+    <Compile Include="Internal\AsyncLock.cs" />
+    <Compile Include="Internal\AsyncSemaphore.cs" />
+    <Compile Include="Internal\CommandCallback.cs" />
+    <Compile Include="Internal\JsonContractResolver.cs" />
+    <Compile Include="Internal\RestClient.cs" />
+    <Compile Include="Internal\Subscription.cs" />
+    <Compile Include="Model\ApiInfo.cs" />
+    <Compile Include="Model\Command.cs" />
+    <Compile Include="Model\CommandFilter.cs" />
+    <Compile Include="Model\Device.cs" />
+    <Compile Include="Model\DeviceClass.cs" />
+    <Compile Include="Model\DeviceCommand.cs" />
+    <Compile Include="Model\DeviceEquipmentState.cs" />
+    <Compile Include="Model\DeviceFilter.cs" />
+    <Compile Include="Model\DeviceNotification.cs" />
+    <Compile Include="Model\Equipment.cs" />
+    <Compile Include="Model\Network.cs" />
+    <Compile Include="Model\NetworkFilter.cs" />
+    <Compile Include="Model\Notification.cs" />
+    <Compile Include="Model\NotificationFilter.cs" />
+    <Compile Include="Model\SortOrder.cs" />
+    <Compile Include="Model\User.cs" />
+    <Compile Include="Model\UserNetwork.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Threading.Tasks">
-      <HintPath>..\..\..\packages\Microsoft.Bcl.Async.1.0.12-beta\lib\portable-net40+sl4+win8+wp71\Microsoft.Threading.Tasks.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Threading.Tasks.Extensions">
-      <HintPath>..\..\..\packages\Microsoft.Bcl.Async.1.0.12-beta\lib\portable-net40+sl4+win8+wp71\Microsoft.Threading.Tasks.Extensions.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\portable-net40+sl4+wp7+win8\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\packages\Newtonsoft.Json.6.0.5\lib\portable-net45+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="System.Runtime">
-      <HintPath>..\..\..\packages\Microsoft.Bcl.1.0.11-beta\lib\portable-net40+sl4+win8+wp71\System.Runtime.dll</HintPath>
+    <Reference Include="System.Net.Http">
+      <HintPath>..\..\..\packages\Microsoft.Net.Http.2.2.22\lib\portable-net40+sl4+win8+wp71+wpa81\System.Net.Http.dll</HintPath>
     </Reference>
-    <Reference Include="System.Threading.Tasks">
-      <HintPath>..\..\..\packages\Microsoft.Bcl.1.0.11-beta\lib\portable-net40+sl4+win8+wp71\System.Threading.Tasks.dll</HintPath>
+    <Reference Include="System.Net.Http.Extensions">
+      <HintPath>..\..\..\packages\Microsoft.Net.Http.2.2.22\lib\portable-net40+sl4+win8+wp71+wpa81\System.Net.Http.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting">
+      <HintPath>..\..\..\packages\Microsoft.AspNet.WebApi.Client.5.2.2\lib\portable-wp8+netcore45+net45+wp81+wpa81\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Primitives">
+      <HintPath>..\..\..\packages\Microsoft.Net.Http.2.2.22\lib\portable-net40+sl4+win8+wp71+wpa81\System.Net.Http.Primitives.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <Import Project="..\..\..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" />
+  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
+    <Error Condition="!Exists('..\..\..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
+    <Error Condition="Exists('..\..\..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

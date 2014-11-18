@@ -21,7 +21,7 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
         }
 
         public JObject InsertDeviceCommand(StubWebSocketConnection connection,
-            Guid deviceGuid, JObject command)
+            string deviceGuid, JObject command)
         {
             return InvokeAction(connection, "command/insert", new JObject(
                 new JProperty("deviceGuid", deviceGuid),
@@ -33,7 +33,7 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
             return InvokeAction(connection, "notification/subscribe", null);
         }
 
-        public JObject SubscribeToDeviceNotifications(StubWebSocketConnection connection, Guid[] devieGuids)
+        public JObject SubscribeToDeviceNotifications(StubWebSocketConnection connection, string[] devieGuids)
         {
             return InvokeAction(connection, "notification/subscribe", new JObject(
                 new JProperty("deviceGuids", new JArray(devieGuids))));
@@ -44,7 +44,7 @@ namespace DeviceHive.Test.WebSocketsTest.Utils
             return InvokeAction(connection, "notification/unsubscribe", null);
         }
 
-        public JObject UnsubscribeFromDeviceNotifications(StubWebSocketConnection connection, Guid[] devieGuids)
+        public JObject UnsubscribeFromDeviceNotifications(StubWebSocketConnection connection, string[] devieGuids)
         {
             return InvokeAction(connection, "notification/unsubscribe", new JObject(
                 new JProperty("deviceGuids", new JArray(devieGuids))));

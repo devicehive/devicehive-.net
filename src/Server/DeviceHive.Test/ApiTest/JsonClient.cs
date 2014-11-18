@@ -11,11 +11,11 @@ namespace DeviceHive.Test
 {
     public class JsonClient
     {
-        private string _baseUrl;
+        public string BaseUrl { get; private set; }
 
         public JsonClient(string baseUrl)
         {
-            _baseUrl = baseUrl;
+            BaseUrl = baseUrl;
         }
 
         public JsonResponse Get(string url, Authorization auth = null)
@@ -46,7 +46,7 @@ namespace DeviceHive.Test
                 throw new ArgumentException("URL is null or empty!", "url");
 
             // prepare request
-            var request = (HttpWebRequest)HttpWebRequest.Create(_baseUrl + url);
+            var request = (HttpWebRequest)HttpWebRequest.Create(BaseUrl + url);
             request.Method = method;
             request.Accept = "application/json";
             if (auth != null)
@@ -56,6 +56,9 @@ namespace DeviceHive.Test
                     case "User":
                         request.Headers["Authorization"] = "Basic " + Convert.ToBase64String(
                             Encoding.UTF8.GetBytes(string.Format("{0}:{1}", auth.Login, auth.Password)));
+                        break;
+                    case "AccessKey":
+                        request.Headers["Authorization"] = "Bearer " + auth.Login;
                         break;
                     case "Device":
                         request.Headers["Auth-DeviceID"] = auth.Login;
@@ -112,12 +115,14 @@ namespace DeviceHive.Test
         public string Type { get; private set; }
         public string Login { get; private set; }
         public string Password { get; private set; }
+        public string ID { get; private set; }
 
-        public Authorization(string type, string login, string password)
+        public Authorization(string type, string login, string password = null, string id = null)
         {
             Type = type;
             Login = login;
             Password = password;
+            ID = id;
         }
     }
 

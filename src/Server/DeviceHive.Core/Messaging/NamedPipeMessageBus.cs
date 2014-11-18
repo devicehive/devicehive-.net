@@ -79,7 +79,7 @@ namespace DeviceHive.Core.Messaging
                                 pipeConfiguration.ServerName, pipeConfiguration.Name);
                             continue;
                         }
-     
+
                         namedPipeClient.Write(data, 0, data.Length);
                     }
                     catch (IOException ex)
@@ -102,13 +102,15 @@ namespace DeviceHive.Core.Messaging
                 {
                     namedPipeClient.Connect(_connectTimeout);
                     return true;
-                }                    
-                catch (IOException) // pipe is in use
-                {       
-                    // retry one more time
                 }
-                catch (TimeoutException) // pipe doesn't exist
+                catch (IOException ex) // pipe is in use
                 {
+                    // retry one more time
+                    _log.WarnFormat("Exception on connect to pipe (pipe is in use): {0}", ex);                    
+                }
+                catch (TimeoutException ex) // pipe doesn't exist
+                {
+                    _log.WarnFormat("Exception on connect to pipe (pipe doesn't exist): {0}", ex);
                     return false;
                 }
             }
@@ -132,19 +134,29 @@ namespace DeviceHive.Core.Messaging
                     PipeTransmissionMode.Byte, PipeOptions.Asynchronous,
                     0, 0, pipeSecurity))
                 {
+                    _log.DebugFormat("Start reading pipe: {0}", _serverPipeConfiguration.Name);
+
                     while (true)
                     {
                         if (_stopReading)
+                        {
+                            _log.DebugFormat("Stop reading pipe {0} (stop request)", _serverPipeConfiguration.Name);
                             return;
+                        }
 
                         ReadMessage(namedPipeServer);
                     }
                 }
             }
-            catch (IOException e)
+            catch (Exception ex)
             {
-                _log.Error("Named pipe read error", e);
-            }            
+                _log.ErrorFormat("Stop reading pipe {0} (exception: {1})",
+                    _serverPipeConfiguration.Name, ex);
+            }
+            finally
+            {
+                _log.DebugFormat("Stop reading pipe {0}", _serverPipeConfiguration.Name);
+            }
         }
 
         private void ReadMessage(NamedPipeServerStream namedPipeServer)
@@ -179,8 +191,7 @@ namespace DeviceHive.Core.Messaging
 
         private static Configuration GetConfiguration()
         {
-            var configurationSection = (NamedPipeMessageBusConfigurationSection)
-                ConfigurationManager.GetSection("namedPipeMessageBus");
+            var configurationSection = (NamedPipeMessageBusConfiguration)ConfigurationManager.GetSection("namedPipeMessageBus");
 
             if (configurationSection == null)
                 throw new InvalidOperationException("namedPipeMessageBus configuration sections can't be found");

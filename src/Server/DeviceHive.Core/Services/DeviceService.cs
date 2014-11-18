@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
 using DeviceHive.Core.Mapping;
@@ -16,51 +17,54 @@ namespace DeviceHive.Core.Services
     public class DeviceService : ServiceBase
     {
         private readonly MessageBus _messageBus;
-        private static bool _allowNetworkAutoCreate = !string.Equals(ConfigurationManager.AppSettings["AllowNetworkAutoCreate"], "false", StringComparison.OrdinalIgnoreCase);
+        private readonly DeviceHiveConfiguration _configuration;
 
         /// <summary>
         /// Initialize instance of <see cref="DeviceService"/>
         /// </summary>
         public DeviceService(DataContext dataContext, JsonMapperManager jsonMapperManager,
-            MessageBus messageBus) : base(dataContext, jsonMapperManager)
+            MessageBus messageBus, DeviceHiveConfiguration configuration) : base(dataContext, jsonMapperManager)
         {
             _messageBus = messageBus;
+            _configuration = configuration;
         }
 
         /// <summary>
-        /// Register new or update existing device
+        /// Register new or update existing device.
         /// </summary>
+        /// <param name="device">Source device to update.</param>
+        /// <param name="deviceJson">A JSON object with device properties.</param>
+        /// <param name="verifyNetworkKey">Whether to verify if a correct network key is passed.</param>
+        /// <param name="networkAccessCheck">An optional delegate to verify network access control.</param>
         public JObject SaveDevice(Device device, JObject deviceJson,
-            bool verifyNetworkKey = true)
+            bool verifyNetworkKey = true, Func<Network, bool> networkAccessCheck = null)
         {
             // load original device for comparison
             var sourceDevice = device.ID > 0 ? DataContext.Device.Get(device.ID) : null;
 
             // map and validate the device object
             var deviceMapper = GetMapper<Device>();
-
-            ResolveNetwork(deviceJson, verifyNetworkKey);
-            ResolveDeviceClass(deviceJson, device.ID == 0);
             deviceMapper.Apply(device, deviceJson);
             Validate(device);
+
+            // resolve and verify associated objects
+            ResolveNetwork(device, verifyNetworkKey, networkAccessCheck);
+            ResolveDeviceClass(device);
 
             // save device object
             DataContext.Device.Save(device);
 
-            // replace equipments for the corresponding device class
+            // backward compatibility with 1.2 - equipment was passed on device level
             if (!device.DeviceClass.IsPermanent && deviceJson["equipment"] is JArray)
             {
-                foreach (var equipment in DataContext.Equipment.GetByDeviceClass(device.DeviceClass.ID))
-                {
-                    DataContext.Equipment.Delete(equipment.ID);
-                }
+                device.DeviceClass.Equipment = new List<Equipment>();
                 foreach (JObject jEquipment in (JArray)deviceJson["equipment"])
                 {
                     var equipment = GetMapper<Equipment>().Map(jEquipment);
-                    equipment.DeviceClass = device.DeviceClass;
                     Validate(equipment);
-                    DataContext.Equipment.Save(equipment);
+                    device.DeviceClass.Equipment.Add(equipment);
                 }
+                DataContext.DeviceClass.Save(device.DeviceClass);
             }
 
             // save the device diff notification
@@ -74,80 +78,85 @@ namespace DeviceHive.Core.Services
             return deviceMapper.Map(device);
         }
 
-        private void ResolveNetwork(JObject json, bool verifyNetworkKey = true)
+        private void ResolveNetwork(Device device, bool verifyNetworkKey, Func<Network, bool> networkAccessCheck)
         {
-            Network network = null;
-            var jNetwork = json.Property("network");
-            if (jNetwork != null && jNetwork.Value is JValue)
-            {
-                // a value is passed, can be null
-                var jNetworkValue = (JValue)jNetwork.Value;
-                if (jNetworkValue.Value is long)
-                {
-                    // search network by ID
-                    network = DataContext.Network.Get((int)jNetworkValue);
-                    if (verifyNetworkKey && network != null && network.Key != null)
-                        throw new UnauthroizedNetworkException("Could not register a device because target network is protected with a key!");
-                }
-            }
-            else if (jNetwork != null && jNetwork.Value is JObject)
-            {
-                // search network by name or auto-create if it does not exist
-                var jNetworkObj = (JObject)jNetwork.Value;
-                if (jNetworkObj["name"] == null)
-                    throw new InvalidDataException("Specified 'network' object must include 'name' property!");
+            if (device.Network == null)
+                return; // device could have no network assigned
 
-                network = DataContext.Network.Get((string)jNetworkObj["name"]);
+            var network = (Network)null;
+            if (device.Network.Name != null)
+            {
+                // network name is passed
+                network = DataContext.Network.Get(device.Network.Name);
                 if (network == null)
                 {
-                    if (!_allowNetworkAutoCreate)
+                    // auto-create network - only for test environments
+                    if (!_configuration.Network.AllowAutoCreate)
                         throw new UnauthroizedNetworkException("Automatic network creation is not allowed, please specify an existing network!");
 
-                    // auto-create network
-                    network = new Network();
-                    GetMapper<Network>().Apply(network, jNetworkObj);
+                    network = device.Network;
                     Validate(network);
                     DataContext.Network.Save(network);
                 }
-
-                // check passed network key
-                if (verifyNetworkKey && network.Key != null && (string)jNetworkObj["key"] != network.Key)
-                    throw new UnauthroizedNetworkException("Could not register a device because target network is protected with a key!");
-
-                jNetwork.Value = (long)network.ID;
+                else
+                {
+                    if (verifyNetworkKey && network.Key != null && network.Key != device.Network.Key)
+                        throw new UnauthroizedNetworkException("Could not register a device because target network is protected with a key!");
+                    if (networkAccessCheck != null && !networkAccessCheck(network))
+                        throw new UnauthroizedNetworkException("Could not register a device because target network is not accessible!");
+                }
             }
+            else
+            {
+                throw new InvalidDataException("Specified 'network' object must include 'name' property!");
+            }
+
+            device.Network = network;
         }
 
-        private void ResolveDeviceClass(JObject json, bool isRequired)
+        private void ResolveDeviceClass(Device device)
         {
-            var jDeviceClass = json.Property("deviceClass");
-            if (isRequired && jDeviceClass == null)
-                throw new InvalidDataException("Required 'deviceClass' property was not specified!");
+            if (device.DeviceClass == null)
+                throw new InvalidDataException("Required 'deviceClass' property can not be null!");
 
-            if (jDeviceClass != null && jDeviceClass.Value is JObject)
+            var deviceClass = (DeviceClass)null;
+            if (device.DeviceClass.Name != null && device.DeviceClass.Version != null)
             {
-                // search device class by name/version or auto-create if it does not exist
-                var jDeviceClassObj = (JObject)jDeviceClass.Value;
-                if (jDeviceClassObj["name"] == null)
-                    throw new InvalidDataException("Specified 'deviceClass' object must include 'name' property!");
-                if (jDeviceClassObj["version"] == null)
-                    throw new InvalidDataException("Specified 'deviceClass' object must include 'version' property!");
-
-                var deviceClass = DataContext.DeviceClass.Get((string)jDeviceClassObj["name"], (string)jDeviceClassObj["version"]);
+                // device class name and version are passed
+                deviceClass = DataContext.DeviceClass.Get(device.DeviceClass.Name, device.DeviceClass.Version);
                 if (deviceClass == null)
                 {
                     // auto-create device class
-                    deviceClass = new DeviceClass();
-                }
-                if (deviceClass.ID == 0 || !deviceClass.IsPermanent)
-                {
-                    // auto-update device class if it's not set as permanent
-                    GetMapper<DeviceClass>().Apply(deviceClass, jDeviceClassObj);
+                    deviceClass = device.DeviceClass;
+
                     Validate(deviceClass);
+                    if (deviceClass.Equipment != null)
+                        deviceClass.Equipment.ForEach(e => Validate(e));
                     DataContext.DeviceClass.Save(deviceClass);
                 }
-                jDeviceClass.Value = (long)deviceClass.ID;
+                else if (!deviceClass.IsPermanent)
+                {
+                    // auto-update device class if it's not set as permanent
+                    deviceClass.Data = device.DeviceClass.Data;
+                    deviceClass.IsPermanent = device.DeviceClass.IsPermanent;
+                    deviceClass.OfflineTimeout = device.DeviceClass.OfflineTimeout;
+                    if (device.DeviceClass.Equipment != null)
+                    {
+                        deviceClass.Equipment.Clear();
+                        deviceClass.Equipment.AddRange(device.DeviceClass.Equipment);
+                    }
+                    
+                    Validate(deviceClass);
+                    deviceClass.Equipment.ForEach(e => Validate(e));
+                    DataContext.DeviceClass.Save(deviceClass);
+                }
             }
+            else
+            {
+                throw new InvalidDataException("Specified 'deviceClass' object must include 'name' and 'version' properties!");
+            }
+
+            device.DeviceClass = deviceClass;
         }
     }
 }

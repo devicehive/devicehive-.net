@@ -41,6 +41,11 @@ namespace DeviceHive.Data.MongoDB
             get { return Database.GetCollection<UserNetwork>("user_networks"); }
         }
 
+        public MongoCollection<AccessKey> AccessKeys
+        {
+            get { return Database.GetCollection<AccessKey>("access_keys"); }
+        }
+
         public MongoCollection<Network> Networks
         {
             get { return Database.GetCollection<Network>("networks"); }
@@ -49,11 +54,6 @@ namespace DeviceHive.Data.MongoDB
         public MongoCollection<DeviceClass> DeviceClasses
         {
             get { return Database.GetCollection<DeviceClass>("device_classes"); }
-        }
-
-        public MongoCollection<Equipment> Equipment
-        {
-            get { return Database.GetCollection<Equipment>("equipment"); }
         }
 
         public MongoCollection<Device> Devices
@@ -74,6 +74,16 @@ namespace DeviceHive.Data.MongoDB
         public MongoCollection<DeviceCommand> DeviceCommands
         {
             get { return Database.GetCollection<DeviceCommand>("device_commands"); }
+        }
+
+        public MongoCollection<OAuthClient> OAuthClients
+        {
+            get { return Database.GetCollection<OAuthClient>("oauth_clients"); }
+        }
+
+        public MongoCollection<OAuthGrant> OAuthGrants
+        {
+            get { return Database.GetCollection<OAuthGrant>("oauth_grants"); }
         }
         #endregion
 
@@ -143,7 +153,7 @@ namespace DeviceHive.Data.MongoDB
             var getter = GetTimestampGetter(typeof(T));
             if (getter(entity) == default(DateTime))
             {
-                var timestamp = Database.Eval("return new Date()").ToUniversalTime();
+                var timestamp = Database.Eval(EvalFlags.NoLock, "return new Date()").ToUniversalTime();
                 var setter = GetTimestampSetter(typeof(T));
                 setter(entity, timestamp);
             }
@@ -177,6 +187,18 @@ namespace DeviceHive.Data.MongoDB
                         cm.SetIdMember(cm.GetMemberMap(e => e.ID));
                     });
 
+                BsonClassMap.RegisterClassMap<AccessKey>(cm =>
+                    {
+                        cm.AutoMap();
+                        cm.SetIdMember(cm.GetMemberMap(e => e.ID));
+                    });
+
+                BsonClassMap.RegisterClassMap<AccessKeyPermission>(cm =>
+                    {
+                        cm.AutoMap();
+                        cm.SetIdMember(cm.GetMemberMap(e => e.ID));
+                    });
+
                 BsonClassMap.RegisterClassMap<Network>(cm =>
                     {
                         cm.AutoMap();
@@ -193,7 +215,6 @@ namespace DeviceHive.Data.MongoDB
                 BsonClassMap.RegisterClassMap<Equipment>(cm =>
                     {
                         cm.AutoMap();
-                        cm.UnmapField(e => e.DeviceClass);
                         cm.SetIdMember(cm.GetMemberMap(e => e.ID));
                         cm.GetMemberMap(e => e.Data).SetSerializer(rawJsonSerializer);
                     });
@@ -227,6 +248,18 @@ namespace DeviceHive.Data.MongoDB
                         cm.UnmapField(e => e.Device);
                         cm.SetIdMember(cm.GetMemberMap(e => e.ID));
                         cm.GetMemberMap(e => e.Parameters).SetSerializer(rawJsonSerializer);
+                    });
+
+                BsonClassMap.RegisterClassMap<OAuthClient>(cm =>
+                    {
+                        cm.AutoMap();
+                        cm.SetIdMember(cm.GetMemberMap(e => e.ID));
+                    });
+
+                BsonClassMap.RegisterClassMap<OAuthGrant>(cm =>
+                    {
+                        cm.AutoMap();
+                        cm.SetIdMember(cm.GetMemberMap(e => e.ID));
                     });
 
                 _isClassMapRegistered = true;

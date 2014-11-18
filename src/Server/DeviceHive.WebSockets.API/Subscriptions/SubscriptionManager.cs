@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using DeviceHive.WebSockets.Core.Network;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
-using DeviceHive.WebSockets.Core.Network;
 
 namespace DeviceHive.WebSockets.API.Subscriptions
 {
@@ -8,92 +10,94 @@ namespace DeviceHive.WebSockets.API.Subscriptions
     {
         private readonly string _subscriptionsValueKey;
 
-        private readonly SubscriptionCollection _subscriptionCollection = new SubscriptionCollection();
-
+        private readonly ConcurrentDictionary<TKey, List<Subscription<TKey>>> _lookupByKey = new ConcurrentDictionary<TKey, List<Subscription<TKey>>>();
+        private readonly ConcurrentDictionary<Guid, Subscription<TKey>> _lookupById = new ConcurrentDictionary<Guid, Subscription<TKey>>();
 
         protected SubscriptionManager(string subscriptionsValueKey)
         {
             _subscriptionsValueKey = subscriptionsValueKey;
         }
 
-
-        public void Subscribe(WebSocketConnectionBase connection, TKey key)
+        public Subscription<TKey> Subscribe(Guid subscriptionId, WebSocketConnectionBase connection, TKey[] keys, object data)
         {
-            var subscription = new Subscription<TKey>(key, connection);
+            var subscription = new Subscription<TKey>(subscriptionId, connection, keys, data);
              
-            var connectionSubscriptions = GetSubscriptions(connection);
-                connectionSubscriptions.Add(subscription);
+            // add into connection session
+            var connectionSubscriptions = GetConnectionSubscriptions(connection);
+            connectionSubscriptions.Add(subscription);
 
-            var subscriptionList = _subscriptionCollection.GetSubscriptionList(key);
-            subscriptionList.Add(subscription);
-        }
-
-        public void Unsubscribe(WebSocketConnectionBase connection, TKey key)
-        {
-            var connectionSubscriptions = GetSubscriptions(connection);
-            connectionSubscriptions.RemoveAll(s => object.Equals(s.Key, key));
-
-            var subscriptionList = _subscriptionCollection.GetSubscriptionList(key);
-            subscriptionList.RemoveAll(s => s.Connection == connection);
-        }
-
-        public IEnumerable<WebSocketConnectionBase> GetConnections(params TKey[] keys)
-        {
-            return keys
-                .SelectMany(k => _subscriptionCollection.GetSubscriptionList(k))
-                .Select(s => s.Connection)
-                .Distinct()
-                .ToArray();
-        }
-
-        public void Cleanup(WebSocketConnectionBase connection)
-        {
-            var deviceGuids = GetSubscriptions(connection).Select(s => s.Key).Distinct().ToArray();
-
-            foreach (var deviceGuid in deviceGuids)
+            // add into lookup by key
+            foreach (var key in subscription.Keys)
             {
-                var subscriptionList = _subscriptionCollection.GetSubscriptionList(deviceGuid);
-                subscriptionList.RemoveAll(s => s.Connection == connection);
+                var subscriptionList = _lookupByKey.GetOrAdd(key, new List<Subscription<TKey>>());
+                subscriptionList.Add(subscription);
             }
+
+            // add into lookup by id
+            _lookupById[subscription.Id] = subscription;
+            return subscription;
         }
 
-
-        private List<Subscription<TKey>> GetSubscriptions(WebSocketConnectionBase connection)
+        public void Unsubscribe(WebSocketConnectionBase connection, Guid subscriptionId)
         {
-            return (List<Subscription<TKey>>) connection.Session.GetOrAdd(
-                _subscriptionsValueKey, () => new List<Subscription<TKey>>());
-        }
+            // remove from lookup by id
+            Subscription<TKey> subscription;
+            _lookupById.TryRemove(subscriptionId, out subscription);
 
-
-        #region Inner classes
-
-        private class SubscriptionCollection
-        {
-            private readonly object _lock = new object();
-
-            private readonly Dictionary<TKey, SubscriptionList> _subscriptions =
-                new Dictionary<TKey, SubscriptionList>();
-
-            public SubscriptionList GetSubscriptionList(TKey key)
+            if (subscription != null)
             {
-                lock (_lock)
-                {
-                    SubscriptionList list;
-                    if (!_subscriptions.TryGetValue(key, out list))
-                    {
-                        list = new SubscriptionList();
-                        _subscriptions.Add(key, list);
-                    }
+                // remove from connection session
+                var connectionSubscriptions = GetConnectionSubscriptions(connection);
+                connectionSubscriptions.Remove(subscription);
 
-                    return list;
+                // remove from subscription list
+                List<Subscription<TKey>> subscriptionList;
+                foreach (var key in subscription.Keys)
+                {
+                    if (_lookupByKey.TryGetValue(key, out subscriptionList))
+                        subscriptionList.Remove(subscription);
                 }
             }
         }
 
-        private class SubscriptionList : List<Subscription<TKey>>
-        {            
+        public IEnumerable<Subscription<TKey>> GetSubscriptions(params TKey[] keys)
+        {
+            return keys.SelectMany(key => {
+                List<Subscription<TKey>> subscriptionList;
+                return _lookupByKey.TryGetValue(key, out subscriptionList) ? subscriptionList : new List<Subscription<TKey>>(0);
+            }).ToArray();
         }
 
-        #endregion
+        public IEnumerable<Subscription<TKey>> GetSubscriptions(WebSocketConnectionBase connection)
+        {
+            return GetConnectionSubscriptions(connection).ToArray();
+        }
+
+        public void Cleanup(WebSocketConnectionBase connection)
+        {
+            // get subscription from session
+            var connectionSubscriptions = GetConnectionSubscriptions(connection);
+
+            foreach (var subscription in connectionSubscriptions)
+            {
+                // remove from lookup by id
+                Subscription<TKey> s;
+                _lookupById.TryRemove(subscription.Id, out s);
+
+                // remove from subscription list
+                List<Subscription<TKey>> subscriptionList;
+                foreach (var key in subscription.Keys)
+                {
+                    if (_lookupByKey.TryGetValue(key, out subscriptionList))
+                        subscriptionList.Remove(subscription);
+                }
+            }
+        }
+
+        private List<Subscription<TKey>> GetConnectionSubscriptions(WebSocketConnectionBase connection)
+        {
+            return (List<Subscription<TKey>>) connection.Session.GetOrAdd(
+                _subscriptionsValueKey, () => new List<Subscription<TKey>>());
+        }
     }
 }

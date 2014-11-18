@@ -142,6 +142,14 @@ namespace DeviceHive.Data
         }
 
         /// <summary>
+        /// Gets repository for access keys
+        /// </summary>
+        public IAccessKeyRepository AccessKey
+        {
+            get { return GetRepository<IAccessKeyRepository>(); }
+        }
+
+        /// <summary>
         /// Gets repository for user networks
         /// </summary>
         public IUserNetworkRepository UserNetwork
@@ -163,14 +171,6 @@ namespace DeviceHive.Data
         public IDeviceClassRepository DeviceClass
         {
             get { return GetRepository<IDeviceClassRepository>(); }
-        }
-
-        /// <summary>
-        /// Gets repository for equipments
-        /// </summary>
-        public IEquipmentRepository Equipment
-        {
-            get { return GetRepository<IEquipmentRepository>(); }
         }
 
         /// <summary>
@@ -203,6 +203,22 @@ namespace DeviceHive.Data
         public IDeviceEquipmentRepository DeviceEquipment
         {
             get { return GetRepository<IDeviceEquipmentRepository>(); }
+        }
+
+        /// <summary>
+        /// Gets repository for OAuth clients
+        /// </summary>
+        public IOAuthClientRepository OAuthClient
+        {
+            get { return GetRepository<IOAuthClientRepository>(); }
+        }
+
+        /// <summary>
+        /// Gets repository for OAuth grants
+        /// </summary>
+        public IOAuthGrantRepository OAuthGrant
+        {
+            get { return GetRepository<IOAuthGrantRepository>(); }
         }
 
         /// <summary>
