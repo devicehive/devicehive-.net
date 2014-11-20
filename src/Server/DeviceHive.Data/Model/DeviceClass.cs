@@ -69,7 +69,7 @@ namespace DeviceHive.Data.Model
 
         /// <summary>
         /// If set, specifies inactivity timeout in seconds before the framework changes device status to 'Offline'.
-        /// Device considered inactive when it does not send any notifications.
+        /// Device considered inactive when it's not persistently connected and does not send any notifications.
         /// </summary>
         public int? OfflineTimeout { get; set; }
 
