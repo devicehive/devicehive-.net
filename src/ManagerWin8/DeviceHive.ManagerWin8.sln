@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.ManagerWin8", "DeviceHive.ManagerWin8\DeviceHive.ManagerWin8.csproj", "{C3706723-1F8E-4E6D-B686-01299531BB5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Client", "..\ClientPortable\DeviceHive.Client\DeviceHive.Client.csproj", "{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Client", "..\Client\DeviceHive.Client\DeviceHive.Client.Portable.csproj", "{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

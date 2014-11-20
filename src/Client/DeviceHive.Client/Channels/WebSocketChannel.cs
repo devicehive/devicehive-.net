@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WebSocket4Net;
 
@@ -49,9 +50,9 @@ namespace DeviceHive.Client
         /// The method returns true only if the DeviceHive server deployment supports WebSocket protocol.
         /// </summary>
         /// <returns>True if connection can be eshtablished.</returns>
-        public override async Task<bool> CanConnect()
+        public override async Task<bool> CanConnectAsync()
         {
-            var apiInfo = await GetApiInfo();
+            var apiInfo = await GetApiInfoAsync();
             return apiInfo.WebSocketServerUrl != null;
         }
 
@@ -59,19 +60,19 @@ namespace DeviceHive.Client
         /// Opens a persistent connection to the DeviceHive server.
         /// </summary>
         /// <returns></returns>
-        public override async Task Open()
+        public override async Task OpenAsync()
         {
             using (var releaser = await _lock.LockAsync())
             {
                 if (State != ChannelState.Disconnected)
                     throw new InvalidOperationException("The WebSocket connection is already open, please call the Close method before opening it again!");
 
-                if (!await CanConnect())
+                if (!await CanConnectAsync())
                     throw new InvalidOperationException("The WebSocket connection cannot be used since the server does not support it!");
 
                 SetChannelState(ChannelState.Connecting);
 
-                var webSocketUrl = (await GetApiInfo()).WebSocketServerUrl + "/client";
+                var webSocketUrl = (await GetApiInfoAsync()).WebSocketServerUrl + "/client";
                 _webSocket = new WebSocket(webSocketUrl);
                 _webSocket.MessageReceived += (s, e) => Task.Run(() => HandleMessage(e.Message));
                 _webSocket.Opened += (s, e) => Task.Run(() => Authenticate());
@@ -110,7 +111,7 @@ namespace DeviceHive.Client
                 }
                 catch (Exception)
                 {
-                    Close().Wait();
+                    CloseAsync().Wait();
                     throw;
                 }
             }
@@ -120,7 +121,7 @@ namespace DeviceHive.Client
         /// Closes the persistent connection to the DeviceHive server.
         /// </summary>
         /// <returns></returns>
-        public override async Task Close()
+        public override async Task CloseAsync()
         {
             using (var releaser = await _lock.LockAsync())
             {
@@ -137,7 +138,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="notification">A <see cref="Notification"/> object to be sent.</param>
-        public override async Task SendNotification(string deviceGuid, Notification notification)
+        public override async Task SendNotificationAsync(string deviceGuid, Notification notification)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
@@ -163,12 +164,15 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
-        public override async Task SendCommand(string deviceGuid, Command command, Action<Command> callback = null)
+        /// <param name="token">Cancellation token to cancel polling command result.</param>
+        public override async Task SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
             if (command == null)
                 throw new ArgumentNullException("command");
+            if (!token.HasValue)
+                token = CancellationToken.None;
 
             CheckConnection();
 
@@ -192,7 +196,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to update.</param>
-        public override async Task UpdateCommand(string deviceGuid, Command command)
+        public override async Task UpdateCommandAsync(string deviceGuid, Command command)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");

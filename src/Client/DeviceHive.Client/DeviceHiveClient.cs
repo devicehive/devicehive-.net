@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeviceHive.Client
@@ -36,13 +37,17 @@ namespace DeviceHive.Client
             
             // default channels: WebSocket, LongPolling
             SetAvailableChannels(new Channel[] {
+#if !PORTABLE
                 new WebSocketChannel(connectionInfo),
+#endif
                 new LongPollingChannel(connectionInfo)
             });
 
+#if !PORTABLE
             // allow at least 10 concurrent outbound connections
             if (ServicePointManager.DefaultConnectionLimit < 10)
                 ServicePointManager.DefaultConnectionLimit = 10;
+#endif
         }
         #endregion
 
@@ -52,9 +57,9 @@ namespace DeviceHive.Client
         /// Gets information about the currently logged-in user.
         /// </summary>
         /// <returns>The <see cref="User"/> object.</returns>
-        public async Task<User> GetCurrentUser()
+        public async Task<User> GetCurrentUserAsync()
         {
-            return await _restClient.Get<User>("/user/current");
+            return await _restClient.GetAsync<User>("user/current");
         }
 
         /// <summary>
@@ -62,9 +67,9 @@ namespace DeviceHive.Client
         /// The method only updates the user password.
         /// </summary>
         /// <param name="user">The <see cref="User"/> object with the new password.</param>
-        public async Task UpdateCurrentUser(User user)
+        public async Task UpdateCurrentUserAsync(User user)
         {
-            await _restClient.Put<User>("/user/current", user);
+            await _restClient.PutAsync<User>("user/current", user);
         }
 
         /// <summary>
@@ -72,9 +77,9 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="filter">Network filter.</param>
         /// <returns>A list of <see cref="Network"/> objects that match specified filter criteria.</returns>
-        public async Task<List<Network>> GetNetworks(NetworkFilter filter = null)
+        public async Task<List<Network>> GetNetworksAsync(NetworkFilter filter = null)
         {
-            return await _restClient.Get<List<Network>>("network" + _restClient.MakeQueryString(filter));
+            return await _restClient.GetAsync<List<Network>>("network" + _restClient.MakeQueryString(filter));
         }
 
         /// <summary>
@@ -82,9 +87,9 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="filter">Device filter criteria.</param>
         /// <returns>A list of <see cref="Device"/> objects that match specified filter criteria.</returns>
-        public async Task<List<Device>> GetDevices(DeviceFilter filter = null)
+        public async Task<List<Device>> GetDevicesAsync(DeviceFilter filter = null)
         {
-            return await _restClient.Get<List<Device>>("device" + _restClient.MakeQueryString(filter));
+            return await _restClient.GetAsync<List<Device>>("device" + _restClient.MakeQueryString(filter));
         }
 
         /// <summary>
@@ -92,12 +97,12 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <returns>A <see cref="Device"/> object.</returns>
-        public async Task<Device> GetDevice(string deviceGuid)
+        public async Task<Device> GetDeviceAsync(string deviceGuid)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
 
-            return await _restClient.Get<Device>(string.Format("device/{0}", deviceGuid));
+            return await _restClient.GetAsync<Device>(string.Format("device/{0}", deviceGuid));
         }
 
         /// <summary>
@@ -106,12 +111,12 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <returns>A list of <see cref="DeviceEquipmentState"/> objects.</returns>
-        public async Task<List<DeviceEquipmentState>> GetEquipmentState(string deviceGuid)
+        public async Task<List<DeviceEquipmentState>> GetEquipmentStateAsync(string deviceGuid)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
 
-            return await _restClient.Get<List<DeviceEquipmentState>>(string.Format("device/{0}/equipment", deviceGuid));
+            return await _restClient.GetAsync<List<DeviceEquipmentState>>(string.Format("device/{0}/equipment", deviceGuid));
         }
 
         /// <summary>
@@ -120,12 +125,12 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="filter">Notification filter criteria.</param>
         /// <returns>A list of <see cref="Notification"/> objects that match specified filter criteria.</returns>
-        public async Task<List<Notification>> GetNotifications(string deviceGuid, NotificationFilter filter)
+        public async Task<List<Notification>> GetNotificationsAsync(string deviceGuid, NotificationFilter filter)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
 
-            return await _restClient.Get<List<Notification>>(
+            return await _restClient.GetAsync<List<Notification>>(
                 string.Format("device/{0}/notification", deviceGuid) + _restClient.MakeQueryString(filter));
         }
 
@@ -135,12 +140,12 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="filter">Notification filter criteria.</param>
         /// <returns>A list of <see cref="Command"/> objects that match specified filter criteria.</returns>
-        public async Task<List<Command>> GetCommands(string deviceGuid, CommandFilter filter)
+        public async Task<List<Command>> GetCommandsAsync(string deviceGuid, CommandFilter filter)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
 
-            return await _restClient.Get<List<Command>>(
+            return await _restClient.GetAsync<List<Command>>(
                 string.Format("device/{0}/command", deviceGuid) + _restClient.MakeQueryString(filter));
         }
 
@@ -148,7 +153,7 @@ namespace DeviceHive.Client
         /// Gets active subscriptions for DeviceHive commands and notifications.
         /// </summary>
         /// <returns>A list of <see cref="ISubscription"/> objects representing subsription information.</returns>
-        public IList<ISubscription> GetSubscriptions()
+        public IList<ISubscription> GetSubscriptionsAsync()
         {
             if (_channel == null)
                 return new List<ISubscription>();
@@ -164,10 +169,10 @@ namespace DeviceHive.Client
         /// <param name="notificationNames">Array of notification names to subsribe to. Specify null to subscribe to all notifications.</param>
         /// <param name="callback">A callback which will be invoken when a notification is retrieved.</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        public async Task<ISubscription> AddNotificationSubscription(string[] deviceGuids, string[] notificationNames, Action<DeviceNotification> callback)
+        public async Task<ISubscription> AddNotificationSubscriptionAsync(string[] deviceGuids, string[] notificationNames, Action<DeviceNotification> callback)
         {
-            var channel = await OpenChannel();
-            return await channel.AddNotificationSubscription(deviceGuids, notificationNames, callback);
+            var channel = await OpenChannelAsync();
+            return await channel.AddNotificationSubscriptionAsync(deviceGuids, notificationNames, callback);
         }
 
         /// <summary>
@@ -178,10 +183,10 @@ namespace DeviceHive.Client
         /// <param name="commandNames">Array of command names to subsribe to. Specify null to subscribe to all commands.</param>
         /// <param name="callback">A callback which will be invoken when a command is retrieved.</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        public async Task<ISubscription> AddCommandSubscription(string[] deviceGuids, string[] commandNames, Action<DeviceCommand> callback)
+        public async Task<ISubscription> AddCommandSubscriptionAsync(string[] deviceGuids, string[] commandNames, Action<DeviceCommand> callback)
         {
-            var channel = await OpenChannel();
-            return await channel.AddCommandSubscription(deviceGuids, commandNames, callback);
+            var channel = await OpenChannelAsync();
+            return await channel.AddCommandSubscriptionAsync(deviceGuids, commandNames, callback);
         }
 
         /// <summary>
@@ -190,17 +195,17 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="subscription">An <see cref="ISubscription"/> object representing the subscription to remove.</param>
         /// <returns></returns>
-        public async Task RemoveSubscription(ISubscription subscription)
+        public async Task RemoveSubscriptionAsync(ISubscription subscription)
         {
-            var channel = await OpenChannel();
-            await channel.RemoveSubscription(subscription);
+            var channel = await OpenChannelAsync();
+            await channel.RemoveSubscriptionAsync(subscription);
         }
 
         /// <summary>
         /// Updates device on behalf of device.
         /// </summary>
         /// <param name="device">The <see cref="Device"/> object.</param>
-        public async Task UpdateDevice(Device device)
+        public async Task UpdateDeviceAsync(Device device)
         {
             if (device == null)
                 throw new ArgumentNullException("device");
@@ -222,7 +227,7 @@ namespace DeviceHive.Client
             //        throw new ArgumentException("Device class version is null or empty!", "device.DeviceClass.Version");
             //}
 
-            await _restClient.Put(string.Format("device/{0}", device.Id), device);
+            await _restClient.PutAsync(string.Format("device/{0}", device.Id), device);
         }
 
         /// <summary>
@@ -232,10 +237,10 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="notification">A <see cref="Notification"/> object representing the notification to be sent.</param>
         /// <returns></returns>
-        public async Task SendNotification(string deviceGuid, Notification notification)
+        public async Task SendNotificationAsync(string deviceGuid, Notification notification)
         {
-            var channel = await OpenChannel();
-            await channel.SendNotification(deviceGuid, notification);
+            var channel = await OpenChannelAsync();
+            await channel.SendNotificationAsync(deviceGuid, notification);
         }
 
         /// <summary>
@@ -245,11 +250,12 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object representing the command to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
+        /// <param name="token">Cancellation token to cancel polling command result.</param>
         /// <returns></returns>
-        public async Task SendCommand(string deviceGuid, Command command, Action<Command> callback = null)
+        public async Task SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
         {
-            var channel = await OpenChannel();
-            await channel.SendCommand(deviceGuid, command, callback);
+            var channel = await OpenChannelAsync();
+            await channel.SendCommandAsync(deviceGuid, command, callback, token);
         }
 
         /// <summary>
@@ -257,10 +263,10 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to update.</param>
-        public async Task UpdateCommand(string deviceGuid, Command command)
+        public async Task UpdateCommandAsync(string deviceGuid, Command command)
         {
-            var channel = await OpenChannel();
-            await channel.UpdateCommand(deviceGuid, command);
+            var channel = await OpenChannelAsync();
+            await channel.UpdateCommandAsync(deviceGuid, command);
         }
         #endregion
 
@@ -268,7 +274,7 @@ namespace DeviceHive.Client
 
         /// <summary>
         /// Sets an array of available channels to use for maintaining a persistent connection with the DeviceHive server.
-        /// The actual channel to be used will be selected as the first object which returns the true <see cref="DeviceHive.Client.Channel.CanConnect()"/> value.
+        /// The actual channel to be used will be selected as the first object which returns the true <see cref="DeviceHive.Client.Channel.CanConnectAsync()"/> value.
         /// The default list of channels consists of the <see cref="WebSocketChannel"/> and <see cref="LongPollingChannel"/> objects.
         /// </summary>
         /// <param name="channels">The array of <see cref="Channel"/> objects to be used.</param>
@@ -300,7 +306,7 @@ namespace DeviceHive.Client
         /// In the case the channel already open, the method returns existing channel object
         /// </summary>
         /// <returns>DeviceHiveChannel object representing persistent connection to the server.</returns>
-        public async Task<Channel> OpenChannel()
+        public async Task<Channel> OpenChannelAsync()
         {
             if (_channel != null)
                 return _channel;
@@ -312,7 +318,7 @@ namespace DeviceHive.Client
                     Channel channel = null;
                     foreach (var c in _availableChannels)
                     {
-                        var canConnect = await c.CanConnect();
+                        var canConnect = await c.CanConnectAsync();
                         if (canConnect)
                         {
                             channel = c;
@@ -324,7 +330,7 @@ namespace DeviceHive.Client
                         throw new DeviceHiveException("There are no channels that could be used to connect to the server! " +
                             "Please ensure a compatible channel is registered via a call to the SetAvailableChannels method.");
 
-                    await channel.Open();
+                    await channel.OpenAsync();
                     _channel = channel;
                 }
             }
@@ -338,7 +344,7 @@ namespace DeviceHive.Client
         /// The method does not throw an exception if the channel is not currently open.
         /// </summary>
         /// <returns></returns>
-        public async Task CloseChannel()
+        public async Task CloseChannelAsync()
         {
             if (_channel == null)
                 return;
@@ -347,7 +353,7 @@ namespace DeviceHive.Client
             {
                 if (_channel != null)
                 {
-                    await _channel.Close();
+                    await _channel.CloseAsync();
                     _channel = null;
                 }
             }
@@ -356,7 +362,7 @@ namespace DeviceHive.Client
         /// <summary>
         /// Gets a channel object representing the active persistent connection to the DeviceHive server.
         /// This property has a non-null value only if a persistent connection has been previously opened
-        /// (e.g. a call to <see cref="OpenChannel"/>, <see cref="AddNotificationSubscription"/>, <see cref="SendNotification"/>, etc. has been previously made).
+        /// (e.g. a call to <see cref="OpenChannelAsync"/>, <see cref="AddNotificationSubscriptionAsync"/>, <see cref="SendNotificationAsync"/>, etc. has been previously made).
         /// In the most cases, the callers will not be required to access channel properties and methods directly.
         /// </summary>
         public Channel Channel
@@ -400,7 +406,7 @@ namespace DeviceHive.Client
         /// </summary>
         public void Dispose()
         {
-            var task = CloseChannel();
+            var task = CloseChannelAsync();
             // does not need to wait
         }
         #endregion

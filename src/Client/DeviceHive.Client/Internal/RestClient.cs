@@ -55,12 +55,12 @@ namespace DeviceHive.Client
 
         #region Public Methods
 
-        public async Task<T> Get<T>(string url)
+        public async Task<T> GetAsync<T>(string url)
         {
-            return await Get<T>(url, CancellationToken.None);
+            return await GetAsync<T>(url, CancellationToken.None);
         }
 
-        public async Task<T> Get<T>(string url, CancellationToken cancellationToken)
+        public async Task<T> GetAsync<T>(string url, CancellationToken cancellationToken)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace DeviceHive.Client
             }
         }
 
-        public async Task<T> Post<T>(string url, T value)
+        public async Task<T> PostAsync<T>(string url, T value)
         {
             try
             {
@@ -102,7 +102,7 @@ namespace DeviceHive.Client
             }
         }
 
-        public async Task Put<T>(string url, T value)
+        public async Task PutAsync<T>(string url, T value)
         {
             try
             {
@@ -119,7 +119,7 @@ namespace DeviceHive.Client
             }
         }
 
-        public async Task Delete(string url)
+        public async Task DeleteAsync(string url)
         {
             try
             {

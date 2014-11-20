@@ -46,7 +46,7 @@ namespace OAuthClient.Controllers
             {
                 var connectionInfo = new DeviceHiveConnectionInfo(DeviceHiveUrl, AccessKey);
                 var client = new DeviceHiveClient(connectionInfo);
-                var devices = await client.GetDevices();
+                var devices = await client.GetDevicesAsync();
                 return View("Devices", devices);
             }
             catch (DeviceHiveUnauthorizedException)

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Client", "DeviceHive.Client\DeviceHive.Client.csproj", "{7C50A4A9-3564-42F2-BE2B-267664925A16}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{0D17BD69-4D12-4BC9-9888-55FD6990FF91}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OAuthClient", "Examples\OAuthClient\OAuthClient.csproj", "{9AED42FC-0EBE-4993-B542-249D1F878831}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceHive.Client.Portable", "DeviceHive.Client\DeviceHive.Client.Portable.csproj", "{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,16 @@ Global
 		{9AED42FC-0EBE-4993-B542-249D1F878831}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{9AED42FC-0EBE-4993-B542-249D1F878831}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{9AED42FC-0EBE-4993-B542-249D1F878831}.Release|x86.ActiveCfg = Release|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1052C7BB-20F4-4BEE-A6F8-75578F218CEF}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
