@@ -33,7 +33,7 @@ Clients may invoke the API in the following use cases:</p>
 <p>Administrator controls all aspects of the environment with the full access to the API.
 Commonly, administrators will need to use this API in the following cases:</p>
 <ul>
-    <li>Administrator creates and manages API users (clients and other administrators).</li>
+    <li>Administrator creates and manages API users and access keys (clients and other administrators).</li>
     <li>Administrator creates and manages device networks and associates users with them.</li>
     <li>Administrator monitors devices and all dispatched notifications and commands.</li>
 </ul>
@@ -50,6 +50,7 @@ The diagram below reflects all used resource types and their relationships:</p>
     <li><a href="#Reference/Equipment">Equipment</a>: represents meta-information about one unit of equipment devices have onboard.</li>
     <li><a href="#Reference/DeviceNotification">Device Notification</a>: represents a message dispatched by devices for clients.</li>
     <li><a href="#Reference/DeviceCommand">Device Command</a>: represents a message dispatched by clients for devices.</li>
+    <li><a href="#Reference/AccessKey">Access Key</a>: represents an access key with specific API access rights.</li>
 </ul>
 
 <h2>Server Processes</h2>
@@ -82,18 +83,28 @@ The diagram below reflects all used resource types and their relationships:</p>
 </ul>
 
 <h3>Automatic Offline device status</h3>
-<p>The server provides a capability to auto-update the device status to Offline after certain period of inactivity. A device is considered to be inactive when it does not send any notifications for a specified period of time. Please note the status is not currently reverted to the original value when a device is brought back online.</p>
+<p>The server provides a capability to auto-update the device status to Offline after certain period of inactivity. A device is considered to be inactive when it is not persistently connected and it does not send any notifications for a specified period of time. Please note the status is not currently reverted to the original value when a device is brought back online.</p>
 <p>The feature is enabled, if a corresponding <a href="#Reference/DeviceClass">device class</a> includes a positive offlineTimeout property.</p>
 
+<h3>Server Extensibility</h3>
+<p>The DeviceHive allows to extend server logic by implementing the IMessageManager interface in a separate plug-in assembly and referencing it from the configuration file. The plug-ins can inspect all transmitted messages and apply custom logic as necessary.</p>
+
 <h2>Authentication</h2>
-<p>The API supports two types of authentication: User and Device.</p>
+<p>The API supports three types of authentication: User, Access Key and Device.</p>
 
 <h3>User</h3>
 <p>The users are authenticated using <a href="http://en.wikipedia.org/wiki/Basic_access_authentication" target="_blank">HTTP Basic Authentication</a>.</p>
 <p>The access is provided based on authenticated user role (Client or Administrator), please refer to the <a href="#Reference">Reference</a> for the list of available resources and methods for each user role.</p>
 
+<h3>Access Key</h3>
+<p>Access key authentication is useful, when third-party applications, clients or devices have to access the DeviceHive API. It is possible limit the rights of a particular access key to specific resources and actions, networks, devices, as well as restrict usage of the key to a range of source domains and/or IP subnets.</p>
+<p>The access key is passed in the Authorization HTTP header using the Bearer scheme as follows:</p>
+<ul>
+    <li><strong>Authorization</strong>: Bearer &lt;access_key&gt;</li>
+</ul>
+
 <h3>Device</h3>
-<p>Devices are authenticated by passing two custom HTTP headers:</p>
+<p>Another way how devices could authenticate themselves is by passing two custom HTTP headers:</p>
 <ul>
     <li><strong>Auth-DeviceID</strong>: Device unique identifier.</li>
     <li><strong>Auth-DeviceKey</strong>: Device authentication key.</li>
