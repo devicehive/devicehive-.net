@@ -256,9 +256,20 @@ namespace DeviceHive.Client
         {
             try
             {
-                await SendRequest("authenticate",
-                    new JProperty("login", ConnectionInfo.Login),
-                    new JProperty("password", ConnectionInfo.Password));
+                JProperty[] args;
+                if (ConnectionInfo.AccessKey != null)
+                {
+                    args = new[] { new JProperty("accessKey", ConnectionInfo.AccessKey) };
+                }
+                else
+                {
+                    args = new[] {
+                        new JProperty("login", ConnectionInfo.Login),
+                        new JProperty("password", ConnectionInfo.Password)
+                    };
+                }
+
+                await SendRequest("authenticate", args);
 
                 _authTaskCompletionSource.SetResult(true);
             }
