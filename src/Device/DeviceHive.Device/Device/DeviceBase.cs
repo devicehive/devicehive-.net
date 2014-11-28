@@ -116,7 +116,7 @@ namespace DeviceHive.Device
             if (deviceAttribute != null)
             {
                 ID = deviceAttribute.ID;
-                Key = string.Empty;
+                Key = deviceAttribute.Key;
                 Name = deviceAttribute.Name;
                 ListenCommands = deviceAttribute.ListenCommands;
             }
