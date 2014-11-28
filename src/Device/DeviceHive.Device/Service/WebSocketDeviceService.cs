@@ -40,7 +40,7 @@ namespace DeviceHive.Device
         /// <param name="serviceUrl">URL of the DeviceHive web sockets service.</param>
         /// <param name="deviceGuid">Device GUID to authenticate.</param>
         /// <param name="deviceKey">Device key for authentication.</param>
-        public WebSocketDeviceService(string serviceUrl, Guid? deviceGuid = null, string deviceKey = null)
+        public WebSocketDeviceService(string serviceUrl, string deviceGuid = null, string deviceKey = null)
         {
             Timeout = 30000;
 
@@ -148,7 +148,7 @@ namespace DeviceHive.Device
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="deviceKey">Device private key.</param>
         /// <returns><see cref="Device"/> object from DeviceHive.</returns>
-        public Device GetDevice(Guid? deviceGuid, string deviceKey)
+        public Device GetDevice(string deviceGuid, string deviceKey)
         {
             if (!_isConnected)
                 Open();
@@ -191,7 +191,7 @@ namespace DeviceHive.Device
         /// <param name="deviceGuid">Optional device unique identifier.</param>
         /// <param name="deviceKey">Optional device key.</param>
         /// <returns>The <see cref="Notification"/> object with updated identifier and timestamp.</returns>
-        public Notification SendNotification(Notification notification, Guid? deviceGuid = null, string deviceKey = null)
+        public Notification SendNotification(Notification notification, string deviceGuid = null, string deviceKey = null)
         {
             if (!_isConnected)
                 Open();
@@ -208,7 +208,7 @@ namespace DeviceHive.Device
         /// <param name="command">A <see cref="Command"/> object to be updated.</param>
         /// <param name="deviceGuid">Optional device unique identifier.</param>
         /// <param name="deviceKey">Optional device key.</param>
-        public void UpdateCommand(Command command, Guid? deviceGuid = null, string deviceKey = null)
+        public void UpdateCommand(Command command, string deviceGuid = null, string deviceKey = null)
         {
             if (!_isConnected)
                 Open();
@@ -223,7 +223,7 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="deviceGuid">Optional device unique identifier.</param>
         /// <param name="deviceKey">Optional device key.</param>
-        public void SubscribeToCommands(Guid? deviceGuid = null, string deviceKey = null)
+        public void SubscribeToCommands(string deviceGuid = null, string deviceKey = null)
         {
             if (!_isConnected)
                 Open();
@@ -236,7 +236,7 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="deviceGuid">Optional device unique identifier.</param>
         /// <param name="deviceKey">Optional device key.</param>
-        public void UnsubscribeFromCommands(Guid? deviceGuid = null, string deviceKey = null)
+        public void UnsubscribeFromCommands(string deviceGuid = null, string deviceKey = null)
         {
             if (!_isConnected)
                 Open();
@@ -248,9 +248,9 @@ namespace DeviceHive.Device
 
         #region Private methods
 
-        private void Authenticate(Guid? deviceGuid, string deviceKey)
+        private void Authenticate(string deviceGuid, string deviceKey)
         {
-            if (!deviceGuid.HasValue)
+            if (deviceGuid == null)
             {
                 _isConnected = true;
                 _isAuthenticated = false;
@@ -274,7 +274,7 @@ namespace DeviceHive.Device
             _authWaitHandle.Set();
         }
 
-        private JObject SendRequest(string action, Guid? deviceGuid, string deviceKey, params JProperty[] args)
+        private JObject SendRequest(string action, string deviceGuid, string deviceKey, params JProperty[] args)
         {
             var requestId = Guid.NewGuid().ToString();
             var requestInfo = new RequestInfo();
@@ -286,8 +286,8 @@ namespace DeviceHive.Device
                 new JProperty("requestId", requestId)
             };
 
-            if (deviceGuid.HasValue)
-                commonProperties.Add(new JProperty("deviceId", deviceGuid.Value));
+            if (deviceGuid != null)
+                commonProperties.Add(new JProperty("deviceId", deviceGuid));
 
             if (deviceKey != null)
                 commonProperties.Add(new JProperty("deviceKey", deviceKey));
@@ -330,8 +330,8 @@ namespace DeviceHive.Device
 
         private void HandleCommandInsert(JObject json)
         {
-            var deviceGuid = (Guid) json["deviceGuid"];
-            var commandJson = (JObject) json["command"];
+            var deviceGuid = (string)json["deviceGuid"];
+            var commandJson = (JObject)json["command"];
             var command = Deserialize<Command>(commandJson);
             OnCommandInserted(new CommandEventArgs(deviceGuid, command));
         }

@@ -13,7 +13,7 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets device unique identifier.
         /// </summary>
-        public Guid ID { get; private set; }
+        public string ID { get; private set; }
 
         /// <summary>
         /// Gets device key used for device authentication in DeviceHive.
@@ -50,7 +50,7 @@ namespace DeviceHive.Device
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Name is null or empty", "name");
 
-            ID = Guid.Parse(id);
+            ID = id;
             Key = key;
             Name = name;
             ListenCommands = true;

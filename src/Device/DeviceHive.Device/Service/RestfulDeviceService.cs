@@ -22,8 +22,8 @@ namespace DeviceHive.Device
 
         private WebSocketDeviceService _webSocketDeviceService;
 
-        private readonly Dictionary<Guid, CommandSubscriptionTask> _commandSubscriptionTasks =
-            new Dictionary<Guid, CommandSubscriptionTask>();
+        private readonly Dictionary<string, CommandSubscriptionTask> _commandSubscriptionTasks =
+            new Dictionary<string, CommandSubscriptionTask>();
 
         #endregion
 
@@ -75,9 +75,9 @@ namespace DeviceHive.Device
                 throw new ArgumentException("Device key is null or empty string", "device.Key");
 
             if (InitWebSocketsService())
-                return _webSocketDeviceService.GetDevice(device.Id.Value, device.Key);
+                return _webSocketDeviceService.GetDevice(device.Id, device.Key);
 
-            return Get<Device>(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key);
+            return Get<Device>(string.Format("/device/{0}", device.Id), device.Id, device.Key);
         }
 
         /// <summary>
@@ -88,10 +88,10 @@ namespace DeviceHive.Device
         {
             if (device == null)
                 throw new ArgumentNullException("device");
-            if (device.Id == null)
-                throw new ArgumentNullException("device.ID");
+            if (string.IsNullOrEmpty(device.Id))
+                throw new ArgumentException("Device ID is null or empty string!", "device.ID");
             if (string.IsNullOrEmpty(device.Key))
-                throw new ArgumentException("Device key is null or empty string", "device.Key");
+                throw new ArgumentException("Device key is null or empty string!", "device.Key");
             if (string.IsNullOrEmpty(device.Name))
                 throw new ArgumentException("Device name is null or empty string!", "device.Name");
             if (device.Network != null)
@@ -113,7 +113,7 @@ namespace DeviceHive.Device
             }
 
             var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
-            Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d);
+            Put(string.Format("/device/{0}", device.Id), device.Id, device.Key, d);
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace DeviceHive.Device
             }
 
             var d = new Device(null, device.Key, device.Name, device.Status, device.Data, device.Network, device.DeviceClass) { Equipment = device.Equipment };
-            Put(string.Format("/device/{0}", device.Id), device.Id.Value, device.Key, d, NullValueHandling.Ignore);
+            Put(string.Format("/device/{0}", device.Id), device.Id, device.Key, d, NullValueHandling.Ignore);
         }
 
         /// <summary>
@@ -159,10 +159,10 @@ namespace DeviceHive.Device
         /// <param name="deviceKey">Device key.</param>
         /// <param name="notification">A <see cref="Notification"/> object</param>
         /// <returns>The <see cref="Notification"/> object with updated identifier and timestamp.</returns>
-        public Notification SendNotification(Guid deviceId, string deviceKey, Notification notification)
+        public Notification SendNotification(string deviceId, string deviceKey, Notification notification)
         {
-            if (deviceId == Guid.Empty)
-                throw new ArgumentException("Device ID is empty!", "deviceId");
+            if (string.IsNullOrEmpty(deviceId))
+                throw new ArgumentException("deviceId is null or empty!", "deviceId");
             if (string.IsNullOrEmpty(deviceKey))
                 throw new ArgumentException("deviceKey is null or empty!", "deviceKey");
             if (notification == null)
@@ -185,10 +185,10 @@ namespace DeviceHive.Device
         /// <param name="timestamp">Last received command timestamp.</param>
         /// <param name="token">Cancellation token used to cancel polling operation.</param>
         /// <returns>A list of <see cref="Command"/> objects.</returns>
-        public List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime? timestamp, CancellationToken token)
+        public List<Command> PollCommands(string deviceId, string deviceKey, DateTime? timestamp, CancellationToken token)
         {
-            if (deviceId == Guid.Empty)
-                throw new ArgumentException("Device ID is empty!", "deviceId");
+            if (string.IsNullOrEmpty(deviceId))
+                throw new ArgumentException("deviceId is null or empty!", "deviceId");
             if (string.IsNullOrEmpty(deviceKey))
                 throw new ArgumentException("deviceKey is null or empty!", "deviceKey");
 
@@ -213,7 +213,7 @@ namespace DeviceHive.Device
         /// <remarks>
         /// Subscription can be removed through <see cref="UnsubscribeFromCommands"/> method
         /// </remarks>
-        public void SubscribeToCommands(Guid deviceId, string deviceKey)
+        public void SubscribeToCommands(string deviceId, string deviceKey)
         {
             if (InitWebSocketsService())
             {
@@ -239,7 +239,7 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
         /// <param name="deviceKey">Device key.</param>
-        public void UnsubscribeFromCommands(Guid deviceId, string deviceKey)
+        public void UnsubscribeFromCommands(string deviceId, string deviceKey)
         {
             if (InitWebSocketsService())
             {
@@ -266,10 +266,10 @@ namespace DeviceHive.Device
         /// <param name="deviceId">Device unique identifier.</param>
         /// <param name="deviceKey">Device key.</param>
         /// <param name="command">A <see cref="Command"/> object to be updated.</param>
-        public void UpdateCommand(Guid deviceId, string deviceKey, Command command)
+        public void UpdateCommand(string deviceId, string deviceKey, Command command)
         {
-            if (deviceId == Guid.Empty)
-                throw new ArgumentException("Device ID is empty!", "deviceId");
+            if (string.IsNullOrEmpty(deviceId))
+                throw new ArgumentException("deviceId is null or empty!", "deviceId");
             if (string.IsNullOrEmpty(deviceKey))
                 throw new ArgumentException("deviceKey is null or empty!", "deviceKey");
             if (command == null)
@@ -402,11 +402,11 @@ namespace DeviceHive.Device
             }
         }
 
-        private T Get<T>(string url, Guid deviceId, string deviceKey)
+        private T Get<T>(string url, string deviceId, string deviceKey)
         {
             Logger.Debug("Calling GET " + url);
             var request = WebRequest.Create(ServiceUrl + url);
-            request.Headers["Auth-DeviceID"] = deviceId.ToString();
+            request.Headers["Auth-DeviceID"] = deviceId;
             request.Headers["Auth-DeviceKey"] = deviceKey;
             try
             {
@@ -422,11 +422,11 @@ namespace DeviceHive.Device
             }
         }
 
-        private T Get<T>(string url, Guid deviceId, string deviceKey, CancellationToken token)
+        private T Get<T>(string url, string deviceId, string deviceKey, CancellationToken token)
         {
             Logger.Debug("Calling GET " + url);
             var request = WebRequest.Create(ServiceUrl + url);
-            request.Headers["Auth-DeviceID"] = deviceId.ToString();
+            request.Headers["Auth-DeviceID"] = deviceId;
             request.Headers["Auth-DeviceKey"] = deviceKey;
             var asyncResult = request.BeginGetResponse(null, null);
 
@@ -451,13 +451,13 @@ namespace DeviceHive.Device
             }
         }
 
-        private T Post<T>(string url, Guid deviceId, string deviceKey, T obj)
+        private T Post<T>(string url, string deviceId, string deviceKey, T obj)
         {
             Logger.Debug("Calling POST " + url);
             var request = WebRequest.Create(ServiceUrl + url);
             request.Method = "POST";
             request.ContentType = "application/json";
-            request.Headers["Auth-DeviceID"] = deviceId.ToString();
+            request.Headers["Auth-DeviceID"] = deviceId;
             request.Headers["Auth-DeviceKey"] = deviceKey;
             using (var stream = request.GetRequestStream())
             {
@@ -478,13 +478,13 @@ namespace DeviceHive.Device
             }
         }
 
-        private void Put<T>(string url, Guid deviceId, string deviceKey, T obj, NullValueHandling nullValueHandling = NullValueHandling.Include)
+        private void Put<T>(string url, string deviceId, string deviceKey, T obj, NullValueHandling nullValueHandling = NullValueHandling.Include)
         {
             Logger.Debug("Calling PUT " + url);
             var request = WebRequest.Create(ServiceUrl + url);
             request.Method = "PUT";
             request.ContentType = "application/json";
-            request.Headers["Auth-DeviceID"] = deviceId.ToString();
+            request.Headers["Auth-DeviceID"] = deviceId;
             request.Headers["Auth-DeviceKey"] = deviceKey;
             using (var stream = request.GetRequestStream())
             {
@@ -508,12 +508,12 @@ namespace DeviceHive.Device
             }
         }
 
-        private void Delete(string url, Guid deviceId, string deviceKey)
+        private void Delete(string url, string deviceId, string deviceKey)
         {
             Logger.Debug("Calling DELETE " + url);
             var request = WebRequest.Create(ServiceUrl + url);
             request.Method = "DELETE";
-            request.Headers["Auth-DeviceID"] = deviceId.ToString();
+            request.Headers["Auth-DeviceID"] = deviceId;
             request.Headers["Auth-DeviceKey"] = deviceKey;
             try
             {
@@ -603,7 +603,7 @@ namespace DeviceHive.Device
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
             public CommandSubscriptionTask(RestfulDeviceService restfulDeviceService,
-                Guid deviceId, string deviceKey)
+                string deviceId, string deviceKey)
             {
                 var apiInfo = restfulDeviceService.Get<ApiInfo>("/info");
                 var timestamp = apiInfo.ServerTimestamp;
