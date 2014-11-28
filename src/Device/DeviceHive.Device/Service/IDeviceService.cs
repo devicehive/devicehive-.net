@@ -36,7 +36,7 @@ namespace DeviceHive.Device
         /// <param name="deviceKey">Device key.</param>
         /// <param name="notification">A <see cref="Notification"/> object</param>
         /// <returns>The <see cref="Notification"/> object with updated identifier and timestamp.</returns>
-        Notification SendNotification(Guid deviceId, string deviceKey, Notification notification);
+        Notification SendNotification(string deviceId, string deviceKey, Notification notification);
 
         /// <summary>
         /// Polls device commands from the service.
@@ -47,7 +47,7 @@ namespace DeviceHive.Device
         /// <param name="timestamp">Last received command timestamp.</param>
         /// <param name="token">Cancellation token used to cancel polling operation.</param>
         /// <returns>A list of <see cref="Command"/> objects.</returns>
-        List<Command> PollCommands(Guid deviceId, string deviceKey, DateTime? timestamp, CancellationToken token);
+        List<Command> PollCommands(string deviceId, string deviceKey, DateTime? timestamp, CancellationToken token);
 
         /// <summary>
         /// Subscribe to device commands
@@ -57,14 +57,14 @@ namespace DeviceHive.Device
         /// <remarks>
         /// Subscription can be removed through <see cref="UnsubscribeFromCommands"/> method
         /// </remarks>
-        void SubscribeToCommands(Guid deviceId, string deviceKey);
+        void SubscribeToCommands(string deviceId, string deviceKey);
 
         /// <summary>
         /// Unsubscribe from device notifications
         /// </summary>
         /// <param name="deviceId">Device unique identifier.</param>
         /// <param name="deviceKey">Device key.</param>
-        void UnsubscribeFromCommands(Guid deviceId, string deviceKey);
+        void UnsubscribeFromCommands(string deviceId, string deviceKey);
 
         /// <summary>
         /// Updates a device command status and result.
@@ -72,7 +72,7 @@ namespace DeviceHive.Device
         /// <param name="deviceId">Device unique identifier.</param>
         /// <param name="deviceKey">Device key.</param>
         /// <param name="command">A <see cref="Command"/> object to be updated.</param>
-        void UpdateCommand(Guid deviceId, string deviceKey, Command command);
+        void UpdateCommand(string deviceId, string deviceKey, Command command);
 
         /// <summary>
         /// Fires when new command inserted for some active command subscription.

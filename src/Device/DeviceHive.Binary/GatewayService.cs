@@ -127,7 +127,7 @@ namespace DeviceHive.Binary
                 var deviceGuid = deviceGatewayService.DeviceGuid;
                 if (deviceGuid != Guid.Empty)
                 {
-                    _deviceService.UnsubscribeFromCommands(deviceGuid, deviceGatewayService.DeviceKey);
+                    _deviceService.UnsubscribeFromCommands(deviceGuid.ToString(), deviceGatewayService.DeviceKey);
                     _deviceGatewayServicesByDevice.Remove(deviceGuid);
                 }
 
@@ -150,13 +150,13 @@ namespace DeviceHive.Binary
         {
             var deviceGuid = deviceGatewayService.DeviceGuid;
             _deviceGatewayServicesByDevice.Add(deviceGuid, deviceGatewayService);
-            _deviceService.SubscribeToCommands(deviceGuid, deviceGatewayService.DeviceKey);
+            _deviceService.SubscribeToCommands(deviceGuid.ToString(), deviceGatewayService.DeviceKey);
         }
 
         private void OnCommandInserted(object sender, CommandEventArgs args)
         {
             DeviceGatewayService deviceGatewayService;
-            if (!_deviceGatewayServicesByDevice.TryGetValue(args.DeviceGuid, out deviceGatewayService))
+            if (!_deviceGatewayServicesByDevice.TryGetValue(Guid.Parse(args.DeviceGuid), out deviceGatewayService))
                 return;
 
             deviceGatewayService.HandleCommand(args.Command);
@@ -167,7 +167,7 @@ namespace DeviceHive.Binary
             foreach (var deviceGatewayService in _deviceGatewayServicesByDevice.Values)
             {
                 _deviceService.SubscribeToCommands(
-                    deviceGatewayService.DeviceGuid,
+                    deviceGatewayService.DeviceGuid.ToString(),
                     deviceGatewayService.DeviceKey);
             }
         }
@@ -232,7 +232,7 @@ namespace DeviceHive.Binary
                     return;
                 }
 
-                var device = new Device.Device(_deviceGuid, _deviceKey);
+                var device = new Device.Device(_deviceGuid.ToString(), _deviceKey);
                 device.Name = registrationInfo.Name;
                 device.DeviceClass = new DeviceClass(registrationInfo.ClassName, registrationInfo.ClassVersion);
                 device.Equipment = registrationInfo.Equipment
@@ -252,7 +252,7 @@ namespace DeviceHive.Binary
                 if (!_deviceRegistered)
                     return;
 
-                DeviceService.UpdateCommand(_deviceGuid, _deviceKey,
+                DeviceService.UpdateCommand(_deviceGuid.ToString(), _deviceKey,
                     new Command() { Id = commandId, Status = status, Result = result });
                 LogManager.GetLogger(GetType()).InfoFormat("Command result sent: {0}", commandId);
             }
@@ -262,7 +262,7 @@ namespace DeviceHive.Binary
                 if (!_deviceRegistered)
                     return;
 
-                DeviceService.SendNotification(_deviceGuid, _deviceKey, notification);
+                DeviceService.SendNotification(_deviceGuid.ToString(), _deviceKey, notification);
                 LogManager.GetLogger(GetType()).InfoFormat("Notification sent: {0}", notification.Name);
             }
 

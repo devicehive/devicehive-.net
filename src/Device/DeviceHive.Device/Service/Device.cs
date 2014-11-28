@@ -14,7 +14,7 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets or sets unique device identifier (device-assigned).
         /// </summary>
-        public Guid? Id { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Gets or sets device key (device-assigned).
@@ -74,7 +74,7 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="id">Device unique identifier (device-assigned).</param>
         /// <param name="key">Device key. Device key is a private value used for device authentication in DeviceHive.</param>
-        public Device(Guid? id, string key)
+        public Device(string id, string key)
         {
             Id = id;
             Key = key;
@@ -90,7 +90,7 @@ namespace DeviceHive.Device
         /// <param name="data">Device data, an optional json token used to describe additional device information.</param>
         /// <param name="network">Associated device network object (optional).</param>
         /// <param name="deviceClass">Associated device class object.</param>
-        public Device(Guid? id, string key, string name, string status, JToken data, Network network, DeviceClass deviceClass)
+        public Device(string id, string key, string name, string status, JToken data, Network network, DeviceClass deviceClass)
             : this(id, key)
         {
             Name = name;

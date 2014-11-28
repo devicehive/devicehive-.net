@@ -12,7 +12,7 @@ namespace DeviceHive.Device
         /// <summary>
         /// Gets device unique identifier.
         /// </summary>
-        public Guid DeviceGuid { get; private set; }
+        public string DeviceGuid { get; private set; }
 
         /// <summary>
         /// Gets command object.
@@ -28,7 +28,7 @@ namespace DeviceHive.Device
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">Command object.</param>
-        public CommandEventArgs(Guid deviceGuid, Command command)
+        public CommandEventArgs(string deviceGuid, Command command)
         {
             DeviceGuid = deviceGuid;
             Command = command;
