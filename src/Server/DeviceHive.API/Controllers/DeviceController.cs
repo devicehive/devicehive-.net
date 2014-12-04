@@ -122,9 +122,11 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         [HttpNoContentResponse]
-        [Route("{id:deviceGuid}"), AuthorizeUser]
+        [Route("{id:deviceGuid}"), AuthorizeUserOrDevice(AccessKeyAction = "RegisterDevice")]
         public void Delete(string id)
         {
+            EnsureDeviceAccess(id);
+
             var device = DataContext.Device.Get(id);
             if (device != null && IsDeviceAccessible(device))
             {
