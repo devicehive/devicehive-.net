@@ -134,7 +134,7 @@ namespace DeviceHive.Core.Mapping
             if (entity == null)
                 throw new ArgumentNullException("entity");
             if (json == null)
-                throw new ArgumentNullException("json");
+                throw new JsonMapperException("Missing JSON object!");
 
             OnBeforeApplyToEntity(entity, json);
 
