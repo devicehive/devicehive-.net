@@ -188,9 +188,25 @@ namespace DeviceHive.Test.ApiTest
             var user = CreateUser(1);
             Expect(() => List(auth: user), FailsWith(401));
             Expect(() => Get(UnexistingResourceID, auth: user), FailsWith(401));
-            Expect(() => Create(new { name = "_ut" }), FailsWith(401));
+            Expect(() => Create(new { name = "_ut" }, auth: user), FailsWith(401));
             Expect(() => Update(UnexistingResourceID, new { }, auth: user), FailsWith(401));
             Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
+
+            // dummy access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageOAuthGrant"); // ManageUser permission should be required
+            Expect(() => List(auth: accessKey), FailsWith(401));
+            Expect(() => Get(UnexistingResourceID, auth: accessKey), FailsWith(401));
+            Expect(() => Create(new { name = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
+
+            // access key for non-admin role authorization
+            accessKey = CreateAccessKey(user, "ManageUser");
+            Expect(() => List(auth: accessKey), FailsWith(401));
+            Expect(() => Get(UnexistingResourceID, auth: accessKey), FailsWith(401));
+            Expect(() => Create(new { name = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
         }
 
         [Test]

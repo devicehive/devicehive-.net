@@ -11,8 +11,8 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="OAuthGrant" />
-    [AuthorizeUser, ResolveCurrentUser("userId")]
     [RoutePrefix("user/{userId:idorcurrent}/oauth/grant")]
+    [AuthorizeAdminOrCurrentUser("userId", AccessKeyAction = "ManageUser", CurrentUserAccessKeyAction = "ManageOAuthGrant")]
     public class OAuthGrantController : BaseController
     {
         /// <name>list</name>
@@ -25,8 +25,6 @@ namespace DeviceHive.API.Controllers
         [Route]
         public JArray Get(int userId)
         {
-            EnsureUserAccessTo(userId);
-
             var user = DataContext.User.Get(userId);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -45,8 +43,6 @@ namespace DeviceHive.API.Controllers
         [Route("{id:int}")]
         public JObject Get(int userId, int id)
         {
-            EnsureUserAccessTo(userId);
-
             var oauthGrant = DataContext.OAuthGrant.Get(id);
             if (oauthGrant == null || oauthGrant.UserID != userId)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "OAuth grant not found!");
@@ -72,8 +68,6 @@ namespace DeviceHive.API.Controllers
         [HttpCreatedResponse]
         public JObject Post(int userId, JObject json)
         {
-            EnsureUserAccessTo(userId);
-
             var user = DataContext.User.Get(userId);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -116,8 +110,6 @@ namespace DeviceHive.API.Controllers
         [Route("{id:int}")]
         public JObject Put(int userId, int id, JObject json)
         {
-            EnsureUserAccessTo(userId);
-
             var oauthGrant = DataContext.OAuthGrant.Get(id);
             if (oauthGrant == null || oauthGrant.UserID != userId)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "OAuth grant not found!");
@@ -149,8 +141,6 @@ namespace DeviceHive.API.Controllers
         [HttpNoContentResponse]
         public void Delete(int userId, int id)
         {
-            EnsureUserAccessTo(userId);
-
             var oauthGrant = DataContext.OAuthGrant.Get(id);
             if (oauthGrant != null && oauthGrant.UserID == userId)
             {

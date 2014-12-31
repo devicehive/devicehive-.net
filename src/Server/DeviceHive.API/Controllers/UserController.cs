@@ -28,7 +28,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="UserFilter" />
         /// <returns cref="User">If successful, this method returns array of <see cref="User"/> resources in the response body.</returns>
-        [Route, AuthorizeAdmin]
+        [Route, AuthorizeAdmin(AccessKeyAction = "ManageUser")]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<UserFilter>();
@@ -45,11 +45,9 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="networks" type="array" cref="UserNetwork">Array of networks associated with the user</parameter>
         /// </response>
         [Route("{id:idorcurrent}")]
-        [AuthorizeUser, ResolveCurrentUser("id")]
+        [AuthorizeAdminOrCurrentUser("id", AccessKeyAction = "ManageUser", CurrentUserAccessKeyAction = "GetCurrentUser")]
         public JObject Get(int id)
         {
-            EnsureUserAccessTo(id);
-
             var user = DataContext.User.Get(id);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -71,7 +69,7 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="password" type="string" required="true">User password</parameter>
         /// </request>
-        [Route, AuthorizeAdmin]
+        [Route, AuthorizeAdmin(AccessKeyAction = "ManageUser")]
         [HttpCreatedResponse]
         public JObject Post(JObject json)
         {
@@ -106,11 +104,9 @@ namespace DeviceHive.API.Controllers
         /// </request>
         [HttpNoContentResponse]
         [Route("{id:idorcurrent}")]
-        [AuthorizeUser, ResolveCurrentUser("id")]
+        [AuthorizeAdminOrCurrentUser("id", AccessKeyAction = "ManageUser", CurrentUserAccessKeyAction = "UpdateCurrentUser")]
         public void Put(int id, JObject json)
         {
-            EnsureUserAccessTo(id);
-
             var user = DataContext.User.Get(id);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -142,7 +138,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">User identifier.</param>
         [HttpNoContentResponse]
-        [Route("{id:int}"), AuthorizeAdmin]
+        [Route("{id:int}"), AuthorizeAdmin(AccessKeyAction = "ManageUser")]
         public void Delete(int id)
         {
             DataContext.User.Delete(id);

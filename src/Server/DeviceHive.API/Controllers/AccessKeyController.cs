@@ -11,8 +11,8 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="AccessKey" />
-    [AuthorizeUser, ResolveCurrentUser("userId")]
     [RoutePrefix("user/{userId:idorcurrent}/accesskey")]
+    [AuthorizeAdminOrCurrentUser("userId", AccessKeyAction = "ManageUser", CurrentUserAccessKeyAction = "ManageAccessKey")]
     public class AccessKeyController : BaseController
     {
         /// <name>list</name>
@@ -24,8 +24,6 @@ namespace DeviceHive.API.Controllers
         [Route]
         public JArray Get(int userId)
         {
-            EnsureUserAccessTo(userId);
-
             var user = DataContext.User.Get(userId);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -43,8 +41,6 @@ namespace DeviceHive.API.Controllers
         [Route("{id:int}")]
         public JObject Get(int userId, int id)
         {
-            EnsureUserAccessTo(userId);
-
             var accessKey = DataContext.AccessKey.Get(id);
             if (accessKey == null || accessKey.UserID != userId)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Access key not found!");
@@ -63,8 +59,6 @@ namespace DeviceHive.API.Controllers
         [HttpCreatedResponse]
         public JObject Post(int userId, JObject json)
         {
-            EnsureUserAccessTo(userId);
-
             var user = DataContext.User.Get(userId);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -95,8 +89,6 @@ namespace DeviceHive.API.Controllers
         [HttpNoContentResponse]
         public void Put(int userId, int id, JObject json)
         {
-            EnsureUserAccessTo(userId);
-
             var accessKey = DataContext.AccessKey.Get(id);
             if (accessKey == null || accessKey.UserID != userId)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Access key not found!");
@@ -117,8 +109,6 @@ namespace DeviceHive.API.Controllers
         [HttpNoContentResponse]
         public void Delete(int userId, int id)
         {
-            EnsureUserAccessTo(userId);
-
             var accessKey = DataContext.AccessKey.Get(id);
             if (accessKey != null && accessKey.UserID == userId)
                 DataContext.AccessKey.Delete(id);

@@ -32,43 +32,70 @@ namespace DeviceHive.Test.ApiTest
             // administrator access
             List(auth: Admin);
 
+            // administrator access key access
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            List(auth: accessKey);
+
             // user access
             ResourceUri = "/user/current/accesskey";
             List(auth: Owner);
+
+            // user access key access
+            accessKey = CreateAccessKey(Owner, "ManageAccessKey");
+            List(auth: accessKey);
         }
 
         [Test]
         public void Create()
         {
-            var key = new { label = "_ut", expirationDate = new DateTime(2015, 1, 1), permissions = new[] {
+            // key creator
+            Func<string, object> key = label => new { label = label, expirationDate = new DateTime(2015, 1, 1), permissions = new[] {
                 new { domains = new[] { "www.example.com" }, networkIds = new[] { 1, 2 }, actions = new[] { "GetNetwork", "GetDevice" } } }};
 
             // administrator access
-            var resource = Create(key, auth: Admin);
-            Expect(Get(resource, auth: Admin), Matches(key));
+            var resource = Create(key("_ut1"), auth: Admin);
+            Expect(Get(resource, auth: Admin), Matches(key("_ut1")));
+
+            // administrator access key access
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            resource = Create(key("_ut2"), auth: accessKey);
+            Expect(Get(resource, auth: Admin), Matches(key("_ut2")));
 
             // user access
             ResourceUri = "/user/current/accesskey";
-            resource = Create(key, auth: Owner);
-            Expect(Get(resource, auth: Owner), Matches(key));
+            resource = Create(key("_ut3"), auth: Owner);
+            Expect(Get(resource, auth: Owner), Matches(key("_ut3")));
+
+            // user access key access
+            accessKey = CreateAccessKey(Owner, "ManageAccessKey");
+            resource = Create(key("_ut4"), auth: accessKey);
+            Expect(Get(resource, auth: Owner), Matches(key("_ut4")));
         }
 
         [Test]
         public void Update()
         {
             var resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.1" } } } }, auth: Admin);
+            Func<string, object> key = label => new { label = label, permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.2" } } } };
 
             // administrator access
-            var key = new { label = "_ut2", permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.2" } } } };
-            Update(resource, key, auth: Admin);
-            Expect(Get(resource, auth: Admin), Matches(key));
+            Update(resource, key("_ut2"), auth: Admin);
+            Expect(Get(resource, auth: Admin), Matches(key("_ut2")));
+
+            // administrator access key access
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            resource = Create(key("_ut3"), auth: accessKey);
+            Expect(Get(resource, auth: Admin), Matches(key("_ut3")));
 
             // user access
             ResourceUri = "/user/current/accesskey";
-            key = new { label = "_ut3", permissions = new[] { new { actions = new[] { "GetNetwork" }, subnets = new[] { "127.0.0.3" } } } };
-            Update(resource, key, auth: Owner);
-            Expect(Get(resource, auth: Owner), Matches(key));
+            Update(resource, key("_ut4"), auth: Owner);
+            Expect(Get(resource, auth: Owner), Matches(key("_ut4")));
 
+            // user access key access
+            accessKey = CreateAccessKey(Owner, "ManageAccessKey");
+            Update(resource, key("_ut5"), auth: accessKey);
+            Expect(Get(resource, auth: Owner), Matches(key("_ut5")));
         }
 
         [Test]
@@ -88,10 +115,22 @@ namespace DeviceHive.Test.ApiTest
             Delete(resource, auth: Admin);
             Expect(() => Get(resource, auth: Admin), FailsWith(404));
 
+            // administrator access key access
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" } } } }, auth: Admin);
+            Delete(resource, auth: accessKey);
+            Expect(() => Get(resource, auth: Admin), FailsWith(404));
+
             // user access
             ResourceUri = "/user/current/accesskey";
             resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" } } } }, auth: Owner);
             Delete(resource, auth: Owner);
+            Expect(() => Get(resource, auth: Owner), FailsWith(404));
+
+            // user access key access
+            accessKey = CreateAccessKey(Owner, "ManageAccessKey");
+            resource = Create(new { label = "_ut", permissions = new[] { new { actions = new[] { "GetNetwork" } } } }, auth: Owner);
+            Delete(resource, auth: accessKey);
             Expect(() => Get(resource, auth: Owner), FailsWith(404));
         }
 
@@ -165,6 +204,22 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Create(new { label = "_ut" }, auth: user), FailsWith(401));
             Expect(() => Update(UnexistingResourceID, new { label = "_ut" }, auth: user), FailsWith(401));
             Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
+
+            // dummy access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageAccessKey"); // ManageUser permission should be required
+            Expect(() => List(auth: accessKey), FailsWith(401));
+            Expect(() => Get(UnexistingResourceID, auth: accessKey), FailsWith(401));
+            Expect(() => Create(new { label = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { label = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
+
+            // access key for non-admin role authorization
+            accessKey = CreateAccessKey(user, "ManageUser");
+            Expect(() => List(auth: accessKey), FailsWith(401));
+            Expect(() => Get(UnexistingResourceID, auth: accessKey), FailsWith(401));
+            Expect(() => Create(new { label = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { label = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
         }
 
         [Test]

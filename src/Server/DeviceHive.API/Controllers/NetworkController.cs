@@ -78,7 +78,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="json" cref="Network">In the request body, supply a <see cref="Network"/> resource.</param>
         /// <returns cref="Network" mode="OneWayOnly">If successful, this method returns a <see cref="Network"/> resource in the response body.</returns>
         [HttpCreatedResponse]
-        [Route, AuthorizeAdmin]
+        [Route, AuthorizeAdmin(AccessKeyAction = "ManageNetwork")]
         public JObject Post(JObject json)
         {
             var network = Mapper.Map(json);
@@ -101,7 +101,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="name" required="false" />
         /// </request>
         [HttpNoContentResponse]
-        [Route("{id:int}"), AuthorizeAdmin]
+        [Route("{id:int}"), AuthorizeAdmin(AccessKeyAction = "ManageNetwork")]
         public void Put(int id, JObject json)
         {
             var network = DataContext.Network.Get(id);
@@ -124,7 +124,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Network identifier.</param>
         [HttpNoContentResponse]
-        [Route("{id:int}"), AuthorizeAdmin]
+        [Route("{id:int}"), AuthorizeAdmin(AccessKeyAction = "ManageNetwork")]
         public void Delete(int id)
         {
             DataContext.Network.Delete(id);

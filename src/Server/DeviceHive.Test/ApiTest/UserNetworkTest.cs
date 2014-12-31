@@ -33,9 +33,14 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create()
         {
+            // admin authorization
             Update(NetworkID, new { }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + NetworkID);
+            Expect(Get(NetworkID, auth: Admin), Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" } }));
+            Delete(NetworkID, auth: Admin);
 
+            // access key authorization
+            Update(NetworkID, new { }, auth: Admin);
             Expect(Get(NetworkID, auth: Admin), Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" } }));
         }
 
@@ -45,19 +50,29 @@ namespace DeviceHive.Test.ApiTest
             Update(NetworkID, new { }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + NetworkID);
 
+            // admin authorization
             Update(NetworkID, new { }, auth: Admin);
+            Expect(Get(NetworkID, auth: Admin), Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" } }));
 
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            Update(NetworkID, new { }, auth: accessKey);
             Expect(Get(NetworkID, auth: Admin), Matches(new { network = new { id = NetworkID.Value, name = "_ut_n" } }));
         }
 
         [Test]
         public void Delete()
         {
+            // admin authorization
             Update(NetworkID, new { }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + NetworkID);
-
             Delete(NetworkID, auth: Admin);
+            Expect(() => Get(NetworkID, auth: Admin), FailsWith(404));
 
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            Update(NetworkID, new { }, auth: Admin);
+            Delete(NetworkID, auth: Admin);
             Expect(() => Get(NetworkID, auth: Admin), FailsWith(404));
         }
 
@@ -74,6 +89,18 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Get(UnexistingResourceID, auth: user), FailsWith(401));
             Expect(() => Update(UnexistingResourceID, new { }, auth: user), FailsWith(401));
             Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
+
+            // dummy access key authorization
+            var accessKey = CreateAccessKey(Admin, new[] { "GetCurrentUser", "UpdateCurrentUser" });
+            Expect(() => Get(UnexistingResourceID, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
+
+            // access key for non-admin role authorization
+            accessKey = CreateAccessKey(user, "ManageUser");
+            Expect(() => Get(UnexistingResourceID, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
         }
 
         [Test]

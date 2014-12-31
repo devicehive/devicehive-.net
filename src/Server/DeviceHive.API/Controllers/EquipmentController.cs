@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="Equipment" />
-    [AuthorizeAdmin]
+    [AuthorizeAdmin(AccessKeyAction = "ManageDeviceClass")]
     [ApiExplorerSettings(IgnoreApi = true)] // backward compatibility only
     [RoutePrefix("device/class/{deviceClassId:int}/equipment")]
     public class EquipmentController : BaseController

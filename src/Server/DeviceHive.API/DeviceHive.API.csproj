@@ -126,6 +126,7 @@
     <Compile Include="Controllers\EquipmentController.cs" />
     <Compile Include="Filters\AllowCrossDomainOrigin.cs" />
     <Compile Include="Filters\AuthenticateAttribute.cs" />
+    <Compile Include="Filters\AuthorizeAdminOrCurrentUser.cs" />
     <Compile Include="Filters\AuthorizeAttribute.cs" />
     <Compile Include="Filters\AuthorizeDeviceRegistrationAttribute.cs" />
     <Compile Include="Filters\DeviceGuidConstraint.cs" />
@@ -134,7 +135,6 @@
     <Compile Include="Filters\HttpNoContentResponseAttribute.cs" />
     <Compile Include="Filters\IdOrCurrentConstraint.cs" />
     <Compile Include="Filters\ActionSelector.cs" />
-    <Compile Include="Filters\ResolveCurrentUserAttribute.cs" />
     <Compile Include="Filters\XHttpMethodDelegatingHandler.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

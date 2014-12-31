@@ -77,9 +77,14 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create()
         {
+            // admin authorization
             var resource = Create(new { name = "_ut", key = "_ut_key" }, auth: Admin);
-            
             Expect(Get(resource, auth: Admin), Matches(new { name = "_ut", key = "_ut_key", description = (string)null }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageNetwork");
+            resource = Create(new { name = "_ut2" }, auth: accessKey);
+            Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2" }));
         }
 
         [Test]
@@ -128,9 +133,15 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             var resource = Create(new { name = "_ut", key = "_ut_key" }, auth: Admin);
-            Update(resource, new { name = "_ut2", key = "_ut_key2", description = "desc" }, auth: Admin);
 
-            Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2", key = "_ut_key2", description = "desc" }));
+            // admin authorization
+            Update(resource, new { name = "_ut2", key = "_ut_key2", description = "desc2" }, auth: Admin);
+            Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2", key = "_ut_key2", description = "desc2" }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageNetwork");
+            Update(resource, new { name = "_ut3", key = "_ut_key3", description = "desc3" }, auth: accessKey);
+            Expect(Get(resource, auth: Admin), Matches(new { name = "_ut3", key = "_ut_key3", description = "desc3" }));
         }
 
         [Test]
@@ -145,9 +156,15 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Delete()
         {
+            // admin authorization
             var resource = Create(new { name = "_ut" }, auth: Admin);
             Delete(resource, auth: Admin);
+            Expect(() => Get(resource, auth: Admin), FailsWith(404));
 
+            // access key authorization
+            resource = Create(new { name = "_ut" }, auth: Admin);
+            var accessKey = CreateAccessKey(Admin, "ManageNetwork");
+            Delete(resource, auth: accessKey);
             Expect(() => Get(resource, auth: Admin), FailsWith(404));
         }
 
@@ -172,6 +189,20 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Create(new { name = "_ut" }, auth: user), FailsWith(401));
             Expect(() => Update(UnexistingResourceID, new { name = "_ut" }, auth: user), FailsWith(401));
             Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
+
+            // dummy access key authorization
+            var accessKey = CreateAccessKey(Admin, "Dummy");
+            Expect(() => List(), FailsWith(401));
+            Expect(() => Get(UnexistingResourceID), FailsWith(401));
+            Expect(() => Create(new { name = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
+
+            // access key for non-admin role authorization
+            accessKey = CreateAccessKey(user, "ManageNetwork");
+            Expect(() => Create(new { name = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
         }
 
         [Test]

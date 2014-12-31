@@ -17,26 +17,42 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void GetAll()
         {
+            // admin authorization
             List(auth: Admin);
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageDeviceClass");
+            List(auth: accessKey);
         }
 
         [Test]
         public void Get_Client()
         {
+            // user authorization
             var user = CreateUser(1);
             var resource = Create(new { name = "_ut", version = "1" }, auth: Admin);
-            
-            Get(resource, auth: user); // should succeed
+            Expect(Get(resource, auth: user), Matches(new { name = "_ut", version = "1" }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(user, "GetDevice"); // GetDevice allows to retrieve device class by id
+            Expect(Get(resource, auth: accessKey), Matches(new { name = "_ut", version = "1" }));
         }
 
         [Test]
         public void Create()
         {
-            var deviceClass = new { name = "_ut", version = "1", offlineTimeout = 3600, equipment = new[] {
+            // device class creator
+            Func<string, object> deviceClass = version => new { name = "_ut", version = version, offlineTimeout = 3600, equipment = new[] {
                 new { name = "_ut_name", type = "_ut_type", code = "_ut_code" } }};
 
-            var resource = Create(deviceClass, auth: Admin);
-            Expect(Get(resource, auth: Admin), Matches(deviceClass));
+            // admin authorization
+            var resource = Create(deviceClass("1"), auth: Admin);
+            Expect(Get(resource, auth: Admin), Matches(deviceClass("1")));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageDeviceClass");
+            resource = Create(deviceClass("2"), auth: accessKey);
+            Expect(Get(resource, auth: Admin), Matches(deviceClass("2")));
         }
 
         [Test]
@@ -50,9 +66,15 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             var resource = Create(new { name = "_ut", version = "1", equipment = new[] { new { name = "_ut_name1", type = "_ut_type1", code = "_ut_code1" } } }, auth: Admin);
+            
+            // admin authorization
             Update(resource, new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" }, equipment = new[] { new { name = "_ut_name2", type = "_ut_type2", code = "_ut_code2" } } }, auth: Admin);
-
             Expect(Get(resource, auth: Admin), Matches(new { name = "_ut2", version = "2", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" }, equipment = new[] { new { name = "_ut_name2", type = "_ut_type2", code = "_ut_code2" } } }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageDeviceClass");
+            Update(resource, new { name = "_ut3", version = "3", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" }, equipment = new[] { new { name = "_ut_name2", type = "_ut_type2", code = "_ut_code2" } } }, auth: accessKey);
+            Expect(Get(resource, auth: Admin), Matches(new { name = "_ut3", version = "3", isPermanent = true, offlineTimeout = 3600, data = new { a = "b" }, equipment = new[] { new { name = "_ut_name2", type = "_ut_type2", code = "_ut_code2" } } }));
         }
 
         [Test]
@@ -67,9 +89,15 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Delete()
         {
+            // admin authorization
             var resource = Create(new { name = "_ut", version = "1" }, auth: Admin);
             Delete(resource, auth: Admin);
+            Expect(() => Get(resource, auth: Admin), FailsWith(404));
 
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageDeviceClass");
+            resource = Create(new { name = "_ut", version = "1" }, auth: Admin);
+            Delete(resource, auth: accessKey);
             Expect(() => Get(resource, auth: Admin), FailsWith(404));
         }
 
@@ -95,6 +123,21 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Create(new { name = "_ut", version = "1" }, auth: user), FailsWith(401));
             Expect(() => Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: user), FailsWith(401));
             Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
+
+            // dummy access key authorization
+            var accessKey = CreateAccessKey(Admin, "Dummy");
+            Expect(() => List(auth: accessKey), FailsWith(401));
+            Expect(() => Get(UnexistingResourceID), FailsWith(401));
+            Expect(() => Create(new { name = "_ut", version = "1" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
+
+            // access key for non-admin role authorization
+            accessKey = CreateAccessKey(user, "ManageDeviceClass");
+            Expect(() => List(auth: accessKey), FailsWith(401));
+            Expect(() => Create(new { name = "_ut", version = "1" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut", version = "1" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
         }
 
         [Test]
