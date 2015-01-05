@@ -66,6 +66,9 @@
     <Compile Include="Authentication\AuthenticationProviderInfo.cs" />
     <Compile Include="Authentication\IAuthenticationManager.cs" />
     <Compile Include="Authentication\Providers\PasswordAuthenticationProvider.cs" />
+    <Compile Include="Authentication\Providers\FacebookAuthenticationProvider.cs" />
+    <Compile Include="Authentication\Providers\GoogleAuthenticationProvider.cs" />
+    <Compile Include="Authentication\Providers\GithubAuthenticationProvider.cs" />
     <Compile Include="DeviceHiveConfiguration.cs" />
     <Compile Include="MessageLogic\IMessageManager.cs" />
     <Compile Include="Mapping\IJsonMapper.cs" />

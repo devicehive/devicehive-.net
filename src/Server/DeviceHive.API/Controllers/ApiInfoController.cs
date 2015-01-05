@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Configuration;
+using System.Linq;
 using System.Web.Http;
+using DeviceHive.Core.Authentication;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
@@ -14,10 +16,12 @@ namespace DeviceHive.API.Controllers
     public class ApiInfoController : BaseController
     {
         private ITimestampRepository _timestampRepository;
+        private IAuthenticationManager _authenticationManager;
 
-        public ApiInfoController(ITimestampRepository timestampRepository)
+        public ApiInfoController(ITimestampRepository timestampRepository, IAuthenticationManager authenticationManager)
         {
             _timestampRepository = timestampRepository;
+            _authenticationManager = authenticationManager;
         }
 
         /// <name>get</name>
@@ -37,6 +41,22 @@ namespace DeviceHive.API.Controllers
             };
 
             return Mapper.Map(apiInfo);
+        }
+
+        [HttpGet]
+        [Route("config/oauth2")]
+        public JObject OAuth2()
+        {
+            var index = 0;
+            return new JObject(
+                _authenticationManager.GetProviders().Select(p => new JProperty(p.Name,
+                    new JObject(
+                        new JProperty("clientId", p.Configuration.ClientId),
+                        new JProperty("providerId", index++),
+                        new JProperty("isAvailable", true)
+                    )
+                ))
+            );
         }
 
         private IJsonMapper<ApiInfo> Mapper
