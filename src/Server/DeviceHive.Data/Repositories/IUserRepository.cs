@@ -9,6 +9,9 @@ namespace DeviceHive.Data.Repositories
     {
         List<User> GetAll(UserFilter filter = null);
         User Get(string login);
+        User GetByFacebookLogin(string facebookLogin);
+        User GetByGoogleLogin(string googleLogin);
+        User GetByGithubLogin(string githubLogin);
     }
 
     public static class UserRepositoryExtension

@@ -74,6 +74,16 @@ namespace DeviceHive.Test.ApiTest
         }
 
         [Test]
+        public void Create_OAuth()
+        {
+            // create user
+            var resource = Create(new { login = "_ut", facebookLogin = "facebook", role = 0, status = 0 }, auth: Admin);
+
+            // verify server response
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", facebookLogin = "facebook", role = 0, status = 0, lastLogin = (DateTime?)null }));
+        }
+
+        [Test]
         public void Create_Existing()
         {
             // create user with an existing login
@@ -109,16 +119,16 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Update()
         {
-            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", googleLogin = "google", facebookLogin = "facebook", githubLogin = "github", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
 
             // admin authorization
-            Update(resource, new { login = "_ut2", password = NewUserPassword, role = 1, status = 1 }, auth: Admin);
-            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut2", role = 1, status = 1, lastLogin = (DateTime?)null }));
+            Update(resource, new { login = "_ut2", googleLogin = "google2", facebookLogin = "facebook2", githubLogin = "github2", role = 1, status = 1 }, auth: Admin);
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut2", googleLogin = "google2", facebookLogin = "facebook2", githubLogin = "github2", role = 1, status = 1, lastLogin = (DateTime?)null }));
 
             // access key authorization
             var accessKey = CreateAccessKey(Admin, "ManageUser");
-            Update(resource, new { login = "_ut3", password = NewUserPassword, role = 1, status = 2 }, auth: accessKey);
-            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut3", role = 1, status = 2, lastLogin = (DateTime?)null }));
+            Update(resource, new { login = "_ut3", googleLogin = "google3", facebookLogin = "facebook3", githubLogin = "github3", role = 1, status = 2 }, auth: accessKey);
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut3", googleLogin = "google3", facebookLogin = "facebook3", githubLogin = "github3", role = 1, status = 2, lastLogin = (DateTime?)null }));
         }
 
         [Test]
@@ -136,24 +146,24 @@ namespace DeviceHive.Test.ApiTest
         public void Update_Current()
         {
             // create user
-            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 1, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, facebookLogin = "facebook", googleLogin = "google", githubLogin = "github", role = 1, status = 0 }, auth: Admin);
 
             // current user authorization
-            var current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "*", login = "_ut2", role = 0, status = 1 }, auth: User("_ut", NewUserPassword));
+            var current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "*", login = "_ut2", facebookLogin = "updated", googleLogin = "updated", githubLogin = "updated", role = 0, status = 1 }, auth: User("_ut", NewUserPassword));
             Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus));
             // verify user password has been changed
             Expect(Client.Get(ResourceUri + "/current", auth: User("_ut", NewUserPassword)).Status, Is.EqualTo(401));
             // verify that other properties have not been changed
-            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 1, status = 0 }));
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 1, status = 0, facebookLogin = "facebook", googleLogin = "google", githubLogin = "github" }));
 
             // access key authorization
             var accessKey = CreateAccessKey(User("_ut", NewUserPassword + "*"), "UpdateCurrentUser");
-            current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "$", login = "_ut2", role = 0, status = 1 }, auth: accessKey);
+            current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "$", login = "_ut2", facebookLogin = "updated", googleLogin = "updated", githubLogin = "updated", role = 0, status = 1 }, auth: accessKey);
             Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus));
             // verify user password has been changed
             Expect(Client.Get(ResourceUri + "/current", auth: User("_ut", NewUserPassword + "*")).Status, Is.EqualTo(401));
             // verify that other properties have not been changed
-            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 1, status = 0 }));
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 1, status = 0, facebookLogin = "facebook", googleLogin = "google", githubLogin = "github" }));
         }
 
         [Test]

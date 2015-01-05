@@ -16,6 +16,9 @@ namespace DeviceHive.API
             context.Kernel.ConfigureMapping<User>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Login, "login")
+                .Property(e => e.FacebookLogin, "facebookLogin")
+                .Property(e => e.GoogleLogin, "googleLogin")
+                .Property(e => e.GithubLogin, "githubLogin")
                 .Property(e => e.Role, "role")
                 .Property(e => e.Status, "status")
                 .Property(e => e.LastLogin, "lastLogin", JsonMapperEntryMode.ToJson);

@@ -51,7 +51,7 @@ namespace DeviceHive.Core.Authentication.Providers
                 throw new AuthenticationException("Login or password were not provided in the request object!");
 
             var user = DataContext.User.Get(login);
-            if (user == null || user.Status != (int)UserStatus.Active)
+            if (user == null || user.Status != (int)UserStatus.Active || !user.HasPassword())
                 throw new AuthenticationException("Invalid login, or user is not active, or user has no password!");
 
             if (!user.IsValidPassword(password))

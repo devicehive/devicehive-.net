@@ -31,7 +31,8 @@ namespace DeviceHive.Data.MongoDB.Migrations
             Connection.Database.GetCollection("device_equipment").EnsureIndex(IndexKeys.Ascending("DeviceID", "Code"), IndexOptions.SetUnique(true));
 
             // create default admin user
-            var user = new User("dhadmin", "dhadmin_#911", (int)UserRole.Administrator, (int)UserStatus.Active);
+            var user = new User("dhadmin", (int)UserRole.Administrator, (int)UserStatus.Active);
+            user.SetPassword("dhadmin_#911");
             Connection.EnsureIdentity(user);
             Connection.Users.Save(user);
         }

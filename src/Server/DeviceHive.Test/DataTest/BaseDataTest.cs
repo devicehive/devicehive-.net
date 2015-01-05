@@ -44,7 +44,11 @@ namespace DeviceHive.Test.DataTest
         [Test]
         public void User()
         {
-            var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);
+            var user = new User("Test", (int)UserRole.Administrator, (int)UserStatus.Active);
+            user.FacebookLogin = "facebook";
+            user.GoogleLogin = "google";
+            user.GithubLogin = "github";
+            user.SetPassword("TestPass");
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 
@@ -61,8 +65,16 @@ namespace DeviceHive.Test.DataTest
             Assert.AreEqual((int)UserRole.Administrator, user1.Role);
             Assert.AreEqual((int)UserStatus.Active, user1.Status);
 
-            // test Get(name)
+            // test Get(login)
             var user2 = DataContext.User.Get("Test");
+            Assert.IsNotNull(user2);
+
+            // test GetByXXX(login)
+            user2 = DataContext.User.GetByFacebookLogin("facebook");
+            Assert.IsNotNull(user2);
+            user2 = DataContext.User.GetByGoogleLogin("google");
+            Assert.IsNotNull(user2);
+            user2 = DataContext.User.GetByGithubLogin("github");
             Assert.IsNotNull(user2);
 
             // test Save
@@ -90,7 +102,8 @@ namespace DeviceHive.Test.DataTest
         [Test]
         public void AccessKey()
         {
-            var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);
+            var user = new User("Test", (int)UserRole.Administrator, (int)UserStatus.Active);
+            user.SetPassword("TestPass");
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 
@@ -146,7 +159,8 @@ namespace DeviceHive.Test.DataTest
         [Test]
         public void UserNetwork()
         {
-            var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);
+            var user = new User("Test", (int)UserRole.Administrator, (int)UserStatus.Active);
+            user.SetPassword("TestPass");
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 
@@ -524,7 +538,8 @@ namespace DeviceHive.Test.DataTest
         [Test]
         public void OAuthGrant()
         {
-            var user = new User("Test", "pass", 0, 0);
+            var user = new User("Test", 0, 0);
+            user.SetPassword("pass");
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 

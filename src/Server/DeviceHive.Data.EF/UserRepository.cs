@@ -39,6 +39,39 @@ namespace DeviceHive.Data.EF
             }
         }
 
+        public User GetByFacebookLogin(string facebookLogin)
+        {
+            if (string.IsNullOrEmpty(facebookLogin))
+                throw new ArgumentNullException("facebookLogin");
+
+            using (var context = new DeviceHiveContext())
+            {
+                return context.Users.SingleOrDefault(u => u.FacebookLogin == facebookLogin);
+            }
+        }
+
+        public User GetByGoogleLogin(string googleLogin)
+        {
+            if (string.IsNullOrEmpty(googleLogin))
+                throw new ArgumentNullException("googleLogin");
+
+            using (var context = new DeviceHiveContext())
+            {
+                return context.Users.SingleOrDefault(u => u.GoogleLogin == googleLogin);
+            }
+        }
+
+        public User GetByGithubLogin(string githubLogin)
+        {
+            if (string.IsNullOrEmpty(githubLogin))
+                throw new ArgumentNullException("githubLogin");
+
+            using (var context = new DeviceHiveContext())
+            {
+                return context.Users.SingleOrDefault(u => u.GithubLogin == githubLogin);
+            }
+        }
+
         public void Save(User user)
         {
             if (user == null)

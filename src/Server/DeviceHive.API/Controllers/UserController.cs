@@ -73,18 +73,16 @@ namespace DeviceHive.API.Controllers
         [HttpCreatedResponse]
         public JObject Post(JObject json)
         {
-            if (json["password"] == null || json["password"].Type != JTokenType.String)
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Required 'password' property was not specified!");
+            var user = Mapper.Map(json);
+            Validate(user);
+            ValidateLoginUniqueness(user);
 
             var password = (string)json["password"];
-            ValidatePasswordPolicy(password);
-
-            var user = Mapper.Map(json);
-            user.SetPassword(password);
-            Validate(user);
-
-            if (DataContext.User.Get(user.Login) != null)
-                ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such login already exists!");
+            if (password != null)
+            {
+                ValidatePasswordPolicy(password);
+                user.SetPassword(password);
+            }
 
             DataContext.User.Save(user);
             return Mapper.Map(user, oneWayOnly: true);
@@ -115,19 +113,17 @@ namespace DeviceHive.API.Controllers
             {
                 // only administrators can change user properties
                 Mapper.Apply(user, json);
+                Validate(user);
+                ValidateLoginUniqueness(user);
             }
-            if (json["password"] != null && json["password"].Type == JTokenType.String)
+
+            // all users can change their password
+            var password = (string)json["password"];
+            if (password != null)
             {
-                // all users can change their password
-                var password = (string)json["password"];
                 ValidatePasswordPolicy(password);
                 user.SetPassword(password);
             }
-            Validate(user);
-
-            var existing = DataContext.User.Get(user.Login);
-            if (existing != null && existing.ID != user.ID)
-                ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such name already exists!");
 
             DataContext.User.Save(user);
         }
@@ -142,6 +138,34 @@ namespace DeviceHive.API.Controllers
         public void Delete(int id)
         {
             DataContext.User.Delete(id);
+        }
+
+        private void ValidateLoginUniqueness(User user)
+        {
+            var existing = DataContext.User.Get(user.Login);
+            if (existing != null && existing.ID != user.ID)
+                ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such login already exists!");
+
+            if (user.FacebookLogin != null)
+            {
+                existing = DataContext.User.GetByFacebookLogin(user.FacebookLogin);
+                if (existing != null && existing.ID != user.ID)
+                    ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such Facebook login already exists!");
+            }
+
+            if (user.GoogleLogin != null)
+            {
+                existing = DataContext.User.GetByGoogleLogin(user.GoogleLogin);
+                if (existing != null && existing.ID != user.ID)
+                    ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such Google login already exists!");
+            }
+
+            if (user.GithubLogin != null)
+            {
+                existing = DataContext.User.GetByGithubLogin(user.GithubLogin);
+                if (existing != null && existing.ID != user.ID)
+                    ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such Github login already exists!");
+            }
         }
 
         private void ValidatePasswordPolicy(string password)

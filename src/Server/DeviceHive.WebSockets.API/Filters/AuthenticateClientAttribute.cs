@@ -28,7 +28,7 @@ namespace DeviceHive.WebSockets.API.Filters
             {
                 // get the user
                 var user = controller.DataContext.User.Get(login);
-                if (user == null || user.Status != (int)UserStatus.Active)
+                if (user == null || user.Status != (int)UserStatus.Active || !user.HasPassword())
                     throw new WebSocketRequestException("Invalid login or password");
 
                 // verify user password

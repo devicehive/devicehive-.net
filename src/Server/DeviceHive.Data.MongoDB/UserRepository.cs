@@ -41,6 +41,30 @@ namespace DeviceHive.Data.MongoDB
             return _mongo.Users.FindOne(Query<User>.EQ(e => e.Login, login));
         }
 
+        public User GetByFacebookLogin(string facebookLogin)
+        {
+            if (string.IsNullOrEmpty(facebookLogin))
+                throw new ArgumentNullException("facebookLogin");
+
+            return _mongo.Users.FindOne(Query<User>.EQ(e => e.FacebookLogin, facebookLogin));
+        }
+
+        public User GetByGoogleLogin(string googleLogin)
+        {
+            if (string.IsNullOrEmpty(googleLogin))
+                throw new ArgumentNullException("googleLogin");
+
+            return _mongo.Users.FindOne(Query<User>.EQ(e => e.GoogleLogin, googleLogin));
+        }
+
+        public User GetByGithubLogin(string githubLogin)
+        {
+            if (string.IsNullOrEmpty(githubLogin))
+                throw new ArgumentNullException("githubLogin");
+
+            return _mongo.Users.FindOne(Query<User>.EQ(e => e.GithubLogin, githubLogin));
+        }
+
         public void Save(User user)
         {
             if (user == null)

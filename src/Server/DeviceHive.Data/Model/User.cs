@@ -68,16 +68,14 @@ namespace DeviceHive.Data.Model
         /// Initializes all required properties
         /// </summary>
         /// <param name="login">User login</param>
-        /// <param name="password">User password</param>
         /// <param name="role">User role</param>
         /// <param name="status">User status</param>
-        public User(string login, string password, int role, int status)
+        public User(string login, int role, int status)
         {
             if (string.IsNullOrEmpty(login))
                 throw new ArgumentException("Login is null or empty!", "login");
 
             this.Login = login;
-            this.SetPassword(password);
             this.Role = role;
             this.Status = status;
         }
@@ -100,16 +98,32 @@ namespace DeviceHive.Data.Model
         /// <summary>
         /// User password hash.
         /// </summary>
-        [Required]
         [StringLength(48)]
         public string PasswordHash { get; private set; }
 
         /// <summary>
         /// User password salt.
         /// </summary>
-        [Required]
         [StringLength(24)]
         public string PasswordSalt { get; private set; }
+
+        /// <summary>
+        /// User Facebook login (for OAuth authentication).
+        /// </summary>
+        [StringLength(64)]
+        public string FacebookLogin { get; set; }
+
+        /// <summary>
+        /// User Google login (for OAuth authentication).
+        /// </summary>
+        [StringLength(64)]
+        public string GoogleLogin { get; set; }
+
+        /// <summary>
+        /// User Github login (for OAuth authentication).
+        /// </summary>
+        [StringLength(64)]
+        public string GithubLogin { get; set; }
 
         /// <summary>
         /// User role.
@@ -164,6 +178,24 @@ namespace DeviceHive.Data.Model
             // calculate password hash
             buffer = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(PasswordSalt + password));
             PasswordHash = Convert.ToBase64String(buffer);
+        }
+
+        /// <summary>
+        /// Clears password of the current user
+        /// </summary>
+        public void ClearPassword()
+        {
+            PasswordHash = null;
+            PasswordSalt = null;
+        }
+
+        /// <summary>
+        /// Checks if current user has password set
+        /// </summary>
+        /// <returns>True if the current user has password set</returns>
+        public bool HasPassword()
+        {
+            return PasswordHash != null;
         }
 
         /// <summary>
