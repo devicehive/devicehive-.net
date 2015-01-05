@@ -52,13 +52,20 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Authentication\AuthenticationException.cs" />
+    <Compile Include="Authentication\AuthenticationManager.cs" />
+    <Compile Include="Authentication\AuthenticationProvider.cs" />
+    <Compile Include="Authentication\AuthenticationProviderConfiguration.cs" />
+    <Compile Include="Authentication\AuthenticationProviderInfo.cs" />
+    <Compile Include="Authentication\IAuthenticationManager.cs" />
+    <Compile Include="Authentication\Providers\PasswordAuthenticationProvider.cs" />
     <Compile Include="DeviceHiveConfiguration.cs" />
     <Compile Include="MessageLogic\IMessageManager.cs" />
     <Compile Include="Mapping\IJsonMapper.cs" />

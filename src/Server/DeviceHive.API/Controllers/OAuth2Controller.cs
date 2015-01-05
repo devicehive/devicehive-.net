@@ -7,6 +7,7 @@ using System.Net.Http.Formatting;
 using System.Web.Http;
 using System.Web.Http.Description;
 using DeviceHive.API.Models;
+using DeviceHive.Core.Authentication;
 using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 using System.Text;
@@ -17,6 +18,13 @@ namespace DeviceHive.API.Controllers
     [ApiExplorerSettings(IgnoreApi = true)]
     public class OAuth2Controller : BaseController
     {
+        private IAuthenticationManager _authenticationManager;
+
+        public OAuth2Controller(IAuthenticationManager authenticationManager)
+        {
+            _authenticationManager = authenticationManager;
+        }
+
         [HttpPost, Route("token")]
         public JObject Token(FormDataCollection request)
         {
@@ -57,17 +65,15 @@ namespace DeviceHive.API.Controllers
                         var password = GetRequiredParameter(request, "password");
 
                         // authenticate user
-                        var user = DataContext.User.Get(username);
-                        if (user == null || user.Status != (int)UserStatus.Active)
-                            ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized!");
-
-                        if (!user.IsValidPassword(password))
+                        User user = null;
+                        try
                         {
-                            IncrementUserLoginAttempts(user);
+                            user = _authenticationManager.AuthenticateByPassword(username, password);
+                        }
+                        catch (AuthenticationException)
+                        {
                             ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized!");
                         }
-
-                        UpdateUserLastLogin(user);
 
                         // issue or renew grant
                         var filter = new OAuthGrantFilter
@@ -144,23 +150,6 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing required parameter: " + parameter);
 
             return value;
-        }
-
-        private void IncrementUserLoginAttempts(User user)
-        {
-            var maxLoginAttempts = DeviceHiveConfiguration.UserPasswordPolicy.MaxLoginAttempts;
-
-            user.LoginAttempts++;
-            if (maxLoginAttempts > 0 && user.LoginAttempts >= maxLoginAttempts)
-                user.Status = (int)UserStatus.LockedOut;
-            DataContext.User.Save(user);
-        }
-
-        private void UpdateUserLastLogin(User user)
-        {
-            user.LoginAttempts = 0;
-            user.LastLogin = DateTime.UtcNow;
-            DataContext.User.Save(user);
         }
 
         internal static void RenewGrant(OAuthGrant grant)

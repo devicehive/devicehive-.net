@@ -69,7 +69,7 @@ namespace DeviceHive.WebSockets.API.Filters
 
         private void IncrementUserLoginAttempts(DataContext dataContext, DeviceHiveConfiguration configuration, User user)
         {
-            var maxLoginAttempts = configuration.UserPasswordPolicy.MaxLoginAttempts;
+            var maxLoginAttempts = configuration.Authentication.MaxLoginAttempts;
 
             user.LoginAttempts++;
             if (maxLoginAttempts > 0 && user.LoginAttempts >= maxLoginAttempts)

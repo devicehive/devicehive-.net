@@ -36,7 +36,7 @@ namespace DeviceHive.API
 
             // global filters
             config.Filters.Add(new HandleExceptionAttribute());
-            config.Filters.Add(new AuthenticateAttribute());
+            config.Filters.Add(new AuthenticationFilter());
             config.Filters.Add(new AllowCrossDomainOrigin());
         }
     }
