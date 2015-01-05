@@ -11,7 +11,7 @@ namespace DeviceHive.Data.MongoDB.Migrations
         public override void Up()
         {
             // create indexes
-            Connection.Database.GetCollection("device_commands").EnsureIndex(IndexKeys.Ascending("Timestamp"));
+            Connection.Database.GetCollection("device_commands").CreateIndex(IndexKeys.Ascending("Timestamp"));
         }
 
         public override void Down()
