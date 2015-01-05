@@ -36,9 +36,15 @@ namespace DeviceHive.API.Controllers
             var providers = _authenticationManager.GetProviders();
             var providerName = providers[providerId].Name;
 
-            var user = await _authenticationManager.AuthenticateAsync(providerName, request);
-            if (user == null)
+            User user = null;
+            try
+            {
+                user = await _authenticationManager.AuthenticateAsync(providerName, request);
+            }
+            catch (AuthenticationException)
+            {
                 ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized!");
+            }
 
             var accessKey = RenewAccessKey(user);
             return new JObject(new JProperty("key", accessKey.Key));
