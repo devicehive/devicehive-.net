@@ -84,6 +84,11 @@ namespace DeviceHive.Data.MongoDB
         {
             _mongo.DeviceNotifications.Remove(Query<DeviceNotification>.EQ(e => e.ID, id));
         }
+
+        public void Cleanup(DateTime timestamp)
+        {
+            _mongo.DeviceNotifications.Remove(Query<DeviceNotification>.LT(e => e.Timestamp, timestamp));
+        }
         #endregion
 
         #region Private Methods

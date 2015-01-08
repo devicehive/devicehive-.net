@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
@@ -67,6 +68,15 @@ namespace DeviceHive.Data.EF
                     context.DeviceNotifications.Remove(notification);
                     context.SaveChanges();
                 }
+            }
+        }
+
+        public void Cleanup(DateTime timestamp)
+        {
+            using (var context = new DeviceHiveContext())
+            {
+                context.Database.CommandTimeout = 300;
+                context.Database.ExecuteSqlCommand("delete from [DeviceNotification] where [Timestamp] < @Timestamp", new SqlParameter("Timestamp", timestamp));
             }
         }
         #endregion

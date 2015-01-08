@@ -77,6 +77,16 @@ namespace DeviceHive.Core
             get { return (MessageHandlersConfigurationElement)base["messageHandlers"] ?? new MessageHandlersConfigurationElement(); }
             set { base["messageHandlers"] = value; }
         }
+
+        /// <summary>
+        /// Gets or sets maintenance configuration element
+        /// </summary>
+        [ConfigurationProperty("maintenance")]
+        public MaintenanceConfigurationElement Maintenance
+        {
+            get { return (MaintenanceConfigurationElement)base["maintenance"] ?? new MaintenanceConfigurationElement(); }
+            set { base["maintenance"] = value; }
+        }
     }
 
     /// <summary>
@@ -515,6 +525,42 @@ namespace DeviceHive.Core
         {
             get { return (string)this["networkIds"]; }
             set { base["networkIds"] = value; }
+        }
+    }
+
+    /// <summary>
+    /// Represents maintenance configuration element
+    /// </summary>
+    public class MaintenanceConfigurationElement : ConfigurationElement
+    {
+        /// <summary>
+        /// Gets or sets a comma-separated list of allowed subnets which can trigger cron maintenance jobs.
+        /// </summary>
+        [ConfigurationProperty("cronTriggerSubnets", DefaultValue = "127.0.0.1")]
+        public string CronTriggerSubnets
+        {
+            get { return (string)this["cronTriggerSubnets"]; }
+            set { base["cronTriggerSubnets"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets device notifications lifetime. Set to 0 to disable notification cleanup.
+        /// </summary>
+        [ConfigurationProperty("notificationLifetime", DefaultValue = "00:00:00")]
+        public TimeSpan NotificationLifetime
+        {
+            get { return (TimeSpan)this["notificationLifetime"]; }
+            set { base["notificationLifetime"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets command notifications lifetime. Set to 0 to disable command cleanup.
+        /// </summary>
+        [ConfigurationProperty("commandLifetime", DefaultValue = "00:00:00")]
+        public TimeSpan CommandLifetime
+        {
+            get { return (TimeSpan)this["commandLifetime"]; }
+            set { base["commandLifetime"] = value; }
         }
     }
 }

@@ -129,6 +129,7 @@
     <Compile Include="Filters\AuthenticationFilter.cs" />
     <Compile Include="Filters\AuthorizeAdminOrCurrentUser.cs" />
     <Compile Include="Filters\AuthorizeAttribute.cs" />
+    <Compile Include="Filters\AuthorizeCronTriggerAttribute.cs" />
     <Compile Include="Filters\AuthorizeDeviceRegistrationAttribute.cs" />
     <Compile Include="Filters\DeviceGuidConstraint.cs" />
     <Compile Include="Filters\HandleExceptionAttribute.cs" />

@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     [RoutePrefix("cron")]
+    [AuthorizeCronTrigger]
     [ApiExplorerSettings(IgnoreApi = true)]
     public class CronController : BaseController
     {
@@ -40,6 +41,30 @@ namespace DeviceHive.API.Controllers
                 notification.Parameters = new JObject(new JProperty("status", OFFLINE_STATUS)).ToString();
                 DataContext.DeviceNotification.Save(notification);
                 _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
+            }
+        }
+
+        [HttpNoContentResponse]
+        [HttpGet, Route("CleanupNotifications")]
+        public void CleanupNotifications()
+        {
+            var notificationLifetime = DeviceHiveConfiguration.Maintenance.NotificationLifetime;
+            if (notificationLifetime != TimeSpan.Zero)
+            {
+                var timestamp = DataContext.Timestamp.GetCurrentTimestamp() - notificationLifetime;
+                DataContext.DeviceNotification.Cleanup(timestamp);
+            }
+        }
+
+        [HttpNoContentResponse]
+        [HttpGet, Route("CleanupCommands")]
+        public void CleanupCommands()
+        {
+            var commandLifeTime = DeviceHiveConfiguration.Maintenance.CommandLifetime;
+            if (commandLifeTime != TimeSpan.Zero)
+            {
+                var timestamp = DataContext.Timestamp.GetCurrentTimestamp() - commandLifeTime;
+                DataContext.DeviceCommand.Cleanup(timestamp);
             }
         }
     }

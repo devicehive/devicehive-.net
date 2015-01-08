@@ -98,6 +98,7 @@
     <Compile Include="Services\InvalidDataException.cs" />
     <Compile Include="Services\ServiceBase.cs" />
     <Compile Include="Services\ServiceException.cs" />
+    <Compile Include="Subnet.cs" />
     <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup />
