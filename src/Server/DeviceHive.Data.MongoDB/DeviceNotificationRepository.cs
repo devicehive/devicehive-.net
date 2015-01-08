@@ -179,8 +179,8 @@ namespace DeviceHive.Data.MongoDB
             }
 
             // run the aggregation query
-            var result = _mongo.DeviceNotifications.Aggregate(operations);
-            return result.ResultDocuments.Select(BsonSerializer.Deserialize<DeviceNotification>).ToList();
+            var result = _mongo.DeviceNotifications.Aggregate(new AggregateArgs { Pipeline = operations });
+            return result.Select(BsonSerializer.Deserialize<DeviceNotification>).ToList();
         }
         #endregion
     }

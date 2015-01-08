@@ -121,7 +121,7 @@ namespace DeviceHive.Data.MongoDB
                 throw new ArgumentNullException("collection");
 
             var counters = Database.GetCollection("counters");
-            var fmr = counters.FindAndModify(Query.EQ("_id", collection), null, Update.Inc("seq", 1));
+            var fmr = counters.FindAndModify(new FindAndModifyArgs { Query = Query.EQ("_id", collection), Update = Update.Inc("seq", 1) });
             if (fmr.ModifiedDocument == null)
             {
                 counters.Insert(new { _id = collection, seq = 2 });
@@ -153,7 +153,7 @@ namespace DeviceHive.Data.MongoDB
             var getter = GetTimestampGetter(typeof(T));
             if (getter(entity) == default(DateTime))
             {
-                var timestamp = Database.Eval(EvalFlags.NoLock, "return new Date()").ToUniversalTime();
+                var timestamp = Database.Eval(new EvalArgs { Code = "return new Date()", Lock = false }).ToUniversalTime();
                 var setter = GetTimestampSetter(typeof(T));
                 setter(entity, timestamp);
             }
