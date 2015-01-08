@@ -58,6 +58,14 @@ namespace DeviceHive.API.Filters
                     var user = controller.DataContext.User.Get(accessKey.UserID);
                     if (user != null && user.Status == (int)UserStatus.Active)
                     {
+                        // prolongate the key
+                        if (accessKey.Type == (int)AccessKeyType.Session && accessKey.ExpirationDate != null &&
+                            (accessKey.ExpirationDate.Value - DateTime.UtcNow).TotalSeconds < controller.DeviceHiveConfiguration.Authentication.SessionTimeout.TotalSeconds / 2)
+                        {
+                            accessKey.ExpirationDate = DateTime.UtcNow.Add(controller.DeviceHiveConfiguration.Authentication.SessionTimeout);
+                            controller.DataContext.AccessKey.Save(accessKey);
+                        }
+
                         // authenticate the user
                         controller.CallContext.CurrentAccessKey = accessKey;
                         controller.CallContext.CurrentUser = user;

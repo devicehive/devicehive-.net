@@ -45,21 +45,21 @@ namespace DeviceHive.API.Controllers
         }
 
         [HttpNoContentResponse]
-        [HttpGet, Route("CleanupNotifications")]
-        public void CleanupNotifications()
+        [HttpGet, Route("Cleanup")]
+        public void Cleanup()
         {
+            // cleanup access keys
+            DataContext.AccessKey.Cleanup(DateTime.UtcNow);
+
+            // cleanup notifications
             var notificationLifetime = DeviceHiveConfiguration.Maintenance.NotificationLifetime;
             if (notificationLifetime != TimeSpan.Zero)
             {
                 var timestamp = DataContext.Timestamp.GetCurrentTimestamp() - notificationLifetime;
                 DataContext.DeviceNotification.Cleanup(timestamp);
             }
-        }
 
-        [HttpNoContentResponse]
-        [HttpGet, Route("CleanupCommands")]
-        public void CleanupCommands()
-        {
+            // cleanup commands
             var commandLifeTime = DeviceHiveConfiguration.Maintenance.CommandLifetime;
             if (commandLifeTime != TimeSpan.Zero)
             {

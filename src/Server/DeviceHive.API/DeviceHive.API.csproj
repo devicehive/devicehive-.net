@@ -107,6 +107,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Business\ObjectWaiter.cs" />
     <Compile Include="Controllers\AccessKeyController.cs" />
+    <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\CronController.cs" />
     <Compile Include="Controllers\DeviceCommandController.cs" />
     <Compile Include="Controllers\DeviceCommandPollController.cs" />

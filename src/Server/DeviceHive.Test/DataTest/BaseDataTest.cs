@@ -107,7 +107,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 
-            var accessKey = new AccessKey(user.ID, "Test");
+            var accessKey = new AccessKey(user.ID, AccessKeyType.Default, "Test");
             accessKey.Permissions.Add(new AccessKeyPermission { Subnets = new[] { "127.0.0.1" } });
             accessKey.Permissions.Add(new AccessKeyPermission { Subnets = new[] { "127.0.0.2" } });
             DataContext.AccessKey.Save(accessKey);
@@ -130,6 +130,7 @@ namespace DeviceHive.Test.DataTest
             Assert.AreEqual(new[] { "127.0.0.2" }, accessKey1.Permissions[1].Subnets);
 
             // test Save
+            accessKey.Type = (int)AccessKeyType.Session;
             accessKey.Label = "Test2";
             accessKey.GenerateKey();
             accessKey.ExpirationDate = DateTime.UtcNow;
@@ -140,6 +141,7 @@ namespace DeviceHive.Test.DataTest
                 Networks = new[] { 1, 2, 3 }});
             DataContext.AccessKey.Save(accessKey);
             var accessKey2 = DataContext.AccessKey.Get(accessKey.ID);
+            Assert.AreEqual(1, accessKey2.Type);
             Assert.AreEqual("Test2", accessKey2.Label);
             Assert.AreEqual(accessKey.Key, accessKey2.Key);
             Assert.IsNotNull(accessKey2.ExpirationDate);
@@ -543,7 +545,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 
-            var accessKey = new AccessKey(user.ID, "test");
+            var accessKey = new AccessKey(user.ID, AccessKeyType.OAuth, "test");
             DataContext.AccessKey.Save(accessKey);
             RegisterTearDown(() => DataContext.AccessKey.Delete(accessKey.ID));
 

@@ -307,7 +307,7 @@ namespace DeviceHive.Test
                 new[] { new { actions = actions, networkIds = networkIds, deviceGuids = deviceGuids } } }, auth: user);
             Expect(accessKeyResource.Status, Is.EqualTo(ExpectedCreatedStatus));
             var accessKeyId = GetResourceId(accessKeyResource.Json);
-            RegisterForDeletion("/user/" + user.ID + "/accesskey/" + accessKeyId);
+            RegisterForDeletion("/user/" + (user.ID != null ? user.ID : "current") + "/accesskey/" + accessKeyId);
 
             return AccessKey((string)accessKeyResource.Json["key"]);
         }

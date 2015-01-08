@@ -23,9 +23,9 @@ namespace DeviceHive.Data.MongoDB
 
         #region IAccessKeyRepository Members
 
-        public List<AccessKey> GetByUser(int userId)
+        public List<AccessKey> GetByUser(int userId, AccessKeyFilter filter = null)
         {
-            return _mongo.AccessKeys.Find(Query<AccessKey>.EQ(e => e.UserID, userId)).ToList();
+            return _mongo.AccessKeys.AsQueryable().Where(e => e.UserID == userId).Filter(filter).ToList();
         }
 
         public AccessKey Get(int id)
@@ -61,6 +61,13 @@ namespace DeviceHive.Data.MongoDB
         public void Delete(int id)
         {
             _mongo.AccessKeys.Remove(Query<AccessKey>.EQ(e => e.ID, id));
+        }
+
+        public void Cleanup(DateTime timestamp)
+        {
+            _mongo.AccessKeys.Remove(Query.And(
+                Query<AccessKey>.EQ(e => e.Type, (int)AccessKeyType.Session),
+                Query<AccessKey>.LT(e => e.ExpirationDate, timestamp)));
         }
         #endregion
     }

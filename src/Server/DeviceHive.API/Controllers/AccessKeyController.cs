@@ -19,6 +19,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Gets list of access keys and their permissions.
         /// </summary>
+        /// <query cref="AccessKeyFilter" />
         /// <param name="userId">User identifier. Use the 'current' keyword to list access keys of the current user.</param>
         /// <returns cref="AccessKey">If successful, this method returns array of <see cref="AccessKey"/> resources in the response body.</returns>
         [Route]
@@ -28,7 +29,8 @@ namespace DeviceHive.API.Controllers
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
 
-            return new JArray(DataContext.AccessKey.GetByUser(user.ID).Select(n => Mapper.Map(n)));
+            var filter = MapObjectFromQuery<AccessKeyFilter>();
+            return new JArray(DataContext.AccessKey.GetByUser(user.ID, filter).Select(n => Mapper.Map(n)));
         }
 
         /// <name>get</name>

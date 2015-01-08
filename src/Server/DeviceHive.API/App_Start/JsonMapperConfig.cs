@@ -41,6 +41,7 @@ namespace DeviceHive.API
 
             context.Kernel.ConfigureMapping<AccessKey>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Type, "type")
                 .Property(e => e.Label, "label")
                 .Property(e => e.Key, "key", JsonMapperEntryMode.ToJson)
                 .Property(e => e.ExpirationDate, "expirationDate")
@@ -124,6 +125,15 @@ namespace DeviceHive.API
                 .Property(e => e.LoginPattern, "loginPattern")
                 .Property(e => e.Role, "role")
                 .Property(e => e.Status, "status")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<AccessKeyFilter>()
+                .Property(e => e.Label, "label")
+                .Property(e => e.LabelPattern, "labelPattern")
+                .Property(e => e.Type, "type")
                 .Property(e => e.SortField, "sortField")
                 .Property(e => e.SortOrder, "sortOrder")
                 .Property(e => e.Take, "take")

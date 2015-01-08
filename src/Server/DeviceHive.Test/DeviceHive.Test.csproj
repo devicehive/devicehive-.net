@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="ApiTest\AccessKeyTest.cs" />
     <Compile Include="ApiTest\ApiInfoTest.cs" />
+    <Compile Include="ApiTest\AuthTest.cs" />
     <Compile Include="ApiTest\DeviceClassTest.cs" />
     <Compile Include="ApiTest\DeviceCommandTest.cs" />
     <Compile Include="ApiTest\DeviceEquipmentTest.cs" />

@@ -16,6 +16,7 @@ namespace DeviceHive.API.Controllers
 {
     [RoutePrefix("oauth2")]
     [ApiExplorerSettings(IgnoreApi = true)]
+    [Obsolete("Will be removed after necessary changes are incorporated into the Admin Console")]
     public class OAuth2AccessKeyController : BaseController
     {
         private IAuthenticationManager _authenticationManager;
@@ -67,7 +68,7 @@ namespace DeviceHive.API.Controllers
             var accessKey = accessKeys.FirstOrDefault(a => a.Label == Label);
             if (accessKey == null)
             {
-                accessKey = new AccessKey(user.ID, Label);
+                accessKey = new AccessKey(user.ID, AccessKeyType.Session, Label);
                 accessKey.Permissions = new List<AccessKeyPermission>();
                 accessKey.Permissions.Add(new AccessKeyPermission()); // allow everything permission
             }
