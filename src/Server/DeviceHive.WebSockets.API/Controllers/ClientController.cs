@@ -331,7 +331,7 @@ namespace DeviceHive.WebSockets.API.Controllers
             {
                 ApiVersion = DeviceHive.Core.Version.ApiVersion,
                 ServerTimestamp = DataContext.Timestamp.GetCurrentTimestamp(),
-                RestServerUrl = restEndpoint.Uri,
+                RestServerUrl = restEndpoint.Url,
             };
 
             SendResponse(new JProperty("info", GetMapper<ApiInfo>().Map(apiInfo)));

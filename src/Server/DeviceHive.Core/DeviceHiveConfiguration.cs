@@ -114,7 +114,7 @@ namespace DeviceHive.Core
         /// Gets or sets REST endpoint URL
         /// </summary>
         [ConfigurationProperty("url")]
-        public string Uri
+        public string Url
         {
             get { return (string)this["url"]; }
             set { base["url"] = value; }
