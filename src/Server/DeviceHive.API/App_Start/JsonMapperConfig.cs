@@ -84,7 +84,6 @@ namespace DeviceHive.API
                 .Property(e => e.Command, "command")
                 .RawJsonProperty(e => e.Parameters, "parameters")
                 .Property(e => e.Lifetime, "lifetime")
-                .Property(e => e.Flags, "flags")
                 .Property(e => e.Status, "status")
                 .RawJsonProperty(e => e.Result, "result");
 
