@@ -40,7 +40,7 @@ namespace DeviceHive.Core.Authentication.Providers
         /// </summary>
         /// <param name="request">Request with user credentials.</param>
         /// <returns>Authenticated user.</returns>
-        public override Task<User> Authenticate(JObject request)
+        public override Task<User> AuthenticateAsync(JObject request)
         {
             if (request == null)
                 throw new ArgumentNullException("request");

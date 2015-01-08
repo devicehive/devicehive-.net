@@ -88,7 +88,7 @@ namespace DeviceHive.Core.Authentication
                 throw new AuthenticationException(string.Format("Authentication provider with name '{0}' was not registered or was disabled!", providerName));
 
             var providerInfo = _providers[providerName];
-            var user = await providerInfo.Provider.Authenticate(request);
+            var user = await providerInfo.Provider.AuthenticateAsync(request);
             if (user == null)
                 throw new AuthenticationException("Authentication provider did not return a user object!");
 

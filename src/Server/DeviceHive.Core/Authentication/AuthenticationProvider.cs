@@ -62,7 +62,7 @@ namespace DeviceHive.Core.Authentication
         /// </summary>
         /// <param name="request">Request with user credentials.</param>
         /// <returns>Authenticated user.</returns>
-        public abstract Task<User> Authenticate(JObject request);
+        public abstract Task<User> AuthenticateAsync(JObject request);
 
         #endregion
 
