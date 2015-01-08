@@ -37,21 +37,17 @@ namespace DeviceHive.Data.Model
         /// Initializes all required properties
         /// </summary>
         /// <param name="guid">Device global identifier</param>
-        /// <param name="key">Device key</param>
         /// <param name="name">Device name</param>
         /// <param name="network">Associated network object</param>
         /// <param name="deviceClass">Associated device class object</param>
-        public Device(string guid, string key, string name, Network network, DeviceClass deviceClass)
+        public Device(string guid, string name, Network network, DeviceClass deviceClass)
             : this(guid)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentException("Key is null or empty!", "key");
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Name is null or empty!", "name");
             if (deviceClass == null)
                 throw new ArgumentNullException("deviceClass");
 
-            this.Key = key;
             this.Name = name;
             this.Network = network;
             this.DeviceClass = deviceClass;
@@ -78,7 +74,6 @@ namespace DeviceHive.Data.Model
         /// The key is set during device registration and it has to be provided for all subsequent calls initiated by device.
         /// The key maximum length is 64 characters.
         /// </summary>
-        [Required]
         [StringLength(64)]
         public string Key { get; set; }
 

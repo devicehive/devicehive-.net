@@ -296,7 +296,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -308,6 +308,7 @@ namespace DeviceHive.Test.DataTest
             var device1 = DataContext.Device.Get(device.ID);
             Assert.IsNotNull(device1);
             Assert.AreEqual(device.GUID, device1.GUID);
+            Assert.IsNull(device1.Key);
             Assert.AreEqual("Test", device1.Name);
             Assert.AreEqual(network.ID, device1.NetworkID);
             Assert.AreEqual(deviceClass.ID, device1.DeviceClassID);
@@ -325,6 +326,7 @@ namespace DeviceHive.Test.DataTest
             Assert.IsNotNull(device2.DeviceClass);
 
             // test Save
+            device.Key = "key";
             device.Name = "Test2";
             device.Status = "Status";
             device.Data = "{ }";
@@ -332,6 +334,7 @@ namespace DeviceHive.Test.DataTest
             device.NetworkID = null;
             DataContext.Device.Save(device);
             var device3 = DataContext.Device.Get(device.ID);
+            Assert.AreEqual("key", device3.Key);
             Assert.AreEqual("Test2", device3.Name);
             Assert.AreEqual("Status", device3.Status);
             Assert.AreEqual("{ }", device3.Data);
@@ -365,7 +368,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -408,7 +411,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -457,7 +460,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 

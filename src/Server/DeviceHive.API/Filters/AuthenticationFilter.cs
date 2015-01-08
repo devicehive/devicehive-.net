@@ -82,7 +82,7 @@ namespace DeviceHive.API.Filters
             {
                 // get the device object
                 var device = controller.DataContext.Device.Get(deviceId);
-                if (device != null)
+                if (device != null && device.Key != null)
                 {
                     // check device key authentication
                     var authDeviceKey = context.Request.GetCustomHeader("Auth-DeviceKey");

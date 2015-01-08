@@ -43,7 +43,7 @@ namespace DeviceHive.WebSockets.API.Filters
 
             var controller = (DeviceHive.WebSockets.API.Controllers.ControllerBase)actionContext.Controller;
             var device = controller.DataContext.Device.Get(deviceId);
-            if (device == null || device.Key != deviceKey)
+            if (device == null || device.Key == null || device.Key != deviceKey)
             {
                 if (ThrowDeviceNotFoundException)
                     throw new WebSocketRequestException("Device not found");

@@ -126,6 +126,10 @@
     <Compile Include="Migrations\201501081513199_10.2.Designer.cs">
       <DependentUpon>201501081513199_10.2.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201501082027376_10.3.cs" />
+    <Compile Include="Migrations\201501082027376_10.3.Designer.cs">
+      <DependentUpon>201501082027376_10.3.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Migrator.cs" />
     <Compile Include="NetworkRepository.cs" />
@@ -169,6 +173,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201501081513199_10.2.resx">
       <DependentUpon>201501081513199_10.2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201501082027376_10.3.resx">
+      <DependentUpon>201501082027376_10.3.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

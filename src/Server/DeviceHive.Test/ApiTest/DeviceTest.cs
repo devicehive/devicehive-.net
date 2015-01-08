@@ -36,12 +36,12 @@ namespace DeviceHive.Test.ApiTest
         public void GetAll()
         {
             // create new device
-            Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }, auth: Admin);
+            Update(ID, new { name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             // create another device
             var anotherDeviceId = Guid.NewGuid().ToString();
-            Update(anotherDeviceId, new { key = "key", name = "_ut2", network = new { name = "_ut_n_a" }, deviceClass = new { name = "_ut_dc_a", version = "1" } }, auth: Admin);
+            Update(anotherDeviceId, new { name = "_ut2", network = new { name = "_ut_n_a" }, deviceClass = new { name = "_ut_dc_a", version = "1" } }, auth: Admin);
             var anotherDevice = Get(anotherDeviceId, auth: Admin);
             RegisterForDeletion("/network/" + (int)anotherDevice["network"]["id"]);
             RegisterForDeletion("/device/class/" + (int)anotherDevice["deviceClass"]["id"]);
