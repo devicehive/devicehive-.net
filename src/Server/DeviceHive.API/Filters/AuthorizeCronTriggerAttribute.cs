@@ -1,10 +1,8 @@
-﻿using DeviceHive.Core;
+﻿using DeviceHive.API.Internal;
+using DeviceHive.Core;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Web;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
@@ -23,11 +21,7 @@ namespace DeviceHive.API.Filters
         {
             ReadAllowedSubnets(actionContext.RequestContext.Configuration);
 
-            var clientIp = GetClientIp(actionContext.Request);
-            if (clientIp == null)
-                throw new Exception("Unable to determine client IP address!");
-
-            var address = Subnet.ParseAddress(clientIp);
+            var address = Subnet.ParseAddress(actionContext.Request.GetUserAddress());
             if (!_allowedSubnets.Any(s => s.Includes(address)))
                 throw new HttpResponseException(HttpStatusCode.Unauthorized);
         }
@@ -48,16 +42,6 @@ namespace DeviceHive.API.Filters
                 var configuration = (DeviceHiveConfiguration)httpConfiguration.DependencyResolver.GetService(typeof(DeviceHiveConfiguration));
                 _allowedSubnets = configuration.Maintenance.CronTriggerSubnets.Split(',').Select(s => Subnet.ParseSubnet(s)).ToArray();
             }
-        }
-
-        private string GetClientIp(HttpRequestMessage request)
-        {
-            if (request.Properties.ContainsKey("MS_HttpContext"))
-            {
-                return ((HttpContextWrapper)request.Properties["MS_HttpContext"]).Request.UserHostAddress;
-            }
-
-            return null;
         }
         #endregion
     }

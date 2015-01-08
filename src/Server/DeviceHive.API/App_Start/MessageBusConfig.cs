@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using DeviceHive.API.Business;
+using DeviceHive.API.Internal;
 using DeviceHive.Core.Messaging;
 using Ninject;
 using Ninject.Activation;

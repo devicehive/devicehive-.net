@@ -3,7 +3,7 @@ using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using System.Web;
-using DeviceHive.API.Business;
+using DeviceHive.API.Internal;
 using DeviceHive.Core;
 using DeviceHive.Core.Authentication;
 using DeviceHive.Core.Mapping;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DeviceHive.API.Business
+namespace DeviceHive.API.Internal
 {
     /// <summary>
     /// Represents a primitive that allows to wait for object changes.

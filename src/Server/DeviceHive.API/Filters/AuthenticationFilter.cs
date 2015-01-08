@@ -1,4 +1,5 @@
 ﻿using DeviceHive.API.Controllers;
+using DeviceHive.API.Internal;
 using DeviceHive.Core.Authentication;
 using DeviceHive.Data.Model;
 using System;
@@ -76,7 +77,7 @@ namespace DeviceHive.API.Filters
             }
 
             // check device authentication
-            var deviceId = GetCustomHeader(context.Request, "Auth-DeviceID");
+            var deviceId = context.Request.GetCustomHeader("Auth-DeviceID");
             if (!string.IsNullOrEmpty(deviceId))
             {
                 // get the device object
@@ -84,7 +85,7 @@ namespace DeviceHive.API.Filters
                 if (device != null)
                 {
                     // check device key authentication
-                    var authDeviceKey = GetCustomHeader(context.Request, "Auth-DeviceKey");
+                    var authDeviceKey = context.Request.GetCustomHeader("Auth-DeviceKey");
                     if (authDeviceKey != null && device.Key == authDeviceKey)
                     {
                         // authenticate the device and update last online
@@ -109,15 +110,6 @@ namespace DeviceHive.API.Filters
         #endregion
 
         #region Private Methods
-
-        private string GetCustomHeader(HttpRequestMessage request, string name)
-        {
-            IEnumerable<string> values;
-            if (!request.Headers.TryGetValues(name, out values))
-                return null;
-
-            return values.First();
-        }
 
         private bool ParseBasicAuthParameter(string parameter, out string login, out string password)
         {
