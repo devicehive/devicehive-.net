@@ -468,6 +468,16 @@ namespace DeviceHive.Core
         }
 
         /// <summary>
+        /// Gets or sets value indicating if message handler is enabled
+        /// </summary>
+        [ConfigurationProperty("enabled", DefaultValue = true)]
+        public bool Enabled
+        {
+            get { return (bool)this["enabled"]; }
+            set { base["enabled"] = value; }
+        }
+
+        /// <summary>
         /// Gets or sets a custom argument to pass into the handler constructor.
         /// </summary>
         [ConfigurationProperty("argument")]
