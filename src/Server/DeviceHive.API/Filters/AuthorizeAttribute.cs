@@ -9,6 +9,7 @@ using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 using DeviceHive.API.Controllers;
+using DeviceHive.API.Internal;
 using DeviceHive.API.Models;
 using DeviceHive.Data.Model;
 
@@ -126,11 +127,8 @@ namespace DeviceHive.API.Filters
             // check if access key permissions are sufficient
             if (callContext.CurrentAccessKey != null)
             {
-                var httpContext = (HttpContextBase)actionContext.Request.Properties["MS_HttpContext"];
-                var userAddress = httpContext.Request.UserHostAddress;
-
-                var domain = actionContext.Request.Headers.Contains("Origin") ?
-                    actionContext.Request.Headers.GetValues("Origin").First() : null;
+                var userAddress = actionContext.Request.GetUserAddress();
+                var domain = actionContext.Request.GetCustomHeader("Origin");
                 if (domain != null)
                     domain = Regex.Replace(domain, @"^https?://", string.Empty, RegexOptions.IgnoreCase);
 

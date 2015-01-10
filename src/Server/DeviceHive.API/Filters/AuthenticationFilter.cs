@@ -1,5 +1,6 @@
 ﻿using DeviceHive.API.Controllers;
 using DeviceHive.API.Internal;
+using DeviceHive.Core;
 using DeviceHive.Core.Authentication;
 using DeviceHive.Data.Model;
 using System;
@@ -15,13 +16,24 @@ namespace DeviceHive.API.Filters
 {
     public class AuthenticationFilter : IAuthenticationFilter
     {
+        private DeviceHiveConfiguration _deviceHiveConfiguration;
+        private IAuthenticationManager _authenticationManager;
+
+        [Ninject.Inject]
+        public void Initialize(DeviceHiveConfiguration deviceHiveConfiguration, IAuthenticationManager authenticationManager)
+        {
+            _deviceHiveConfiguration = deviceHiveConfiguration;
+            _authenticationManager = authenticationManager;
+        }
+
         #region IAuthenticationFilter Members
 
         public async Task AuthenticateAsync(HttpAuthenticationContext context, CancellationToken cancellationToken)
         {
             // retrieve controller object
-            var controller = (BaseController)context.ActionContext.ControllerContext.Controller;
-            var dependencyResolver = controller.Configuration.DependencyResolver;
+            var controller = context.ActionContext.ControllerContext.Controller as BaseController;
+            if (controller == null)
+                throw new InvalidOperationException("Controller must inherit from BaseController class!");
 
             // check basic authentication
             var auth = context.Request.Headers.Authorization;
@@ -32,10 +44,9 @@ namespace DeviceHive.API.Filters
                 if (ParseBasicAuthParameter(auth.Parameter, out login, out password))
                 {
                     // authenticate by password
-                    var authenticationManager = (IAuthenticationManager)dependencyResolver.GetService(typeof(IAuthenticationManager));
                     try
                     {
-                        controller.CallContext.CurrentUser = await authenticationManager.AuthenticateByPasswordAsync(login, password);
+                        controller.CallContext.CurrentUser = await _authenticationManager.AuthenticateByPasswordAsync(login, password);
                     }
                     catch (AuthenticationException)
                     {
@@ -61,9 +72,9 @@ namespace DeviceHive.API.Filters
                     {
                         // prolongate the key
                         if (accessKey.Type == (int)AccessKeyType.Session && accessKey.ExpirationDate != null &&
-                            (accessKey.ExpirationDate.Value - DateTime.UtcNow).TotalSeconds < controller.DeviceHiveConfiguration.Authentication.SessionTimeout.TotalSeconds / 2)
+                            (accessKey.ExpirationDate.Value - DateTime.UtcNow).TotalSeconds < _deviceHiveConfiguration.Authentication.SessionTimeout.TotalSeconds / 2)
                         {
-                            accessKey.ExpirationDate = DateTime.UtcNow.Add(controller.DeviceHiveConfiguration.Authentication.SessionTimeout);
+                            accessKey.ExpirationDate = DateTime.UtcNow.Add(_deviceHiveConfiguration.Authentication.SessionTimeout);
                             controller.DataContext.AccessKey.Save(accessKey);
                         }
 
