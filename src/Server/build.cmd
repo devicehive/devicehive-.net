@@ -1,7 +1,6 @@
 "../../tools/nuget.exe" restore
 
-C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe DeviceHive.Server.sln /p:Configuration=Release /clp:Verbosity=Quiet /p:NoWarn=1591
-C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe DeviceHive.API\DeviceHive.API.csproj /t:ResolveReferences;_WPPCopyWebApplication /p:Configuration=Release /p:BuildingProject=true;CleanWebProjectOutputDir=True;WebProjectOutputDir=..\..\..\bin\Server\Web /clp:Verbosity=Quiet
+"c:\Program Files (x86)\MSBuild\12.0\Bin\MSBuild.exe" DeviceHive.Server.sln /p:Configuration=Release /clp:Verbosity=Quiet /p:NoWarn=1591 /p:DeployOnBuild=true /p:_PackageTempDir=..\..\..\bin\Server\Web
 
 rmdir ..\..\bin\Server\DBMigrator /s /q
 xcopy DeviceHive.DBMigrator\bin\Release ..\..\bin\Server\DBMigrator /e /y /i
