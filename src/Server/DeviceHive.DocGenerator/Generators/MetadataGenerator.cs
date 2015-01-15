@@ -178,10 +178,14 @@ namespace DeviceHive.DocGenerator
             var filters = description.GetFilters().Union(description.ControllerDescriptor.GetFilters()).ToList();
             var authorizeAdmin = filters.OfType<AuthorizeAdminAttribute>().FirstOrDefault();
             var authorizeUser = filters.OfType<AuthorizeUserAttribute>().FirstOrDefault();
+            var authorizeAdminOrCurrentUser = filters.OfType<AuthorizeAdminOrCurrentUser>().FirstOrDefault();
             var authorizeUserOrDevice = filters.OfType<AuthorizeUserOrDeviceAttribute>().FirstOrDefault();
 
+            if (authorizeAdminOrCurrentUser != null)
+                return "User or Key (" + authorizeAdminOrCurrentUser.CurrentUserAccessKeyAction + ")";
+
             if (authorizeAdmin != null)
-                return "Administrator";
+                return "Administrator or Key (" + authorizeAdmin.AccessKeyAction + ")";
 
             if (authorizeUser != null)
                 return "User" + (authorizeUser.AccessKeyAction == null ? null : " or Key (" + authorizeUser.AccessKeyAction + ")");
