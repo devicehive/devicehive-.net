@@ -51,6 +51,7 @@ namespace DeviceHive.API.Controllers
         /// <summary>
         /// Authenticates a user and returns a session-level access key.
         /// </summary>
+        /// <param name="request">In the request body, supply an object with the following properties.</param>
         /// <returns>If successful, this method returns the object with the following properties in the response body.</returns>
         /// <request>
         ///     <parameter name="providerName" type="string" required="true">Name of authentication provider to use. Please call the 'config' method to get the list of available authentication providers. Use the 'password' value for the password-based authentication.</parameter>
@@ -61,7 +62,7 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="access_token" type="string">When using OAuth implicit authentication, specifies access code issued to the DeviceHive application.</parameter>
         /// </request>
         /// <response>
-        ///     <parameter name="key" type="type">Session-level access key to use with this API.</parameter>
+        ///     <parameter name="key" type="string">Session-level access key to use with this API.</parameter>
         /// </response>
         [HttpPost, Route("accesskey")]
         public async Task<JObject> Create(JObject request)
