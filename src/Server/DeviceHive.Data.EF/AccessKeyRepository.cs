@@ -23,6 +23,16 @@ namespace DeviceHive.Data.EF
             }
         }
 
+        public List<AccessKey> GetByUsers(int[] userIds, AccessKeyFilter filter = null)
+        {
+            using (var context = new DeviceHiveContext())
+            {
+                return context.AccessKeys
+                    .Include(e => e.Permissions)
+                    .Where(e => userIds.Contains(e.UserID)).Filter(filter).ToList();
+            }
+        }
+
         public AccessKey Get(int id)
         {
             using (var context = new DeviceHiveContext())

@@ -119,6 +119,12 @@ namespace DeviceHive.Test.DataTest
             Assert.AreEqual(accessKey.ID, accessKeys[0].ID);
             Assert.AreEqual(user.ID, accessKeys[0].UserID);
 
+            // test GetByUsers
+            accessKeys = DataContext.AccessKey.GetByUsers(new[] { user.ID }, new AccessKeyFilter { Type = (int)AccessKeyType.Default });
+            Assert.AreEqual(1, accessKeys.Count);
+            Assert.AreEqual(accessKey.ID, accessKeys[0].ID);
+            Assert.AreEqual(user.ID, accessKeys[0].UserID);
+
             // test Get(id)
             var accessKey1 = DataContext.AccessKey.Get(accessKey.ID);
             Assert.IsNotNull(accessKey1);

@@ -8,6 +8,7 @@ namespace DeviceHive.Data.Repositories
     public interface IAccessKeyRepository : ISimpleRepository<AccessKey>
     {
         List<AccessKey> GetByUser(int userId, AccessKeyFilter filter = null);
+        List<AccessKey> GetByUsers(int[] userIds, AccessKeyFilter filter = null);
         AccessKey Get(string key);
         void Cleanup(DateTime timestamp);
     }

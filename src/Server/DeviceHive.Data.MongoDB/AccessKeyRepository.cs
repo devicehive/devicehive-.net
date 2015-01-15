@@ -28,6 +28,11 @@ namespace DeviceHive.Data.MongoDB
             return _mongo.AccessKeys.AsQueryable().Where(e => e.UserID == userId).Filter(filter).ToList();
         }
 
+        public List<AccessKey> GetByUsers(int[] userIds, AccessKeyFilter filter = null)
+        {
+            return _mongo.AccessKeys.AsQueryable().Where(e => userIds.Contains(e.UserID)).Filter(filter).ToList();
+        }
+
         public AccessKey Get(int id)
         {
             return _mongo.AccessKeys.FindOneById(id);
