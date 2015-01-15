@@ -16,12 +16,10 @@ namespace DeviceHive.API.Controllers
     public class ApiInfoController : BaseController
     {
         private ITimestampRepository _timestampRepository;
-        private IAuthenticationManager _authenticationManager;
 
-        public ApiInfoController(ITimestampRepository timestampRepository, IAuthenticationManager authenticationManager)
+        public ApiInfoController(ITimestampRepository timestampRepository)
         {
             _timestampRepository = timestampRepository;
-            _authenticationManager = authenticationManager;
         }
 
         /// <name>get</name>
@@ -41,34 +39,6 @@ namespace DeviceHive.API.Controllers
             };
 
             return Mapper.Map(apiInfo);
-        }
-
-        [HttpGet, Route("config/auth")]
-        public JObject Auth()
-        {
-            return new JObject(
-                new JProperty("providers", _authenticationManager.GetProviders().Select(p => new JObject(
-                    new JProperty("name", p.Name),
-                    new JProperty("clientId", p.Configuration.ClientId)
-                ))),
-                new JProperty("oauthRedirectUri", DeviceHiveConfiguration.Authentication.OAuthRedirectUri));
-        }
-
-        [HttpGet]
-        [Route("config/oauth2")]
-        [Obsolete("Will be removed after necessary changes are incorporated into the Admin Console")]
-        public JObject OAuth2()
-        {
-            var index = 0;
-            return new JObject(
-                _authenticationManager.GetProviders().Select(p => new JProperty(p.Name,
-                    new JObject(
-                        new JProperty("clientId", p.Configuration.ClientId),
-                        new JProperty("providerId", index++),
-                        new JProperty("isAvailable", true)
-                    )
-                ))
-            );
         }
 
         private IJsonMapper<ApiInfo> Mapper

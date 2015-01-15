@@ -26,17 +26,5 @@ namespace DeviceHive.Test.ApiTest
             Expect((string)response.Json["apiVersion"], Is.Not.Null);
             Expect((DateTime?)response.Json["serverTimestamp"], Is.Not.Null);
         }
-
-        [Test]
-        public void GetConfigAuth()
-        {
-            // invoke get
-            var response = Client.Get(ResourceUri + "/config/auth");
-
-            // verify response object
-            Expect(response.Status, Is.EqualTo(200));
-            Expect(response.Json, Is.InstanceOf<JObject>());
-            Expect(response.Json["providers"] as JArray, Is.Not.Null);
-        }
     }
 }

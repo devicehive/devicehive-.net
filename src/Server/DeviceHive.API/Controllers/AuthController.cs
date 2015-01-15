@@ -4,6 +4,7 @@ using DeviceHive.Data.Model;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -11,8 +12,10 @@ using System.Web.Http.Description;
 
 namespace DeviceHive.API.Controllers
 {
+    /// <resource name="Authentication">
+    /// Represents utility methods for user authentication and generating session-level access tokens.
+    /// </resource>
     [RoutePrefix("auth")]
-    [ApiExplorerSettings(IgnoreApi = true)]
     public class AuthController : BaseController
     {
         private IAuthenticationManager _authenticationManager;
@@ -22,6 +25,44 @@ namespace DeviceHive.API.Controllers
             _authenticationManager = authenticationManager;
         }
 
+        /// <name>config</name>
+        /// <summary>
+        /// Gets information about supported authentication providers.
+        /// </summary>
+        /// <returns>If successful, this method returns the following resource in the response body.</returns>
+        /// <response>
+        ///     <parameter name="providers" type="array">List of authentication providers supported by this instance.</parameter>
+        ///     <parameter name="providers[].name" type="string">Provider name.</parameter>
+        ///     <parameter name="providers[].clientId" type="string">Client identifier of DeviceHive application within the third-party provider.</parameter>
+        ///     <parameter name="sessionTimeout" type="integer">User session timeout in seconds.</parameter>
+        /// </response>
+        [HttpGet, Route("~/info/config/auth")]
+        public JObject Config()
+        {
+            return new JObject(
+                new JProperty("providers", _authenticationManager.GetProviders().Select(p => new JObject(
+                    new JProperty("name", p.Name),
+                    new JProperty("clientId", p.Configuration.ClientId)
+                ))),
+                new JProperty("sessionTimeout", (int)DeviceHiveConfiguration.Authentication.SessionTimeout.TotalSeconds));
+        }
+
+        /// <name>login</name>
+        /// <summary>
+        /// Authenticates a user and returns a session-level access key.
+        /// </summary>
+        /// <returns>If successful, this method returns the object with the following properties in the response body.</returns>
+        /// <request>
+        ///     <parameter name="providerName" type="string" required="true">Name of authentication provider to use. Please call the 'config' method to get the list of available authentication providers. Use the 'password' value for the password-based authentication.</parameter>
+        ///     <parameter name="login" type="string">When using password authentication, specifies user login.</parameter>
+        ///     <parameter name="password" type="string">When using password authentication, specifies user password.</parameter>
+        ///     <parameter name="code" type="string">When using OAuth authentication, specifies authorization code received from provider.</parameter>
+        ///     <parameter name="redirect_uri" type="string">When using OAuth authentication, specifies redirect uri used during authentication.</parameter>
+        ///     <parameter name="access_token" type="string">When using OAuth implicit authentication, specifies access code issued to the DeviceHive application.</parameter>
+        /// </request>
+        /// <response>
+        ///     <parameter name="key" type="type">Session-level access key to use with this API.</parameter>
+        /// </response>
         [HttpPost, Route("accesskey")]
         public async Task<JObject> Create(JObject request)
         {
@@ -43,6 +84,10 @@ namespace DeviceHive.API.Controllers
             return new JObject(new JProperty("key", accessKey.Key));
         }
 
+        /// <name>logout</name>
+        /// <summary>
+        /// Invalidates the session-level token.
+        /// </summary>
         [HttpNoContentResponse]
         [HttpDelete, Route("accesskey")]
         [AuthorizeUser(AccessKeyAction = "GetCurrentUser")]

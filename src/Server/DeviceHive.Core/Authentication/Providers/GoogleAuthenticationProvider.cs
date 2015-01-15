@@ -46,8 +46,11 @@ namespace DeviceHive.Core.Authentication.Providers
 
             var code = (string)request["code"];
             var token = (string)request["access_token"];
+            var redirectUri = (string)request["redirect_uri"];
             if (code == null && token == null)
                 throw new AuthenticationException("OAuth authentication code or token were not provided in the request object!");
+            if (code != null && redirectUri == null)
+                throw new AuthenticationException("Redirect URI was not provided in the request object!");
 
             var client = new HttpClient { BaseAddress = new Uri("https://www.googleapis.com") };
 
@@ -58,7 +61,7 @@ namespace DeviceHive.Core.Authentication.Providers
                 {
                     { "client_id", ProviderConfiguration.ClientId },
                     { "client_secret", ProviderConfiguration.ClientSecret },
-                    { "redirect_uri", DeviceHiveConfiguration.Authentication.OAuthRedirectUri },
+                    { "redirect_uri", redirectUri },
                     { "grant_type", "authorization_code" },
                     { "code", code },
                 });

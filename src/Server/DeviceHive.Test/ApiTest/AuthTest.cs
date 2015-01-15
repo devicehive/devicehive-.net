@@ -27,6 +27,18 @@ namespace DeviceHive.Test.ApiTest
         }
 
         [Test]
+        public void Config()
+        {
+            // invoke get
+            var response = Client.Get("/info/config/auth");
+
+            // verify response object
+            Expect(response.Status, Is.EqualTo(200));
+            Expect(response.Json, Is.InstanceOf<JObject>());
+            Expect(response.Json["providers"] as JArray, Is.Not.Null);
+        }
+
+        [Test]
         public void AccessKey_Create()
         {
             // issue an access key

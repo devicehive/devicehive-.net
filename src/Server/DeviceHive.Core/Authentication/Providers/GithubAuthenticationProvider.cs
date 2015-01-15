@@ -46,8 +46,11 @@ namespace DeviceHive.Core.Authentication.Providers
                 throw new ArgumentNullException("request");
 
             var code = (string)request["code"];
+            var redirectUri = (string)request["redirect_uri"];
             if (code == null)
                 throw new AuthenticationException("OAuth authentication code was not provided in the request object!");
+            if (redirectUri == null)
+                throw new AuthenticationException("Redirect URI was not provided in the request object!");
 
             var client = new HttpClient { BaseAddress = new Uri("https://api.github.com") };
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -58,7 +61,7 @@ namespace DeviceHive.Core.Authentication.Providers
             {
                 { "client_id", ProviderConfiguration.ClientId },
                 { "client_secret", ProviderConfiguration.ClientSecret },
-                { "redirect_uri", DeviceHiveConfiguration.Authentication.OAuthRedirectUri },
+                { "redirect_uri", redirectUri },
                 { "code", code },
             });
 

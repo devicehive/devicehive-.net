@@ -27,6 +27,8 @@
     }
 </table>
 
+@if (Resource.Properties != null)
+{
 <h2>Resource Representation</h2>
 @Html.JsonRepresentation(Resource.Properties)
 
@@ -45,4 +47,4 @@
     </tr>
     }
 </table>
-
+}

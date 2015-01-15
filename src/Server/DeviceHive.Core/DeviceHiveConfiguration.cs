@@ -300,16 +300,6 @@ namespace DeviceHive.Core
         }
 
         /// <summary>
-        /// Gets or sets redirect uri to pass during OAuth authentication code exchange.
-        /// </summary>
-        [ConfigurationProperty("oauthRedirectUri")]
-        public string OAuthRedirectUri
-        {
-            get { return (string)this["oauthRedirectUri"]; }
-            set { base["oauthRedirectUri"] = value; }
-        }
-
-        /// <summary>
         /// Gets or sets authentication providers configuration element
         /// </summary>
         [ConfigurationProperty("providers")]

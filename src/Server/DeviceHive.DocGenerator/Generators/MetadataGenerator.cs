@@ -49,7 +49,7 @@ namespace DeviceHive.DocGenerator
             {
                 Resources = apiExplorer.ApiDescriptions
                     .OrderBy(d => d.ActionDescriptor.ControllerDescriptor.ControllerName)
-                    .Select(d => new { Resource = GetResourceType(d), Method = d })
+                    .Select(d => new { Resource = GetResourceInfo(d), Method = d })
                     .Where(d => d.Resource != null)
                     .GroupBy(d => d.Resource, d => d.Method)
                     .Select(g => new
@@ -60,9 +60,9 @@ namespace DeviceHive.DocGenerator
                     })
                     .Select(cd => new MetadataResource
                     {
-                        Name = cd.Resource == null ? null : cd.Resource.Name,
-                        Documentation = GetTypeDocumentation(cd.Resource),
-                        Properties = cd.Resource == null ? null : _helper.GetTypeParameters(cd.Resource),
+                        Name = cd.Resource.Name,
+                        Documentation = cd.Resource.Description,
+                        Properties = cd.Resource.Type == null ? null : _helper.GetTypeParameters(cd.Resource.Type),
                         Methods = cd.Methods
                             .Where(m => GetMethodName((ReflectedHttpActionDescriptor)m.ActionDescriptor) != null)
                             .Select(m => new MetadataMethod
@@ -84,7 +84,7 @@ namespace DeviceHive.DocGenerator
             return metadata;
         }
 
-        private Type GetResourceType(ApiDescription description)
+        private ResourceInfo GetResourceInfo(ApiDescription description)
         {
             var descriptor = description.ActionDescriptor as ReflectedHttpActionDescriptor;
 
@@ -97,7 +97,14 @@ namespace DeviceHive.DocGenerator
             if (resourceElement == null)
                 return null;
 
-            return _helper.GetCrefType(resourceElement);
+            var type = _helper.GetCrefType(resourceElement);
+            var name = (string)resourceElement.Attribute("name");
+            if (type == null && name == null)
+                return null;
+
+            return new ResourceInfo(type,
+                type != null ? type.Name : name,
+                type != null ? GetTypeDocumentation(type) : resourceElement.Contents());
         }
 
         private string GetTypeDocumentation(Type type)
@@ -256,6 +263,34 @@ namespace DeviceHive.DocGenerator
             }
 
             return parameters.ToArray();
+        }
+
+        private class ResourceInfo
+        {
+            public Type Type { get; set; }
+            public string Name { get; set; }
+            public string Description { get; set; }
+
+            public ResourceInfo(Type type, string name, string description)
+            {
+                Type = type;
+                Name = name;
+                Description = description;
+            }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as ResourceInfo;
+                if (other == null)
+                    return false;
+
+                return Name.Equals(other.Name);
+            }
+
+            public override int GetHashCode()
+            {
+                return Name.GetHashCode();
+            }
         }
     }
 }
