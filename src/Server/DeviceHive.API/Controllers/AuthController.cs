@@ -63,6 +63,7 @@ namespace DeviceHive.API.Controllers
         /// </request>
         /// <response>
         ///     <parameter name="key" type="string">Session-level access key to use with this API.</parameter>
+        ///     <parameter name="id" type="int">Session-level access key identifier.</parameter>
         /// </response>
         [HttpPost, Route("accesskey")]
         public async Task<JObject> Create(JObject request)
@@ -82,7 +83,7 @@ namespace DeviceHive.API.Controllers
             }
 
             var accessKey = CreateAccessKey(user);
-            return new JObject(new JProperty("key", accessKey.Key));
+            return new JObject(new JProperty("id", accessKey.ID), new JProperty("key", accessKey.Key));
         }
 
         /// <name>logout</name>
