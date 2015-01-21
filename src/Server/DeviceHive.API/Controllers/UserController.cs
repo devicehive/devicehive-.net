@@ -38,6 +38,10 @@ namespace DeviceHive.API.Controllers
         /// <name>get</name>
         /// <summary>
         /// Gets information about user and its assigned networks.
+        /// <para>
+        /// Only administrators are allowed to get information about any user.
+        /// User-level accounts can only retrieve information about themselves.
+        /// </para>
         /// </summary>
         /// <param name="id">User identifier. Use the 'current' keyword to get information about the current user.</param>
         /// <returns cref="User">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
@@ -91,11 +95,20 @@ namespace DeviceHive.API.Controllers
         /// <name>update</name>
         /// <summary>
         /// Updates an existing user.
+        /// <para>
+        /// Only administrators are allowed to update any property of any user.
+        /// User-level accounts can only change their own password in case:
+        /// </para>
+        /// <list type="bullet">
+        ///     <item>They already have a password.</item>
+        ///     <item>They provide a valid current password in the 'oldPassword' property.</item>
+        /// </list>
         /// </summary>
         /// <param name="id">User identifier. Use the 'current' keyword to update information of the current user.</param>
         /// <param name="json" cref="User">In the request body, supply a <see cref="User"/> resource.</param>
         /// <request>
-        ///     <parameter name="password" type="string">User password</parameter>
+        ///     <parameter name="password" type="string">User new password</parameter>
+        ///     <parameter name="oldPassword" type="string">User current password (for non-administrative password changing functionality only)</parameter>
         ///     <parameter name="login" required="false" />
         ///     <parameter name="role" required="false" />
         ///     <parameter name="status" required="false" />
@@ -109,9 +122,9 @@ namespace DeviceHive.API.Controllers
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
 
+            // only administrators can change user properties
             if (CallContext.CurrentUser.Role == (int)UserRole.Administrator)
             {
-                // only administrators can change user properties
                 Mapper.Apply(user, json);
                 Validate(user);
                 ValidateLoginUniqueness(user);
@@ -121,7 +134,21 @@ namespace DeviceHive.API.Controllers
             var password = (string)json["password"];
             if (password != null)
             {
+                // validate password policy
                 ValidatePasswordPolicy(password);
+
+                // additional checks for non-administrative users or password changing request
+                var oldPassword = (string)json["oldPassword"];
+                if (CallContext.CurrentUser.Role != (int)UserRole.Administrator || oldPassword != null)
+                {
+                    if (oldPassword == null)
+                        ThrowHttpResponse(HttpStatusCode.Forbidden, "Please provide an old password in order to change it!");
+                    if (!user.HasPassword())
+                        ThrowHttpResponse(HttpStatusCode.Forbidden, "It's not allowed to change a password for an user with the social login option only!");
+                    if (!user.IsValidPassword(oldPassword))
+                        ThrowHttpResponse(HttpStatusCode.Forbidden, "Invalid old password supplied!");
+                }
+
                 user.SetPassword(password);
             }
 

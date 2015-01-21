@@ -149,8 +149,10 @@ namespace DeviceHive.Test.ApiTest
             var resource = Create(new { login = "_ut", password = NewUserPassword, facebookLogin = "facebook", googleLogin = "google", githubLogin = "github", role = 1, status = 0 }, auth: Admin);
 
             // current user authorization
-            var current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "*", login = "_ut2", facebookLogin = "updated", googleLogin = "updated", githubLogin = "updated", role = 0, status = 1 }, auth: User("_ut", NewUserPassword));
-            Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus));
+            var current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "*" }, auth: User("_ut", NewUserPassword));
+            Expect(current.Status, Is.EqualTo(403)); // old password is required
+            current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "*", oldPassword = NewUserPassword, login = "_ut2", facebookLogin = "updated", googleLogin = "updated", githubLogin = "updated", role = 0, status = 1 }, auth: User("_ut", NewUserPassword));
+            Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus)); // success
             // verify user password has been changed
             Expect(Client.Get(ResourceUri + "/current", auth: User("_ut", NewUserPassword)).Status, Is.EqualTo(401));
             // verify that other properties have not been changed
@@ -158,7 +160,9 @@ namespace DeviceHive.Test.ApiTest
 
             // access key authorization
             var accessKey = CreateAccessKey(User("_ut", NewUserPassword + "*"), "UpdateCurrentUser");
-            current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "$", login = "_ut2", facebookLogin = "updated", googleLogin = "updated", githubLogin = "updated", role = 0, status = 1 }, auth: accessKey);
+            current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "$" }, auth: accessKey);
+            Expect(current.Status, Is.EqualTo(403)); // old password is required
+            current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "$", oldPassword = NewUserPassword + "*", login = "_ut2", facebookLogin = "updated", googleLogin = "updated", githubLogin = "updated", role = 0, status = 1 }, auth: accessKey);
             Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus));
             // verify user password has been changed
             Expect(Client.Get(ResourceUri + "/current", auth: User("_ut", NewUserPassword + "*")).Status, Is.EqualTo(401));
