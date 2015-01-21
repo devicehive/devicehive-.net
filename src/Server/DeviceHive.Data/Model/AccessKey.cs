@@ -82,6 +82,7 @@ namespace DeviceHive.Data.Model
         ///     <item><description>2: OAuth (issued via OAuth2 token endpoint) </description></item>
         /// </list>
         /// </summary>
+        [DefaultValue(0)]
         public int Type { get; set; }
 
         /// <summary>

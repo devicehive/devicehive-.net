@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -72,13 +74,13 @@ namespace DeviceHive.Core.Mapping
 
             // create MapToEntity action
             var entityPropertySetterLambda = GetPropertySetter(entityProperty);
-            var jsonTokenParser = GetJsonTokenParser(entityProperty.PropertyType);
-            Action<JObject, T> mapToEntityLabmda = (json, entity) =>
+            var jsonTokenParser = GetJsonTokenParser(entityProperty);
+            Action<JObject, T, bool> mapToEntityLabmda = (json, entity, patch) =>
                 {
                     var jProperty = json.Property(jsonProperty);
-                    if (jProperty != null)
+                    if (jProperty != null || !patch)
                     {
-                        var value = jsonTokenParser(jProperty.Value);
+                        var value = jsonTokenParser(jsonProperty, jProperty != null ? jProperty.Value : null);
                         entityPropertySetterLambda(entity, value);
                     }
                 };
@@ -118,13 +120,13 @@ namespace DeviceHive.Core.Mapping
 
             // create MapToEntity action
             var entityPropertySetterLambda = GetPropertySetter(entityProperty);
-            var jsonTokenParser = GetJsonTokenParser(isNullable ? typeof(Nullable<TEnum>) : typeof(TEnum));
-            Action<JObject, T> mapToEntityLabmda = (json, entity) =>
+            var jsonTokenParser = GetJsonTokenParser(entityProperty, isNullable ? typeof(Nullable<TEnum>) : typeof(TEnum));
+            Action<JObject, T, bool> mapToEntityLabmda = (json, entity, patch) =>
                 {
                     var jProperty = json.Property(jsonProperty);
-                    if (jProperty != null)
+                    if (jProperty != null || !patch)
                     {
-                        var value = (int)jsonTokenParser(jProperty.Value);
+                        var value = jsonTokenParser(jsonProperty, jProperty != null ? jProperty.Value : null);
                         entityPropertySetterLambda(entity, value);
                     }
                 };
@@ -160,13 +162,12 @@ namespace DeviceHive.Core.Mapping
 
             // create MapToEntity action
             var entityPropertySetterLambda = GetPropertySetter(entityProperty);
-            var jsonTokenParser = GetJsonTokenParser(entityProperty.PropertyType);
-            Action<JObject, T> mapToEntityLabmda = (json, entity) =>
+            Action<JObject, T, bool> mapToEntityLabmda = (json, entity, patch) =>
                 {
                     var jProperty = json.Property(jsonProperty);
-                    if (jProperty != null)
+                    if (jProperty != null || !patch)
                     {
-                        var value = jProperty.Value.Type == JTokenType.Null ? null : jProperty.Value.ToString(Formatting.None);
+                        var value = jProperty == null || jProperty.Value.Type == JTokenType.Null ? null : jProperty.Value.ToString(Formatting.None);
                         entityPropertySetterLambda(entity, value);
                     }
                 };
@@ -203,14 +204,13 @@ namespace DeviceHive.Core.Mapping
 
             // create MapToEntity action
             var entityPropertySetterLambda = GetPropertySetter(entityProperty);
-            Action<JObject, T> mapToEntityLabmda = (json, entity) =>
+            Action<JObject, T, bool> mapToEntityLabmda = (json, entity, patch) =>
                 {
                     var jProperty = json.Property(jsonProperty);
-                    if (jProperty != null)
+                    if (jProperty != null || !patch)
                     {
                         TRef refValue = default(TRef);
-                        var jValue = jProperty.Value as JValue;
-                        if (jProperty.Value.Type == JTokenType.Null)
+                        if (jProperty == null || jProperty.Value.Type == JTokenType.Null)
                         {
                             // null is passed - have to reset the foreign key property as well
                             var fkProperty = typeof(T).GetProperty(entityProperty.Name + "ID");
@@ -221,8 +221,11 @@ namespace DeviceHive.Core.Mapping
                         }
                         else if (jProperty.Value.Type == JTokenType.Object)
                         {
-                            // parse the object
-                            refValue = mapper.Map((JObject)jProperty.Value);
+                            // apply the reference object
+                            refValue = entityPropertyLambda(entity);
+                            if (refValue == null || !patch)
+                                refValue = (TRef)Activator.CreateInstance(typeof(TRef));
+                            mapper.Apply(refValue, (JObject)jProperty.Value, patch);
                         }
                         else
                         {
@@ -263,13 +266,13 @@ namespace DeviceHive.Core.Mapping
 
             // create MapToEntity action
             var entityPropertySetterLambda = GetPropertySetter(entityProperty);
-            Action<JObject, T> mapToEntityLabmda = (json, entity) =>
+            Action<JObject, T, bool> mapToEntityLabmda = (json, entity, patch) =>
                 {
                     var jProperty = json.Property(jsonProperty);
-                    if (jProperty != null)
+                    if (jProperty != null || !patch)
                     {
                         var refValue = (IList<TRef>)null;
-                        if (jProperty.Value.Type == JTokenType.Array)
+                        if (jProperty != null && jProperty.Value.Type == JTokenType.Array)
                         {
                             refValue = (IList<TRef>)Activator.CreateInstance(entityProperty.PropertyType);
                             foreach (var element in (JArray)jProperty.Value)
@@ -280,7 +283,7 @@ namespace DeviceHive.Core.Mapping
                                 refValue.Add(mapper.Map((JObject)element));
                             }
                         }
-                        else if (jProperty.Value.Type != JTokenType.Null)
+                        else if (jProperty != null && jProperty.Value.Type != JTokenType.Null)
                         {
                             throw new JsonMapperException("The value of the collection property has invalid format, property: " + jsonProperty);
                         }
@@ -326,28 +329,30 @@ namespace DeviceHive.Core.Mapping
             return (Func<object, object>)(e => e);
         }
 
-        private Func<JToken, object> GetJsonTokenParser(Type type)
+        private Func<string, JToken, object> GetJsonTokenParser(PropertyInfo property, Type type = null)
         {
-            // returns a delegate that will parse JSON to a specified type
-            
+            // returns a delegate that will parse JSON to a specified property
+
+            type = type ?? property.PropertyType;
+
             if (type.IsArray)
             {
-                return (Func<JToken, object>)((JToken jToken) =>
+                return (Func<string, JToken, object>)((string propertyName, JToken jToken) =>
                     {
-                        if (jToken.Type == JTokenType.Null)
+                        if (jToken == null || jToken.Type == JTokenType.Null)
                             return null;
 
                         if (jToken.Type != JTokenType.Array)
-                            throw new JsonMapperException("Invalid value: " + jToken.ToString(Formatting.None) + ", expected: Array");
+                            throw new JsonMapperException(string.Format("Invalid value in field '{0}', expected: Array, actual: {1}", propertyName, jToken.ToString(Formatting.None)));
 
                         var jArray = (JArray)jToken;
                         var elementType = type.GetElementType();
-                        var elementParser = GetJsonTokenParser(elementType);
+                        var elementParser = GetJsonTokenParser(property, elementType);
                         
                         var array = Array.CreateInstance(elementType, jArray.Count);
                         for (var i = 0; i < array.Length; i++)
                         {
-                            array.SetValue(elementParser(jArray[i]), i);
+                            array.SetValue(elementParser(propertyName + "[]", jArray[i]), i);
                         }
                         return array;
                     });
@@ -356,12 +361,17 @@ namespace DeviceHive.Core.Mapping
 
             // define delegate for null testing: throw an exception if value is required, otherwise return a flag indicating if a value is null
             var basePropertyType = Nullable.GetUnderlyingType(type) ?? type;
-            var isNull = type != basePropertyType || !type.IsValueType ?
-                (Func<JToken, bool>)((JToken jToken) => jToken.Type == JTokenType.Null) :
-                (Func<JToken, bool>)((JToken jToken) =>
+            var hasRequredAttribute = property.IsDefined(typeof(RequiredAttribute));
+            var defaultValueAttribute = (DefaultValueAttribute)property.GetCustomAttribute(typeof(DefaultValueAttribute));
+            var isRequired = defaultValueAttribute == null && (hasRequredAttribute || (type.IsValueType && type == basePropertyType));
+            var isNull = !isRequired ?
+                (Func<string, JToken, bool>)((string propertyName, JToken jToken) => jToken == null || jToken.Type == JTokenType.Null) :
+                (Func<string, JToken, bool>)((string propertyName, JToken jToken) =>
                     {
+                        if (jToken == null)
+                            throw new JsonMapperException(string.Format("The '{0}' field is required!", propertyName));
                         if (jToken.Type == JTokenType.Null)
-                            throw new JsonMapperException("Null value is not expected: " + jToken.Parent.ToString(Formatting.None));
+                            throw new JsonMapperException(string.Format("The '{0}' field cannot be null!", propertyName));
 
                         return false;
                     });
@@ -369,13 +379,13 @@ namespace DeviceHive.Core.Mapping
             if (basePropertyType == typeof(Guid))
             {
                 // return a delegate that pases JSON to Guid
-                return (Func<JToken, object>)((JToken jToken) =>
+                return (Func<string, JToken, object>)((string propertyName, JToken jToken) =>
                     {
-                        if (isNull(jToken))
+                        if (isNull(propertyName, jToken))
                             return null;
 
                         if (jToken.Type != JTokenType.String)
-                            throw new JsonMapperException("Invalid value: " + jToken.ToString(Formatting.None) + ", expected: Guid");
+                            throw new JsonMapperException(string.Format("Invalid value in field '{0}', expected: Guid, actual: {1}", propertyName, jToken.ToString(Formatting.None)));
 
                         try
                         {
@@ -383,17 +393,17 @@ namespace DeviceHive.Core.Mapping
                         }
                         catch (FormatException)
                         {
-                            throw new JsonMapperException("Invalid value: " + jToken.ToString(Formatting.None) + ", expected: Guid");
+                            throw new JsonMapperException(string.Format("Invalid value in field '{0}', expected: Guid, actual: {1}", propertyName, jToken.ToString(Formatting.None)));
                         }
                     });
             }
             else if (basePropertyType.IsEnum)
             {
                 // return a delegate that pases JSON to Enum (either by name or integer equivalent)
-                return (Func<JToken, object>)((JToken jToken) =>
+                return (Func<string, JToken, object>)((string propertyName, JToken jToken) =>
                     {
-                        if (isNull(jToken))
-                            return null;
+                        if (isNull(propertyName, jToken))
+                            return defaultValueAttribute != null ? defaultValueAttribute.Value : null;
 
                         if (jToken.Type == JTokenType.String)
                         {
@@ -403,7 +413,7 @@ namespace DeviceHive.Core.Mapping
                             }
                             catch (ArgumentException)
                             {
-                                throw new JsonMapperException("Invalid enumeration value: " + jToken.ToString(Formatting.None));
+                                throw new JsonMapperException(string.Format("Invalid enumeration value in field '{0}': {1}", propertyName, jToken.ToString(Formatting.None)));
                             }
                         }
                         else if (jToken.Type == JTokenType.Integer)
@@ -412,17 +422,17 @@ namespace DeviceHive.Core.Mapping
                         }
                         else
                         {
-                            throw new JsonMapperException("Invalid value: " + jToken.ToString(Formatting.None) + ", expected: Enum");
+                            throw new JsonMapperException(string.Format("Invalid value in field '{0}', expected: Enum, actual: {1}", propertyName, jToken.ToString(Formatting.None)));
                         }
                     });
             }
             else
             {
                 // return a delegate that pases JSON to other types (integer, float, boolean, string, date)
-                return (Func<JToken, object>)((JToken jToken) =>
+                return (Func<string, JToken, object>)((string propertyName, JToken jToken) =>
                     {
-                        if (isNull(jToken))
-                            return null;
+                        if (isNull(propertyName, jToken))
+                            return defaultValueAttribute != null ? defaultValueAttribute.Value : null;
 
                         try
                         {
@@ -430,11 +440,13 @@ namespace DeviceHive.Core.Mapping
                         }
                         catch (ArgumentException)
                         {
-                            throw new JsonMapperException("Invalid value: " + jToken.ToString(Formatting.None) + ", expected: " + basePropertyType.Name);
+                            throw new JsonMapperException(string.Format("Invalid value in field '{0}', expected: {1}, actual: {2}",
+                                propertyName, basePropertyType.Name, jToken.ToString(Formatting.None)));
                         }
                         catch (FormatException)
                         {
-                            throw new JsonMapperException("Invalid value: " + jToken.ToString(Formatting.None) + ", expected: " + basePropertyType.Name);
+                            throw new JsonMapperException(string.Format("Invalid value in field '{0}', expected: {1}, actual: {2}",
+                                propertyName, basePropertyType.Name, jToken.ToString(Formatting.None)));
                         }
                     });
             }

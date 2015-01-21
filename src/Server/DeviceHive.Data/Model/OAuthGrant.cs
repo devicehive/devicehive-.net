@@ -145,6 +145,7 @@ namespace DeviceHive.Data.Model
         ///     <item><description>Offline: Assess is requested for an unlimited period of time</description></item>
         /// </list>
         /// </summary>
+        [DefaultValue(0)]
         public int AccessType { get; set; }
 
         /// <summary>

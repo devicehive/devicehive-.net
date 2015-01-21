@@ -303,7 +303,7 @@ namespace DeviceHive.Test
         protected Authorization CreateAccessKey(Authorization user, string[] actions, int[] networkIds = null, string[] deviceGuids = null)
         {
             // create access key
-            var accessKeyResource = Client.Post("/user/current/accesskey", new { label = "ut", permissions =
+            var accessKeyResource = Client.Post("/user/current/accesskey", new { type = 0, label = "ut", permissions =
                 new[] { new { actions = actions, networkIds = networkIds, deviceGuids = deviceGuids } } }, auth: user);
             Expect(accessKeyResource.Status, Is.EqualTo(ExpectedCreatedStatus));
             var accessKeyId = GetResourceId(accessKeyResource.Json);

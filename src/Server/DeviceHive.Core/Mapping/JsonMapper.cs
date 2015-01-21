@@ -74,12 +74,13 @@ namespace DeviceHive.Core.Mapping
         /// </summary>
         /// <param name="entity">Destination entity object</param>
         /// <param name="json">JObject object to apply</param>
-        void IJsonMapper.Apply(object entity, JObject json)
+        /// <param name="patch">Whether to ignore absense of required fields</param>
+        void IJsonMapper.Apply(object entity, JObject json, bool patch)
         {
             if (!typeof(T).IsInstanceOfType(entity))
                 throw new ArgumentException(string.Format("Entity type is invalid! Expected: {0}, Actual: {1}", typeof(T), entity.GetType()), "entity");
 
-            Apply((T)entity, json);
+            Apply((T)entity, json, patch);
         }
         #endregion
 
@@ -120,7 +121,7 @@ namespace DeviceHive.Core.Mapping
         public T Map(JObject json)
         {
             var entity = (T)Activator.CreateInstance(typeof(T));
-            Apply(entity, json);
+            Apply(entity, json, patch: false);
             return entity;
         }
 
@@ -129,7 +130,8 @@ namespace DeviceHive.Core.Mapping
         /// </summary>
         /// <param name="entity">Destination entity object</param>
         /// <param name="json">JObject object to apply</param>
-        public void Apply(T entity, JObject json)
+        /// <param name="patch">Whether to ignore absense of required fields</param>
+        public void Apply(T entity, JObject json, bool patch = true)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -141,7 +143,7 @@ namespace DeviceHive.Core.Mapping
             foreach (var entry in _configuration.Entries)
             {
                 if ((entry.Mode & JsonMapperEntryMode.FromJson) != 0)
-                    entry.MapToEntity(json, entity);
+                    entry.MapToEntity(json, entity, patch);
             }
         }
 

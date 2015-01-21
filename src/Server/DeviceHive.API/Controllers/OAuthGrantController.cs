@@ -57,7 +57,6 @@ namespace DeviceHive.API.Controllers
         /// <param name="userId">User identifier. Use the 'current' keyword to create OAuth grant for the current user.</param>
         /// <param name="json" cref="OAuthGrant">In the request body, supply a <see cref="OAuthGrant"/> resource.</param>
         /// <request>
-        ///     <parameter name="accessType" required="false" />
         ///     <parameter name="redirectUri" required="true" />
         ///     <parameter name="client" required="true">A <see cref="OAuthClient"/> object which includes oauthId property to match.</parameter>
         ///     <parameter name="client." mode="remove" />
@@ -72,12 +71,17 @@ namespace DeviceHive.API.Controllers
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
 
+            var jsonClient = json["client"] as JObject;
+            if (jsonClient == null)
+                ThrowHttpResponse(HttpStatusCode.BadRequest, "The 'client' field is required!");
+            json.Remove("client");
+
             var oauthGrant = Mapper.Map(json);
             oauthGrant.UserID = user.ID;
+            oauthGrant.Client = MapClient(jsonClient);
             if (string.IsNullOrEmpty(oauthGrant.RedirectUri))
                 ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing required field: redirectUri");
 
-            MapClient(oauthGrant);
             OAuth2Controller.RenewGrant(oauthGrant);
             Validate(oauthGrant);
 
@@ -114,11 +118,15 @@ namespace DeviceHive.API.Controllers
             if (oauthGrant == null || oauthGrant.UserID != userId)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "OAuth grant not found!");
 
+            var jsonClient = json["client"] as JObject;
+            json.Remove("client");
+
+            var client = oauthGrant.Client;
             Mapper.Apply(oauthGrant, json);
+            oauthGrant.Client = jsonClient != null ? MapClient(jsonClient) : client;
             if (string.IsNullOrEmpty(oauthGrant.RedirectUri))
                 ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing required field: redirectUri");
 
-            MapClient(oauthGrant);
             OAuth2Controller.RenewGrant(oauthGrant);
             Validate(oauthGrant);
 
@@ -149,18 +157,17 @@ namespace DeviceHive.API.Controllers
             }
         }
 
-        private void MapClient(OAuthGrant grant)
+        private OAuthClient MapClient(JObject json)
         {
-            if (grant.Client == null)
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "The 'client' field is required!");
-            if (grant.Client.OAuthID == null)
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Specified 'client' object must include 'oauthId' property!");
+            var oauthId = (string)json["oauthId"];
+            if (oauthId == null)
+                ThrowHttpResponse(HttpStatusCode.BadRequest, "Specified 'client' object must include the 'oauthId' property!");
 
-            var client = DataContext.OAuthClient.Get(grant.Client.OAuthID);
+            var client = DataContext.OAuthClient.Get(oauthId);
             if (client == null)
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "A client with specified 'oauthId' property does not exist!");
 
-            grant.Client = client;
+            return client;
         }
 
         private IJsonMapper<OAuthGrant> Mapper
