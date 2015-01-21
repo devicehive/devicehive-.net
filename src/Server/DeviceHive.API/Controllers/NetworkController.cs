@@ -127,6 +127,10 @@ namespace DeviceHive.API.Controllers
         [Route("{id:int}"), AuthorizeAdmin(AccessKeyAction = "ManageNetwork")]
         public void Delete(int id)
         {
+            var devices = DataContext.Device.GetAll(new DeviceFilter { NetworkID = id });
+            if (devices.Any())
+                ThrowHttpResponse(HttpStatusCode.Forbidden, "Could not delete a network because there are one or several devices associated with it.");
+
             DataContext.Network.Delete(id);
         }
 
