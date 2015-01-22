@@ -72,7 +72,7 @@ namespace DeviceHive.API.Controllers
                         }
                         catch (AuthenticationException)
                         {
-                            ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized!");
+                            ThrowHttpResponse(HttpStatusCode.Unauthorized, "Invalid credentials or account is disabled!");
                         }
 
                         // issue or renew grant
