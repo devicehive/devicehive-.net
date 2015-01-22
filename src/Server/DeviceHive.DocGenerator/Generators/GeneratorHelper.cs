@@ -22,7 +22,7 @@ namespace DeviceHive.DocGenerator
             _xmlCommentReader = xmlCommentReader;
         }
 
-        public MetadataParameter[] GetTypeParameters(Type type, JsonMapperEntryMode? mode = null, string prefix = null)
+        public MetadataParameter[] GetTypeParameters(Type type, JsonMapperEntryMode? mode = null, bool patch = false, string prefix = null)
         {
             // get JSON mapping manager
             var mapper = _jsonMapperManager.GetMapper(type);
@@ -40,7 +40,7 @@ namespace DeviceHive.DocGenerator
                 {
                     Name = prefix + parameter.JsonProperty,
                     Type = isJsonObject ? "object" : ToJsonType(propertyType),
-                    IsRequred = IsRequired(parameter.EntityProperty),
+                    IsRequred = !patch && IsRequired(parameter.EntityProperty),
                     Documentation = _xmlCommentReader.GetPropertyElement(parameter.EntityProperty).ElementContents("summary"),
                 };
                 parameters.Add(param);
@@ -48,7 +48,7 @@ namespace DeviceHive.DocGenerator
                 // add child object parameters
                 if (param.Type == "object" && !isJsonObject)
                 {
-                    parameters.AddRange(GetTypeParameters(propertyType, mode, param.Name + "."));
+                    parameters.AddRange(GetTypeParameters(propertyType, mode, false, param.Name + "."));
                 }
                 else if (param.Type == "array")
                 {
@@ -56,7 +56,7 @@ namespace DeviceHive.DocGenerator
                         i.GetGenericTypeDefinition() == typeof(IEnumerable<>)).GetGenericArguments().First();
                     if (ToJsonType(elementType) == "object")
                     {
-                        parameters.AddRange(GetTypeParameters(elementType, mode, param.Name + "[]."));
+                        parameters.AddRange(GetTypeParameters(elementType, mode, false, param.Name + "[]."));
                     }
                 }
             }
@@ -114,7 +114,7 @@ namespace DeviceHive.DocGenerator
                     var paramJsonMode = jsonMode;
                     if (paramJsonMode != null && mode == "OneWayOnly")
                         paramJsonMode = paramJsonMode.Value | JsonMapperEntryMode.OneWayOnly;
-                    parameters.AddRange(GetTypeParameters(cref, paramJsonMode, param.Name + (type == "array" ? "[]" : null) + "."));
+                    parameters.AddRange(GetTypeParameters(cref, paramJsonMode, prefix: param.Name + (type == "array" ? "[]" : null) + "."));
                 }
             }
         }

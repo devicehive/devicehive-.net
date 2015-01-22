@@ -72,11 +72,6 @@ namespace DeviceHive.API.Controllers
         /// <param name="deviceClassId">Device class identifier.</param>
         /// <param name="id">Equipment identifier.</param>
         /// <param name="json" cref="Equipment">In the request body, supply an <see cref="Equipment"/> resource.</param>
-        /// <request>
-        ///     <parameter name="name" required="false" />
-        ///     <parameter name="code" required="false" />
-        ///     <parameter name="type" required="false" />
-        /// </request>
         [Route("{id:int}")]
         [HttpNoContentResponse]
         public void Put(int deviceClassId, int id, JObject json)

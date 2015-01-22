@@ -78,13 +78,12 @@ namespace DeviceHive.API.Controllers
         /// <param name="id">Device unique identifier.</param>
         /// <param name="json" cref="Device">In the request body, supply a <see cref="Device"/> resource.</param>
         /// <request>
-        ///     <parameter name="name" required="false" />
         ///     <parameter name="network">
         ///         <para>A <see cref="Network"/> object which includes name property to match.</para>
         ///         <para>In case when the target network is protected with a key, the key value must also be included.</para>
         ///         <para>For test deployments, any non-existing networks are automatically created.</para>
         ///     </parameter>
-        ///     <parameter name="deviceClass" required="false">
+        ///     <parameter name="deviceClass">
         ///         <para>A <see cref="DeviceClass"/> object which includes name and version properties to match.</para>
         ///         <para>The device class objects are automatically created/updated unless the DeviceClass.IsPermanent flag is set.</para>
         ///     </parameter>

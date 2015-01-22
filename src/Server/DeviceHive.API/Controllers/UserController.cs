@@ -109,9 +109,6 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="password" type="string">User new password</parameter>
         ///     <parameter name="oldPassword" type="string">User current password (for non-administrative password changing functionality only)</parameter>
-        ///     <parameter name="login" required="false" />
-        ///     <parameter name="role" required="false" />
-        ///     <parameter name="status" required="false" />
         /// </request>
         [HttpNoContentResponse]
         [Route("{id:idorcurrent}")]

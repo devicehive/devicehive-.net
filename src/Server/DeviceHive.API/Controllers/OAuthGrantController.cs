@@ -105,10 +105,6 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="client" required="false">A <see cref="OAuthClient"/> object which includes oauthId property to match.</parameter>
         ///     <parameter name="client." mode="remove" />
         ///     <parameter name="client.oauthId" type="string" required="true" after="client">Client OAuth identifier.</parameter>
-        ///     <parameter name="type" required="false" />
-        ///     <parameter name="scope" required="false" />
-        ///     <parameter name="redirectUri" required="false" />
-        ///     <parameter name="accessType" required="false" />
         /// </request>
         /// <returns cref="OAuthGrant" mode="OneWayOnly">If successful, this method returns a <see cref="OAuthGrant"/> resource in the response body.</returns>
         [Route("{id:int}")]

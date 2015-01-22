@@ -71,12 +71,6 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device class identifier.</param>
         /// <param name="json" cref="DeviceClass">In the request body, supply a <see cref="DeviceClass"/> resource.</param>
-        /// <request>
-        ///     <parameter name="name" required="false" />
-        ///     <parameter name="version" required="false" />
-        ///     <parameter name="isPermanent" required="false" />
-        ///     <parameter name="equipment" required="false" />
-        /// </request>
         [HttpNoContentResponse]
         [Route("{id:int}"), AuthorizeAdmin(AccessKeyAction = "ManageDeviceClass")]
         public void Put(int id, JObject json)

@@ -97,9 +97,6 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Network identifier.</param>
         /// <param name="json" cref="Network">In the request body, supply a <see cref="Network"/> resource.</param>
-        /// <request>
-        ///     <parameter name="name" required="false" />
-        /// </request>
         [HttpNoContentResponse]
         [Route("{id:int}"), AuthorizeAdmin(AccessKeyAction = "ManageNetwork")]
         public void Put(int id, JObject json)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Description;
@@ -218,7 +219,8 @@ namespace DeviceHive.DocGenerator
                 var resourceType = _helper.GetCrefType(methodParamElement);
                 if (resourceType != null)
                 {
-                    parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson));
+                    parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson,
+                        patch: descriptor.SupportedHttpMethods.Contains(HttpMethod.Put)));
                 }
             }
 

@@ -82,11 +82,6 @@ namespace DeviceHive.API.Controllers
         /// <param name="userId">User identifier. Use the 'current' keyword to update access key of the current user.</param>
         /// <param name="id">Access key identifier.</param>
         /// <param name="json" cref="AccessKey">In the request body, supply a <see cref="AccessKey"/> resource.</param>
-        /// <request>
-        ///     <parameter name="label" required="false" />
-        ///     <parameter name="expirationDate" required="false" />
-        ///     <parameter name="permissions" required="false" />
-        /// </request>
         [Route("{id:int}")]
         [HttpNoContentResponse]
         public void Put(int userId, int id, JObject json)
