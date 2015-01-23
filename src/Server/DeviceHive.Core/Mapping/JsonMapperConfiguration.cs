@@ -409,7 +409,7 @@ namespace DeviceHive.Core.Mapping
                         {
                             try
                             {
-                                return Enum.Parse(basePropertyType, (string)jToken, true);
+                                return (int)Enum.Parse(basePropertyType, (string)jToken, true);
                             }
                             catch (ArgumentException)
                             {
@@ -418,7 +418,7 @@ namespace DeviceHive.Core.Mapping
                         }
                         else if (jToken.Type == JTokenType.Integer)
                         {
-                            return Enum.ToObject(basePropertyType, (int)jToken);
+                            return (int)Enum.ToObject(basePropertyType, (int)jToken);
                         }
                         else
                         {
