@@ -172,7 +172,8 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="notification">A <see cref="Notification"/> object to be sent.</param>
-        public abstract Task SendNotificationAsync(string deviceGuid, Notification notification);
+        /// <returns>Sent Notification object.</returns>
+        public abstract Task<Notification> SendNotificationAsync(string deviceGuid, Notification notification);
 
         /// <summary>
         /// Sends a command to the device.
@@ -181,7 +182,8 @@ namespace DeviceHive.Client
         /// <param name="command">A <see cref="Command"/> object to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
         /// <param name="token">Cancellation token to cancel polling command result.</param>
-        public abstract Task SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null);
+        /// <returns>Sent Command object.</returns>
+        public abstract Task<Command> SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null);
 
         /// <summary>
         /// Updates a command on behalf of the device.

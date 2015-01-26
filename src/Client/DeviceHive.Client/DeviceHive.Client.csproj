@@ -73,6 +73,7 @@
     <Compile Include="DeviceHiveClient.cs" />
     <Compile Include="DeviceHiveConnectionInfo.cs" />
     <Compile Include="DeviceHiveException.cs" />
+    <Compile Include="IDeviceHiveClient.cs" />
     <Compile Include="Internal\AsyncLock.cs" />
     <Compile Include="Internal\AsyncSemaphore.cs" />
     <Compile Include="Internal\CommandCallback.cs" />

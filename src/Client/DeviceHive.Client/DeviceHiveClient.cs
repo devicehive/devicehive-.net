@@ -12,7 +12,7 @@ namespace DeviceHive.Client
     /// and also utilizes one of available channels (LongPolling, WebSocket) for maintaining a persistent connection
     /// for retrieving real-time messages (notifications, commands) from the server according to subscriptions made.
     /// </summary>
-    public class DeviceHiveClient : IDisposable
+    public class DeviceHiveClient : IDeviceHiveClient, IDisposable
     {
         private readonly AsyncLock _lock = new AsyncLock(); // synchronizes channel open/close operations
         private readonly DeviceHiveConnectionInfo _connectionInfo;
@@ -236,11 +236,11 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="notification">A <see cref="Notification"/> object representing the notification to be sent.</param>
-        /// <returns></returns>
-        public async Task SendNotificationAsync(string deviceGuid, Notification notification)
+        /// <returns>Sent Notification object.</returns>
+        public async Task<Notification> SendNotificationAsync(string deviceGuid, Notification notification)
         {
             var channel = await OpenChannelAsync();
-            await channel.SendNotificationAsync(deviceGuid, notification);
+            return await channel.SendNotificationAsync(deviceGuid, notification);
         }
 
         /// <summary>
@@ -251,11 +251,11 @@ namespace DeviceHive.Client
         /// <param name="command">A <see cref="Command"/> object representing the command to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
         /// <param name="token">Cancellation token to cancel polling command result.</param>
-        /// <returns></returns>
-        public async Task SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
+        /// <returns>Sent Command object.</returns>
+        public async Task<Command> SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
         {
             var channel = await OpenChannelAsync();
-            await channel.SendCommandAsync(deviceGuid, command, callback, token);
+            return await channel.SendCommandAsync(deviceGuid, command, callback, token);
         }
 
         /// <summary>

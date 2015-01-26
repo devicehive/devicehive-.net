@@ -76,7 +76,8 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="notification">A <see cref="Notification"/> object to be sent.</param>
-        public override async Task SendNotificationAsync(string deviceGuid, Notification notification)
+        /// <returns>Sent Notification object.</returns>
+        public override async Task<Notification> SendNotificationAsync(string deviceGuid, Notification notification)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
@@ -86,6 +87,7 @@ namespace DeviceHive.Client
             var result = await _restClient.PostAsync(string.Format("device/{0}/notification", deviceGuid), notification);
             notification.Id = result.Id;
             notification.Timestamp = result.Timestamp;
+            return notification;
         }
 
         /// <summary>
@@ -95,7 +97,8 @@ namespace DeviceHive.Client
         /// <param name="command">A <see cref="Command"/> object to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
         /// <param name="token">Cancellation token to cancel polling command result.</param>
-        public override async Task SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
+        /// <returns>Sent Command object.</returns>
+        public override async Task<Command> SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
         {
             if (string.IsNullOrEmpty(deviceGuid))
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
@@ -118,6 +121,8 @@ namespace DeviceHive.Client
                         callback(update);
                 });
             }
+
+            return command;
         }
 
         /// <summary>
