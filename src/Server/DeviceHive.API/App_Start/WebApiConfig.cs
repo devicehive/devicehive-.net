@@ -1,5 +1,6 @@
 ﻿using DeviceHive.API.Filters;
 using Newtonsoft.Json.Converters;
+using Ninject;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,15 +30,16 @@ namespace DeviceHive.API
             jsonFormatter.SerializerSettings.Converters.Add(new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffffff" });
 
             // message handlers
-            config.MessageHandlers.Add(new XHttpMethodDelegatingHandler());
+            var kernel = (IKernel)config.DependencyResolver.GetService(typeof(IKernel));
+            config.MessageHandlers.Add(kernel.Get<XHttpMethodDelegatingHandler>());
 
             // action selector which handles options method
-            config.Services.Replace(typeof(IHttpActionSelector), new ActionSelector());
+            config.Services.Replace(typeof(IHttpActionSelector), kernel.Get<ActionSelector>());
 
             // global filters
-            config.Filters.Add(new HandleExceptionAttribute());
-            config.Filters.Add(new AuthenticationFilter());
-            config.Filters.Add(new AllowCrossDomainOrigin());
+            config.Filters.Add(kernel.Get<HandleExceptionAttribute>());
+            config.Filters.Add(kernel.Get<AuthenticationFilter>());
+            config.Filters.Add(kernel.Get<AllowCrossDomainOrigin>());
         }
     }
 }

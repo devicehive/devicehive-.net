@@ -16,11 +16,10 @@ namespace DeviceHive.API.Filters
 {
     public class AuthenticationFilter : IAuthenticationFilter
     {
-        private DeviceHiveConfiguration _deviceHiveConfiguration;
-        private IAuthenticationManager _authenticationManager;
+        private readonly DeviceHiveConfiguration _deviceHiveConfiguration;
+        private readonly IAuthenticationManager _authenticationManager;
 
-        [Ninject.Inject]
-        public void Initialize(DeviceHiveConfiguration deviceHiveConfiguration, IAuthenticationManager authenticationManager)
+        public AuthenticationFilter(DeviceHiveConfiguration deviceHiveConfiguration, IAuthenticationManager authenticationManager)
         {
             _deviceHiveConfiguration = deviceHiveConfiguration;
             _authenticationManager = authenticationManager;
