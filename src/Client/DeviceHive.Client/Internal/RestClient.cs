@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
@@ -20,7 +19,7 @@ namespace DeviceHive.Client
     internal class RestClient
     {
         private HttpClient _httpClient;
-        private JsonMediaTypeFormatter _jsonFormatter;
+        private JsonSerializerSettings _jsonSettings;
         private DeviceHiveConnectionInfo _connectionInfo;
 
         #region Constructor
@@ -46,10 +45,10 @@ namespace DeviceHive.Client
                     Encoding.UTF8.GetBytes(string.Format("{0}:{1}", _connectionInfo.Login, _connectionInfo.Password))));
             }
 
-            _jsonFormatter = new JsonMediaTypeFormatter();
-            _jsonFormatter.SerializerSettings.Converters.Add(new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffffff" });
-            _jsonFormatter.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            _jsonFormatter.SerializerSettings.ContractResolver = new JsonContractResolver();
+            _jsonSettings = new JsonSerializerSettings();
+            _jsonSettings.Converters.Add(new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.ffffff" });
+            _jsonSettings.NullValueHandling = NullValueHandling.Ignore;
+            _jsonSettings.ContractResolver = new JsonContractResolver();
         }
         #endregion
 
@@ -65,9 +64,9 @@ namespace DeviceHive.Client
             try
             {
                 var response = await _httpClient.GetAsync(url, cancellationToken);
-                ValidateResponseStatus(response);
+                await ValidateResponseStatusAsync(response);
 
-                return await response.Content.ReadAsAsync<T>(new[] { _jsonFormatter });
+                return await ReadAsAsync<T>(response.Content);
             }
             catch (DeviceHiveException)
             {
@@ -87,10 +86,10 @@ namespace DeviceHive.Client
         {
             try
             {
-                var response = await _httpClient.PostAsync(url, value, _jsonFormatter);
-                ValidateResponseStatus(response);
+                var response = await _httpClient.PostAsync(url, CreateJsonContent(value));
+                await ValidateResponseStatusAsync(response);
 
-                return await response.Content.ReadAsAsync<T>(new[] { _jsonFormatter });
+                return await ReadAsAsync<T>(response.Content);
             }
             catch (DeviceHiveException)
             {
@@ -106,8 +105,8 @@ namespace DeviceHive.Client
         {
             try
             {
-                var response = await _httpClient.PutAsync(url, value, _jsonFormatter);
-                ValidateResponseStatus(response);
+                var response = await _httpClient.PutAsync(url, CreateJsonContent(value));
+                await ValidateResponseStatusAsync(response);
             }
             catch (DeviceHiveException)
             {
@@ -124,7 +123,7 @@ namespace DeviceHive.Client
             try
             {
                 var response = await _httpClient.DeleteAsync(url);
-                ValidateResponseStatus(response);
+                await ValidateResponseStatusAsync(response);
             }
             catch (DeviceHiveException)
             {
@@ -158,7 +157,13 @@ namespace DeviceHive.Client
 
         #region Private Methods
 
-        private HttpResponseMessage ValidateResponseStatus(HttpResponseMessage response)
+        private HttpContent CreateJsonContent<T>(T value)
+        {
+            var json = JsonConvert.SerializeObject(value, _jsonSettings);
+            return new StringContent(json, Encoding.UTF8, "application/json");
+        }
+
+        private async Task<HttpResponseMessage> ValidateResponseStatusAsync(HttpResponseMessage response)
         {
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 throw new DeviceHiveUnauthorizedException("Supplied credentials are invalid or access is denied!");
@@ -168,7 +173,7 @@ namespace DeviceHive.Client
                 response.StatusCode == HttpStatusCode.NotFound ||
                 response.StatusCode == HttpStatusCode.MethodNotAllowed)
             {
-                var errorDetail = ReadErrorDetail(response);
+                var errorDetail = await ReadErrorDetailAsync(response.Content);
                 var message = errorDetail != null && !string.IsNullOrEmpty(errorDetail.Message) ?
                     "DeviceHive server returns an error: " + errorDetail.Message :
                     "DeviceHive server returns an unspecified error!";
@@ -181,11 +186,23 @@ namespace DeviceHive.Client
             return response;
         }
 
-        private ErrorDetail ReadErrorDetail(HttpResponseMessage response)
+        private async Task<T> ReadAsAsync<T>(HttpContent content)
+        {
+            if (content.Headers.ContentType == null)
+                throw new DeviceHiveException("DeviceHive server did not return Content-Type header!");
+
+            if (!string.Equals(content.Headers.ContentType.MediaType, "application/json", StringComparison.OrdinalIgnoreCase))
+                throw new DeviceHiveException("DeviceHive server returned content with unexpected content type: " + content.Headers.ContentType.MediaType);
+
+            var json = await content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<T>(json, _jsonSettings);
+        }
+
+        private async Task<ErrorDetail> ReadErrorDetailAsync(HttpContent content)
         {
             try
             {
-                return response.Content.ReadAsAsync<ErrorDetail>(new[] { _jsonFormatter }).Result;
+                return await ReadAsAsync<ErrorDetail>(content);
             }
             catch (Exception)
             {
