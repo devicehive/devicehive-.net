@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 
 namespace DeviceHive.Core
 {
@@ -58,6 +59,16 @@ namespace DeviceHive.Core
         }
 
         /// <summary>
+        /// Gets or sets authentication configuration element
+        /// </summary>
+        [ConfigurationProperty("authentication")]
+        public AuthenticationConfigurationElement Authentication
+        {
+            get { return (AuthenticationConfigurationElement)base["authentication"] ?? new AuthenticationConfigurationElement(); }
+            set { base["authentication"] = value; }
+        }
+
+        /// <summary>
         /// Gets or sets message handlers configuration element
         /// </summary>
         [ConfigurationProperty("messageHandlers")]
@@ -65,6 +76,16 @@ namespace DeviceHive.Core
         {
             get { return (MessageHandlersConfigurationElement)base["messageHandlers"] ?? new MessageHandlersConfigurationElement(); }
             set { base["messageHandlers"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets maintenance configuration element
+        /// </summary>
+        [ConfigurationProperty("maintenance")]
+        public MaintenanceConfigurationElement Maintenance
+        {
+            get { return (MaintenanceConfigurationElement)base["maintenance"] ?? new MaintenanceConfigurationElement(); }
+            set { base["maintenance"] = value; }
         }
     }
 
@@ -93,7 +114,7 @@ namespace DeviceHive.Core
         /// Gets or sets REST endpoint URL
         /// </summary>
         [ConfigurationProperty("url")]
-        public string Uri
+        public string Url
         {
             get { return (string)this["url"]; }
             set { base["url"] = value; }
@@ -237,6 +258,23 @@ namespace DeviceHive.Core
             get { return (int)this["minLength"]; }
             set { base["minLength"] = value; }
         }
+    }
+
+    /// <summary>
+    /// Represents authentication configuration element
+    /// </summary>
+    public class AuthenticationConfigurationElement : ConfigurationElement
+    {
+        /// <summary>
+        /// Gets or sets timeout of the session after user authentication.
+        /// Default value is one hour.
+        /// </summary>
+        [ConfigurationProperty("sessionTimeout", DefaultValue = "00:20:00")]
+        public TimeSpan SessionTimeout
+        {
+            get { return (TimeSpan)this["sessionTimeout"]; }
+            set { base["sessionTimeout"] = value; }
+        }
 
         /// <summary>
         /// Gets or sets maximum number of invalid login attempts before the user account is locked out.
@@ -249,6 +287,125 @@ namespace DeviceHive.Core
         {
             get { return (int)this["maxLoginAttempts"]; }
             set { base["maxLoginAttempts"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets name of the password authentication provider.
+        /// </summary>
+        [ConfigurationProperty("passwordProviderName", DefaultValue = "password")]
+        public string PasswordProviderName
+        {
+            get { return (string)this["passwordProviderName"]; }
+            set { base["passwordProviderName"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets authentication providers configuration element
+        /// </summary>
+        [ConfigurationProperty("providers")]
+        public AuthenticationProvidersConfigurationElement Providers
+        {
+            get { return (AuthenticationProvidersConfigurationElement)base["providers"] ?? new AuthenticationProvidersConfigurationElement(); }
+            set { base["providers"] = value; }
+        }
+    }
+
+    /// <summary>
+    /// Represents authentication providers configuration element
+    /// </summary>
+    public class AuthenticationProvidersConfigurationElement : ConfigurationElementCollection
+    {
+        /// <summary>
+        /// Gets collection type.
+        /// </summary>
+        public override ConfigurationElementCollectionType CollectionType
+        {
+            get { return ConfigurationElementCollectionType.AddRemoveClearMap; }
+        }
+
+        /// <summary>
+        /// Creates new child element.
+        /// </summary>
+        /// <returns>MessageHandlerConfigurationElement object.</returns>
+        protected override ConfigurationElement CreateNewElement()
+        {
+            return new AuthenticationProviderConfigurationElement();
+        }
+
+        /// <summary>
+        /// Gets element key.
+        /// </summary>
+        /// <param name="element">MessageHandlerConfigurationElement object.</param>
+        /// <returns>Element key.</returns>
+        protected override object GetElementKey(ConfigurationElement element)
+        {
+            return (element as AuthenticationProviderConfigurationElement).Type;
+        }
+    }
+
+        /// <summary>
+    /// Represents message handlers configuration element
+    /// </summary>
+    public class AuthenticationProviderConfigurationElement : ConfigurationElement
+    {
+        /// <summary>
+        /// Gets or sets name of the authentication provider.
+        /// </summary>
+        [ConfigurationProperty("name", IsKey = true, IsRequired = true)]
+        public string Name
+        {
+            get { return (string)this["name"]; }
+            set { base["name"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets type of the authentication provider.
+        /// </summary>
+        [ConfigurationProperty("type", IsRequired = true)]
+        public string Type
+        {
+            get { return (string)this["type"]; }
+            set { base["type"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets value indicating if authentication provider is enabled
+        /// </summary>
+        [ConfigurationProperty("enabled", DefaultValue = true)]
+        public bool Enabled
+        {
+            get { return (bool)this["enabled"]; }
+            set { base["enabled"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets client identifier of third-party identity provider.
+        /// </summary>
+        [ConfigurationProperty("clientId")]
+        public string ClientId
+        {
+            get { return (string)this["clientId"]; }
+            set { base["clientId"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets client secret of third-party identity provider.
+        /// </summary>
+        [ConfigurationProperty("clientSecret")]
+        public string ClientSecret
+        {
+            get { return (string)this["clientSecret"]; }
+            set { base["clientSecret"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a custom argument to pass into the provider constructor.
+        /// </summary>
+        [ConfigurationProperty("argument")]
+        public string Argument
+        {
+            get { return (string)this["argument"]; }
+            set { base["argument"] = value; }
         }
     }
 
@@ -298,6 +455,16 @@ namespace DeviceHive.Core
         {
             get { return (string)this["type"]; }
             set { base["type"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets value indicating if message handler is enabled
+        /// </summary>
+        [ConfigurationProperty("enabled", DefaultValue = true)]
+        public bool Enabled
+        {
+            get { return (bool)this["enabled"]; }
+            set { base["enabled"] = value; }
         }
 
         /// <summary>
@@ -358,6 +525,42 @@ namespace DeviceHive.Core
         {
             get { return (string)this["networkIds"]; }
             set { base["networkIds"] = value; }
+        }
+    }
+
+    /// <summary>
+    /// Represents maintenance configuration element
+    /// </summary>
+    public class MaintenanceConfigurationElement : ConfigurationElement
+    {
+        /// <summary>
+        /// Gets or sets a comma-separated list of allowed subnets which can trigger cron maintenance jobs.
+        /// </summary>
+        [ConfigurationProperty("cronTriggerSubnets", DefaultValue = "127.0.0.1")]
+        public string CronTriggerSubnets
+        {
+            get { return (string)this["cronTriggerSubnets"]; }
+            set { base["cronTriggerSubnets"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets device notifications lifetime. Set to 0 to disable notification cleanup.
+        /// </summary>
+        [ConfigurationProperty("notificationLifetime", DefaultValue = "00:00:00")]
+        public TimeSpan NotificationLifetime
+        {
+            get { return (TimeSpan)this["notificationLifetime"]; }
+            set { base["notificationLifetime"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets command notifications lifetime. Set to 0 to disable command cleanup.
+        /// </summary>
+        [ConfigurationProperty("commandLifetime", DefaultValue = "00:00:00")]
+        public TimeSpan CommandLifetime
+        {
+            get { return (TimeSpan)this["commandLifetime"]; }
+            set { base["commandLifetime"] = value; }
         }
     }
 }

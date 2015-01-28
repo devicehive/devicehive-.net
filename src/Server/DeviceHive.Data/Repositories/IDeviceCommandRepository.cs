@@ -9,6 +9,7 @@ namespace DeviceHive.Data.Repositories
     {
         List<DeviceCommand> GetByDevice(int deviceId, DeviceCommandFilter filter = null);
         List<DeviceCommand> GetByDevices(int[] deviceIds, DeviceCommandFilter filter = null);
+        void Cleanup(DateTime timestamp);
     }
 
     public static class DeviceCommandRepositoryExtension

@@ -3,8 +3,9 @@ using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using System.Web;
-using DeviceHive.API.Business;
+using DeviceHive.API.Internal;
 using DeviceHive.Core;
+using DeviceHive.Core.Authentication;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Core.MessageLogic;
 using DeviceHive.Core.Messaging;
@@ -104,6 +105,9 @@ namespace DeviceHive.API
             kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceNotification.DeviceID");
             kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand.DeviceID");
             kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceCommand.CommandID");
+
+            // bind authentication manager
+            kernel.Bind<IAuthenticationManager>().To<AuthenticationManager>().InSingletonScope().OnActivation(m => m.Initialize(kernel));
 
             // bind message logic manager
             kernel.Bind<IMessageManager>().To<MessageManager>().InSingletonScope().OnActivation(m => m.Initialize(kernel));

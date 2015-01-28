@@ -66,6 +66,11 @@ namespace DeviceHive.Data.MongoDB
         {
             _mongo.DeviceCommands.Remove(Query<DeviceCommand>.EQ(e => e.ID, id));
         }
+
+        public void Cleanup(DateTime timestamp)
+        {
+            _mongo.DeviceCommands.Remove(Query<DeviceCommand>.LT(e => e.Timestamp, timestamp));
+        }
         #endregion
     }
 }

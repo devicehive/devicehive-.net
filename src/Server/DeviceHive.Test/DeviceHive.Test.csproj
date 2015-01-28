@@ -35,6 +35,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
@@ -73,6 +74,7 @@
   <ItemGroup>
     <Compile Include="ApiTest\AccessKeyTest.cs" />
     <Compile Include="ApiTest\ApiInfoTest.cs" />
+    <Compile Include="ApiTest\AuthTest.cs" />
     <Compile Include="ApiTest\DeviceClassTest.cs" />
     <Compile Include="ApiTest\DeviceCommandTest.cs" />
     <Compile Include="ApiTest\DeviceEquipmentTest.cs" />

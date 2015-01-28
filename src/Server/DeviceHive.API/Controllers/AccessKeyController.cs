@@ -11,26 +11,26 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="AccessKey" />
-    [AuthorizeUser, ResolveCurrentUser("userId")]
     [RoutePrefix("user/{userId:idorcurrent}/accesskey")]
+    [AuthorizeAdminOrCurrentUser("userId", AccessKeyAction = "ManageUser", CurrentUserAccessKeyAction = "ManageAccessKey")]
     public class AccessKeyController : BaseController
     {
         /// <name>list</name>
         /// <summary>
         /// Gets list of access keys and their permissions.
         /// </summary>
+        /// <query cref="AccessKeyFilter" />
         /// <param name="userId">User identifier. Use the 'current' keyword to list access keys of the current user.</param>
         /// <returns cref="AccessKey">If successful, this method returns array of <see cref="AccessKey"/> resources in the response body.</returns>
         [Route]
         public JArray Get(int userId)
         {
-            EnsureUserAccessTo(userId);
-
             var user = DataContext.User.Get(userId);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
 
-            return new JArray(DataContext.AccessKey.GetByUser(user.ID).Select(n => Mapper.Map(n)));
+            var filter = MapObjectFromQuery<AccessKeyFilter>();
+            return new JArray(DataContext.AccessKey.GetByUser(user.ID, filter).Select(n => Mapper.Map(n)));
         }
 
         /// <name>get</name>
@@ -43,8 +43,6 @@ namespace DeviceHive.API.Controllers
         [Route("{id:int}")]
         public JObject Get(int userId, int id)
         {
-            EnsureUserAccessTo(userId);
-
             var accessKey = DataContext.AccessKey.Get(id);
             if (accessKey == null || accessKey.UserID != userId)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Access key not found!");
@@ -63,8 +61,6 @@ namespace DeviceHive.API.Controllers
         [HttpCreatedResponse]
         public JObject Post(int userId, JObject json)
         {
-            EnsureUserAccessTo(userId);
-
             var user = DataContext.User.Get(userId);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -86,17 +82,10 @@ namespace DeviceHive.API.Controllers
         /// <param name="userId">User identifier. Use the 'current' keyword to update access key of the current user.</param>
         /// <param name="id">Access key identifier.</param>
         /// <param name="json" cref="AccessKey">In the request body, supply a <see cref="AccessKey"/> resource.</param>
-        /// <request>
-        ///     <parameter name="label" required="false" />
-        ///     <parameter name="expirationDate" required="false" />
-        ///     <parameter name="permissions" required="false" />
-        /// </request>
         [Route("{id:int}")]
         [HttpNoContentResponse]
         public void Put(int userId, int id, JObject json)
         {
-            EnsureUserAccessTo(userId);
-
             var accessKey = DataContext.AccessKey.Get(id);
             if (accessKey == null || accessKey.UserID != userId)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Access key not found!");
@@ -117,8 +106,6 @@ namespace DeviceHive.API.Controllers
         [HttpNoContentResponse]
         public void Delete(int userId, int id)
         {
-            EnsureUserAccessTo(userId);
-
             var accessKey = DataContext.AccessKey.Get(id);
             if (accessKey != null && accessKey.UserID == userId)
                 DataContext.AccessKey.Delete(id);

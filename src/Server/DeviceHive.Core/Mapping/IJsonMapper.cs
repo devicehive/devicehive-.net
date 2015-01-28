@@ -39,7 +39,8 @@ namespace DeviceHive.Core.Mapping
         /// </summary>
         /// <param name="entity">Destination entity object</param>
         /// <param name="json">JObject object to apply</param>
-        void Apply(object entity, JObject json);
+        /// <param name="patch">Whether to ignore absense of required fields</param>
+        void Apply(object entity, JObject json, bool patch);
     }
 
     /// <summary>
@@ -68,7 +69,8 @@ namespace DeviceHive.Core.Mapping
         /// </summary>
         /// <param name="entity">Destination entity object</param>
         /// <param name="json">JObject object to apply</param>
-        void Apply(T entity, JObject json);
+        /// <param name="patch">Whether to ignore absense of required fields</param>
+        void Apply(T entity, JObject json, bool patch = true);
 
         /// <summary>
         /// Gets the difference between two entities

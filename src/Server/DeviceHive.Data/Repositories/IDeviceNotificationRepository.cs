@@ -9,6 +9,7 @@ namespace DeviceHive.Data.Repositories
     {
         List<DeviceNotification> GetByDevice(int deviceId, DeviceNotificationFilter filter = null);
         List<DeviceNotification> GetByDevices(int[] deviceIds, DeviceNotificationFilter filter = null);
+        void Cleanup(DateTime timestamp);
     }
 
     public static class DeviceNotificationRepositoryExtension

@@ -44,7 +44,11 @@ namespace DeviceHive.Test.DataTest
         [Test]
         public void User()
         {
-            var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);
+            var user = new User("Test", (int)UserRole.Administrator, (int)UserStatus.Active);
+            user.FacebookLogin = "facebook";
+            user.GoogleLogin = "google";
+            user.GithubLogin = "github";
+            user.SetPassword("TestPass");
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 
@@ -61,8 +65,16 @@ namespace DeviceHive.Test.DataTest
             Assert.AreEqual((int)UserRole.Administrator, user1.Role);
             Assert.AreEqual((int)UserStatus.Active, user1.Status);
 
-            // test Get(name)
+            // test Get(login)
             var user2 = DataContext.User.Get("Test");
+            Assert.IsNotNull(user2);
+
+            // test GetByXXX(login)
+            user2 = DataContext.User.GetByFacebookLogin("facebook");
+            Assert.IsNotNull(user2);
+            user2 = DataContext.User.GetByGoogleLogin("google");
+            Assert.IsNotNull(user2);
+            user2 = DataContext.User.GetByGithubLogin("github");
             Assert.IsNotNull(user2);
 
             // test Save
@@ -90,11 +102,12 @@ namespace DeviceHive.Test.DataTest
         [Test]
         public void AccessKey()
         {
-            var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);
+            var user = new User("Test", (int)UserRole.Administrator, (int)UserStatus.Active);
+            user.SetPassword("TestPass");
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 
-            var accessKey = new AccessKey(user.ID, "Test");
+            var accessKey = new AccessKey(user.ID, AccessKeyType.Default, "Test");
             accessKey.Permissions.Add(new AccessKeyPermission { Subnets = new[] { "127.0.0.1" } });
             accessKey.Permissions.Add(new AccessKeyPermission { Subnets = new[] { "127.0.0.2" } });
             DataContext.AccessKey.Save(accessKey);
@@ -102,6 +115,12 @@ namespace DeviceHive.Test.DataTest
 
             // test GetByUser
             var accessKeys = DataContext.AccessKey.GetByUser(user.ID);
+            Assert.AreEqual(1, accessKeys.Count);
+            Assert.AreEqual(accessKey.ID, accessKeys[0].ID);
+            Assert.AreEqual(user.ID, accessKeys[0].UserID);
+
+            // test GetByUsers
+            accessKeys = DataContext.AccessKey.GetByUsers(new[] { user.ID }, new AccessKeyFilter { Type = (int)AccessKeyType.Default });
             Assert.AreEqual(1, accessKeys.Count);
             Assert.AreEqual(accessKey.ID, accessKeys[0].ID);
             Assert.AreEqual(user.ID, accessKeys[0].UserID);
@@ -117,6 +136,7 @@ namespace DeviceHive.Test.DataTest
             Assert.AreEqual(new[] { "127.0.0.2" }, accessKey1.Permissions[1].Subnets);
 
             // test Save
+            accessKey.Type = (int)AccessKeyType.Session;
             accessKey.Label = "Test2";
             accessKey.GenerateKey();
             accessKey.ExpirationDate = DateTime.UtcNow;
@@ -127,6 +147,7 @@ namespace DeviceHive.Test.DataTest
                 Networks = new[] { 1, 2, 3 }});
             DataContext.AccessKey.Save(accessKey);
             var accessKey2 = DataContext.AccessKey.Get(accessKey.ID);
+            Assert.AreEqual(1, accessKey2.Type);
             Assert.AreEqual("Test2", accessKey2.Label);
             Assert.AreEqual(accessKey.Key, accessKey2.Key);
             Assert.IsNotNull(accessKey2.ExpirationDate);
@@ -146,7 +167,8 @@ namespace DeviceHive.Test.DataTest
         [Test]
         public void UserNetwork()
         {
-            var user = new User("Test", "TestPass", (int)UserRole.Administrator, (int)UserStatus.Active);
+            var user = new User("Test", (int)UserRole.Administrator, (int)UserStatus.Active);
+            user.SetPassword("TestPass");
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 
@@ -280,7 +302,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -292,6 +314,7 @@ namespace DeviceHive.Test.DataTest
             var device1 = DataContext.Device.Get(device.ID);
             Assert.IsNotNull(device1);
             Assert.AreEqual(device.GUID, device1.GUID);
+            Assert.IsNull(device1.Key);
             Assert.AreEqual("Test", device1.Name);
             Assert.AreEqual(network.ID, device1.NetworkID);
             Assert.AreEqual(deviceClass.ID, device1.DeviceClassID);
@@ -309,6 +332,7 @@ namespace DeviceHive.Test.DataTest
             Assert.IsNotNull(device2.DeviceClass);
 
             // test Save
+            device.Key = "key";
             device.Name = "Test2";
             device.Status = "Status";
             device.Data = "{ }";
@@ -316,6 +340,7 @@ namespace DeviceHive.Test.DataTest
             device.NetworkID = null;
             DataContext.Device.Save(device);
             var device3 = DataContext.Device.Get(device.ID);
+            Assert.AreEqual("key", device3.Key);
             Assert.AreEqual("Test2", device3.Name);
             Assert.AreEqual("Status", device3.Status);
             Assert.AreEqual("{ }", device3.Data);
@@ -349,7 +374,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -392,7 +417,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -441,7 +466,7 @@ namespace DeviceHive.Test.DataTest
             DataContext.DeviceClass.Save(deviceClass);
             RegisterTearDown(() => DataContext.DeviceClass.Delete(deviceClass.ID));
 
-            var device = new Device(Guid.NewGuid().ToString(), "key", "Test", network, deviceClass);
+            var device = new Device(Guid.NewGuid().ToString(), "Test", network, deviceClass);
             DataContext.Device.Save(device);
             RegisterTearDown(() => DataContext.Device.Delete(device.ID));
 
@@ -524,11 +549,12 @@ namespace DeviceHive.Test.DataTest
         [Test]
         public void OAuthGrant()
         {
-            var user = new User("Test", "pass", 0, 0);
+            var user = new User("Test", 0, 0);
+            user.SetPassword("pass");
             DataContext.User.Save(user);
             RegisterTearDown(() => DataContext.User.Delete(user.ID));
 
-            var accessKey = new AccessKey(user.ID, "test");
+            var accessKey = new AccessKey(user.ID, AccessKeyType.OAuth, "test");
             DataContext.AccessKey.Save(accessKey);
             RegisterTearDown(() => DataContext.AccessKey.Delete(accessKey.ID));
 

@@ -1,30 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Http.Filters;
-using System.Web.Http.Routing;
-using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.API.Filters
 {
     public class HttpCreatedResponseAttribute : ActionFilterAttribute
     {
-        public override void OnActionExecuted(HttpActionExecutedContext context)
+        public override async Task OnActionExecutedAsync(HttpActionExecutedContext actionExecutedContext, CancellationToken cancellationToken)
         {
-            if (context.Response != null && context.Response.IsSuccessStatusCode)
+            if (actionExecutedContext.Response != null && actionExecutedContext.Response.IsSuccessStatusCode)
             {
-                context.Response.StatusCode = HttpStatusCode.Created;
-                context.Response.Content.ReadAsStringAsync().ContinueWith(task =>
-                    {
-                        var result = JObject.Parse(task.Result);
-                        if (result["id"] != null)
-                        {
-                            var controller = context.ActionContext.ControllerContext.ControllerDescriptor.ControllerName;
-                            var route = new UrlHelper(context.Request).Route(null, new { controller = controller, id = result["id"] });
-                            context.Response.Headers.Location = new Uri(context.Request.RequestUri, route);
-                        }
-                    }).Wait();
+                // set HTTP 201 status
+                actionExecutedContext.Response.StatusCode = HttpStatusCode.Created;
+
+                // set Location header
+                var result = JObject.Parse(await actionExecutedContext.Response.Content.ReadAsStringAsync());
+                if (result["id"] != null)
+                    actionExecutedContext.Response.Headers.Location = new Uri(actionExecutedContext.Request.RequestUri.AbsoluteUri + "/" + result["id"]);
             }
         }
     }

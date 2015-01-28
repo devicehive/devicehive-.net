@@ -20,7 +20,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="DeviceClassFilter" />
         /// <returns cref="DeviceClass">If successful, this method returns array of <see cref="DeviceClass"/> resources in the response body.</returns>
-        [Route, AuthorizeAdmin]
+        [Route, AuthorizeAdmin(AccessKeyAction = "ManageDeviceClass")]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<DeviceClassFilter>();
@@ -33,7 +33,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device class identifier.</param>
         /// <returns cref="DeviceClass">If successful, this method returns a <see cref="DeviceClass"/> resource in the response body.</returns>
-        [Route("{id:int}"), AuthorizeUser]
+        [Route("{id:int}"), AuthorizeUser(AccessKeyAction = "GetDevice")]
         public JObject Get(int id)
         {
             var deviceClass = DataContext.DeviceClass.Get(id);
@@ -50,7 +50,7 @@ namespace DeviceHive.API.Controllers
         /// <param name="json" cref="DeviceClass">In the request body, supply a <see cref="DeviceClass"/> resource.</param>
         /// <returns cref="DeviceClass" mode="OneWayOnly">If successful, this method returns a <see cref="DeviceClass"/> resource in the response body.</returns>
         [HttpCreatedResponse]
-        [Route, AuthorizeAdmin]
+        [Route, AuthorizeAdmin(AccessKeyAction = "ManageDeviceClass")]
         public JObject Post(JObject json)
         {
             var deviceClass = Mapper.Map(json);
@@ -71,14 +71,8 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device class identifier.</param>
         /// <param name="json" cref="DeviceClass">In the request body, supply a <see cref="DeviceClass"/> resource.</param>
-        /// <request>
-        ///     <parameter name="name" required="false" />
-        ///     <parameter name="version" required="false" />
-        ///     <parameter name="isPermanent" required="false" />
-        ///     <parameter name="equipment" required="false" />
-        /// </request>
         [HttpNoContentResponse]
-        [Route("{id:int}"), AuthorizeAdmin]
+        [Route("{id:int}"), AuthorizeAdmin(AccessKeyAction = "ManageDeviceClass")]
         public void Put(int id, JObject json)
         {
             var deviceClass = DataContext.DeviceClass.Get(id);
@@ -102,9 +96,13 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device class identifier.</param>
         [HttpNoContentResponse]
-        [Route("{id:int}"), AuthorizeAdmin]
+        [Route("{id:int}"), AuthorizeAdmin(AccessKeyAction = "ManageDeviceClass")]
         public void Delete(int id)
         {
+            var devices = DataContext.Device.GetAll(new DeviceFilter { DeviceClassID = id });
+            if (devices.Any())
+                ThrowHttpResponse(HttpStatusCode.Forbidden, "Could not delete a device class because there are one or several devices associated with it.");
+
             DataContext.DeviceClass.Delete(id);
         }
 

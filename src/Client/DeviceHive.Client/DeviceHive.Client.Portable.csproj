@@ -44,6 +44,7 @@
     <AssemblyOriginatorKeyFile>..\..\DeviceHive.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="IDeviceHiveClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Channels\Channel.cs" />
     <Compile Include="Channels\ChannelState.cs" />
@@ -87,9 +88,6 @@
     </Reference>
     <Reference Include="System.Net.Http.Extensions">
       <HintPath>..\..\..\packages\Microsoft.Net.Http.2.2.22\lib\portable-net40+sl4+win8+wp71+wpa81\System.Net.Http.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Net.Http.Formatting">
-      <HintPath>..\..\..\packages\Microsoft.AspNet.WebApi.Client.5.2.2\lib\portable-wp8+netcore45+net45+wp81+wpa81\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.Primitives">
       <HintPath>..\..\..\packages\Microsoft.Net.Http.2.2.22\lib\portable-net40+sl4+win8+wp71+wpa81\System.Net.Http.Primitives.dll</HintPath>

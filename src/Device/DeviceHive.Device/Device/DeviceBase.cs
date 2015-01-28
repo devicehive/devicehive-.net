@@ -29,7 +29,7 @@ namespace DeviceHive.Device
         /// Gets device unique identifier.
         /// The value is initialized from the <see cref="DeviceAttribute"/> attribute set on the current device.
         /// </summary>
-        public Guid ID { get; protected set; }
+        public string ID { get; protected set; }
 
         /// <summary>
         /// Gets device key.

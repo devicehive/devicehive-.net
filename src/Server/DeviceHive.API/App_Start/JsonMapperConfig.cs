@@ -16,6 +16,9 @@ namespace DeviceHive.API
             context.Kernel.ConfigureMapping<User>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Login, "login")
+                .Property(e => e.FacebookLogin, "facebookLogin")
+                .Property(e => e.GoogleLogin, "googleLogin")
+                .Property(e => e.GithubLogin, "githubLogin")
                 .Property(e => e.Role, "role")
                 .Property(e => e.Status, "status")
                 .Property(e => e.LastLogin, "lastLogin", JsonMapperEntryMode.ToJson);
@@ -38,6 +41,7 @@ namespace DeviceHive.API
 
             context.Kernel.ConfigureMapping<AccessKey>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
+                .Property(e => e.Type, "type")
                 .Property(e => e.Label, "label")
                 .Property(e => e.Key, "key", JsonMapperEntryMode.ToJson)
                 .Property(e => e.ExpirationDate, "expirationDate")
@@ -81,7 +85,6 @@ namespace DeviceHive.API
                 .Property(e => e.Command, "command")
                 .RawJsonProperty(e => e.Parameters, "parameters")
                 .Property(e => e.Lifetime, "lifetime")
-                .Property(e => e.Flags, "flags")
                 .Property(e => e.Status, "status")
                 .RawJsonProperty(e => e.Result, "result");
 
@@ -122,6 +125,15 @@ namespace DeviceHive.API
                 .Property(e => e.LoginPattern, "loginPattern")
                 .Property(e => e.Role, "role")
                 .Property(e => e.Status, "status")
+                .Property(e => e.SortField, "sortField")
+                .Property(e => e.SortOrder, "sortOrder")
+                .Property(e => e.Take, "take")
+                .Property(e => e.Skip, "skip");
+
+            context.Kernel.ConfigureMapping<AccessKeyFilter>()
+                .Property(e => e.Label, "label")
+                .Property(e => e.LabelPattern, "labelPattern")
+                .Property(e => e.Type, "type")
                 .Property(e => e.SortField, "sortField")
                 .Property(e => e.SortOrder, "sortOrder")
                 .Property(e => e.Take, "take")

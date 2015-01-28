@@ -28,7 +28,7 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <query cref="UserFilter" />
         /// <returns cref="User">If successful, this method returns array of <see cref="User"/> resources in the response body.</returns>
-        [Route, AuthorizeAdmin]
+        [Route, AuthorizeAdmin(AccessKeyAction = "ManageUser")]
         public JArray Get()
         {
             var filter = MapObjectFromQuery<UserFilter>();
@@ -38,6 +38,10 @@ namespace DeviceHive.API.Controllers
         /// <name>get</name>
         /// <summary>
         /// Gets information about user and its assigned networks.
+        /// <para>
+        /// Only administrators are allowed to get information about any user.
+        /// User-level accounts can only retrieve information about themselves.
+        /// </para>
         /// </summary>
         /// <param name="id">User identifier. Use the 'current' keyword to get information about the current user.</param>
         /// <returns cref="User">If successful, this method returns a <see cref="User"/> resource in the response body.</returns>
@@ -45,11 +49,9 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="networks" type="array" cref="UserNetwork">Array of networks associated with the user</parameter>
         /// </response>
         [Route("{id:idorcurrent}")]
-        [AuthorizeUser, ResolveCurrentUser("id")]
+        [AuthorizeAdminOrCurrentUser("id", AccessKeyAction = "ManageUser", CurrentUserAccessKeyAction = "GetCurrentUser")]
         public JObject Get(int id)
         {
-            EnsureUserAccessTo(id);
-
             var user = DataContext.User.Get(id);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -71,22 +73,20 @@ namespace DeviceHive.API.Controllers
         /// <request>
         ///     <parameter name="password" type="string" required="true">User password</parameter>
         /// </request>
-        [Route, AuthorizeAdmin]
+        [Route, AuthorizeAdmin(AccessKeyAction = "ManageUser")]
         [HttpCreatedResponse]
         public JObject Post(JObject json)
         {
-            if (json["password"] == null || json["password"].Type != JTokenType.String)
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Required 'password' property was not specified!");
+            var user = Mapper.Map(json);
+            Validate(user);
+            ValidateLoginUniqueness(user);
 
             var password = (string)json["password"];
-            ValidatePasswordPolicy(password);
-
-            var user = Mapper.Map(json);
-            user.SetPassword(password);
-            Validate(user);
-
-            if (DataContext.User.Get(user.Login) != null)
-                ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such login already exists!");
+            if (password != null)
+            {
+                ValidatePasswordPolicy(password);
+                user.SetPassword(password);
+            }
 
             DataContext.User.Save(user);
             return Mapper.Map(user, oneWayOnly: true);
@@ -95,43 +95,59 @@ namespace DeviceHive.API.Controllers
         /// <name>update</name>
         /// <summary>
         /// Updates an existing user.
+        /// <para>
+        /// Only administrators are allowed to update any property of any user.
+        /// User-level accounts can only change their own password in case:
+        /// </para>
+        /// <list type="bullet">
+        ///     <item>They already have a password.</item>
+        ///     <item>They provide a valid current password in the 'oldPassword' property.</item>
+        /// </list>
         /// </summary>
         /// <param name="id">User identifier. Use the 'current' keyword to update information of the current user.</param>
         /// <param name="json" cref="User">In the request body, supply a <see cref="User"/> resource.</param>
         /// <request>
-        ///     <parameter name="password" type="string">User password</parameter>
-        ///     <parameter name="login" required="false" />
-        ///     <parameter name="role" required="false" />
-        ///     <parameter name="status" required="false" />
+        ///     <parameter name="password" type="string">User new password</parameter>
+        ///     <parameter name="oldPassword" type="string">User current password (for non-administrative password changing functionality only)</parameter>
         /// </request>
         [HttpNoContentResponse]
         [Route("{id:idorcurrent}")]
-        [AuthorizeUser, ResolveCurrentUser("id")]
+        [AuthorizeAdminOrCurrentUser("id", AccessKeyAction = "ManageUser", CurrentUserAccessKeyAction = "UpdateCurrentUser")]
         public void Put(int id, JObject json)
         {
-            EnsureUserAccessTo(id);
-
             var user = DataContext.User.Get(id);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
 
+            // only administrators can change user properties
             if (CallContext.CurrentUser.Role == (int)UserRole.Administrator)
             {
-                // only administrators can change user properties
                 Mapper.Apply(user, json);
+                Validate(user);
+                ValidateLoginUniqueness(user);
             }
-            if (json["password"] != null && json["password"].Type == JTokenType.String)
+
+            // all users can change their password
+            var password = (string)json["password"];
+            if (password != null)
             {
-                // all users can change their password
-                var password = (string)json["password"];
+                // validate password policy
                 ValidatePasswordPolicy(password);
+
+                // additional checks for non-administrative users or password changing request
+                var oldPassword = (string)json["oldPassword"];
+                if (CallContext.CurrentUser.Role != (int)UserRole.Administrator || oldPassword != null)
+                {
+                    if (oldPassword == null)
+                        ThrowHttpResponse(HttpStatusCode.Forbidden, "Please provide an old password in order to change it!");
+                    if (!user.HasPassword())
+                        ThrowHttpResponse(HttpStatusCode.Forbidden, "It's not allowed to change a password for an user with the social login option only!");
+                    if (!user.IsValidPassword(oldPassword))
+                        ThrowHttpResponse(HttpStatusCode.Forbidden, "Invalid old password supplied!");
+                }
+
                 user.SetPassword(password);
             }
-            Validate(user);
-
-            var existing = DataContext.User.Get(user.Login);
-            if (existing != null && existing.ID != user.ID)
-                ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such name already exists!");
 
             DataContext.User.Save(user);
         }
@@ -142,10 +158,38 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">User identifier.</param>
         [HttpNoContentResponse]
-        [Route("{id:int}"), AuthorizeAdmin]
+        [Route("{id:int}"), AuthorizeAdmin(AccessKeyAction = "ManageUser")]
         public void Delete(int id)
         {
             DataContext.User.Delete(id);
+        }
+
+        private void ValidateLoginUniqueness(User user)
+        {
+            var existing = DataContext.User.Get(user.Login);
+            if (existing != null && existing.ID != user.ID)
+                ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such login already exists!");
+
+            if (user.FacebookLogin != null)
+            {
+                existing = DataContext.User.GetByFacebookLogin(user.FacebookLogin);
+                if (existing != null && existing.ID != user.ID)
+                    ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such Facebook login already exists!");
+            }
+
+            if (user.GoogleLogin != null)
+            {
+                existing = DataContext.User.GetByGoogleLogin(user.GoogleLogin);
+                if (existing != null && existing.ID != user.ID)
+                    ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such Google login already exists!");
+            }
+
+            if (user.GithubLogin != null)
+            {
+                existing = DataContext.User.GetByGithubLogin(user.GithubLogin);
+                if (existing != null && existing.ID != user.ID)
+                    ThrowHttpResponse(HttpStatusCode.Forbidden, "User with such Github login already exists!");
+            }
         }
 
         private void ValidatePasswordPolicy(string password)

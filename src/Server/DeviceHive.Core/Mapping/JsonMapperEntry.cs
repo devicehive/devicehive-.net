@@ -11,7 +11,7 @@ namespace DeviceHive.Core.Mapping
     public class JsonMapperEntry<T> : IJsonMapperEntry
     {
         private Action<T, JObject> _mapToJsonAction;
-        private Action<JObject, T> _mapToEntityAction;
+        private Action<JObject, T, bool> _mapToEntityAction;
 
         #region IJsonMapperEntry Members
 
@@ -43,7 +43,7 @@ namespace DeviceHive.Core.Mapping
         /// <param name="mapToJsonAction">Delegate to set entity property to json object</param>
         /// <param name="mapToEntityAction">Delagate to set json property to entity object</param>
         public JsonMapperEntry(JsonMapperEntryMode mode, string jsonProperty, PropertyInfo entityProperty,
-            Action<T, JObject> mapToJsonAction, Action<JObject, T> mapToEntityAction)
+            Action<T, JObject> mapToJsonAction, Action<JObject, T, bool> mapToEntityAction)
         {
             Mode = mode;
             JsonProperty = jsonProperty;
@@ -74,9 +74,10 @@ namespace DeviceHive.Core.Mapping
         /// </summary>
         /// <param name="json">Source json object</param>
         /// <param name="entity">Target entity object</param>
-        public virtual void MapToEntity(JObject json, T entity)
+        /// <param name="patch">Whether to apply patch behavior</param>
+        public virtual void MapToEntity(JObject json, T entity, bool patch)
         {
-            _mapToEntityAction(json, entity);
+            _mapToEntityAction(json, entity, patch);
         }
         #endregion
     }

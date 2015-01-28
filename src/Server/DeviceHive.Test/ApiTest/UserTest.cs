@@ -34,6 +34,10 @@ namespace DeviceHive.Test.ApiTest
             // get non-existing user by login
             users = List(new Dictionary<string, string> { { "login", "nonexist" } }, auth: Admin);
             Expect(users.Count, Is.EqualTo(0));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            List(auth: accessKey);
         }
 
         [Test]
@@ -42,8 +46,15 @@ namespace DeviceHive.Test.ApiTest
             // create user
             var resource = Create(new { login = "_ut", password = NewUserPassword, role = 1, status = 0 }, auth: Admin);
 
-            // get current user
+            // current user authorization
             var current = Client.Get(ResourceUri + "/current", auth: User("_ut", NewUserPassword));
+            Expect(current.Status, Is.EqualTo(200));
+            Expect(current.Json, Is.InstanceOf<JObject>());
+            Expect(current.Json, Matches(new { id = (int)resource["id"], login = "_ut", role = 1, status = 0 }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(User("_ut", NewUserPassword), "GetCurrentUser");
+            current = Client.Get(ResourceUri + "/current", auth: accessKey);
             Expect(current.Status, Is.EqualTo(200));
             Expect(current.Json, Is.InstanceOf<JObject>());
             Expect(current.Json, Matches(new { id = (int)resource["id"], login = "_ut", role = 1, status = 0 }));
@@ -52,19 +63,33 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create()
         {
-            // create user
+            // admin authorization
             var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 0, status = 0, lastLogin = (DateTime?)null }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            resource = Create(new { login = "_ut2", password = NewUserPassword, role = 0, status = 0 }, auth: accessKey);
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut2", role = 0, status = 0, lastLogin = (DateTime?)null }));
+        }
+
+        [Test]
+        public void Create_OAuth()
+        {
+            // create user
+            var resource = Create(new { login = "_ut", facebookLogin = "facebook", role = 0, status = 0 }, auth: Admin);
 
             // verify server response
-            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 0, status = 0, lastLogin = (DateTime?)null }));
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", facebookLogin = "facebook", role = 0, status = 0, lastLogin = (DateTime?)null }));
         }
 
         [Test]
         public void Create_Existing()
         {
             // create user with an existing login
-            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", facebookLogin = "facebook", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
             Expect(() => Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin), FailsWith(403));
+            Expect(() => Create(new { login = "_ut2", facebookLogin = "facebook", password = NewUserPassword, role = 0, status = 0 }, auth: Admin), FailsWith(403));
         }
 
         [Test]
@@ -94,12 +119,16 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Update()
         {
-            // create and update user
-            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
-            Update(resource, new { login = "_ut2", password = NewUserPassword, role = 1, status = 1 }, auth: Admin);
+            var resource = Create(new { login = "_ut", googleLogin = "google", facebookLogin = "facebook", githubLogin = "github", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
 
-            // verify server response
-            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut2", role = 1, status = 1, lastLogin = (DateTime?)null }));
+            // admin authorization
+            Update(resource, new { login = "_ut2", googleLogin = "google2", facebookLogin = "facebook2", githubLogin = "github2", role = 1, status = 1 }, auth: Admin);
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut2", googleLogin = "google2", facebookLogin = "facebook2", githubLogin = "github2", role = 1, status = 1, lastLogin = (DateTime?)null }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            Update(resource, new { login = "_ut3", googleLogin = "google3", facebookLogin = "facebook3", githubLogin = "github3", role = 1, status = 2 }, auth: accessKey);
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut3", googleLogin = "google3", facebookLogin = "facebook3", githubLogin = "github3", role = 1, status = 2, lastLogin = (DateTime?)null }));
         }
 
         [Test]
@@ -117,29 +146,49 @@ namespace DeviceHive.Test.ApiTest
         public void Update_Current()
         {
             // create user
-            var resource = Create(new { login = "_ut", password = NewUserPassword, role = 1, status = 0 }, auth: Admin);
+            var resource = Create(new { login = "_ut", password = NewUserPassword, facebookLogin = "facebook", googleLogin = "google", githubLogin = "github", role = 1, status = 0 }, auth: Admin);
 
-            // update user password
+            // current user authorization
             var current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "*" }, auth: User("_ut", NewUserPassword));
-            Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus));
-
+            Expect(current.Status, Is.EqualTo(403)); // old password is required
+            current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "*", oldPassword = NewUserPassword, login = "_ut2", facebookLogin = "updated", googleLogin = "updated", githubLogin = "updated", role = 0, status = 1 }, auth: User("_ut", NewUserPassword));
+            Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus)); // success
             // verify user password has been changed
             Expect(Client.Get(ResourceUri + "/current", auth: User("_ut", NewUserPassword)).Status, Is.EqualTo(401));
+            // verify that other properties have not been changed
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 1, status = 0, facebookLogin = "facebook", googleLogin = "google", githubLogin = "github" }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(User("_ut", NewUserPassword + "*"), "UpdateCurrentUser");
+            current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "$" }, auth: accessKey);
+            Expect(current.Status, Is.EqualTo(403)); // old password is required
+            current = Client.Put(ResourceUri + "/current", new { password = NewUserPassword + "$", oldPassword = NewUserPassword + "*", login = "_ut2", facebookLogin = "updated", googleLogin = "updated", githubLogin = "updated", role = 0, status = 1 }, auth: accessKey);
+            Expect(current.Status, Is.EqualTo(ExpectedUpdatedStatus));
+            // verify user password has been changed
+            Expect(Client.Get(ResourceUri + "/current", auth: User("_ut", NewUserPassword + "*")).Status, Is.EqualTo(401));
+            // verify that other properties have not been changed
+            Expect(Get(resource, auth: Admin), Matches(new { login = "_ut", role = 1, status = 0, facebookLogin = "facebook", googleLogin = "google", githubLogin = "github" }));
         }
 
         [Test]
         public void Delete()
         {
+            // admin authorization
             var resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
             Delete(resource, auth: Admin);
+            Expect(() => Get(resource, auth: Admin), FailsWith(404));
 
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageUser");
+            resource = Create(new { login = "_ut", password = NewUserPassword, role = 0, status = 0 }, auth: Admin);
+            Delete(resource, auth: accessKey);
             Expect(() => Get(resource, auth: Admin), FailsWith(404));
         }
 
         [Test]
         public void BadRequest()
         {
-            Expect(() => Create(new { login = "_ut" }, auth: Admin), FailsWith(400));
+            Expect(() => Create(new { }, auth: Admin), FailsWith(400));
         }
 
         [Test]
@@ -161,6 +210,22 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Create(new { login = "_ut" }, auth: user), FailsWith(401));
             Expect(() => Update(UnexistingResourceID, new { login = "_ut" }, auth: user), FailsWith(401));
             Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
+
+            // dummy access key authorization
+            var accessKey = CreateAccessKey(Admin, new[] { "GetCurrentUser", "UpdateCurrentUser" });
+            Expect(() => List(auth: accessKey), FailsWith(401));
+            Expect(() => Get(UnexistingResourceID, auth: accessKey), FailsWith(401));
+            Expect(() => Create(new { login = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { login = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
+
+            // access key for non-admin role authorization
+            accessKey = CreateAccessKey(user, "ManageUser");
+            Expect(() => List(auth: accessKey), FailsWith(401));
+            Expect(() => Get(UnexistingResourceID, auth: accessKey), FailsWith(401));
+            Expect(() => Create(new { login = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { login = "_ut" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
         }
 
         [Test]

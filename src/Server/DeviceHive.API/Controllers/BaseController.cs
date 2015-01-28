@@ -47,12 +47,6 @@ namespace DeviceHive.API.Controllers
 
         #region Protected Methods
 
-        protected void EnsureUserAccessTo(int userId)
-        {
-            if (CallContext.CurrentUser.Role != (int)UserRole.Administrator && CallContext.CurrentUser.ID != userId)
-                ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
-        }
-
         protected void EnsureDeviceAccess(string deviceGuid)
         {
             if (CallContext.CurrentDevice == null)

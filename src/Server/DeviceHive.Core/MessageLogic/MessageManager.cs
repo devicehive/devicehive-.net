@@ -51,7 +51,7 @@ namespace DeviceHive.Core.MessageLogic
         public void Initialize(IKernel kernel)
         {
             var messageHandlers = _configuration.MessageHandlers.Cast<MessageHandlerConfigurationElement>().ToArray();
-            foreach (var messageHandler in messageHandlers)
+            foreach (var messageHandler in messageHandlers.Where(mh => mh.Enabled))
             {
                 var messageHandlerType = Type.GetType(messageHandler.Type, false);
                 if (messageHandlerType == null)

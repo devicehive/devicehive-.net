@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;
@@ -12,13 +13,23 @@ namespace DeviceHive.Data.EF
     {
         #region IAccessKeyRepository Members
 
-        public List<AccessKey> GetByUser(int userId)
+        public List<AccessKey> GetByUser(int userId, AccessKeyFilter filter = null)
         {
             using (var context = new DeviceHiveContext())
             {
                 return context.AccessKeys
                     .Include(e => e.Permissions)
-                    .Where(e => e.UserID == userId).ToList();
+                    .Where(e => e.UserID == userId).Filter(filter).ToList();
+            }
+        }
+
+        public List<AccessKey> GetByUsers(int[] userIds, AccessKeyFilter filter = null)
+        {
+            using (var context = new DeviceHiveContext())
+            {
+                return context.AccessKeys
+                    .Include(e => e.Permissions)
+                    .Where(e => userIds.Contains(e.UserID)).Filter(filter).ToList();
             }
         }
 
@@ -82,6 +93,15 @@ namespace DeviceHive.Data.EF
                     context.AccessKeys.Remove(accessKey);
                     context.SaveChanges();
                 }
+            }
+        }
+
+        public void Cleanup(DateTime timestamp)
+        {
+            using (var context = new DeviceHiveContext())
+            {
+                context.Database.ExecuteSqlCommand("delete from [AccessKey] where [Type] = @Type and [ExpirationDate] < @Timestamp",
+                    new SqlParameter("Type", (int)AccessKeyType.Session), new SqlParameter("Timestamp", timestamp));
             }
         }
         #endregion

@@ -14,24 +14,25 @@ namespace DeviceHive.Data.MongoDB.Migrations
         public override void Up()
         {
             // create indexes
-            Connection.Database.GetCollection("users").EnsureIndex(IndexKeys.Ascending("Login"), IndexOptions.SetUnique(true));
-            Connection.Database.GetCollection("user_networks").EnsureIndex(IndexKeys.Ascending("NetworkID"));
-            Connection.Database.GetCollection("user_networks").EnsureIndex(IndexKeys.Ascending("UserID", "NetworkID"), IndexOptions.SetUnique(true));
-            Connection.Database.GetCollection("networks").EnsureIndex(IndexKeys.Ascending("Name"), IndexOptions.SetUnique(true));
-            Connection.Database.GetCollection("device_classes").EnsureIndex(IndexKeys.Ascending("Name", "Version"), IndexOptions.SetUnique(true));
-            Connection.Database.GetCollection("equipment").EnsureIndex(IndexKeys.Ascending("DeviceClassID"));
-            Connection.Database.GetCollection("devices").EnsureIndex(IndexKeys.Ascending("GUID"), IndexOptions.SetUnique(true));
-            Connection.Database.GetCollection("devices").EnsureIndex(IndexKeys.Ascending("NetworkID"));
-            Connection.Database.GetCollection("devices").EnsureIndex(IndexKeys.Ascending("Network.Name"));
-            Connection.Database.GetCollection("devices").EnsureIndex(IndexKeys.Ascending("DeviceClassID"));
-            Connection.Database.GetCollection("devices").EnsureIndex(IndexKeys.Ascending("DeviceClass.Name", "DeviceClass.Version"));
-            Connection.Database.GetCollection("device_notifications").EnsureIndex(IndexKeys.Ascending("Timestamp"));
-            Connection.Database.GetCollection("device_notifications").EnsureIndex(IndexKeys.Ascending("DeviceID", "Timestamp"));
-            Connection.Database.GetCollection("device_commands").EnsureIndex(IndexKeys.Ascending("DeviceID", "Timestamp"));
-            Connection.Database.GetCollection("device_equipment").EnsureIndex(IndexKeys.Ascending("DeviceID", "Code"), IndexOptions.SetUnique(true));
+            Connection.Database.GetCollection("users").CreateIndex(IndexKeys.Ascending("Login"), IndexOptions.SetUnique(true));
+            Connection.Database.GetCollection("user_networks").CreateIndex(IndexKeys.Ascending("NetworkID"));
+            Connection.Database.GetCollection("user_networks").CreateIndex(IndexKeys.Ascending("UserID", "NetworkID"), IndexOptions.SetUnique(true));
+            Connection.Database.GetCollection("networks").CreateIndex(IndexKeys.Ascending("Name"), IndexOptions.SetUnique(true));
+            Connection.Database.GetCollection("device_classes").CreateIndex(IndexKeys.Ascending("Name", "Version"), IndexOptions.SetUnique(true));
+            Connection.Database.GetCollection("equipment").CreateIndex(IndexKeys.Ascending("DeviceClassID"));
+            Connection.Database.GetCollection("devices").CreateIndex(IndexKeys.Ascending("GUID"), IndexOptions.SetUnique(true));
+            Connection.Database.GetCollection("devices").CreateIndex(IndexKeys.Ascending("NetworkID"));
+            Connection.Database.GetCollection("devices").CreateIndex(IndexKeys.Ascending("Network.Name"));
+            Connection.Database.GetCollection("devices").CreateIndex(IndexKeys.Ascending("DeviceClassID"));
+            Connection.Database.GetCollection("devices").CreateIndex(IndexKeys.Ascending("DeviceClass.Name", "DeviceClass.Version"));
+            Connection.Database.GetCollection("device_notifications").CreateIndex(IndexKeys.Ascending("Timestamp"));
+            Connection.Database.GetCollection("device_notifications").CreateIndex(IndexKeys.Ascending("DeviceID", "Timestamp"));
+            Connection.Database.GetCollection("device_commands").CreateIndex(IndexKeys.Ascending("DeviceID", "Timestamp"));
+            Connection.Database.GetCollection("device_equipment").CreateIndex(IndexKeys.Ascending("DeviceID", "Code"), IndexOptions.SetUnique(true));
 
             // create default admin user
-            var user = new User("dhadmin", "dhadmin_#911", (int)UserRole.Administrator, (int)UserStatus.Active);
+            var user = new User("dhadmin", (int)UserRole.Administrator, (int)UserStatus.Active);
+            user.SetPassword("dhadmin_#911");
             Connection.EnsureIdentity(user);
             Connection.Users.Save(user);
         }

@@ -57,9 +57,14 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Create()
         {
+            // admin authorization
             var resource = Create(new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: Admin);
-
             Expect(Get(resource), Matches(new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageOAuthClient");
+            resource = Create(new { name = "_ut2", oauthId = "_ut_2", domain = "_ut2.com", redirectUri = "_ut2.com" }, auth: accessKey);
+            Expect(Get(resource), Matches(new { name = "_ut2", oauthId = "_ut_2", domain = "_ut2.com", redirectUri = "_ut2.com" }));
         }
 
         [Test]
@@ -73,9 +78,15 @@ namespace DeviceHive.Test.ApiTest
         public void Update()
         {
             var resource = Create(new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: Admin);
-            Update(resource, new { name = "_ut2", oauthId = "_ut_2", domain = "_ut2.com", redirectUri = "_ut2.com" }, auth: Admin);
 
+            // admin authorization
+            Update(resource, new { name = "_ut2", oauthId = "_ut_2", domain = "_ut2.com", redirectUri = "_ut2.com" }, auth: Admin);
             Expect(Get(resource), Matches(new { name = "_ut2", oauthId = "_ut_2", domain = "_ut2.com", redirectUri = "_ut2.com" }));
+
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageOAuthClient");
+            Update(resource, new { name = "_ut3", oauthId = "_ut_3", domain = "_ut3.com", redirectUri = "_ut3.com" }, auth: accessKey);
+            Expect(Get(resource), Matches(new { name = "_ut3", oauthId = "_ut_3", domain = "_ut3.com", redirectUri = "_ut3.com" }));
         }
 
         [Test]
@@ -90,9 +101,15 @@ namespace DeviceHive.Test.ApiTest
         [Test]
         public void Delete()
         {
+            // admin authorization
             var resource = Create(new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: Admin);
             Delete(resource, auth: Admin);
+            Expect(() => Get(resource, auth: Admin), FailsWith(404));
 
+            // access key authorization
+            var accessKey = CreateAccessKey(Admin, "ManageOAuthClient");
+            resource = Create(new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: Admin);
+            Delete(resource, auth: accessKey);
             Expect(() => Get(resource, auth: Admin), FailsWith(404));
         }
 
@@ -115,6 +132,18 @@ namespace DeviceHive.Test.ApiTest
             Expect(() => Create(new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: user), FailsWith(401));
             Expect(() => Update(UnexistingResourceID, new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: user), FailsWith(401));
             Expect(() => Delete(UnexistingResourceID, auth: user), FailsWith(401));
+
+            // dummy access key authorization
+            var accessKey = CreateAccessKey(Admin, "Dummy");
+            Expect(() => Create(new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
+
+            // access key for non-admin role authorization
+            accessKey = CreateAccessKey(user, "ManageOAuthClient");
+            Expect(() => Create(new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: accessKey), FailsWith(401));
+            Expect(() => Update(UnexistingResourceID, new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" }, auth: accessKey), FailsWith(401));
+            Expect(() => Delete(UnexistingResourceID, auth: accessKey), FailsWith(401));
         }
 
         [Test]

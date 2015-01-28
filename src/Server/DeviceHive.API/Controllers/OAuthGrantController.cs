@@ -11,8 +11,8 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="OAuthGrant" />
-    [AuthorizeUser, ResolveCurrentUser("userId")]
     [RoutePrefix("user/{userId:idorcurrent}/oauth/grant")]
+    [AuthorizeAdminOrCurrentUser("userId", AccessKeyAction = "ManageUser", CurrentUserAccessKeyAction = "ManageOAuthGrant")]
     public class OAuthGrantController : BaseController
     {
         /// <name>list</name>
@@ -25,8 +25,6 @@ namespace DeviceHive.API.Controllers
         [Route]
         public JArray Get(int userId)
         {
-            EnsureUserAccessTo(userId);
-
             var user = DataContext.User.Get(userId);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
@@ -45,8 +43,6 @@ namespace DeviceHive.API.Controllers
         [Route("{id:int}")]
         public JObject Get(int userId, int id)
         {
-            EnsureUserAccessTo(userId);
-
             var oauthGrant = DataContext.OAuthGrant.Get(id);
             if (oauthGrant == null || oauthGrant.UserID != userId)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "OAuth grant not found!");
@@ -61,7 +57,6 @@ namespace DeviceHive.API.Controllers
         /// <param name="userId">User identifier. Use the 'current' keyword to create OAuth grant for the current user.</param>
         /// <param name="json" cref="OAuthGrant">In the request body, supply a <see cref="OAuthGrant"/> resource.</param>
         /// <request>
-        ///     <parameter name="accessType" required="false" />
         ///     <parameter name="redirectUri" required="true" />
         ///     <parameter name="client" required="true">A <see cref="OAuthClient"/> object which includes oauthId property to match.</parameter>
         ///     <parameter name="client." mode="remove" />
@@ -72,18 +67,21 @@ namespace DeviceHive.API.Controllers
         [HttpCreatedResponse]
         public JObject Post(int userId, JObject json)
         {
-            EnsureUserAccessTo(userId);
-
             var user = DataContext.User.Get(userId);
             if (user == null)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "User not found!");
 
+            var jsonClient = json["client"] as JObject;
+            if (jsonClient == null)
+                ThrowHttpResponse(HttpStatusCode.BadRequest, "The 'client' field is required!");
+            json.Remove("client");
+
             var oauthGrant = Mapper.Map(json);
             oauthGrant.UserID = user.ID;
+            oauthGrant.Client = MapClient(jsonClient);
             if (string.IsNullOrEmpty(oauthGrant.RedirectUri))
                 ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing required field: redirectUri");
 
-            MapClient(oauthGrant);
             OAuth2Controller.RenewGrant(oauthGrant);
             Validate(oauthGrant);
 
@@ -107,26 +105,24 @@ namespace DeviceHive.API.Controllers
         ///     <parameter name="client" required="false">A <see cref="OAuthClient"/> object which includes oauthId property to match.</parameter>
         ///     <parameter name="client." mode="remove" />
         ///     <parameter name="client.oauthId" type="string" required="true" after="client">Client OAuth identifier.</parameter>
-        ///     <parameter name="type" required="false" />
-        ///     <parameter name="scope" required="false" />
-        ///     <parameter name="redirectUri" required="false" />
-        ///     <parameter name="accessType" required="false" />
         /// </request>
         /// <returns cref="OAuthGrant" mode="OneWayOnly">If successful, this method returns a <see cref="OAuthGrant"/> resource in the response body.</returns>
         [Route("{id:int}")]
         public JObject Put(int userId, int id, JObject json)
         {
-            EnsureUserAccessTo(userId);
-
             var oauthGrant = DataContext.OAuthGrant.Get(id);
             if (oauthGrant == null || oauthGrant.UserID != userId)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "OAuth grant not found!");
 
+            var jsonClient = json["client"] as JObject;
+            json.Remove("client");
+
+            var client = oauthGrant.Client;
             Mapper.Apply(oauthGrant, json);
+            oauthGrant.Client = jsonClient != null ? MapClient(jsonClient) : client;
             if (string.IsNullOrEmpty(oauthGrant.RedirectUri))
                 ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing required field: redirectUri");
 
-            MapClient(oauthGrant);
             OAuth2Controller.RenewGrant(oauthGrant);
             Validate(oauthGrant);
 
@@ -149,8 +145,6 @@ namespace DeviceHive.API.Controllers
         [HttpNoContentResponse]
         public void Delete(int userId, int id)
         {
-            EnsureUserAccessTo(userId);
-
             var oauthGrant = DataContext.OAuthGrant.Get(id);
             if (oauthGrant != null && oauthGrant.UserID == userId)
             {
@@ -159,18 +153,17 @@ namespace DeviceHive.API.Controllers
             }
         }
 
-        private void MapClient(OAuthGrant grant)
+        private OAuthClient MapClient(JObject json)
         {
-            if (grant.Client == null)
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "The 'client' field is required!");
-            if (grant.Client.OAuthID == null)
-                ThrowHttpResponse(HttpStatusCode.BadRequest, "Specified 'client' object must include 'oauthId' property!");
+            var oauthId = (string)json["oauthId"];
+            if (oauthId == null)
+                ThrowHttpResponse(HttpStatusCode.BadRequest, "Specified 'client' object must include the 'oauthId' property!");
 
-            var client = DataContext.OAuthClient.Get(grant.Client.OAuthID);
+            var client = DataContext.OAuthClient.Get(oauthId);
             if (client == null)
                 ThrowHttpResponse(HttpStatusCode.Forbidden, "A client with specified 'oauthId' property does not exist!");
 
-            grant.Client = client;
+            return client;
         }
 
         private IJsonMapper<OAuthGrant> Mapper

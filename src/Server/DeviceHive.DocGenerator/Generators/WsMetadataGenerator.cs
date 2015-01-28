@@ -141,7 +141,7 @@ namespace DeviceHive.DocGenerator
                     var resourceType = _helper.GetCrefType(methodParamElement);
                     if (resourceType != null)
                     {
-                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson, p.Name + "."));
+                        parameters.AddRange(_helper.GetTypeParameters(resourceType, JsonMapperEntryMode.FromJson, prefix: p.Name + "."));
                     }
                 }
             }

@@ -11,8 +11,8 @@ namespace DeviceHive.Data.MongoDB.Migrations
         public override void Up()
         {
             // create indexes
-            Connection.Database.GetCollection("access_keys").EnsureIndex(IndexKeys.Ascending("Key"), IndexOptions.SetUnique(true));
-            Connection.Database.GetCollection("access_keys").EnsureIndex(IndexKeys.Ascending("UserID"));
+            Connection.Database.GetCollection("access_keys").CreateIndex(IndexKeys.Ascending("Key"), IndexOptions.SetUnique(true));
+            Connection.Database.GetCollection("access_keys").CreateIndex(IndexKeys.Ascending("UserID"));
         }
 
         public override void Down()

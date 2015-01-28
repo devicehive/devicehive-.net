@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Data.Entity.SqlServer;
 using System.Data.SqlClient;
 using System.Linq;
 using DeviceHive.Data.Model;
@@ -124,7 +125,7 @@ namespace DeviceHive.Data.EF
                     .Include(e => e.Network)
                     .Include(e => e.DeviceClass.Equipment)
                     .Where(e => e.DeviceClass.OfflineTimeout != null)
-                    .Where(d => d.LastOnline == null || DbFunctions.AddSeconds(d.LastOnline, d.DeviceClass.OfflineTimeout) < DateTime.UtcNow)
+                    .Where(d => d.LastOnline == null || DbFunctions.AddSeconds(d.LastOnline, d.DeviceClass.OfflineTimeout) < SqlFunctions.GetUtcDate())
                     .ToList();
             }
         }

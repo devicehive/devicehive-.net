@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 namespace DeviceHive.API.Controllers
 {
     /// <resource cref="User" />
-    [AuthorizeAdmin]
+    [AuthorizeAdmin(AccessKeyAction = "ManageUser")]
     [RoutePrefix("user/{id:int}/network/{networkId:int}")]
     public class UserNetworkController : BaseController
     {

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Configuration;
+using System.Linq;
 using System.Web.Http;
+using DeviceHive.Core.Authentication;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
 using DeviceHive.Data.Repositories;

@@ -84,6 +84,11 @@ namespace DeviceHive.Data.MongoDB
         {
             _mongo.DeviceNotifications.Remove(Query<DeviceNotification>.EQ(e => e.ID, id));
         }
+
+        public void Cleanup(DateTime timestamp)
+        {
+            _mongo.DeviceNotifications.Remove(Query<DeviceNotification>.LT(e => e.Timestamp, timestamp));
+        }
         #endregion
 
         #region Private Methods
@@ -179,8 +184,8 @@ namespace DeviceHive.Data.MongoDB
             }
 
             // run the aggregation query
-            var result = _mongo.DeviceNotifications.Aggregate(operations);
-            return result.ResultDocuments.Select(BsonSerializer.Deserialize<DeviceNotification>).ToList();
+            var result = _mongo.DeviceNotifications.Aggregate(new AggregateArgs { Pipeline = operations });
+            return result.Select(BsonSerializer.Deserialize<DeviceNotification>).ToList();
         }
         #endregion
     }

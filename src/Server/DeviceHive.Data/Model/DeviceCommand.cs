@@ -69,11 +69,6 @@ namespace DeviceHive.Data.Model
         public int? Lifetime { get; set; }
 
         /// <summary>
-        /// Command flags, and optional value that could be supplied for device or related infrastructure.
-        /// </summary>
-        public int? Flags { get; set; }
-
-        /// <summary>
         /// Command status, as reported by device or related infrastructure.
         /// </summary>
         [StringLength(128)]

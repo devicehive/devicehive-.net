@@ -74,7 +74,7 @@ namespace DeviceHive.API.Controllers
         }
 
         /// <name>register</name>
-        /// <summary>Registers or updates a device.</summary>
+        /// <summary>Registers or updates a device. For initial device registration, only 'name' and 'deviceClass' properties are required.</summary>
         /// <param name="id">Device unique identifier.</param>
         /// <param name="json" cref="Device">In the request body, supply a <see cref="Device"/> resource.</param>
         /// <request>
@@ -122,9 +122,11 @@ namespace DeviceHive.API.Controllers
         /// </summary>
         /// <param name="id">Device unique identifier.</param>
         [HttpNoContentResponse]
-        [Route("{id:deviceGuid}"), AuthorizeUser]
+        [Route("{id:deviceGuid}"), AuthorizeUserOrDevice(AccessKeyAction = "RegisterDevice")]
         public void Delete(string id)
         {
+            EnsureDeviceAccess(id);
+
             var device = DataContext.Device.Get(id);
             if (device != null && IsDeviceAccessible(device))
             {

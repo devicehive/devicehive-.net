@@ -36,12 +36,12 @@ namespace DeviceHive.Test.ApiTest
         public void GetAll()
         {
             // create new device
-            Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }, auth: Admin);
+            Update(ID, new { name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }, auth: Admin);
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             // create another device
             var anotherDeviceId = Guid.NewGuid().ToString();
-            Update(anotherDeviceId, new { key = "key", name = "_ut2", network = new { name = "_ut_n_a" }, deviceClass = new { name = "_ut_dc_a", version = "1" } }, auth: Admin);
+            Update(anotherDeviceId, new { name = "_ut2", network = new { name = "_ut_n_a" }, deviceClass = new { name = "_ut_dc_a", version = "1" } }, auth: Admin);
             var anotherDevice = Get(anotherDeviceId, auth: Admin);
             RegisterForDeletion("/network/" + (int)anotherDevice["network"]["id"]);
             RegisterForDeletion("/device/class/" + (int)anotherDevice["deviceClass"]["id"]);
@@ -291,7 +291,7 @@ namespace DeviceHive.Test.ApiTest
         }
 
         [Test]
-        public void Delete()
+        public void Delete_ClientAuth()
         {
             var user1 = CreateUser(1); // create a client user
             var user2 = CreateUser(1, NetworkID); // create a client user with access to network
@@ -302,6 +302,16 @@ namespace DeviceHive.Test.ApiTest
             Get(ID, auth: Admin);
 
             Delete(ID, auth: user2); // delete should succeed
+            Expect(() => Get(ID, auth: Admin), FailsWith(404));
+        }
+
+        [Test]
+        public void Delete_DeviceAuth()
+        {
+            Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }, auth: Admin);
+            RegisterForDeletion(ResourceUri + "/" + ID);
+
+            Delete(ID, auth: Device(ID, "key")); // delete should succeed
             Expect(() => Get(ID, auth: Admin), FailsWith(404));
         }
 
@@ -328,7 +338,6 @@ namespace DeviceHive.Test.ApiTest
 
             // device authorization
             Expect(() => List(auth: Device(ID, "key")), FailsWith(401));
-            Expect(() => Delete(ID, auth: Device(ID, "key")), FailsWith(401));
         }
 
         [Test]

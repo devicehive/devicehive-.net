@@ -9,6 +9,7 @@ using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 using DeviceHive.API.Controllers;
+using DeviceHive.API.Internal;
 using DeviceHive.API.Models;
 using DeviceHive.Data.Model;
 
@@ -89,7 +90,7 @@ namespace DeviceHive.API.Filters
 
             if ((Entity & AuthorizeEntity.User) != 0)
             {
-                if (TryAuthorizeUser(actionContext, controller.CallContext))
+                if (TryAuthorizeUser(actionContext, controller.CallContext, Roles, AccessKeyAction))
                     return; // user authorization is successful
             }
 
@@ -105,37 +106,34 @@ namespace DeviceHive.API.Filters
             return callContext.CurrentDevice != null;
         }
 
-        protected virtual bool TryAuthorizeUser(HttpActionContext actionContext, CallContext callContext)
+        protected virtual bool TryAuthorizeUser(HttpActionContext actionContext, CallContext callContext, string roles, string accessKeyAction)
         {
             // check if user is authenticated
             if (callContext.CurrentUser == null)
                 return false;
 
             // allow access key authentication only if AccessKeyAction is specified
-            if (callContext.CurrentAccessKey != null && AccessKeyAction == null)
+            if (callContext.CurrentAccessKey != null && accessKeyAction == null)
                 return false;
 
             // check if user role is allowed
-            if (Roles != null)
+            if (roles != null)
             {
                 var currentUserRole = ((UserRole)callContext.CurrentUser.Role).ToString();
-                if (!Roles.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Contains(currentUserRole))
+                if (!roles.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Contains(currentUserRole))
                     return false;
             }
 
             // check if access key permissions are sufficient
             if (callContext.CurrentAccessKey != null)
             {
-                var httpContext = (HttpContextBase)actionContext.Request.Properties["MS_HttpContext"];
-                var userAddress = httpContext.Request.UserHostAddress;
-
-                var domain = actionContext.Request.Headers.Contains("Origin") ?
-                    actionContext.Request.Headers.GetValues("Origin").First() : null;
+                var userAddress = actionContext.Request.GetUserAddress();
+                var domain = actionContext.Request.GetCustomHeader("Origin");
                 if (domain != null)
                     domain = Regex.Replace(domain, @"^https?://", string.Empty, RegexOptions.IgnoreCase);
 
                 var permissions = callContext.CurrentAccessKey.Permissions
-                    .Where(p => p.IsActionAllowed(AccessKeyAction) &&
+                    .Where(p => p.IsActionAllowed(accessKeyAction) &&
                         p.IsAddressAllowed(userAddress) && (domain == null || p.IsDomainAllowed(domain)))
                     .ToArray();
 
@@ -165,6 +163,7 @@ namespace DeviceHive.API.Filters
 
     /// <summary>
     /// Requires user authorization with Administrator role.
+    /// Specify AccessKeyAction property to authorize access keys with the corresponding permission.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     public class AuthorizeAdminAttribute : AuthorizeAttribute
