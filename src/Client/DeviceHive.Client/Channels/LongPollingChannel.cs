@@ -24,7 +24,20 @@ namespace DeviceHive.Client
             : base(connectionInfo)
         {
             _restClient = new RestClient(connectionInfo);
+
+            CommandUpdatePollTimeout = TimeSpan.FromSeconds(30);
         }
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// Gets or sets default command poll timeout to apply in the <see cref="SendCommandAsync"/> method.
+        /// Please avoid using too high value, as waiting command results is occupying a HTTP connection.
+        /// Default value is 30 seconds.
+        /// </summary>
+        public TimeSpan CommandUpdatePollTimeout { get; set; }
+
         #endregion
 
         #region Public Methods
@@ -96,7 +109,7 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
-        /// <param name="token">Cancellation token to cancel polling command result.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
         /// <returns>Sent Command object.</returns>
         public override async Task<Command> SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
         {
@@ -105,7 +118,7 @@ namespace DeviceHive.Client
             if (command == null)
                 throw new ArgumentNullException("command");
             if (!token.HasValue)
-                token = CancellationToken.None;
+                token = new CancellationTokenSource(CommandUpdatePollTimeout).Token;
 
             var result = await _restClient.PostAsync(string.Format("device/{0}/command", deviceGuid), command);
             command.Id = result.Id;
@@ -303,7 +316,12 @@ namespace DeviceHive.Client
 
         private async Task<Command> PollCommandUpdateAsync(string deviceGuid, int commandId, CancellationToken token)
         {
-            return await _restClient.GetAsync<Command>(string.Format("device/{0}/command/{1}/poll", deviceGuid, commandId), token);
+            while (true)
+            {
+                var command = await _restClient.GetAsync<Command>(string.Format("device/{0}/command/{1}/poll", deviceGuid, commandId), token);
+                if (command != null)
+                    return command;
+            }
         }
         #endregion
 

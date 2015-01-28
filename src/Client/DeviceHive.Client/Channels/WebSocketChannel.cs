@@ -166,7 +166,7 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
-        /// <param name="token">Cancellation token to cancel polling command result.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
         /// <returns>Sent Command object.</returns>
         public override async Task<Command> SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
         {
