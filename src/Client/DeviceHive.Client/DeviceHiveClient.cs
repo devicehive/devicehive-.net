@@ -153,7 +153,7 @@ namespace DeviceHive.Client
         /// Gets active subscriptions for DeviceHive commands and notifications.
         /// </summary>
         /// <returns>A list of <see cref="ISubscription"/> objects representing subsription information.</returns>
-        public IList<ISubscription> GetSubscriptionsAsync()
+        public IList<ISubscription> GetSubscriptions()
         {
             if (_channel == null)
                 return new List<ISubscription>();

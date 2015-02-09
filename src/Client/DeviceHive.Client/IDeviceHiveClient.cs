@@ -76,7 +76,7 @@ namespace DeviceHive.Client
         /// Gets active subscriptions for DeviceHive commands and notifications.
         /// </summary>
         /// <returns>A list of <see cref="ISubscription"/> objects representing subsription information.</returns>
-        IList<ISubscription> GetSubscriptionsAsync();
+        IList<ISubscription> GetSubscriptions();
 
         /// <summary>
         /// Adds a subscription to device notifications.
