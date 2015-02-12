@@ -37,7 +37,17 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="connectionInfo">DeviceHive connection information.</param>
         public WebSocketChannel(DeviceHiveConnectionInfo connectionInfo)
-            : base(connectionInfo)
+            : this(connectionInfo, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructor which allows to override <see cref="IRestClient" /> which makes HTTP requests to the DeviceHive server.
+        /// </summary>
+        /// <param name="connectionInfo">DeviceHive connection information.</param>
+        /// <param name="restClient">IRestClient implementation.</param>
+        public WebSocketChannel(DeviceHiveConnectionInfo connectionInfo, IRestClient restClient)
+            : base(connectionInfo, restClient)
         {
             Timeout = 30000;
         }

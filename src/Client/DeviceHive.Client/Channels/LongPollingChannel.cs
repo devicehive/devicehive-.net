@@ -11,7 +11,6 @@ namespace DeviceHive.Client
     /// </summary>
     public class LongPollingChannel : Channel
     {
-        private readonly RestClient _restClient;
         private readonly Dictionary<Guid, SubscriptionTask> _subscriptionTasks = new Dictionary<Guid, SubscriptionTask>();
 
         #region Constructor
@@ -21,10 +20,18 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="connectionInfo">DeviceHive connection information.</param>
         public LongPollingChannel(DeviceHiveConnectionInfo connectionInfo)
-            : base(connectionInfo)
+            : this(connectionInfo, null)
         {
-            _restClient = new RestClient(connectionInfo);
-
+        }
+        
+        /// <summary>
+        /// Constructor which allows to override <see cref="IRestClient" /> which makes HTTP requests to the DeviceHive server.
+        /// </summary>
+        /// <param name="connectionInfo">DeviceHive connection information.</param>
+        /// <param name="restClient">IRestClient implementation.</param>
+        public LongPollingChannel(DeviceHiveConnectionInfo connectionInfo, IRestClient restClient)
+            : base(connectionInfo, restClient)
+        {
             CommandUpdatePollTimeout = TimeSpan.FromSeconds(30);
         }
         #endregion
@@ -97,7 +104,7 @@ namespace DeviceHive.Client
             if (notification == null)
                 throw new ArgumentNullException("notification");
 
-            var result = await _restClient.PostAsync(string.Format("device/{0}/notification", deviceGuid), notification);
+            var result = await RestClient.PostAsync(string.Format("device/{0}/notification", deviceGuid), notification);
             notification.Id = result.Id;
             notification.Timestamp = result.Timestamp;
             return notification;
@@ -120,7 +127,7 @@ namespace DeviceHive.Client
             if (!token.HasValue)
                 token = new CancellationTokenSource(CommandUpdatePollTimeout).Token;
 
-            var result = await _restClient.PostAsync(string.Format("device/{0}/command", deviceGuid), command);
+            var result = await RestClient.PostAsync(string.Format("device/{0}/command", deviceGuid), command);
             command.Id = result.Id;
             command.Timestamp = result.Timestamp;
             command.UserId = result.UserId;
@@ -153,7 +160,7 @@ namespace DeviceHive.Client
                 throw new ArgumentException("Command ID is null!", "command");
 
             var update = new Command { Status = command.Status, Result = command.Result };
-            await _restClient.PutAsync(string.Format("device/{0}/command/{1}", deviceGuid, command.Id), update);
+            await RestClient.PutAsync(string.Format("device/{0}/command/{1}", deviceGuid, command.Id), update);
         }
         #endregion
 
@@ -218,7 +225,7 @@ namespace DeviceHive.Client
 
         private async Task PollNotificationTaskMethodAsync(ISubscription subscription, CancellationToken cancellationToken)
         {
-            var apiInfo = await _restClient.GetAsync<ApiInfo>("info");
+            var apiInfo = await RestClient.GetAsync<ApiInfo>("info");
             var timestamp = apiInfo.ServerTimestamp;
 
             while (true)
@@ -247,7 +254,7 @@ namespace DeviceHive.Client
 
         private async Task PollCommandTaskMethodAsync(ISubscription subscription, CancellationToken cancellationToken)
         {
-            var apiInfo = await _restClient.GetAsync<ApiInfo>("info", cancellationToken);
+            var apiInfo = await RestClient.GetAsync<ApiInfo>("info", cancellationToken);
             var timestamp = apiInfo.ServerTimestamp;
 
             while (true)
@@ -288,7 +295,7 @@ namespace DeviceHive.Client
 
             while (true)
             {
-                var notifications = await _restClient.GetAsync<List<DeviceNotification>>(url, token);
+                var notifications = await RestClient.GetAsync<List<DeviceNotification>>(url, token);
                 if (notifications != null && notifications.Any())
                     return notifications;
             }
@@ -308,7 +315,7 @@ namespace DeviceHive.Client
 
             while (true)
             {
-                var commands = await _restClient.GetAsync<List<DeviceCommand>>(url, token);
+                var commands = await RestClient.GetAsync<List<DeviceCommand>>(url, token);
                 if (commands != null && commands.Any())
                     return commands;
             }
@@ -318,7 +325,7 @@ namespace DeviceHive.Client
         {
             while (true)
             {
-                var command = await _restClient.GetAsync<Command>(string.Format("device/{0}/command/{1}/poll", deviceGuid, commandId), token);
+                var command = await RestClient.GetAsync<Command>(string.Format("device/{0}/command/{1}/poll", deviceGuid, commandId), token);
                 if (command != null)
                     return command;
             }

@@ -42,6 +42,11 @@ namespace DeviceHive.Client
         /// </summary>
         protected DeviceHiveConnectionInfo ConnectionInfo { get; private set; }
 
+        /// <summary>
+        /// Gets <see cref="IRestClient" /> used for making HTTP requests to the DeviceHive server.
+        /// </summary>
+        protected IRestClient RestClient { get; private set; }
+
         #endregion
 
         #region Constructor
@@ -50,13 +55,15 @@ namespace DeviceHive.Client
         /// Default constructor.
         /// </summary>
         /// <param name="connectionInfo">DeviceHive connection information.</param>
-        protected Channel(DeviceHiveConnectionInfo connectionInfo)
+        /// <param name="restClient">IRestClient implementation.</param>
+        protected Channel(DeviceHiveConnectionInfo connectionInfo, IRestClient restClient)
         {
             if (connectionInfo == null)
                 throw new ArgumentNullException("connectionInfo");
 
             State = ChannelState.Disconnected;
             ConnectionInfo = connectionInfo;
+            RestClient = restClient ?? new RestClient(connectionInfo);
         }
         #endregion
 
@@ -203,10 +210,8 @@ namespace DeviceHive.Client
         protected async Task<ApiInfo> GetApiInfoAsync()
         {
             if (_apiInfo == null)
-            {
-                var restClient = new RestClient(ConnectionInfo);
-                _apiInfo = await restClient.GetAsync<ApiInfo>("info");
-            }
+                _apiInfo = await RestClient.GetAsync<ApiInfo>("info");
+
             return _apiInfo;
         }
 
