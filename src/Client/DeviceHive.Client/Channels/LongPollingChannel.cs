@@ -232,7 +232,8 @@ namespace DeviceHive.Client
             {
                 try
                 {
-                    var notifications = await PollNotificationsAsync(subscription.DeviceGuids, subscription.EventNames, subscription.Timestamp, cancellationToken);
+                    var notifications = await PollNotificationsAsync(subscription.DeviceGuids, subscription.EventNames,
+                        subscription.Timestamp, subscriptionTask.IsLastPollFailed ? (int?)0 : null, cancellationToken);
                     NotifyPollResult(subscriptionTask, false);
 
                     foreach (var notification in notifications)
@@ -262,7 +263,8 @@ namespace DeviceHive.Client
             {
                 try
                 {
-                    var commands = await PollCommandsAsync(subscription.DeviceGuids, subscription.EventNames, subscription.Timestamp, cancellationToken);
+                    var commands = await PollCommandsAsync(subscription.DeviceGuids, subscription.EventNames,
+                        subscription.Timestamp, subscriptionTask.IsLastPollFailed ? (int?)0 : null, cancellationToken);
                     NotifyPollResult(subscriptionTask, false);
 
                     foreach (var command in commands)
@@ -301,7 +303,7 @@ namespace DeviceHive.Client
             }
         }
 
-        private async Task<List<DeviceNotification>> PollNotificationsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, CancellationToken token)
+        private async Task<List<DeviceNotification>> PollNotificationsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, int? waitTimeout, CancellationToken token)
         {
             var url = "device/notification/poll";
             var parameters = new[]
@@ -309,6 +311,7 @@ namespace DeviceHive.Client
                     timestamp == null ? null : "timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff"),
                     deviceGuids == null ? null : "deviceGuids=" + (string.Join(",", deviceGuids)),
                     names == null ? null : "names=" + (string.Join(",", names)),
+                    waitTimeout == null ? null : "waitTimeout=" + waitTimeout,
                 }.Where(p => p != null);
             if (parameters.Any())
                 url += "?" + string.Join("&", parameters);
@@ -316,7 +319,7 @@ namespace DeviceHive.Client
             return await RestClient.GetAsync<List<DeviceNotification>>(url, token);
         }
 
-        private async Task<List<DeviceCommand>> PollCommandsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, CancellationToken token)
+        private async Task<List<DeviceCommand>> PollCommandsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, int? waitTimeout, CancellationToken token)
         {
             var url = "device/command/poll";
             var parameters = new[]
@@ -324,6 +327,7 @@ namespace DeviceHive.Client
                     timestamp == null ? null : "timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff"),
                     deviceGuids == null ? null : "deviceGuids=" + (string.Join(",", deviceGuids)),
                     names == null ? null : "names=" + (string.Join(",", names)),
+                    waitTimeout == null ? null : "waitTimeout=" + waitTimeout,
                 }.Where(p => p != null);
             if (parameters.Any())
                 url += "?" + string.Join("&", parameters);
