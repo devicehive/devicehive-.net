@@ -16,7 +16,7 @@ namespace VirtualLedClient
         {
             try
             {
-                VirtualLedClientRoutine().Wait();
+                VirtualLedClientRoutine().GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -59,25 +59,22 @@ namespace VirtualLedClient
 
             // read user input to send corresponding commands to the VirtualLed device
             Console.WriteLine("\nPlease enter a desired state of the led (either 0 or 1) or ESC to exit\n");
-            while (true)
-            {
-                var key = Console.ReadKey(true);
-                if (key.Key == ConsoleKey.Escape)
-                    break;
-
-                if (key.KeyChar == '0' || key.KeyChar == '1')
+            await ConsoleKeyListener(async key =>
                 {
-                    // send a command to the VirtualLed device to switch the LED state
-                    Console.WriteLine(string.Format("Sending UpdateLedState command with state: {0}", key.KeyChar));
-                    var command = new Command("UpdateLedState");
-                    command.Parameter("equipment", LED_CODE);
-                    command.Parameter("state", key.KeyChar);
-                    await client.SendCommandAsync(device.Id, command);
-                }
-            }
+                    if (key.KeyChar == '0' || key.KeyChar == '1')
+                    {
+                        // send a command to the VirtualLed device to switch the LED state
+                        Console.WriteLine(string.Format("Sending UpdateLedState command with state: {0}", key.KeyChar));
+                        var command = new Command("UpdateLedState");
+                        command.Parameter("equipment", LED_CODE);
+                        command.Parameter("state", key.KeyChar);
+                        await client.SendCommandAsync(device.Id, command);
+                    }
+                });
 
             // unsubscribe from notifications and dispose the client
-            await client.RemoveSubscriptionAsync(subscription);
+            if (client.ChannelState == ChannelState.Connected)
+                await client.RemoveSubscriptionAsync(subscription);
             client.Dispose();
         }
 
@@ -97,6 +94,21 @@ namespace VirtualLedClient
                 var message = "Device changed the status, new status: {0}";
                 Console.WriteLine(string.Format(message, notification.GetParameter<string>("status")));
             }
+        }
+
+        private static Task ConsoleKeyListener(Action<ConsoleKeyInfo> callback)
+        {
+            return Task.Run(() =>
+            {
+                while (true)
+                {
+                    var key = Console.ReadKey(true);
+                    if (key.Key == ConsoleKey.Escape)
+                        break;
+
+                    Task.Run(() => callback(key));
+                }
+            });
         }
     }
 }

@@ -20,6 +20,11 @@ namespace DeviceHive.Client
         /// <summary>
         /// The channel is connected to the DeviceHive server.
         /// </summary>
-        Connected
+        Connected,
+
+        /// <summary>
+        /// The channel is currently reconnecting to the DeviceHive server.
+        /// </summary>
+        Reconnecting,
     }
 }

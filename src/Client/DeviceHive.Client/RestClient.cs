@@ -16,7 +16,7 @@ namespace DeviceHive.Client
     /// <summary>
     /// Represents a default implementation of the <see cref="IRestClient"/> which uses HttpClient for making HTTP requests.
     /// </summary>
-    public class RestClient : IRestClient
+    public sealed class RestClient : IRestClient, IDisposable
     {
         private HttpClient _httpClient;
         private JsonSerializerSettings _jsonSettings;
@@ -108,6 +108,17 @@ namespace DeviceHive.Client
             {
                 throw new DeviceHiveException("Network error while sending request to the DeviceHive server", ex);
             }
+        }
+        #endregion
+
+        #region IDisposable Members
+
+        /// <summary>
+        /// Reseases used resources.
+        /// </summary>
+        public void Dispose()
+        {
+            _httpClient.Dispose();
         }
         #endregion
 

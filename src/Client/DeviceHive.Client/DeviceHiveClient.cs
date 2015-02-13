@@ -405,6 +405,19 @@ namespace DeviceHive.Client
             if (ChannelStateChanged != null)
                 ChannelStateChanged(sender, eventArgs);
         }
+
+        /// <summary>
+        /// Disposes current object
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                var task = CloseChannelAsync();
+                // does not need to wait
+            }
+        }
         #endregion
 
         #region IDisposable Members
@@ -414,8 +427,7 @@ namespace DeviceHive.Client
         /// </summary>
         public void Dispose()
         {
-            var task = CloseChannelAsync();
-            // does not need to wait
+            Dispose(true);
         }
         #endregion
     }
