@@ -5,6 +5,7 @@ namespace DeviceHive.Core.Mapping
     /// <summary>
     /// Represents json mapping exception
     /// </summary>
+    [Serializable]
     public class JsonMapperException : Exception
     {
         #region Constructor

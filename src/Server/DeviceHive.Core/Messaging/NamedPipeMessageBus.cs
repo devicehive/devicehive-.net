@@ -14,7 +14,7 @@ namespace DeviceHive.Core.Messaging
     /// <summary>
     /// Represents message bus implementation using named pipes
     /// </summary>
-    public class NamedPipeMessageBus : MessageBus, IDisposable
+    public sealed class NamedPipeMessageBus : MessageBus, IDisposable
     {
         private const int _connectRetryTimes = 5;
 
