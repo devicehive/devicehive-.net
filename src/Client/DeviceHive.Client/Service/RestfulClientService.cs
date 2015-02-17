@@ -524,7 +524,9 @@ namespace DeviceHive.Client
         {
             Logger.Debug("Calling GET " + url);
             var request = WebRequest.Create(ServiceUrl + url);
-            request.Credentials = new NetworkCredential(Login, Password);
+            request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(
+                System.Text.Encoding.UTF8.GetBytes(string.Format("{0}:{1}", Login, Password))));
+            
             try
             {
                 using (var response = request.GetResponse())
@@ -543,7 +545,8 @@ namespace DeviceHive.Client
         {
             Logger.Debug("Calling GET " + url);
             var request = WebRequest.Create(ServiceUrl + url);
-            request.Credentials = new NetworkCredential(Login, Password);
+            request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(
+                System.Text.Encoding.UTF8.GetBytes(string.Format("{0}:{1}", Login, Password))));
             var asyncResult = request.BeginGetResponse(null, null);
 
             // wait for response and throw OperationCancelledException if operation has been cancelled
@@ -573,7 +576,8 @@ namespace DeviceHive.Client
             var request = WebRequest.Create(ServiceUrl + url);
             request.Method = "POST";
             request.ContentType = "application/json";
-            request.Credentials = new NetworkCredential(Login, Password);
+            request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(
+                System.Text.Encoding.UTF8.GetBytes(string.Format("{0}:{1}", Login, Password))));
             using (var stream = request.GetRequestStream())
             {
                 Serialize(stream, obj);
@@ -599,7 +603,8 @@ namespace DeviceHive.Client
             var request = WebRequest.Create(ServiceUrl + url);
             request.Method = "PUT";
             request.ContentType = "application/json";
-            request.Credentials = new NetworkCredential(Login, Password);
+            request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(
+                System.Text.Encoding.UTF8.GetBytes(string.Format("{0}:{1}", Login, Password))));
             using (var stream = request.GetRequestStream())
             {
                 Serialize(stream, obj);
