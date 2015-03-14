@@ -35,11 +35,14 @@ namespace DeviceHive.Data.MongoDB
                 query = query.Where(e => deviceIds.Contains(e.DeviceID));
             var commands = query.Filter(filter).ToList();
 
-            var actualDeviceIds = commands.Select(e => e.DeviceID).Distinct().ToArray();
-            var deviceLookup = _mongo.Devices.Find(Query<Device>.In(e => e.ID, actualDeviceIds)).ToDictionary(e => e.ID);
+            if (commands.Any())
+            {
+                var actualDeviceIds = commands.Select(e => e.DeviceID).Distinct().ToArray();
+                var deviceLookup = _mongo.Devices.Find(Query<Device>.In(e => e.ID, actualDeviceIds)).ToDictionary(e => e.ID);
 
-            foreach (var command in commands)
-                command.Device = deviceLookup[command.DeviceID];
+                foreach (var command in commands)
+                    command.Device = deviceLookup[command.DeviceID];
+            }
 
             return commands;
         }
