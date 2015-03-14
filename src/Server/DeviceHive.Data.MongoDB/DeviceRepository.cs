@@ -92,7 +92,7 @@ namespace DeviceHive.Data.MongoDB
 
         public void SetLastOnline(int id)
         {
-            _mongo.Database.Eval(new EvalArgs { Code = string.Format("db.devices.update({{ _id: {0} }}, {{ $set: {{ LastOnline: new Date() }}}});", id) });
+            _mongo.Database.Eval(new EvalArgs { Code = string.Format("db.devices.update({{ _id: {0} }}, {{ $set: {{ LastOnline: new Date() }}}});", id), Lock = false });
         }
 
         public List<Device> GetOfflineDevices()

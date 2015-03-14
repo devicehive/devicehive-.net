@@ -58,11 +58,7 @@ namespace DeviceHive.API.Controllers
         [Route("{id:deviceGuid}"), AuthorizeUserOrDevice(AccessKeyAction = "GetDevice")]
         public JObject Get(string id)
         {
-            EnsureDeviceAccess(id);
-
-            var device = DataContext.Device.Get(id);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(id);
 
             return Mapper.Map(device);
         }
@@ -125,9 +121,10 @@ namespace DeviceHive.API.Controllers
         [Route("{id:deviceGuid}"), AuthorizeUserOrDevice(AccessKeyAction = "RegisterDevice")]
         public void Delete(string id)
         {
-            EnsureDeviceAccess(id);
+            if (CallContext.CurrentDevice != null && !string.Equals(CallContext.CurrentDevice.GUID, id, StringComparison.OrdinalIgnoreCase))
+                ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
 
-            var device = DataContext.Device.Get(id);
+            var device = CallContext.CurrentDevice ?? DataContext.Device.Get(id);
             if (device != null && IsDeviceAccessible(device))
             {
                 DataContext.Device.Delete(device.ID);

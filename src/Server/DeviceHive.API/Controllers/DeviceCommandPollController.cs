@@ -49,11 +49,7 @@ namespace DeviceHive.API.Controllers
         [AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
         public async Task<JArray> Get(string deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null) 
         {
-            EnsureDeviceAccess(deviceGuid);
-
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             var commandNames = names != null ? names.Split(',') : null;
@@ -157,9 +153,7 @@ namespace DeviceHive.API.Controllers
         [AuthorizeUser(AccessKeyAction = "GetDeviceCommand")]
         public async Task<JObject> Get(string deviceGuid, int id, int? waitTimeout = null)
         {
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var command = DataContext.DeviceCommand.Get(id);
             if (command == null || command.DeviceID != device.ID)

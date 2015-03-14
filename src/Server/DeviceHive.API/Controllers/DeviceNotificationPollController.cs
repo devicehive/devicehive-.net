@@ -46,9 +46,7 @@ namespace DeviceHive.API.Controllers
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public async Task<JArray> Get(string deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             var notificationNames = names != null ? names.Split(',') : null;

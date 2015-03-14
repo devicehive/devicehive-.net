@@ -47,13 +47,25 @@ namespace DeviceHive.API.Controllers
 
         #region Protected Methods
 
-        protected void EnsureDeviceAccess(string deviceGuid)
+        protected Device GetDeviceEnsureAccess(string deviceGuid)
         {
-            if (CallContext.CurrentDevice == null)
-                return;
+            if (CallContext.CurrentDevice != null)
+            {
+                // device authentication
+                if (!string.Equals(CallContext.CurrentDevice.GUID, deviceGuid, StringComparison.OrdinalIgnoreCase))
+                    ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
 
-            if (!string.Equals(CallContext.CurrentDevice.GUID, deviceGuid, StringComparison.OrdinalIgnoreCase))
-                ThrowHttpResponse(HttpStatusCode.Unauthorized, "Not authorized");
+                return CallContext.CurrentDevice;
+            }
+            else
+            {
+                // user authentication
+                var device = DataContext.Device.Get(deviceGuid);
+                if (device == null || !IsDeviceAccessible(device))
+                    ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+
+                return device;
+            }
         }
 
         protected bool IsNetworkAccessible(Network network)
