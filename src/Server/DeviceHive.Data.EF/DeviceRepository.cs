@@ -62,12 +62,29 @@ namespace DeviceHive.Data.EF
 
         public Device Get(string guid)
         {
+            if (string.IsNullOrEmpty(guid))
+                throw new ArgumentException("Guid is null or empty!");
+
             using (var context = new DeviceHiveContext())
             {
                 return context.Devices
                     .Include(e => e.Network)
                     .Include(e => e.DeviceClass.Equipment)
                     .FirstOrDefault(e => e.GUID == guid);
+            }
+        }
+
+        public List<Device> GetMany(string[] guids)
+        {
+            if (guids == null)
+                throw new ArgumentNullException("guids");
+
+            using (var context = new DeviceHiveContext())
+            {
+                return context.Devices
+                    .Include(e => e.Network)
+                    .Include(e => e.DeviceClass.Equipment)
+                    .Where(e => guids.Contains(e.GUID)).ToList();
             }
         }
 

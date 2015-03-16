@@ -46,7 +46,18 @@ namespace DeviceHive.Data.MongoDB
 
         public Device Get(string guid)
         {
+            if (string.IsNullOrEmpty(guid))
+                throw new ArgumentException("Guid is null or empty!");
+            
             return _mongo.Devices.FindOne(Query<Device>.EQ(e => e.GUID, guid));
+        }
+
+        public List<Device> GetMany(string[] guids)
+        {
+            if (guids == null)
+                throw new ArgumentNullException("guids");
+
+            return _mongo.Devices.Find(Query<Device>.In(e => e.GUID, guids)).ToList();
         }
 
         public void Save(Device device)

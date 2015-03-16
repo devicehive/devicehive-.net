@@ -96,14 +96,7 @@ namespace DeviceHive.API.Controllers
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public async Task<JArray> GetMany(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
-            var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(deviceGuid =>
-                {
-                    var device = DataContext.Device.Get(deviceGuid);
-                    if (device == null || !IsDeviceAccessible(device))
-                        ThrowHttpResponse(HttpStatusCode.BadRequest, "Invalid deviceGuid: " + deviceGuid);
-
-                    return device.ID;
-                }).ToArray();
+            var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(d => d.ID).ToArray();
 
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             var notificationNames = names != null ? names.Split(',') : null;
@@ -143,9 +136,10 @@ namespace DeviceHive.API.Controllers
                 }));
         }
 
-        private string[] ParseDeviceGuids(string deviceGuids)
+        private Device[] ParseDeviceGuids(string deviceGuids)
         {
-            return deviceGuids.Split(',').ToArray();
+            return DataContext.Device.GetMany(deviceGuids.Split(','))
+                .Where(device => IsDeviceAccessible(device)).ToArray();
         }
 
         private IJsonMapper<DeviceNotification> Mapper
