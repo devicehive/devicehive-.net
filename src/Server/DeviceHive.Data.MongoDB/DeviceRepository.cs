@@ -103,7 +103,7 @@ namespace DeviceHive.Data.MongoDB
 
         public void SetLastOnline(int id)
         {
-            _mongo.Database.Eval(new EvalArgs { Code = string.Format("db.devices.update({{ _id: {0} }}, {{ $set: {{ LastOnline: new Date() }}}});", id), Lock = false });
+            _mongo.Devices.Update(Query<Device>.EQ(e => e.ID, id), Update<Device>.CurrentDate(e => e.LastOnline));
         }
 
         public List<Device> GetOfflineDevices()
@@ -113,7 +113,7 @@ namespace DeviceHive.Data.MongoDB
                 .Select(d => new { ID = d.ID, LastOnline = d.LastOnline, OfflineTimeout = d.DeviceClass.OfflineTimeout }).ToList();
 
             var deviceIds = new List<int>();
-            var timestamp = _mongo.Database.Eval(new EvalArgs { Code = "return new Date()", Lock = false }).ToUniversalTime();
+            var timestamp = _mongo.GetCurrentTimestamp();
             foreach (var device in devices)
             {
                 if (device.LastOnline == null || device.LastOnline < timestamp.AddSeconds(-device.OfflineTimeout.Value))

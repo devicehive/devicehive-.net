@@ -78,9 +78,30 @@ namespace DeviceHive.Data.MongoDB
             if (notification.Device != null)
                 notification.DeviceID = notification.Device.ID;
 
-            _mongo.EnsureIdentity(notification);
-            _mongo.EnsureTimestamp(notification);
-            _mongo.DeviceNotifications.Save(notification);
+            if (notification.ID == default(int))
+            {
+                // use findAndModify to get the database-generated timestamp in response
+                _mongo.SetIdentity(notification, _mongo.GetIdentityFromBlock(typeof(DeviceNotification).Name));
+                var result = _mongo.DeviceNotifications.FindAndModify(new FindAndModifyArgs
+                    {
+                        Query = Query<DeviceNotification>.EQ(e => e.ID, notification.ID),
+                        Update = Update.Combine(
+                            notification.Timestamp == default(DateTime) ? 
+                                Update<DeviceNotification>.CurrentDate(e => e.Timestamp) :
+                                Update<DeviceNotification>.Set(e => e.Timestamp, notification.Timestamp),
+                            Update<DeviceNotification>.Set(e => e.Notification, notification.Notification),
+                            Update.Set("Parameters", notification.Parameters == null ? BsonNull.Value : BsonSerializer.Deserialize<BsonValue>(notification.Parameters)),
+                            Update<DeviceNotification>.Set(e => e.DeviceID, notification.DeviceID)),
+                        Upsert = true,
+                        VersionReturned = FindAndModifyDocumentVersion.Modified,
+                        Fields = Fields<DeviceNotification>.Include(e => e.Timestamp),
+                    });
+                _mongo.SetTimestamp(notification, result.ModifiedDocument["Timestamp"].ToUniversalTime());
+            }
+            else
+            {
+                _mongo.DeviceNotifications.Save(notification);
+            }
         }
 
         public void Delete(int id)
