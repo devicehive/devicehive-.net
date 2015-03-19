@@ -62,7 +62,8 @@ namespace DeviceHive.API.Controllers
 
             var config = DeviceHiveConfiguration.RestEndpoint;
             var delayTask = Task.Delay(1000 * Math.Min(config.CommandPollMaxInterval, waitTimeout ?? config.CommandPollDefaultInterval));
-            using (var waiterHandle = _commandByDeviceIdWaiter.BeginWait(device.ID))
+            using (var waiterHandle = _commandByDeviceIdWaiter.BeginWait(new object[] { device.ID },
+                commandNames == null ? null : commandNames.Cast<object>().ToArray()))
             {
                 do
                 {
@@ -113,7 +114,8 @@ namespace DeviceHive.API.Controllers
             var config = DeviceHiveConfiguration.RestEndpoint;
             var delayTask = Task.Delay(1000 * Math.Min(config.CommandPollMaxInterval, waitTimeout ?? config.CommandPollDefaultInterval));
             using (var waiterHandle = _commandByDeviceIdWaiter.BeginWait(
-                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray()))
+                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray(),
+                commandNames == null ? null : commandNames.Cast<object>().ToArray()))
             {
                 do
                 {
@@ -160,7 +162,7 @@ namespace DeviceHive.API.Controllers
 
             var config = DeviceHiveConfiguration.RestEndpoint;
             var delayTask = Task.Delay(1000 * Math.Min(config.CommandPollMaxInterval, waitTimeout ?? config.CommandPollDefaultInterval));
-            using (var waiterHandle = _commandByCommandIdWaiter.BeginWait(id))
+            using (var waiterHandle = _commandByCommandIdWaiter.BeginWait(new object[] { id }, null))
             {
                 do
                 {

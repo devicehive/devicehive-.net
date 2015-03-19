@@ -21,10 +21,11 @@ namespace DeviceHive.API.Internal
         /// Begins waiting for objects changes with specified keys
         /// </summary>
         /// <param name="keys">Array of object keys to wait</param>
+        /// <param name="tags">Array of tags to filter objects</param>
         /// <returns>IWaiterHandle interface</returns>
-        public IWaiterHandle BeginWait(params object[] keys)
+        public IWaiterHandle BeginWait(object[] keys, object[] tags)
         {
-            var subscription = Subscribe(keys);
+            var subscription = Subscribe(keys, tags);
             return new WaiterHandle(this, subscription);
         }
 
@@ -32,20 +33,21 @@ namespace DeviceHive.API.Internal
         /// Notifies about object change
         /// </summary>
         /// <param name="key">Object key</param>
-        public void NotifyChanges(object key)
+        /// <param name="tag">Object tag</param>
+        public void NotifyChanges(object key, object tag)
         {
-            foreach (var subscription in GetSubscriptionsFor(key))
+            foreach (var subscription in GetSubscriptionsFor(key, tag))
                 subscription.Notify();
         }
         #endregion
 
         #region Private Methods
 
-        private Subscription Subscribe(object[] keys)
+        private Subscription Subscribe(object[] keys, object[] tags = null)
         {
             lock (_subscriptions)
             {
-                var subscription = new Subscription(keys);
+                var subscription = new Subscription(keys, tags);
                 _subscriptions.Add(subscription);
                 return subscription;
             }
@@ -59,11 +61,11 @@ namespace DeviceHive.API.Internal
             }
         }
 
-        private Subscription[] GetSubscriptionsFor(object key)
+        private Subscription[] GetSubscriptionsFor(object key, object tag)
         {
             lock (_subscriptions)
             {
-                return _subscriptions.Where(s => s.Keys.Contains(key) || s.Keys.Contains(null)).ToArray();
+                return _subscriptions.Where(s => (s.Keys.Contains(key) || s.Keys.Contains(null)) && (s.Tags == null || s.Tags.Contains(tag))).ToArray();
             }
         }
         #endregion
@@ -73,6 +75,7 @@ namespace DeviceHive.API.Internal
         private class Subscription
         {
             private readonly HashSet<object> _keys;
+            private readonly HashSet<object> _tags;
             private readonly AutoResetEvent _handle;
 
             public HashSet<object> Keys
@@ -80,14 +83,20 @@ namespace DeviceHive.API.Internal
                 get { return _keys; }
             }
 
+            public HashSet<object> Tags
+            {
+                get { return _tags; }
+            }
+
             public WaitHandle Handle
             {
                 get { return _handle; }
             }
 
-            public Subscription(object[] keys)
+            public Subscription(object[] keys, object[] tags)
             {
                 _keys = new HashSet<object>(keys);
+                _tags = tags == null ? null : new HashSet<object>(tags);
                 _handle = new AutoResetEvent(false);
             }
 

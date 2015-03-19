@@ -13,12 +13,12 @@ namespace DeviceHive.WebSockets.API.Core
             var deviceController = context.Kernel.Get<DeviceController>();
 
             messageBus.Subscribe((DeviceNotificationAddedMessage msg) =>
-                clientController.HandleDeviceNotification(msg.DeviceId, msg.NotificationId));
+                clientController.HandleDeviceNotification(msg.DeviceId, msg.NotificationId, msg.Name));
 
             messageBus.Subscribe((DeviceCommandAddedMessage msg) =>
                 {
                     deviceController.HandleDeviceCommand(msg.DeviceId, msg.CommandId);
-                    clientController.HandleDeviceCommand(msg.DeviceId, msg.CommandId);
+                    clientController.HandleDeviceCommand(msg.DeviceId, msg.CommandId, msg.Name);
                 });
 
             messageBus.Subscribe((DeviceCommandUpdatedMessage msg) =>

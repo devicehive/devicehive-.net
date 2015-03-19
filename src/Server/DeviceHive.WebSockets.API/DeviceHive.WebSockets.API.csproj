@@ -54,6 +54,7 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\DeviceHive.WebSockets.API.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <StartArguments>-mode SelfHostApp</StartArguments>

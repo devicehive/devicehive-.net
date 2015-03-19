@@ -59,7 +59,8 @@ namespace DeviceHive.API.Controllers
 
             var config = DeviceHiveConfiguration.RestEndpoint;
             var delayTask = Task.Delay(1000 * Math.Min(config.NotificationPollMaxInterval, waitTimeout ?? config.NotificationPollDefaultInterval));
-            using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(device.ID))
+            using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(new object[] { device.ID },
+                notificationNames == null ? null : notificationNames.Cast<object>().ToArray()))
             {
                 do
                 {
@@ -110,7 +111,8 @@ namespace DeviceHive.API.Controllers
             var config = DeviceHiveConfiguration.RestEndpoint;
             var delayTask = Task.Delay(1000 * Math.Min(config.NotificationPollMaxInterval, waitTimeout ?? config.NotificationPollDefaultInterval));
             using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(
-                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray()))
+                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray(),
+                notificationNames == null ? null : notificationNames.Cast<object>().ToArray()))
             {
                 do
                 {
