@@ -62,7 +62,7 @@ namespace DeviceHive.WebSockets.API.Core
                 .OnActivation(JsonMapperConfig.ConfigureMapping);
 
             // bind message bus
-            kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope()
+            kernel.Bind<MessageBus>().To<TcpSocketMessageBus>().InSingletonScope()
                 .OnActivation(MessageBusConfig.ConfigureMessageBus);
 
             // bind web socket server

@@ -91,6 +91,8 @@
     <Compile Include="Messaging\DeviceNotificationAddedMessage.cs" />
     <Compile Include="Messaging\MessageBus.cs" />
     <Compile Include="Messaging\NamedPipeMessageBus.cs" />
+    <Compile Include="Messaging\TcpSocketMessageBus.cs" />
+    <Compile Include="Messaging\TcpSocketMessageBusConfiguration.cs" />
     <Compile Include="PasswordPolicyValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\UnauthroizedNetworkException.cs" />
