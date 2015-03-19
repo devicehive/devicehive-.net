@@ -134,13 +134,14 @@ namespace DeviceHive.Data.EF
             }
         }
 
-        public List<Device> GetOfflineDevices()
+        public List<Device> GetDisconnectedDevices(string offlineStatus)
         {
             using (var context = new DeviceHiveContext())
             {
                 return context.Devices
                     .Include(e => e.Network)
                     .Include(e => e.DeviceClass.Equipment)
+                    .Where(d => d.Status != offlineStatus)
                     .Where(e => e.DeviceClass.OfflineTimeout != null)
                     .Where(d => d.LastOnline == null || DbFunctions.AddSeconds(d.LastOnline, d.DeviceClass.OfflineTimeout) < SqlFunctions.GetUtcDate())
                     .ToList();

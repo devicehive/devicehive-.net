@@ -106,9 +106,10 @@ namespace DeviceHive.Data.MongoDB
             _mongo.Devices.Update(Query<Device>.EQ(e => e.ID, id), Update<Device>.CurrentDate(e => e.LastOnline));
         }
 
-        public List<Device> GetOfflineDevices()
+        public List<Device> GetDisconnectedDevices(string offlineStatus)
         {
             var devices = _mongo.Devices.AsQueryable()
+                .Where(d => d.Status != offlineStatus)
                 .Where(d => d.DeviceClass.OfflineTimeout != null)
                 .Select(d => new { ID = d.ID, LastOnline = d.LastOnline, OfflineTimeout = d.DeviceClass.OfflineTimeout }).ToList();
 

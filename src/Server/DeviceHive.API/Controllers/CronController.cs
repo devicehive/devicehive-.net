@@ -29,8 +29,8 @@ namespace DeviceHive.API.Controllers
         [HttpGet, Route("RefreshDeviceStatus")]
         public void RefreshDeviceStatus()
         {
-            var devices = DataContext.Device.GetOfflineDevices();
-            foreach (var device in devices.Where(d => d.Status != OFFLINE_STATUS))
+            var devices = DataContext.Device.GetDisconnectedDevices(OFFLINE_STATUS);
+            foreach (var device in devices)
             {
                 // update device status
                 device.Status = OFFLINE_STATUS;
