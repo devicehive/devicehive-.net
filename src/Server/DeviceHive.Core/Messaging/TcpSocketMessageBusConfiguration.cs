@@ -12,7 +12,6 @@ namespace DeviceHive.Core.Messaging
         /// </summary>
         public TcpSocketMessageBusConfiguration()
         {
-            ConnectTimeout = 100;
         }
 
         /// <summary>
@@ -32,16 +31,6 @@ namespace DeviceHive.Core.Messaging
         public TcpSocketEndpointsElementCollection ClientEndpoints
         {
             get { return (TcpSocketEndpointsElementCollection)base["clientEndpoints"]; }
-        }
-
-        /// <summary>
-        /// Gets or sets timeout for tcp socket client connection
-        /// </summary>
-        [ConfigurationProperty("connectTimeout", DefaultValue = 100)]
-        public int ConnectTimeout
-        {
-            get { return (int)base["connectTimeout"]; }
-            set { base["connectTimeout"] = value; }
         }
     }
 
