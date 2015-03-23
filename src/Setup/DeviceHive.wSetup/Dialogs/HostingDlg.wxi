@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <Dialog Id="HostingDlg" Width="370" Height="270" Title="Hosting Settings - [ProductName]" NoMinimize="yes">
+    <Control Id="DomainNameLabel" Type="Text" X="45" Y="63" Width="100" Height="15" TabSkip="no" Text="&amp;Domain Name:" />
+    <Control Id="DomainNameEdit" Type="Edit" X="45" Y="85" Width="220" Height="18" Property="DOMAIN_NAME" Text="{200}" />
+
+    <Control Id="PortNumberLabel" Type="Text" X="45" Y="118" Width="100" Height="15" TabSkip="no" Text="&amp;Port Number:" />
+    <Control Id="PortNumberEdit" Type="Edit" X="45" Y="140" Width="220" Height="18" Property="PORT_NUMBER" Text="{200}" />
+    <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+      <Publish Event="NewDialog" Value="SQLConnectionStringDlg">
+        <![CDATA[DATABASE_TYPE = "MS_SQL"]]>
+      </Publish>
+      <Publish Event="NewDialog" Value="MongoConnectionStringDlg">
+        <![CDATA[DATABASE_TYPE = "MONGO_DB"]]>
+      </Publish>
+    </Control>
+    <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+      <Publish Event="NewDialog" Value="WebSocketDlg">1</Publish>
+    </Control>
+    <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+      <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+    </Control>
+    <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+    <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+      <Text>Please enter IIS configuration</Text>
+    </Control>
+    <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+    <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+      <Text>{\WixUI_Font_Title}Hosting Settings</Text>
+    </Control>
+    <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+  </Dialog>
+</Include>

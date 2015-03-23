@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <UI>
+      <?include DatabaseDlg.wxi ?>
+      <?include SQLConnectionStringDlg.wxi ?>
+      <?include MongoConnectionStringDlg.wxi ?>
+      <?include HostingDlg.wxi ?>
+      <?include WebSocketDlg.wxi ?>
+      <?include SSLSetupDlg.wxi ?>
+      <?include AuthenticationDlg.wxi ?>
+      <?include MiscSettingsDlg.wxi ?>
+    </UI>
+  </Fragment>
+
+  <!-- Setup UI -->
+  <Fragment>
+    <UI Id="SetupUI">
+      <UIRef Id="WixUI_InstallDir" />
+      <UIRef Id="WixUI_ErrorProgressText" />
+
+      <!-- Injection of custom UI -->
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="DatabaseDlg" Order="4">1</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DatabaseDlg">1</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="MiscSettingsDlg">1</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MiscSettingsDlg">1</Publish>
+    </UI>
+  </Fragment>
+</Wix>

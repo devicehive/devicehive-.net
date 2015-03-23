@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <Condition Message='Windows Server 2008 (Windows 7) or higher'><![CDATA[(VersionNT >= 600 AND MsiNTProductType = 3) OR (VersionNT >= 601 AND MsiNTProductType = 1)]]></Condition>
+</Include>

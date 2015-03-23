@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="DeviceHive">
+        </Directory>
+      </Directory>
+
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="DeviceHive">
+          <Directory Id="INSTALL_API_FOLDER" Name="Api">
+              <!-- Choose database: SQL or Mongo -->
+            <Component Id="WebConfigSQL" Guid="">
+              <Condition><![CDATA[DATABASE_TYPE = "MS_SQL"]]></Condition>
+              <util:XmlFile Id="SQLRepositoryAssembly" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/appSettings/add[\[]@key='RepositoryAssembly'[\]]" Name="value"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="DeviceHive.Data.EF"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+            <Component Id="WebConfigMongo" Guid="">
+              <Condition><![CDATA[DATABASE_TYPE = "MONGO_DB"]]></Condition>
+              <util:XmlFile Id="MongoRepositoryAssembly" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/appSettings/add[\[]@key='RepositoryAssembly'[\]]" Name="value"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="DeviceHive.Data.MongoDB"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+
+            <Component Id="WebConfigCmp" Guid="">
+              <!-- SQL Connection String -->
+              <util:XmlFile Id="ModifyConnectionString" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USERID];Pwd=[SQL_PASSWORD]"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+
+              <!-- Mongo Connection String -->
+              <util:XmlFile Id="ModifyMongoConnectionString" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/appSettings/add[\[]@key='MongoConnection'[\]]" Name="value"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="mongodb://[MONGO_HOST]/[MONGO_DATABASE]"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+
+              <!-- WebSocket endpoint URL -->
+              <util:XmlFile Id="ModifyWebSocketEndpointUrl" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/webSocketEndpoint" Name="url"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="ws://localhost:[WEB_SOCKET_PORT_NUMBER]"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+
+              <CreateFolder/>
+            </Component>
+
+            <!-- WebSocket endpoint enabled -->
+            <Component Id="WebConfigWebSocketEndpointEnabledTrue" Guid="">
+              <Condition><![CDATA[WEB_SOCKET_ENABLED="true"]]></Condition>
+              <util:XmlFile Id="ModifyWebSocketEndpointEnabledTrue" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/webSocketEndpoint" Name="enabled"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="true"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+            <Component Id="WebConfigWebSocketEndpointEnabledFalse" Guid="">
+              <Condition><![CDATA[WEB_SOCKET_ENABLED<>"true"]]></Condition>
+              <util:XmlFile Id="ModifyWebSocketEndpointEnabledFalse" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/webSocketEndpoint" Name="enabled"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="false"
+                   SelectionLanguage="XSLPattern" Sequence="2" />
+              <CreateFolder/>
+            </Component>
+
+            <!-- Authentication Google -->
+            <Component Id="WebConfigAuthenticationGoogleTrue" Guid="">
+              <Condition><![CDATA[AUTH_GOOGLE="true"]]></Condition>
+              <util:XmlFile Id="ModifyAuthenticationGoogleTrue" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='google'[\]]" Name="enabled"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="true"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+            <Component Id="WebConfigAuthenticationGoogleFalse" Guid="">
+              <Condition><![CDATA[AUTH_GOOGLE<>"true"]]></Condition>
+              <util:XmlFile Id="ModifyAuthenticationGoogleFalse" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='google'[\]]" Name="enabled"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="false"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+
+            <!-- Authentication Facebook -->
+            <Component Id="WebConfigAuthenticationFacebookTrue" Guid="">
+              <Condition><![CDATA[AUTH_FACEBOOK="true"]]></Condition>
+              <util:XmlFile Id="ModifyAuthenticationFacebookTrue" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='facebook'[\]]" Name="enabled"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="true"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+            <Component Id="WebConfigAuthenticationFacebookFalse" Guid="">
+              <Condition><![CDATA[AUTH_FACEBOOK<>"true"]]></Condition>
+              <util:XmlFile Id="ModifyAuthenticationFacebookFalse" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='facebook'[\]]" Name="enabled"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="false"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+
+            <!-- Authentication Github -->
+            <Component Id="WebConfigAuthenticationGithubTrue" Guid="">
+              <Condition><![CDATA[AUTH_GITHUB="true"]]></Condition>
+              <util:XmlFile Id="ModifyAuthenticationGithubTrue" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='github'[\]]" Name="enabled"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="true"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+            <Component Id="WebConfigAuthenticationGithubFalse" Guid="">
+              <Condition><![CDATA[AUTH_GITHUB<>"true"]]></Condition>
+              <util:XmlFile Id="ModifyAuthenticationGithubFalse" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='github'[\]]" Name="enabled"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="false"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+
+            <!-- Automatic network creation -->
+            <Component Id="WebConfigAutomaticNetworkCreationTrue" Guid="">
+              <Condition><![CDATA[AUTOMATIC_NETWORK_CREATION="true"]]></Condition>
+              <util:XmlFile Id="ModifyAutomaticNetworkCreationTrue" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/network" Name="allowAutoCreate"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="true"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+            <Component Id="WebConfigAutomaticNetworkCreationFalse" Guid="">
+              <Condition><![CDATA[AUTOMATIC_NETWORK_CREATION<>"true"]]></Condition>
+              <util:XmlFile Id="ModifyAutomaticNetworkCreationFalse" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/deviceHive/network" Name="allowAutoCreate"
+                   File="[INSTALL_API_FOLDER]Web.config"
+                   Value="false"
+                   SelectionLanguage="XSLPattern" Sequence="2" />
+              <CreateFolder/>
+            </Component>
+          </Directory>
+
+          <!--Directory Id="INSTALL_ADMIN_CONSOLE_FOLDER" Name="AdminConsole">
+          </Directory-->
+
+          <Directory Id="INSTALL_WINSOCKET_FOLDER" Name="WinSocket">
+          </Directory>
+
+          <Directory Id="INSTALL_DBMIGRATOR_FOLDER" Name="DBMigrator">
+            <!-- Choose database: SQL or Mongo -->
+            <Component Id="DBMigratorConfigSQL" Guid="">
+              <Condition><![CDATA[DATABASE_TYPE = "MS_SQL"]]></Condition>
+              <util:XmlFile Id="DBMigratorSQL" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/appSettings/add[\[]@key='RepositoryAssembly'[\]]" Name="value"
+                   File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
+                   Value="DeviceHive.Data.EF"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+            <Component Id="DBMigratorMongo" Guid="">
+              <Condition><![CDATA[DATABASE_TYPE = "MONGO_DB"]]></Condition>
+              <util:XmlFile Id="DBMigratorMongo" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/appSettings/add[\[]@key='RepositoryAssembly'[\]]" Name="value"
+                   File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
+                   Value="DeviceHive.Data.MongoDB"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+
+            <Component Id="DBMigratorConfigCmp" Guid="">
+              <!-- SQL Connection String -->
+              <util:XmlFile Id="DBMigratorSQLConnectionString" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
+                   File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
+                   Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USERID];Pwd=[SQL_PASSWORD]"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+
+              <!-- Mongo Connection String -->
+              <util:XmlFile Id="DBMigratorMongoConnectionString" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/appSettings/add[\[]@key='MongoConnection'[\]]" Name="value"
+                   File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
+                   Value="mongodb://[MONGO_HOST]/[MONGO_DATABASE]"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+  </Fragment>
+</Wix>

@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Fragment>
+        <DirectoryRef Id="INSTALL_API_FOLDER">
+            <Component Id="cmp0714EE5B2AE82E5A1DB4BB13BEA928B3" Guid="*">
+                <File Id="fil543FDBDCBAE8393B3BE60DA9721540C0" KeyPath="yes" Source="SourceDir\Global.asax" />
+            </Component>
+            <Component Id="cmp2CD670A2B42C18AEA4F0A4A864C2A88D" Guid="*">
+                <File Id="fil4340CC7C5EC158417CDFA11270476047" KeyPath="yes" Source="SourceDir\packages.config" />
+            </Component>
+            <Component Id="cmp7F0B422ABD8D3E67CC6D683625C12141" Guid="*">
+                <File Id="fil30EB236E083A2592873116ABAC4D280A" KeyPath="yes" Source="SourceDir\Web.config" />
+            </Component>
+            <Directory Id="dir44DD9D0E3568A7E58513E89865B00349" Name="bin">
+                <Component Id="cmp8EEC4A94DAA9B4C4893EAEE8ADBB20F7" Guid="*">
+                    <File Id="fil1BBDDA8619A48F354DC3DED0CD152AD6" KeyPath="yes" Source="SourceDir\bin\DeviceHive.API.dll" />
+                </Component>
+                <Component Id="cmp304B9C6F029A7C385DB9CA07891F2348" Guid="*">
+                    <File Id="fil14D000E7CB26858BACEF6375AACEC455" KeyPath="yes" Source="SourceDir\bin\DeviceHive.API.pdb" />
+                </Component>
+                <Component Id="cmp696856EA8EF1FE8D9DCB7EB805D8CB2B" Guid="*">
+                    <File Id="filC381A885C32B91FA1E16A52C1386B366" KeyPath="yes" Source="SourceDir\bin\DeviceHive.API.XML" />
+                </Component>
+                <Component Id="cmpC7AE2096122795E16947F2B6AA8E295A" Guid="*">
+                    <File Id="fil77D50AC69DA142423B761718769AB93C" KeyPath="yes" Source="SourceDir\bin\DeviceHive.Core.dll" />
+                </Component>
+                <Component Id="cmp92A03E331B33BE7BB3B5F5620B1F5A04" Guid="*">
+                    <File Id="filFCF09FB48D7BEC6560952B9BE6BCFE96" KeyPath="yes" Source="SourceDir\bin\DeviceHive.Data.dll" />
+                </Component>
+                <Component Id="cmp8BF9188092FAF017AE3FE158E46E609F" Guid="*">
+                    <File Id="filB3A0CF9F50BCE2A7C7170A5EFAB48D63" KeyPath="yes" Source="SourceDir\bin\DeviceHive.Data.EF.dll" />
+                </Component>
+                <Component Id="cmp01362BC01FCF4ED5558402EA439E745B" Guid="*">
+                    <File Id="fil7695BAF7A84CCAB121D42717BAD02654" KeyPath="yes" Source="SourceDir\bin\DeviceHive.Data.MongoDB.dll" />
+                </Component>
+                <Component Id="cmpA2800E6545532A77D90E2E31420351E9" Guid="*">
+                    <File Id="fil98BC51A990D012FFDDB4E9B638415921" KeyPath="yes" Source="SourceDir\bin\EntityFramework.dll" />
+                </Component>
+                <Component Id="cmpE348BEB4184D5EBD3918E944E1B69CF9" Guid="*">
+                    <File Id="filF7603280B9671B2939428394F643C059" KeyPath="yes" Source="SourceDir\bin\EntityFramework.SqlServer.dll" />
+                </Component>
+                <Component Id="cmp9D528A521FDBF02FF1B8E79A2214F90A" Guid="*">
+                    <File Id="fil9ED06AE19AFD97A4CEC33C92D9D0BE77" KeyPath="yes" Source="SourceDir\bin\log4net.dll" />
+                </Component>
+                <Component Id="cmp911A3D2BB8CE5931224B32B4D9BF4F1C" Guid="*">
+                    <File Id="filE04EC84B8796D77A5CBAD271DCC2D164" KeyPath="yes" Source="SourceDir\bin\Microsoft.Web.Infrastructure.dll" />
+                </Component>
+                <Component Id="cmp5CB4B60E2D1BA81586B8499CD489D95B" Guid="*">
+                    <File Id="fil8924E6632900BC9F13886D06E5740E20" KeyPath="yes" Source="SourceDir\bin\MongoDB.Bson.dll" />
+                </Component>
+                <Component Id="cmp99F18E3A834F80CC3637B6597B6DF81E" Guid="*">
+                    <File Id="fil3BEF5B70C480CCE360B6F98447A8096C" KeyPath="yes" Source="SourceDir\bin\MongoDB.Driver.dll" />
+                </Component>
+                <Component Id="cmp5D09EA7EAE8864CF13A7B7E4CA0E8D75" Guid="*">
+                    <File Id="fil0AF0FF3246FC17F341BD0C73EC7B08C9" KeyPath="yes" Source="SourceDir\bin\Newtonsoft.Json.dll" />
+                </Component>
+                <Component Id="cmp3D293AB047906DE6F3FDA366C89F0EE4" Guid="*">
+                    <File Id="filBC4DC7AFDA14BFA41BB66CF3DE1C3910" KeyPath="yes" Source="SourceDir\bin\Ninject.dll" />
+                </Component>
+                <Component Id="cmpD393699EE15DD9C8E04CA4480BBD49E3" Guid="*">
+                    <File Id="fil659717DB73C285D579501947A353B1DA" KeyPath="yes" Source="SourceDir\bin\Ninject.Web.Common.dll" />
+                </Component>
+                <Component Id="cmp40E07866F8D274308A67FE5B9685365E" Guid="*">
+                    <File Id="fil4933B9B694CD068D29886A4E20519A30" KeyPath="yes" Source="SourceDir\bin\Ninject.Web.WebApi.dll" />
+                </Component>
+                <Component Id="cmp9529A66911784A4FFFBB0DAA561471CF" Guid="*">
+                    <File Id="fil66ECD6F1234FDF3AE0DE17A69A1E23A4" KeyPath="yes" Source="SourceDir\bin\Ninject.Web.WebApi.WebHost.dll" />
+                </Component>
+                <Component Id="cmpE2F6A4987945016A172EBEEAF3366DC4" Guid="*">
+                    <File Id="filEFD8628119891F255F88DCF6405EE3A2" KeyPath="yes" Source="SourceDir\bin\System.Net.Http.Formatting.dll" />
+                </Component>
+                <Component Id="cmp73C00FE82B63A26A65C223AB417A308E" Guid="*">
+                    <File Id="fil737CBFFE29926E3296B4232D530B57FF" KeyPath="yes" Source="SourceDir\bin\System.Web.Http.dll" />
+                </Component>
+                <Component Id="cmp27C5910ABD1FFC690C4AFD5B1998CCD3" Guid="*">
+                    <File Id="fil52B729ED427578BAADDA8C5385B5E8B8" KeyPath="yes" Source="SourceDir\bin\System.Web.Http.WebHost.dll" />
+                </Component>
+                <Component Id="cmp86450BEF1563FDBA5F9E07F98333EF57" Guid="*">
+                    <File Id="filB66210B87C1D8A348DFD1FC0082D374E" KeyPath="yes" Source="SourceDir\bin\WebActivatorEx.dll" />
+                </Component>
+            </Directory>
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="DeviceHive.API_Project">
+            <ComponentRef Id="cmp0714EE5B2AE82E5A1DB4BB13BEA928B3" />
+            <ComponentRef Id="cmp2CD670A2B42C18AEA4F0A4A864C2A88D" />
+            <ComponentRef Id="cmp7F0B422ABD8D3E67CC6D683625C12141" />
+            <ComponentRef Id="cmp8EEC4A94DAA9B4C4893EAEE8ADBB20F7" />
+            <ComponentRef Id="cmp304B9C6F029A7C385DB9CA07891F2348" />
+            <ComponentRef Id="cmp696856EA8EF1FE8D9DCB7EB805D8CB2B" />
+            <ComponentRef Id="cmpC7AE2096122795E16947F2B6AA8E295A" />
+            <ComponentRef Id="cmp92A03E331B33BE7BB3B5F5620B1F5A04" />
+            <ComponentRef Id="cmp8BF9188092FAF017AE3FE158E46E609F" />
+            <ComponentRef Id="cmp01362BC01FCF4ED5558402EA439E745B" />
+            <ComponentRef Id="cmpA2800E6545532A77D90E2E31420351E9" />
+            <ComponentRef Id="cmpE348BEB4184D5EBD3918E944E1B69CF9" />
+            <ComponentRef Id="cmp9D528A521FDBF02FF1B8E79A2214F90A" />
+            <ComponentRef Id="cmp911A3D2BB8CE5931224B32B4D9BF4F1C" />
+            <ComponentRef Id="cmp5CB4B60E2D1BA81586B8499CD489D95B" />
+            <ComponentRef Id="cmp99F18E3A834F80CC3637B6597B6DF81E" />
+            <ComponentRef Id="cmp5D09EA7EAE8864CF13A7B7E4CA0E8D75" />
+            <ComponentRef Id="cmp3D293AB047906DE6F3FDA366C89F0EE4" />
+            <ComponentRef Id="cmpD393699EE15DD9C8E04CA4480BBD49E3" />
+            <ComponentRef Id="cmp40E07866F8D274308A67FE5B9685365E" />
+            <ComponentRef Id="cmp9529A66911784A4FFFBB0DAA561471CF" />
+            <ComponentRef Id="cmpE2F6A4987945016A172EBEEAF3366DC4" />
+            <ComponentRef Id="cmp73C00FE82B63A26A65C223AB417A308E" />
+            <ComponentRef Id="cmp27C5910ABD1FFC690C4AFD5B1998CCD3" />
+            <ComponentRef Id="cmp86450BEF1563FDBA5F9E07F98333EF57" />
+        </ComponentGroup>
+    </Fragment>
+</Wix>
