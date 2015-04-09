@@ -4,7 +4,6 @@
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
   <Fragment>
-    
     <!-- http://blog.bartdemeyer.be/2013/10/create-an-installer-for-website-with-wix-part-3/ -->
     <?include ConfigurationInitialize.wxi ?>
 
@@ -18,7 +17,7 @@
       <!-- Configuring app pool -->
       <Component Id="DeviceHiveAppPoolCmp" Guid="{784ae9fd-66db-4671-9489-0aa167758c67}" KeyPath="yes">
         <util:User Id="DeviceHiveAppPoolUser" CreateUser="no" Name="DeviceHiveUser" Domain="DeviceHiveAppPoolDomain" />
-        <iis:WebAppPool Id="DeviceHiveAppPool" Name="DeviceHiveAppPool" Identity="other" User="DeviceHiveAppPoolUser" />
+        <iis:WebAppPool Id="DeviceHiveAppPool" Name="DeviceHiveAppPool" ManagedPipelineMode="Integrated" />
       </Component>
 
       <!-- Configure virtual dir -->
