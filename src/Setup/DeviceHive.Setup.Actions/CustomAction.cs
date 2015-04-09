@@ -56,7 +56,8 @@ namespace DeviceHive.Setup.Actions
             
             if (host == null || database == null)
             {
-                return ActionResult.Failure;
+                session["MONGODB_CONNECTION_ESTABLISHED"] = "0";
+                return ActionResult.Success;
             }
 
             var connectionString = "mongodb://" + host + "/" + database;
@@ -72,33 +73,8 @@ namespace DeviceHive.Setup.Actions
             {
                 var message = "Error: " + e.Message + "; " + e.StackTrace + "; ";
                 session.Log(message);
-//                throw;
             }
             
-            return ActionResult.Success;
-        }
-
-        [CustomAction]
-        public static ActionResult MSSqlDbMigration(Session session)
-        {
-            session.Log("Begin CustomAction ChangeConfigJs");
-
-            //try
-            //{
-            //    var s = System.IO.File.CreateText("d:\\db.txt");
-            //    s.Write(String.Format("source: {0}; db: {1}; admin: {2}; psw: {3}; admin: {4}; password: {5}",
-            //        session.GetProductProperty("SQL_SERVER"), session.GetProductProperty("SQL_DATABASE"), 
-            //        session.GetProductProperty("SQL_USER_ID"), session.GetProductProperty("SQL_PASSWORD"), 
-            //        session.GetProductProperty("AUTH_ADMIN_LOGIN"), session.GetProductProperty("AUTH_ADMIN_PASSWORD")));
-            //    s.Close();
-            //}
-            //catch (Exception ex)
-            //{
-            //    var l = System.IO.File.CreateText("d:\\log.txt");
-            //    l.Write(ex.Message);
-            //    l.Close();
-            //}
-
             return ActionResult.Success;
         }
 

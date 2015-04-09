@@ -10,7 +10,7 @@
 
     <!-- Install to default web site -->
     <!-- iis:WebSite Id="DeviceHiveWebSite" Description='[DOMAIN_NAME]' SiteId="*" Directory="INSTALL_API_FOLDER" -->
-    <iis:WebSite Id="DeviceHiveWebSite" Description='Default Web Site'>
+    <iis:WebSite Id="DeviceHiveWebSite" Description='DeviceHive' SiteId="DeviceHive">
         <iis:WebAddress Id="AllUnassigned" Port="[PORT_NUMBER]" />
     </iis:WebSite>
 
@@ -23,9 +23,9 @@
 
       <!-- Configure virtual dir -->
       <Component Id="DeviceHiveVirtualDirCmp" Guid="{751DEB01-ECC1-48ff-869A-65BCEE9E0528}" KeyPath="yes" >
-        <iis:WebVirtualDir Id="DeviceHiveVirtualDir" Alias="Api" Directory="INSTALL_API_FOLDER" WebSite="DeviceHiveWebSite">
+        <iis:WebVirtualDir Id="DeviceHiveVirtualDir" Alias="api" Directory="INSTALL_API_FOLDER" WebSite="DeviceHiveWebSite">
           <iis:WebDirProperties Id="DeviceHiveVirtDirProperties" AnonymousAccess="no" BasicAuthentication="no" WindowsAuthentication="yes" />
-          <iis:WebApplication Id="DeviceHiveWebApplication" Name="Api" WebAppPool="DeviceHiveAppPool" />
+          <iis:WebApplication Id="DeviceHiveWebApplication" Name="api" WebAppPool="DeviceHiveAppPool" />
         </iis:WebVirtualDir>
       </Component>
     </DirectoryRef>
