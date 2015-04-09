@@ -16,7 +16,7 @@
 
     <DirectoryRef Id="INSTALL_API_FOLDER">
       <!-- Configuring app pool -->
-      <Component Id="DeviceHiveAppPoolCmp" Guid="" KeyPath="yes">
+      <Component Id="DeviceHiveAppPoolCmp" Guid="{784ae9fd-66db-4671-9489-0aa167758c67}" KeyPath="yes">
         <util:User Id="DeviceHiveAppPoolUser" CreateUser="no" Name="DeviceHiveUser" Domain="DeviceHiveAppPoolDomain" />
         <iis:WebAppPool Id="DeviceHiveAppPool" Name="DeviceHiveAppPool" Identity="other" User="DeviceHiveAppPoolUser" />
       </Component>
@@ -24,7 +24,7 @@
       <!-- Configure virtual dir -->
       <Component Id="DeviceHiveVirtualDirCmp" Guid="{751DEB01-ECC1-48ff-869A-65BCEE9E0528}" KeyPath="yes" >
         <iis:WebVirtualDir Id="DeviceHiveVirtualDir" Alias="api" Directory="INSTALL_API_FOLDER" WebSite="DeviceHiveWebSite">
-          <iis:WebDirProperties Id="DeviceHiveVirtDirProperties" AnonymousAccess="no" BasicAuthentication="no" WindowsAuthentication="yes" />
+          <iis:WebDirProperties Id="DeviceHiveVirtDirProperties" AnonymousAccess="yes" BasicAuthentication="no" WindowsAuthentication="yes" />
           <iis:WebApplication Id="DeviceHiveWebApplication" Name="api" WebAppPool="DeviceHiveAppPool" />
         </iis:WebVirtualDir>
       </Component>

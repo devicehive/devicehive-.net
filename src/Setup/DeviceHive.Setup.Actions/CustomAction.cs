@@ -12,7 +12,7 @@ namespace DeviceHive.Setup.Actions
         {
             session.Log("Begin CustomAction ChangeConfigJs");
 
-            var t = System.IO.File.CreateText("d:\\test.txt");
+            var t = System.IO.File.CreateText("c:\\test.txt");
             if (System.IO.File.Exists(session.GetTargetPath("INSTALLFOLDER") + "devicehive-admin-console\\scripts\\config.js"))
             {
                 t.Write(session.GetTargetPath("INSTALLFOLDER") + "devicehive-admin-console\\scripts\\config.js");

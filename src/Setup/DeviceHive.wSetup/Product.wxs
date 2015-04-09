@@ -10,7 +10,6 @@
     <Media Id="1" Cabinet="DeviceHive.Api.cab" EmbedCab="yes" />
 
     <?include Conditions.wxi ?>
-    
 
     <!-- Configurable install location -->
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
@@ -89,7 +88,6 @@
 
     <Binary Id="CustomAction" SourceFile="..\..\..\DeviceHive.Setup.Actions\bin\Debug\DeviceHive.Setup.Actions.CA.dll"/>
     <CustomAction Id="ChangeConfigJs" BinaryKey="CustomAction" DllEntry="ChangeConfigJs" Return="check" />
-    <CustomAction Id="MSSqlDbMigration" BinaryKey="CustomAction" DllEntry="MSSqlDbMigration" Return="check" />
     <CustomAction Id="CheckMongoDbConnection" BinaryKey="CustomAction" DllEntry="CheckMongoDbConnection" Return="check" />
     <CustomAction Id="GetCertificates" BinaryKey="CustomAction" DllEntry="GetCertificates" Execute="immediate"  Return="check" />
     <CustomAction Id="RunDBMigrator" Directory="INSTALL_DBMIGRATOR_FOLDER" ExeCommand='"[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe"' Execute="deferred" Return="check"/>
@@ -99,11 +97,10 @@
     </InstallUISequence>
 
     <InstallExecuteSequence>
-      <Custom Action="ChangeConfigJs" After="InstallFinalize">NOT Installed</Custom>
-<!--      <Custom Action="MSSqlDbMigration" After="InstallFinalize">NOT Installed</Custom>-->
       <Custom Action="MakeWepApp20" After="InstallFinalize">ASPNETREGIIS AND NOT Installed</Custom>
+      <Custom Action="ChangeConfigJs" After="InstallFinalize">NOT Installed</Custom>
       <!-- Custom Action="CreateConfigJsFile" After="InstallFinalize">NOT Installed</Custom -->
-      <Custom Action="RunDBMigrator" Before="InstallFinalize" />
+      <Custom Action="RunDBMigrator" Before="InstallFinalize" >NOT Installed</Custom>
     </InstallExecuteSequence>
    
     <DirectoryRef Id="ApplicationProgramsFolder">
@@ -122,24 +119,11 @@
       </Component>
     </DirectoryRef>
 
-
     <!-- License and images -->
     <!-- WixVariable Id="WixUILicenseRtf" Value="$(var.MyWebResourceDir)\License.rtf" / -->
 
     <!-- Specify UI -->
     <UIRef Id="SetupUI" />
-
-    <!--CustomAction Id="CreateConfigJsFile" Script="vbscript">
-      <![CDATA[
-        Dim fso, f1, ts, s
-        Const ForReading = 1
-        Set fso = CreateObject("Scripting.FileSystemObject")
-        Set f1 = fso.CreateTextFile(Session.Property("INSTALLFOLDER") & "\testreadfile.txt", True)
-        f1.WriteLine "Hello World"
-        f1.WriteBlankLines(1)
-        f1.Close
-      ]]>
-    </CustomAction -->
     
   </Product>
 </Wix>
