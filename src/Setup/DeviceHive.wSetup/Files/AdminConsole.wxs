@@ -5,19 +5,19 @@
   <!-- "$(WIX)bin\heat.exe" dir "..\..\..\..\..\..\devicehive-admin-console" -cg CmpAdminConsole -gg -scom -sreg -sfrag -dr INSTALL_ADMIN_CONSOLE_FOLDER -out "$(ProjectDir)Files\AdminConsole.wxs" -var var.AdminConsoleSourcePath -->
   <Fragment>
         <DirectoryRef Id="INSTALLFOLDER">
-            <Directory Id="dir4E71FF17D6BDEDD7BA5F35969ABB94D2" Name="devicehive-admin-console">
-                <Component Id="cmpCC6EA25C1F69121F73C824EA0F314EAF" Guid="{7EC5CB77-F0CC-4E28-BEC5-ACFAD460CBE3}">
-                    <File Id="filC14E4BC3F7F6FE746710863805921F94" KeyPath="yes" Source="$(var.AdminConsoleSourcePath)\.gitignore" />
-                </Component>
+            <Directory Id="INSTALL_ADMIN_FOLDER" Name="admin">
+<!--                <Component Id="cmpCC6EA25C1F69121F73C824EA0F314EAF" Guid="{7EC5CB77-F0CC-4E28-BEC5-ACFAD460CBE3}">-->
+<!--                    <File Id="filC14E4BC3F7F6FE746710863805921F94" KeyPath="yes" Source="$(var.AdminConsoleSourcePath)\.gitignore" />-->
+<!--                </Component>-->
                 <Component Id="cmp45A84BB277C0AFB191753E0EFFE79DCC" Guid="{28293CB8-5A3B-4E9B-A54D-96F6502560AA}">
                     <File Id="fil2C40FA1666305BAB1955190C2369B678" KeyPath="yes" Source="$(var.AdminConsoleSourcePath)\index.html" />
                 </Component>
-                <Component Id="cmp03C54122D249F34AB35FFCFAE98B4368" Guid="{65C5ADBD-9CB1-4212-A049-5E529D7D5CC7}">
-                    <File Id="filA4F8027972840A18751FBBC9F42A47CD" KeyPath="yes" Source="$(var.AdminConsoleSourcePath)\license.txt" />
-                </Component>
-                <Component Id="cmp69849786EE84E78A82127EDA385D88F7" Guid="{E6DE8648-E718-4D53-B8FE-178C2C75FA6F}">
-                    <File Id="filBEBFD787A702FD2D802AD96D76E10249" KeyPath="yes" Source="$(var.AdminConsoleSourcePath)\README.md" />
-                </Component>
+<!--                <Component Id="cmp03C54122D249F34AB35FFCFAE98B4368" Guid="{65C5ADBD-9CB1-4212-A049-5E529D7D5CC7}">-->
+<!--                    <File Id="filA4F8027972840A18751FBBC9F42A47CD" KeyPath="yes" Source="$(var.AdminConsoleSourcePath)\license.txt" />-->
+<!--                </Component>-->
+<!--                <Component Id="cmp69849786EE84E78A82127EDA385D88F7" Guid="{E6DE8648-E718-4D53-B8FE-178C2C75FA6F}">-->
+<!--                    <File Id="filBEBFD787A702FD2D802AD96D76E10249" KeyPath="yes" Source="$(var.AdminConsoleSourcePath)\README.md" />-->
+<!--                </Component>-->
                 <Directory Id="dir6AAE854EA578466E4D9B5C2CE7D5BEB5" Name="css">
                     <Component Id="cmpE64DAACF670DF141B3AF740EA57CFD2C" Guid="{C61C0239-31DC-436D-A4AD-55E717310ABB}">
                         <File Id="fil8AAC20812611C79DA048DE538E74F0AE" KeyPath="yes" Source="$(var.AdminConsoleSourcePath)\css\jquery-ui-1.8.21.custom.css" />
@@ -457,10 +457,10 @@
     </Fragment>
     <Fragment>
         <ComponentGroup Id="CmpAdminConsole">
-            <ComponentRef Id="cmpCC6EA25C1F69121F73C824EA0F314EAF" />
+<!--            <ComponentRef Id="cmpCC6EA25C1F69121F73C824EA0F314EAF" />-->
             <ComponentRef Id="cmp45A84BB277C0AFB191753E0EFFE79DCC" />
-            <ComponentRef Id="cmp03C54122D249F34AB35FFCFAE98B4368" />
-            <ComponentRef Id="cmp69849786EE84E78A82127EDA385D88F7" />
+<!--            <ComponentRef Id="cmp03C54122D249F34AB35FFCFAE98B4368" />-->
+<!--            <ComponentRef Id="cmp69849786EE84E78A82127EDA385D88F7" />-->
             <ComponentRef Id="cmpE64DAACF670DF141B3AF740EA57CFD2C" />
             <ComponentRef Id="cmpE3AB74692D92CC8175914F761ABE5349" />
             <ComponentRef Id="cmp771B88CACAA0098BA44F8D71A2F804CA" />

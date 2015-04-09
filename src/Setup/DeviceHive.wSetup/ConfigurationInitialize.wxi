@@ -39,9 +39,6 @@
 
   <!-- MiscSettingsDlg -->
   <Property Id="AUTOMATIC_NETWORK_CREATION"></Property>
-
-  
-  
   
   <!-- VIRTUAL_DIR_VAL property initialize -->
   <Property Id="VIRTUAL_DIR_VAL" Value="DeviceHive.Api" />
@@ -53,6 +50,5 @@
   <Property Id="WEB_APP_POOL_IDENTITY_DOMAIN" Value="POOL_DOMAIN" />
   <Property Id="WEB_APP_POOL_IDENTITY_NAME" Value="account-name" />
   <Property Id="WEB_APP_POOL_IDENTITY_PWD" Hidden="yes" />
-
 
 </Include>

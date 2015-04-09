@@ -25,7 +25,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="DatabaseConnection.wxs" />
-    <Compile Include="DBMigratorConfiguration.wxs" />
     <Compile Include="Dialogs\UIDialogs.wxs" />
     <Compile Include="Files\AdminConsole.wxs" />
     <Compile Include="Files\DeviceHive.API.wxs" />

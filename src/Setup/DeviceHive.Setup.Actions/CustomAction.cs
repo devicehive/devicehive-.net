@@ -12,38 +12,18 @@ namespace DeviceHive.Setup.Actions
         {
             session.Log("Begin CustomAction ChangeConfigJs");
 
-            var t = System.IO.File.CreateText("c:\\test.txt");
-            if (System.IO.File.Exists(session.GetTargetPath("INSTALLFOLDER") + "devicehive-admin-console\\scripts\\config.js"))
-            {
-                t.Write(session.GetTargetPath("INSTALLFOLDER") + "devicehive-admin-console\\scripts\\config.js");
-            }
-            else
-            {
-                t.Write("No: " + session.GetTargetPath("INSTALLFOLDER") + "devicehive-admin-console\\scripts\\config.js");
-            }
-            t.Close();
+            var configPath = session.GetTargetPath("INSTALLFOLDER") + "admin\\scripts\\config.js";
+
+            session.Log("Config.js on path {0} exists: {1} ", configPath, System.IO.File.Exists(configPath));
 
             try
             {
-                var s = System.IO.File.CreateText("d:\\db.txt");
-                s.Write(session["SQL_SERVER"]);
-                s.Write(session["SQL_DATABASE"]);
-                s.Write(session["SQL_USER_ID"]);
-                s.Write(session["SQL_PASSWORD"]);
-                s.Write(session["AUTH_ADMIN_LOGIN"]);
-                s.Write(session["AUTH_ADMIN_PASSWORD"]);
-                s.Close();
-
-                //var f = 
-                System.IO.File.WriteAllText(session.GetTargetPath("INSTALLFOLDER") + "devicehive-admin-console\\scripts\\config.js", "Hello");
-                //f.Write("Hello World");
-                //f.Close();
+                //TODO: Implement changing config.js file
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                var l = System.IO.File.CreateText(@"c:\Temp\DeviceHive.txt");
-                l.Write(ex.Message + "  ||| " + ex.StackTrace.ToString());
-                l.Close();
+                var message = "Error: " + e.Message + "; " + e.StackTrace + "; ";
+                session.Log(message);
             }
             return ActionResult.Success;
         }

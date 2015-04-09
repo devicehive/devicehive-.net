@@ -20,17 +20,27 @@
         <iis:WebAppPool Id="DeviceHiveAppPool" Name="DeviceHiveAppPool" ManagedPipelineMode="Integrated" />
       </Component>
 
-      <!-- Configure virtual dir -->
+      <!-- Configure DeviceHive virtual dir -->
       <Component Id="DeviceHiveVirtualDirCmp" Guid="{751DEB01-ECC1-48ff-869A-65BCEE9E0528}" KeyPath="yes" >
         <iis:WebVirtualDir Id="DeviceHiveVirtualDir" Alias="api" Directory="INSTALL_API_FOLDER" WebSite="DeviceHiveWebSite">
           <iis:WebDirProperties Id="DeviceHiveVirtDirProperties" AnonymousAccess="yes" BasicAuthentication="no" WindowsAuthentication="yes" />
           <iis:WebApplication Id="DeviceHiveWebApplication" Name="api" WebAppPool="DeviceHiveAppPool" />
         </iis:WebVirtualDir>
       </Component>
+
+      <!-- Configure admin panel -->
+      <Component Id="DeviceHiveAdminVirtualDirCmp" Guid="{7FECEF44-11BF-446C-88EC-9CCBACBA4B2E}" KeyPath="yes" >
+        <iis:WebVirtualDir Id="DeviceHiveAdminVirtualDir" Alias="admin" Directory="INSTALL_ADMIN_FOLDER" WebSite="DeviceHiveWebSite">
+<!--          <iis:WebDirProperties Id="DeviceHiveVirtDirProperties" AnonymousAccess="yes" BasicAuthentication="no" WindowsAuthentication="yes" />-->
+          <iis:WebApplication Id="DeviceHiveAdminApplication" Name="admin" WebAppPool="DeviceHiveAppPool" />
+          
+        </iis:WebVirtualDir>
+      </Component>
     </DirectoryRef>
    
     <ComponentGroup Id="IssConfiguration">
       <ComponentRef Id="DeviceHiveVirtualDirCmp" />
+      <ComponentRef Id="DeviceHiveAdminVirtualDirCmp" />
       <ComponentRef Id="DeviceHiveAppPoolCmp" />
     </ComponentGroup>
 
