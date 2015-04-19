@@ -17,14 +17,6 @@
       </ComboBox>
       <Publish Property="LOGON_VALID" Value="0">1</Publish>
     </Control>
-
-    <!--Control Id="SSLCertificateComboBox" Type="ComboBox" Property="SSL_CERTIFICATE" X="45" Y="181" Width="220" Height="48" ComboList="yes" Indirect="yes" -->
-      <!--ComboBox Property="SSL_CERTIFICATE">
-      <ListItem Text="Temp" Value="Temp" />
-    </ComboBox-->
-    <!--/Control-->
-    <!-- Control Id="SSLCertificateEdit" Type="Edit" X="45" Y="181" Width="220" Height="18" Property="SSL_CERTIFICATE" Text="{200}" / -->
-
     <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
       <Publish Event="NewDialog" Value="WebSocketDlg">1</Publish>
     </Control>

@@ -72,11 +72,6 @@
       <RegistrySearch Id="FindFrameworkDir" Root="HKLM" Key="SOFTWARE\Microsoft\.NETFramework" Name="InstallRoot" Type="raw"/>
     </Property>
 
-    <!-- PropertyRef Id="NETFRAMEWORK20"/>    
-    <Property Id="FRAMEWORKBASEPATH">
-      <RegistrySearch Id="FindFrameworkDir" Root="HKLM" Key="SOFTWARE\Microsoft\.NETFramework" Name="InstallRoot" Type="raw"/>
-    </Property -->
-
     <Property Id="ASPNETREGIIS" >
       <DirectorySearch Path="[FRAMEWORKBASEPATH]" Depth="4" Id="FindAspNetRegIis">
         <FileSearch Name="aspnet_regiis.exe" MinVersion="2.0.5"/>
@@ -92,6 +87,10 @@
     <CustomAction Id="ChangeConfigJs" BinaryKey="CustomAction" DllEntry="ChangeConfigJs" Execute="immediate" Return="check" />
     <CustomAction Id="RunDBMigrator" Directory="INSTALL_DBMIGRATOR_FOLDER" ExeCommand='"[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe"' Execute="deferred" Return="check"/>
     
+    <!-- Certificates-->
+    <CustomAction Id="UpdateBinding" BinaryKey="CustomAction" DllEntry="UpdateBinding" Execute="immediate" Return="check" />
+    <CustomAction Id="NotElevated" Error="Ensure that the Installer is Run with elevated permissions (i.e. Run as Administrator)" />
+    
     <InstallUISequence>
       <Custom Action="GetCertificates" After="CostFinalize" Overridable="yes" />
     </InstallUISequence>
@@ -100,6 +99,7 @@
       <Custom Action="MakeWepApp20" After="InstallFinalize">ASPNETREGIIS AND NOT Installed</Custom>
       <Custom Action="ChangeConfigJs" After="InstallFinalize">NOT Installed</Custom>
       <Custom Action="RunDBMigrator" Before="InstallFinalize" >NOT Installed</Custom>
+      <Custom Action="UpdateBinding" After="InstallFinalize">NOT Installed</Custom>
     </InstallExecuteSequence>
    
     <DirectoryRef Id="ApplicationProgramsFolder">

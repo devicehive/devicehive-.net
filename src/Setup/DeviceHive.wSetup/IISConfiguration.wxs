@@ -31,9 +31,7 @@
       <!-- Configure admin panel -->
       <Component Id="DeviceHiveAdminVirtualDirCmp" Guid="{7FECEF44-11BF-446C-88EC-9CCBACBA4B2E}" KeyPath="yes" >
         <iis:WebVirtualDir Id="DeviceHiveAdminVirtualDir" Alias="admin" Directory="INSTALL_ADMIN_FOLDER" WebSite="DeviceHiveWebSite">
-<!--          <iis:WebDirProperties Id="DeviceHiveVirtDirProperties" AnonymousAccess="yes" BasicAuthentication="no" WindowsAuthentication="yes" />-->
           <iis:WebApplication Id="DeviceHiveAdminApplication" Name="admin" WebAppPool="DeviceHiveAppPool" />
-          
         </iis:WebVirtualDir>
       </Component>
     </DirectoryRef>
