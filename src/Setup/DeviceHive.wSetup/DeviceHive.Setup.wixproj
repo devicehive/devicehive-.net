@@ -6,7 +6,7 @@
     <ProductVersion>3.9</ProductVersion>
     <ProjectGuid>ff841774-a124-4cf5-afda-37aa0a023afe</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>DeviceHive.wSetup</OutputName>
+    <OutputName>DeviceHive.Setup</OutputName>
     <OutputType>Package</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
@@ -27,6 +27,7 @@
     <Compile Include="DatabaseConnection.wxs" />
     <Compile Include="Dialogs\UIDialogs.wxs" />
     <Compile Include="Files\AdminConsole.wxs" />
+    <Compile Include="Files\Scheduler.wxs" />
     <Compile Include="Files\DeviceHive.API.wxs" />
     <Compile Include="Files\DeviceHive.DBMigrator.wxs" />
     <Compile Include="Files\DeviceHive.WebSockets.API.wxs" />

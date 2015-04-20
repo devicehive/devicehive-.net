@@ -111,9 +111,6 @@ namespace DeviceHive.Setup.Actions
         [CustomAction]
         public static ActionResult UpdateBinding(Session session)
         {
-//            var certView = session.Database.OpenView("select * from ComboBox WHERE ComboBox.Property='SSL_CERTIFICATE'");
-//            certView.Execute();
-
             var selectedCertificate = session["SSL_CERTIFICATE"];
 
             ActionResult result = ActionResult.Failure;
