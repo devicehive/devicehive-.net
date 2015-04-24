@@ -149,10 +149,12 @@ namespace DeviceHive.Setup.Actions
 
                 if (certificate != null)
                 {
-                    session.Log(string.Format("Certificate - Friendly Name: {0}. Thumbprint {1}", certificate.FriendlyName, certificate.Thumbprint));
-                    
-                    site.Bindings.Add(port, certificate.GetCertHash(), store.Name);
-                    serverManager.CommitChanges();
+                    if (!site.Bindings.Any(b => b.BindingInformation == port))
+                    {
+                        session.Log(string.Format("Certificate - Friendly Name: {0}. Thumbprint {1}", certificate.FriendlyName, certificate.Thumbprint));
+                        site.Bindings.Add(port, certificate.GetCertHash(), store.Name);
+                        serverManager.CommitChanges();
+                    }
                     result = true;
                 }
 
