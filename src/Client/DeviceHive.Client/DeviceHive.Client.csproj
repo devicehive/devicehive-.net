@@ -53,9 +53,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="WebSocket4Net, Version=0.10.0.0, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\WebSocket4Net.0.10\lib\net45\WebSocket4Net.dll</HintPath>
+    <Reference Include="WebSocket4Net">
+      <HintPath>..\..\..\packages\WebSocket4Net.0.12\lib\net45\WebSocket4Net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -65,7 +64,9 @@
     <Compile Include="Channels\ISubscription.cs" />
     <Compile Include="Channels\LongPollingChannel.cs" />
     <Compile Include="Channels\SubscriptionType.cs" />
-    <Compile Include="Channels\WebSocketChannel.cs" />
+    <Compile Include="Channels\WebSocket4NetChannel.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DeviceHiveClient.cs" />
     <Compile Include="DeviceHiveConnectionInfo.cs" />
     <Compile Include="DeviceHiveException.cs" />

@@ -250,7 +250,7 @@ namespace DeviceHive.ManagerWin8.Common
             this._layoutAwareControls.Add(control);
 
             // Set the initial visual state of the control
-            VisualStateManager.GoToState(control, DetermineVisualState(ApplicationView.Value), false);
+            VisualStateManager.GoToState(control, DetermineVisualState(CurrentViewState), false);
         }
 
         private void WindowSizeChanged(object sender, WindowSizeChangedEventArgs e)
@@ -309,11 +309,19 @@ namespace DeviceHive.ManagerWin8.Common
         {
             if (this._layoutAwareControls != null)
             {
-                string visualState = DetermineVisualState(ApplicationView.Value);
+                string visualState = DetermineVisualState(CurrentViewState);
                 foreach (var layoutAwareControl in this._layoutAwareControls)
                 {
                     VisualStateManager.GoToState(layoutAwareControl, visualState, false);
                 }
+            }
+        }
+
+        protected ApplicationViewState CurrentViewState
+        {
+            get
+            {
+                return Window.Current.Bounds.Width <= 640 ? ApplicationViewState.Snapped : ApplicationViewState.FullScreenLandscape;
             }
         }
 

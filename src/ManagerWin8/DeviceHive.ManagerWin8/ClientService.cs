@@ -17,7 +17,14 @@ namespace DeviceHive.ManagerWin8
 
         static ClientService current;
 
-        ClientService(DeviceHiveConnectionInfo connectionInfo) : base(connectionInfo) { }
+        ClientService(DeviceHiveConnectionInfo connectionInfo, IRestClient restClient)
+            : base(connectionInfo, restClient)
+        {
+            // use only WebSocketChannel, not LongPollingChannel
+            SetAvailableChannels(new Channel[] {
+                new WebSocketChannel(connectionInfo, restClient)
+            });
+        }
 
         static ClientService()
         {
@@ -42,7 +49,8 @@ namespace DeviceHive.ManagerWin8
                     {
                         throw new EmptyCloudSettingsException();
                     }
-                    current = new ClientService(new DeviceHiveConnectionInfo(Settings.Instance.CloudServerUrl, Settings.Instance.CloudUsername, Settings.Instance.CloudPassword));
+                    var connInfo = new DeviceHiveConnectionInfo(Settings.Instance.CloudServerUrl, Settings.Instance.CloudUsername, Settings.Instance.CloudPassword);
+                    current = new ClientService(connInfo, new RestClient(connInfo));
                 }
                 return current;
             }

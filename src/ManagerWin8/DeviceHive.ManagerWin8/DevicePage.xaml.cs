@@ -1,5 +1,4 @@
-﻿using Callisto.Controls;
-using DeviceHive.Client;
+﻿using DeviceHive.Client;
 using DeviceHive.ManagerWin8.Common;
 using Newtonsoft.Json.Linq;
 using System;
@@ -124,7 +123,7 @@ namespace DeviceHive.ManagerWin8
                         catch { }
                     }
                 },
-                Deselect = () => { StopPollNotifications(); },
+                Deselect = () => { },
                 Refresh = RefreshNotifications,
                 Filter = (sender) =>
                 {
@@ -173,11 +172,7 @@ namespace DeviceHive.ManagerWin8
                         catch { }
                     }
                 },
-                Deselect = () =>
-                {
-                    StopPollCommands();
-                    StopPollCommandResult();
-                },
+                Deselect = () => { },
                 Refresh = RefreshCommands,
                 Filter = (sender) =>
                 {
@@ -222,10 +217,11 @@ namespace DeviceHive.ManagerWin8
         void ShowFilterFlyout(object sender, DateTime? start, DateTime? end, Action<DateTime?, DateTime?> filterAction)
         {
             Flyout flyOut = new Flyout();
-            flyOut.Width = 300;
-            flyOut.PlacementTarget = sender as UIElement;
-            flyOut.Placement = PlacementMode.Top;
-            flyOut.Background = new SolidColorBrush(Colors.Black);
+            flyOut.Placement = FlyoutPlacementMode.Top;
+
+            flyOut.FlyoutPresenterStyle = new Style(typeof(FlyoutPresenter));
+            flyOut.FlyoutPresenterStyle.Setters.Add(new Setter(FlyoutPresenter.RequestedThemeProperty, ElementTheme.Dark));
+            flyOut.FlyoutPresenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, 10));
 
             StackPanel filterPanel = new StackPanel();
             filterPanel.Margin = new Thickness(10);
@@ -275,7 +271,8 @@ namespace DeviceHive.ManagerWin8
             });
 
             flyOut.Content = filterPanel;
-            flyOut.IsOpen = true;
+            flyOut.ShowAt((FrameworkElement)sender);
+             
         }
 
         public IncrementalLoadingCollection<Notification> NotificationsObservable
@@ -409,6 +406,7 @@ namespace DeviceHive.ManagerWin8
 
         async Task StartPollNotifications()
         {
+            // TODO check that already started
             if (filterNotificationsEnd != null)
             {
                 return;
@@ -664,12 +662,14 @@ namespace DeviceHive.ManagerWin8
         private void SendCommand_Tapped(object sender, TappedRoutedEventArgs e)
         {
             Flyout flyOut = new Flyout();
-            flyOut.Width = 300;
-            flyOut.PlacementTarget = sender as UIElement;
-            flyOut.Placement = PlacementMode.Top;
-            flyOut.Background = new SolidColorBrush(Colors.Black);
+            flyOut.Placement = FlyoutPlacementMode.Top;
 
+            flyOut.FlyoutPresenterStyle = new Style(typeof(FlyoutPresenter));
+            flyOut.FlyoutPresenterStyle.Setters.Add(new Setter(FlyoutPresenter.RequestedThemeProperty, ElementTheme.Dark));
+            flyOut.FlyoutPresenterStyle.Setters.Add(new Setter(FlyoutPresenter.PaddingProperty, 10));
+            
             StackPanel panel = new StackPanel();
+            panel.Width = 300;
             panel.Margin = new Thickness(10);
             panel.Orientation = Orientation.Vertical;
             panel.Children.Add(new TextBlock() { Text = "Command name", FontSize = 14.8 });
@@ -699,13 +699,13 @@ namespace DeviceHive.ManagerWin8
                 LoadingItems++;
                 try
                 {
-                    var command = new Command(commandName.Text, JObject.Parse(commandParams.Text));
+                    var command = new Command(commandName.Text, commandParams.Text != "" ? JObject.Parse(commandParams.Text) : null);
                     StopPollCommandResult();
                     Debug.WriteLine("CMD SEND START");
                     commandResultCancellatonSource = new CancellationTokenSource();
                     await ClientService.Current.SendCommandAsync(deviceId, command, CommandResultCallback, commandResultCancellatonSource.Token);
                     Debug.WriteLine("CMD SEND END");
-                    flyOut.IsOpen = false;
+                    flyOut.Hide();
                 }
                 catch (Exception ex)
                 {
@@ -716,7 +716,7 @@ namespace DeviceHive.ManagerWin8
             });
 
             flyOut.Content = panel;
-            flyOut.IsOpen = true;
+            flyOut.ShowAt((FrameworkElement)sender);
         }
 
         async void CommandResultCallback(Command command)

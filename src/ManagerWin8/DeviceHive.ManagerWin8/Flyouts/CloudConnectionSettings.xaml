@@ -11,7 +11,6 @@
     
     <UserControl.Resources>
         <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="Margin" Value="0,0,0,5"/>
         </Style>
@@ -20,7 +19,7 @@
         </Style>
     </UserControl.Resources>
     
-    <Grid >
+    <Grid>
         <ScrollViewer Style="{StaticResource VerticalScrollViewerStyle}">
             <StackPanel Orientation="Vertical">
                 <TextBlock Text="API URL"/>

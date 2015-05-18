@@ -1,5 +1,4 @@
-﻿using Callisto.Controls;
-using DeviceHive.ManagerWin8.Common;
+﻿using DeviceHive.ManagerWin8.Common;
 using DeviceHive.ManagerWin8.Flyouts;
 using System;
 using System.Collections.Generic;
@@ -118,13 +117,12 @@ namespace DeviceHive.ManagerWin8
         public static void ShowCloudSettings()
         {
             SettingsFlyout settings = new SettingsFlyout();
-            settings.FlyoutWidth = SettingsFlyout.SettingsFlyoutWidth.Narrow;
-            settings.HeaderText = "Cloud connection";
-            settings.ContentBackgroundBrush = new SolidColorBrush(Color.FromArgb(255, 50, 50, 50));
+            settings.Title = "Cloud connection";
+            settings.HeaderBackground = new SolidColorBrush(Color.FromArgb(255, 26, 160, 255));
             settings.HorizontalContentAlignment = HorizontalAlignment.Stretch;
 
             settings.Content = CloudConnectionSettings.Instance;
-            settings.IsOpen = true;
+            settings.Show();
         }
 
         /// <summary>

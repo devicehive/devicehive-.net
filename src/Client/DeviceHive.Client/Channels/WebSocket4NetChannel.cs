@@ -6,8 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Networking.Sockets;
-using Windows.Storage.Streams;
+using WebSocket4Net;
 
 namespace DeviceHive.Client
 {
@@ -16,8 +15,8 @@ namespace DeviceHive.Client
     /// </summary>
     public class WebSocketChannel : Channel
     {
-        private MessageWebSocket _webSocket;
-        private DataWriter _socketWriter;
+        private WebSocket _webSocket;
+        private TaskCompletionSource<object> _authTaskCompletionSource;
         private TaskCompletionSource<object> _closeTaskCompletionSource;
         private bool _isClosedByClient;
 
@@ -86,9 +85,10 @@ namespace DeviceHive.Client
 
                 SetChannelState(ChannelState.Connecting);
 
-                _webSocket = new MessageWebSocket();
-                _webSocket.Control.MessageType = SocketMessageType.Utf8;
-                _webSocket.MessageReceived += (s, e) => Task.Run(() => HandleMessage(e));
+                var webSocketUrl = (await GetApiInfoAsync()).WebSocketServerUrl + "/client";
+                _webSocket = new WebSocket(webSocketUrl);
+                _webSocket.Opened += (s, e) => Task.Run(async () => await AuthenticateAsync());
+                _webSocket.MessageReceived += (s, e) => Task.Run(() => HandleMessage(e.Message));
                 _webSocket.Closed += (s, e) => Task.Run(() => HandleConnectionClose());
                 _isClosedByClient = false;
 
@@ -108,7 +108,7 @@ namespace DeviceHive.Client
                 if (State == ChannelState.Connected)
                 {
                     // close WebSocket, this will trigger HandleConnectionClose handler
-                    _webSocket.Close(1000, "Normal Closure");
+                    _webSocket.Close();
                     await _closeTaskCompletionSource.Task;
                 }
                 else if (State == ChannelState.Reconnecting)
@@ -247,21 +247,23 @@ namespace DeviceHive.Client
         private async Task OpenWebSocketAsync()
         {
             _closeTaskCompletionSource = new TaskCompletionSource<object>();
+            _authTaskCompletionSource = new TaskCompletionSource<object>();
 
             try
             {
-                var webSocketUrl = (await GetApiInfoAsync()).WebSocketServerUrl + "/client";
-                await _webSocket.ConnectAsync(new Uri(webSocketUrl));
-                _socketWriter = new DataWriter(_webSocket.OutputStream);
+                _webSocket.Open();
 
-                await AuthenticateAsync();
+                var resultTask = await Task.WhenAny(_authTaskCompletionSource.Task, Task.Delay(Timeout));
+                if (resultTask != _authTaskCompletionSource.Task)
+                    throw new DeviceHiveException("Timeout while waiting for authentication response!");
 
+                _authTaskCompletionSource.Task.Wait(); // throw exception if authentication failed
                 SetChannelState(ChannelState.Connected);
             }
             catch (Exception)
             {
-                // TODO check that not closed
-                _webSocket.Close(1006, "Abnormal Closure");
+                if (_webSocket.State == WebSocketState.Connecting || _webSocket.State == WebSocketState.Open)
+                    _webSocket.Close();
                 _closeTaskCompletionSource.Task.Wait();
                 throw;
             }
@@ -269,20 +271,29 @@ namespace DeviceHive.Client
 
         private async Task AuthenticateAsync()
         {
-            JProperty[] args;
-            if (ConnectionInfo.AccessKey != null)
+            try
             {
-                args = new[] { new JProperty("accessKey", ConnectionInfo.AccessKey) };
-            }
-            else
-            {
-                args = new[] {
-                    new JProperty("login", ConnectionInfo.Login),
-                    new JProperty("password", ConnectionInfo.Password)
-                };
-            }
+                JProperty[] args;
+                if (ConnectionInfo.AccessKey != null)
+                {
+                    args = new[] { new JProperty("accessKey", ConnectionInfo.AccessKey) };
+                }
+                else
+                {
+                    args = new[] {
+                        new JProperty("login", ConnectionInfo.Login),
+                        new JProperty("password", ConnectionInfo.Password)
+                    };
+                }
 
-            await SendRequestAsync("authenticate", args);
+                await SendRequestAsync("authenticate", args);
+
+                _authTaskCompletionSource.TrySetResult(true);
+            }
+            catch (Exception ex)
+            {
+                _authTaskCompletionSource.TrySetException(ex);
+            }
         }
 
         private async Task<JObject> SendRequestAsync(string action, params JProperty[] args)
@@ -301,8 +312,7 @@ namespace DeviceHive.Client
             };
 
             var requestJson = new JObject(commonProperties.Concat(args).Cast<object>().ToArray());
-            _socketWriter.WriteString(requestJson.ToString());
-            await _socketWriter.StoreAsync();
+            _webSocket.Send(requestJson.ToString());
 
             var resultTask = await Task.WhenAny(requestInfo.Task, Task.Delay(Timeout));
             if (resultTask != requestInfo.Task)
@@ -316,15 +326,8 @@ namespace DeviceHive.Client
             return result;
         }
 
-        private void HandleMessage(MessageWebSocketMessageReceivedEventArgs args)
+        private void HandleMessage(string message)
         {
-            string message;
-            using (DataReader reader = args.GetDataReader())
-            {
-                reader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
-                message = reader.ReadString(reader.UnconsumedBufferLength);
-            }
-
             var json = JObject.Parse(message);
             var requestId = (string)json["requestId"];
 
@@ -394,6 +397,7 @@ namespace DeviceHive.Client
 
             // unblock waiting tasks
             _closeTaskCompletionSource.TrySetResult(true);
+            _authTaskCompletionSource.TrySetException(exception);
         }
 
         private async Task Reconnect()

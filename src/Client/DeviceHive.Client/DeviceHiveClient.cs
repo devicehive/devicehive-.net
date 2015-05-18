@@ -45,7 +45,7 @@ namespace DeviceHive.Client
             
             // default channels: WebSocket, LongPolling
             SetAvailableChannels(new Channel[] {
-#if !PORTABLE
+#if !EXCLUDE_WEB_SOCKET
                 new WebSocketChannel(connectionInfo, _restClient),
 #endif
                 new LongPollingChannel(connectionInfo, _restClient)
