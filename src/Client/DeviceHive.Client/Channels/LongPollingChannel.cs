@@ -11,6 +11,7 @@ namespace DeviceHive.Client
     /// </summary>
     public class LongPollingChannel : Channel
     {
+        private const int FAILED_POLL_RETRY_TIMEOUT = 1000; // milliseconds to wait before retrying a poll in case of a failure
         private readonly Dictionary<Guid, SubscriptionTask> _subscriptionTasks = new Dictionary<Guid, SubscriptionTask>();
 
         #region Constructor
@@ -249,7 +250,8 @@ namespace DeviceHive.Client
                 catch (Exception)
                 {
                     NotifyPollResult(subscriptionTask, true);
-                    Task.Delay(1000).Wait(cancellationToken); // retry with small wait
+                    if (cancellationToken.WaitHandle.WaitOne(FAILED_POLL_RETRY_TIMEOUT)) // retry with small wait
+                        return;
                 }
             }
         }
@@ -280,7 +282,8 @@ namespace DeviceHive.Client
                 catch (Exception)
                 {
                     NotifyPollResult(subscriptionTask, true);
-                    Task.Delay(1000).Wait(cancellationToken); // retry with small wait
+                    if (cancellationToken.WaitHandle.WaitOne(FAILED_POLL_RETRY_TIMEOUT)) // retry with small wait
+                        return;
                 }
             }
         }
