@@ -180,6 +180,15 @@ namespace DeviceHive.Client
         /// <param name="command">A <see cref="Command"/> object to update.</param>
         public abstract Task UpdateCommandAsync(string deviceGuid, Command command);
 
+        /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        public abstract Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token = null);
+
         #endregion
 
         #region Protected Methods

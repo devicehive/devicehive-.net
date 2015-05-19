@@ -258,7 +258,7 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object representing the command to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
-        /// <param name="token">Cancellation token to cancel polling command result.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
         /// <returns>Sent Command object.</returns>
         public async Task<Command> SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
         {
@@ -275,6 +275,19 @@ namespace DeviceHive.Client
         {
             var channel = await OpenChannelAsync();
             await channel.UpdateCommandAsync(deviceGuid, command);
+        }
+
+        /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        public async Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token = null)
+        {
+            var channel = await OpenChannelAsync();
+            return await channel.WaitCommandResultAsync(deviceGuid, commandId, token);
         }
         #endregion
 

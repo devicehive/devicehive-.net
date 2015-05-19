@@ -128,7 +128,7 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object representing the command to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
-        /// <param name="token">Cancellation token to cancel polling command result.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
         /// <returns>Sent Command object.</returns>
         Task<Command> SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null);
 
@@ -138,6 +138,15 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object to update.</param>
         Task UpdateCommandAsync(string deviceGuid, Command command);
+
+        /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token);
 
         /// <summary>
         /// Sets an array of available channels to use for maintaining a persistent connection with the DeviceHive server.
