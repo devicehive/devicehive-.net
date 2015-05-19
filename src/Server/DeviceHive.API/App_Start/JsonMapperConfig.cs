@@ -66,6 +66,7 @@ namespace DeviceHive.API
             context.Kernel.ConfigureMapping<Device>()
                 .Property(e => e.GUID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Key, "key", JsonMapperEntryMode.FromJson)
+                .Property(e => e.IsBlocked, "isBlocked")
                 .Property(e => e.Name, "name")
                 .Property(e => e.Status, "status")
                 .RawJsonProperty(e => e.Data, "data")

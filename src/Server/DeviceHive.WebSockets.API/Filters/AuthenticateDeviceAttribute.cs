@@ -50,6 +50,9 @@ namespace DeviceHive.WebSockets.API.Filters
                 return;
             }
 
+            if (device.IsBlocked)
+                throw new WebSocketRequestException("Device is blocked");
+
             controller.DataContext.Device.SetLastOnline(device.ID);
             actionContext.Parameters["AuthDevice"] = device;
         }

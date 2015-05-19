@@ -117,7 +117,7 @@ namespace DeviceHive.Test.ApiTest
             RegisterForDeletion(ResourceUri + "/" + ID);
 
             // expect valid server response
-            Expect(Get(ID, auth: Admin), Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new {
+            Expect(Get(ID, auth: Admin), Matches(new { id = ID, name = "_ut", isBlocked = false, network = new { name = "_ut_n" }, deviceClass = new {
                 name = "_ut_dc", version = "1", equipment = new[] { new { name = "_ut_eq", code = "_ut_eq", type = "_ut_eq" } } } }));
             
             // verify device-add notification
@@ -140,7 +140,7 @@ namespace DeviceHive.Test.ApiTest
             Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }, auth: user2);
 
             // expect valid server response
-            Expect(Get(ID, auth: Admin), Matches(new { id = ID, name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
+            Expect(Get(ID, auth: Admin), Matches(new { id = ID, name = "_ut", isBlocked = false, network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" } }));
         }
 
         [Test]
@@ -272,10 +272,10 @@ namespace DeviceHive.Test.ApiTest
             var user1 = CreateUser(1); // create a client user
             var user2 = CreateUser(1, NetworkID); // create a client user with access to network
             Expect(() => Update(ID, new { status = "status" }, auth: user1), FailsWith(401)); // should fail with 401
-            Update(ID, new { status = "status", data = new { a = "b" },
+            Update(ID, new { status = "status", isBlocked = true, data = new { a = "b" },
                 deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }, auth: user2); // should succeed
 
-            Expect(Get(ID, auth: Admin), Matches(new { id = ID, name = "_ut", status = "status", data = new { a = "b" },
+            Expect(Get(ID, auth: Admin), Matches(new { id = ID, name = "_ut", status = "status", isBlocked = true, data = new { a = "b" },
                 network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1", offlineTimeout = 10 } }));
 
             // access keys can update a device resource when have necessary permissions
@@ -338,6 +338,19 @@ namespace DeviceHive.Test.ApiTest
 
             // device authorization
             Expect(() => List(auth: Device(ID, "key")), FailsWith(401));
+        }
+
+        [Test]
+        public void Forbidden()
+        {
+            // create a blocked device
+            Update(ID, new { key = "key", name = "_ut", network = new { name = "_ut_n" }, deviceClass = new { name = "_ut_dc", version = "1" }, isBlocked = true }, auth: Admin);
+            RegisterForDeletion(ResourceUri + "/" + ID);
+
+            // device authorization should not work
+            Expect(() => Get(ID, auth: Device(ID, "key")), FailsWith(403));
+            Expect(() => Update(ID, new { status = "status" }, auth: Device(ID, "key")), FailsWith(403));
+            Expect(() => Delete(ID, auth: Device(ID, "key")), FailsWith(403));
         }
 
         [Test]
