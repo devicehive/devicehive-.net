@@ -14,17 +14,6 @@
                 <File Id="fil30EB236E083A2592873116ABAC4D280A" KeyPath="yes" Source="$(var.DeviceHiveApiRootDir)\Web.config" />
             </Component>
             <Directory Id="dir44DD9D0E3568A7E58513E89865B00349" Name="bin">
-                <Directory Id="dirF4403FFF81234B58967C244D54175364" Name="de">
-                    <Component Id="cmp98502E45D64A4BAAAA9D691F0D82034B" Guid="*" Win64="$(var.Win64)">
-                        <File Id="filFFAD5CDC7A88491DBB7EB6220747F2E0" KeyPath="yes" Source="$(var.DeviceHiveApiBinDir)\de\Buchi.MessageHandlers.resources.dll" />
-                    </Component>
-                </Directory>
-                <Component Id="cmp82C258FD352E43D1A0CCC6FD0602E39B" Guid="*" Win64="$(var.Win64)">
-                    <File Id="fil61E1FB9686534FC8A43A5976DE0A2CAC" KeyPath="yes" Source="$(var.DeviceHiveApiBinDir)\Buchi.MessageHandlers.dll" />
-                </Component>
-                <Component Id="cmp36F605F7289344E19F0615291696AEDC" Guid="*" Win64="$(var.Win64)">
-                    <File Id="fil78A532D719244B2FBF46ACB95E09F8E8" KeyPath="yes" Source="$(var.DeviceHiveApiBinDir)\pushSettings.json" />
-                </Component>
                 <Component Id="cmp8EEC4A94DAA9B4C4893EAEE8ADBB20F7" Guid="*" Win64="$(var.Win64)">
                     <File Id="fil1BBDDA8619A48F354DC3DED0CD152AD6" KeyPath="yes" Source="$(var.DeviceHiveApiBinDir)\DeviceHive.API.dll" />
                 </Component>
@@ -117,9 +106,6 @@
             <ComponentRef Id="cmp73C00FE82B63A26A65C223AB417A308E" />
             <ComponentRef Id="cmp27C5910ABD1FFC690C4AFD5B1998CCD3" />
             <ComponentRef Id="cmp86450BEF1563FDBA5F9E07F98333EF57" />
-            <ComponentRef Id="cmp98502E45D64A4BAAAA9D691F0D82034B" />
-            <ComponentRef Id="cmp82C258FD352E43D1A0CCC6FD0602E39B" />
-            <ComponentRef Id="cmp36F605F7289344E19F0615291696AEDC" />
         </ComponentGroup>
     </Fragment>
 </Wix>

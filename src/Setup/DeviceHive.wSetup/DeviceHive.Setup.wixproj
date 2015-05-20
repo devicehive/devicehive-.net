@@ -118,8 +118,7 @@
       <DeviceHiveDataEF Include="..\..\Server\DeviceHive.Data.EF\DeviceHive.Data.EF.csproj" />
       <DeviceHiveDataMongoDB Include="..\..\Server\DeviceHive.Data.MongoDB\DeviceHive.Data.MongoDB.csproj" />
       <DeviceHiveAPI Include="..\..\Server\DeviceHive.API\DeviceHive.API.csproj" />
-      <DeviceHiveDBMigrator Include="..\..\Server\DeviceHive.DBMigrator\DeviceHive.DBMigrator.csproj" />
-      <BuchiMessageHandlers Include="..\..\Server\Buchi.MessageHandlers\Buchi.MessageHandlers.csproj" />
+      <DeviceHiveDBMigrator Include="..\..\Server\DeviceHive.DBMigrator\DeviceHive.DBMigrator.csproj" />      
     </ItemGroup>
 
     <Message Text="Build DeviceHive APIs..." />

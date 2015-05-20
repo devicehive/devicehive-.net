@@ -3,8 +3,7 @@
   <?include ..\variables.wxi?>
   <!-- "$(WIX)bin\heat.exe" dir "..\..\..\..\..\..\devicehive-admin-console" -cg CmpAdminConsole -gg -scom -sreg -sfrag -dr INSTALL_ADMIN_CONSOLE_FOLDER -out "$(ProjectDir)Files\AdminConsole.wxs" -var var.AdminConsoleSourcePath -->
   <Fragment>
-        <DirectoryRef Id="INSTALLFOLDER">
-            <Directory Id="INSTALL_ADMIN_FOLDER" Name="admin">
+          <DirectoryRef Id="INSTALL_ADMIN_FOLDER">
 <!--                <Component Id="cmpCC6EA25C1F69121F73C824EA0F314EAF" Guid="{7EC5CB77-F0CC-4E28-BEC5-ACFAD460CBE3}">-->
 <!--                    <File Id="filC14E4BC3F7F6FE746710863805921F94" KeyPath="yes" Source="$(var.AdminConsoleSourcePath)\.gitignore" />-->
 <!--                </Component>-->
@@ -451,7 +450,6 @@
                         </Component>
                     </Directory>
                 </Directory>
-            </Directory>
         </DirectoryRef>
     </Fragment>
     <Fragment>
