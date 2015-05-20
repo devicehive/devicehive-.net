@@ -4,129 +4,153 @@
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
      xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
 
-  <Product Id="{FA1B9338-B6F6-413e-B67F-86CA8BCED6E1}" Name="DeviceHive.API" Language="1033" Version="1.0.0.0" Manufacturer="DataArt" UpgradeCode="{E5C9F391-5787-4fd1-81E6-D1A4A91D226D}">
+    <Product Id="{FA1B9338-B6F6-413e-B67F-86CA8BCED6E1}" Name="DeviceHive.API" Language="1033" Version="1.0.0.0" Manufacturer="DataArt" UpgradeCode="{E5C9F391-5787-4fd1-81E6-D1A4A91D226D}">
 
-    <Package InstallerVersion="200" Compressed="yes" />
-    <Media Id="1" Cabinet="DeviceHive.Api.cab" EmbedCab="yes" />
+        <Package InstallerVersion="200"
+                 Compressed="yes"
+                 InstallScope="perMachine"
+                 InstallPrivileges="elevated"
+                 Platform="$(var.Platform)"/>
+        <Media Id="1" Cabinet="DeviceHive.Api.cab" EmbedCab="yes" />
 
-    <?include Conditions.wxi ?>
+        <?include Conditions.wxi ?>
+        <?include Variables.wxi ?>
 
-    <!-- Configurable install location -->
-    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+        <!-- Configurable install location -->
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 
-    <!-- Complete feature which will be installed. -->
-    <Feature Id="Complete" Title="DeviceHive" Level="1" Display="expand" ConfigurableDirectory="INSTALLFOLDER">
-      <!-- Main content of the Complete feature. -->
-      <Feature Id="MainContent" Title="DeviceHive.Api" Description="The website content" Level="1">
-        <!-- Include IIS Configuration. -->
-        <ComponentGroupRef Id="IssConfiguration" />
+        <!-- Complete feature which will be installed. -->
+        <Feature Id="Complete" Title="DeviceHive" Level="1" Display="expand" ConfigurableDirectory="INSTALLFOLDER">
+            <!-- Main content of the Complete feature. -->
+            <Feature Id="MainContent" Title="DeviceHive.Api" Description="The website content" Level="1">
+                <!-- Include IIS Configuration. -->
+                <ComponentGroupRef Id="IssConfiguration" />
 
-        <!-- Include web content. -->
-        <ComponentGroupRef Id="DeviceHive.API_Project" />
+                <!-- Include web content. -->
+                <ComponentGroupRef Id="DeviceHive.API_Project" />
 
-        <!-- Perform changes in the web.config file. -->
-        <ComponentRef Id="WebConfigCmp" />
-        <ComponentRef Id="WebConfigSQL"></ComponentRef>
-        <ComponentRef Id="WebConfigMongo"></ComponentRef>
-        <ComponentRef Id="WebConfigWebSocketEndpointEnabledTrue"></ComponentRef>
-        <ComponentRef Id="WebConfigWebSocketEndpointEnabledFalse"></ComponentRef>
-        <ComponentRef Id="WebConfigAutomaticNetworkCreationTrue"></ComponentRef>
-        <ComponentRef Id="WebConfigAutomaticNetworkCreationFalse"></ComponentRef>
-        <ComponentRef Id="WebConfigAuthenticationGoogleTrue"></ComponentRef>
-        <ComponentRef Id="WebConfigAuthenticationGoogleFalse"></ComponentRef>
-        <ComponentRef Id="WebConfigAuthenticationFacebookTrue"></ComponentRef>
-        <ComponentRef Id="WebConfigAuthenticationFacebookFalse"></ComponentRef>
-        <ComponentRef Id="WebConfigAuthenticationGithubTrue"></ComponentRef>
-        <ComponentRef Id="WebConfigAuthenticationGithubFalse"></ComponentRef>
+                <!-- Perform changes in the web.config file. -->
+                <ComponentRef Id="WebConfigCmp" />
+                <!--        <ComponentRef Id="WebConfigSQL"></ComponentRef>-->
+                <ComponentRef Id="WebConfigMongo"></ComponentRef>
+                <ComponentRef Id="WebConfigMongoConnectionStringWithCredentials"></ComponentRef>
+                <ComponentRef Id="WebConfigMongoConnectionStringWOCredentials"></ComponentRef>
+                <!--        <ComponentRef Id="WebConfigWebSocketEndpointEnabledTrue"></ComponentRef>-->
+                <!--        <ComponentRef Id="WebConfigWebSocketEndpointEnabledFalse"></ComponentRef>-->
+                <ComponentRef Id="WebConfigAutomaticNetworkCreationTrue"></ComponentRef>
+                <ComponentRef Id="WebConfigAutomaticNetworkCreationFalse"></ComponentRef>
+                <!--        <ComponentRef Id="WebConfigAuthenticationGoogleTrue"></ComponentRef>-->
+                <!--        <ComponentRef Id="WebConfigAuthenticationGoogleFalse"></ComponentRef>-->
+                <!--        <ComponentRef Id="WebConfigAuthenticationFacebookTrue"></ComponentRef>-->
+                <!--        <ComponentRef Id="WebConfigAuthenticationFacebookFalse"></ComponentRef>-->
+                <!--        <ComponentRef Id="WebConfigAuthenticationGithubTrue"></ComponentRef>-->
+                <!--        <ComponentRef Id="WebConfigAuthenticationGithubFalse"></ComponentRef>-->
 
-        <ComponentGroupRef Id="CmpAdminConsole"/>
-        <ComponentGroupRef Id="CmpScheduler"/>
-      </Feature>
+                <ComponentGroupRef Id="CmpAdminConsole"/>
+                <ComponentGroupRef Id="CmpScheduler"/>
+            </Feature>
 
-      <Feature Id="WebSocket" Title="WebSockets.API">
-        <!-- Include WebSocket content. -->
-        <ComponentGroupRef Id="DeviceHive.WebSockets.API_Project" />
-      </Feature>
+            <!--<Feature Id="WebSocket" Title="WebSockets.API">
+                --><!--~1~ Include WebSocket content. @1@--><!--
+                <ComponentGroupRef Id="DeviceHive.WebSockets.API_Project" />
+            </Feature>-->
 
-      <Feature Id="DBMigratorContent" Title="DeviceHive.DBMigrator" Description="The website content" Level="1">
-        <ComponentGroupRef Id="DeviceHive.DBMigrator_Project" />
-        <ComponentRef Id="DBMigratorConfigCmp" />
-        <ComponentRef Id="DBMigratorConfigSQL" />
-        <ComponentRef Id="DBMigratorMongo" />
-      </Feature>
+            <Feature Id="DBMigratorContent" Title="DeviceHive.DBMigrator" Description="The website content" Level="1">
+                <ComponentGroupRef Id="DeviceHive.DBMigrator_Project" />
+                <ComponentRef Id="DBMigratorConfigCmp" />
+                <ComponentRef Id="DBMigratorMongoConnectionStringWOCredentials" />
+                <ComponentRef Id="DBMigratorMongoConnectionStringWithCredentials" />
+                <!--        <ComponentRef Id="DBMigratorConfigSQL" />-->
+                <ComponentRef Id="DBMigratorMongo" />
+            </Feature>
 
-      <Feature Id="MainApplication" Title="DeviceHive" Level="1">
-        <ComponentRef Id="ApplicationShortcut" />
-      </Feature>
+            <Feature Id="MainApplication" Title="DeviceHive" Level="1">
+                <ComponentRef Id="ApplicationShortcut" />
+            </Feature>
 
-      <Feature Id="UninstallDeviceHive" Title="Uninstall DeviceHive" Level="1">
-        <ComponentRef Id="UninstallShortcutComponent" />
-      </Feature>
+            <Feature Id="UninstallDeviceHive" Title="Uninstall DeviceHive" Level="1">
+                <ComponentRef Id="UninstallShortcutComponent" />
+            </Feature>
 
-    </Feature>
+        </Feature>
 
-    <!-- .NET Framework 4.5.1 must be installed -->
-    <PropertyRef Id="NETFRAMEWORK30_SP_LEVEL" />
-    <PropertyRef Id="NETFRAMEWORK45"/>
-    <Property Id="FRAMEWORKBASEPATH">
-      <RegistrySearch Id="FindFrameworkDir" Root="HKLM" Key="SOFTWARE\Microsoft\.NETFramework" Name="InstallRoot" Type="raw"/>
-    </Property>
+        <!--. IIS must be installed-->
+        <PropertyRef Id="IISMAJORVERSION"/>
 
-    <Property Id="ASPNETREGIIS" >
-      <DirectorySearch Path="[FRAMEWORKBASEPATH]" Depth="4" Id="FindAspNetRegIis">
-        <FileSearch Name="aspnet_regiis.exe" MinVersion="2.0.5"/>
-      </DirectorySearch>
-    </Property>
+        <!-- .NET Framework 4.5.1 must be installed -->
+        <PropertyRef Id="NETFRAMEWORK30_SP_LEVEL" />
+        <PropertyRef Id="NETFRAMEWORK45"/>
+        <Property Id="FRAMEWORKBASEPATH">
+            <RegistrySearch Id="FindFrameworkDir" Root="HKLM" Key="SOFTWARE\Microsoft\.NETFramework" Name="InstallRoot" Type="raw"/>
+        </Property>
 
-    <!-- Switch ASP.NET to version 2.0 -->
-    <CustomAction Id="MakeWepApp20" Directory="INSTALL_API_FOLDER" ExeCommand="[ASPNETREGIIS] -norestart -s W3SVC/1/ROOT/[WEB_APP_NAME]" Return="check"/>
+        <Property Id="ASPNETREGIIS" >
+            <DirectorySearch Path="[FRAMEWORKBASEPATH]" Depth="4" Id="FindAspNetRegIis">
+                <FileSearch Name="aspnet_regiis.exe" MinVersion="2.0.5"/>
+            </DirectorySearch>
+        </Property>
 
-    <Binary Id="CustomAction" SourceFile="..\..\..\DeviceHive.Setup.Actions\bin\Debug\DeviceHive.Setup.Actions.CA.dll"/>
-    <CustomAction Id="CheckMongoDbConnection" BinaryKey="CustomAction" DllEntry="CheckMongoDbConnection" Return="check" />
-    <CustomAction Id="GetCertificates" BinaryKey="CustomAction" DllEntry="GetCertificates" Execute="immediate"  Return="check" />
-    <CustomAction Id="ChangeConfigJs" BinaryKey="CustomAction" DllEntry="ChangeConfigJs" Execute="immediate" Return="check" />
-    <CustomAction Id="RunDBMigrator" Directory="INSTALL_DBMIGRATOR_FOLDER" ExeCommand='"[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe"' Execute="deferred" Return="check"/>
-    <CustomAction Id="ScheduleTasks" Directory="INSTALL_SCHEDULER_FOLDER" ExeCommand='"[INSTALL_SCHEDULER_FOLDER]schedule_tasks.cmd" http://localhost/api' Execute="deferred" Return="check" />
-    <CustomAction Id="UnScheduleTasks" Directory="INSTALL_SCHEDULER_FOLDER" ExeCommand='"[INSTALL_SCHEDULER_FOLDER]unschedule_tasks.cmd"' Execute="immediate" Return="check" />
-    
-    <!-- Certificates-->
-    <CustomAction Id="UpdateBinding" BinaryKey="CustomAction" DllEntry="UpdateBinding" Execute="immediate" Return="check" />
-    <CustomAction Id="NotElevated" Error="Ensure that the Installer is Run with elevated permissions (i.e. Run as Administrator)" />
-    
-    <InstallUISequence>
-      <Custom Action="GetCertificates" After="CostFinalize" Overridable="yes" />
-    </InstallUISequence>
+        <!-- Switch ASP.NET to version 2.0 -->
+        <CustomAction Id="MakeWepApp20" Directory="INSTALL_API_FOLDER" ExeCommand="[ASPNETREGIIS] -norestart -s W3SVC/[SITE_ID]/ROOT/api" Return="check"/>
 
-    <InstallExecuteSequence>
-      <Custom Action="MakeWepApp20" After="InstallFinalize">ASPNETREGIIS AND NOT Installed</Custom>
-      <Custom Action="ChangeConfigJs" After="InstallFinalize">NOT Installed</Custom>
-      <Custom Action="RunDBMigrator" Before="InstallFinalize" >NOT Installed</Custom>
-      <Custom Action="UpdateBinding" After="InstallFinalize">NOT Installed</Custom>
-      <Custom Action="ScheduleTasks" Before="InstallFinalize">NOT Installed</Custom>
-      <Custom Action="UnScheduleTasks" Before="RemoveFiles">Installed</Custom>
-    </InstallExecuteSequence>
-   
-    <DirectoryRef Id="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="17aa44e9-5c7a-429b-9569-a373650ea3c6">
-        <Shortcut Id="AdminStartShortcut" Name="Admin Console" Description="DeviceHive Admin Console" Target="index.html" WorkingDirectory="INSTALLFOLDER"/>
-        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-        <RegistryValue Root="HKCU" Key="Software\DeviceHive" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
-      </Component>
+        <Binary Id="CustomAction" SourceFile="..\..\..\DeviceHive.Setup.Actions\bin\Debug\DeviceHive.Setup.Actions.CA.dll"/>
+        <CustomAction Id="CheckMongoDbConnection" BinaryKey="CustomAction" DllEntry="CheckMongoDbConnection" Return="check" />
+        <!--<CustomAction Id="CheckSqlServerConnection" BinaryKey="CustomAction" DllEntry="CheckSqlServerConnection" Return="check" />-->
+        <CustomAction Id="GetCertificates" BinaryKey="CustomAction" DllEntry="GetCertificates" Return="ignore" />
+        <CustomAction Id="ChangeConfigJs" BinaryKey="CustomAction" DllEntry="ChangeConfigJs" Execute="immediate" Return="check" />
+        <CustomAction Id="RunDBMigrator" Directory="INSTALL_DBMIGRATOR_FOLDER" ExeCommand='"[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe"' Execute="deferred" Return="check"/>
+        <CustomAction Id="ScheduleTasks" Directory="INSTALL_SCHEDULER_FOLDER" ExeCommand='"[INSTALL_SCHEDULER_FOLDER]schedule_tasks.cmd" http://localhost/api' Execute="deferred" Return="check" />
+        <CustomAction Id="UnScheduleTasks" Directory="INSTALL_SCHEDULER_FOLDER" ExeCommand='"[INSTALL_SCHEDULER_FOLDER]unschedule_tasks.cmd"' Execute="deferred" Return="check" />
 
-      <Component Id="UninstallShortcutComponent" Guid="34c19832-b7b1-4153-b277-9b4281cea0b8">
-        <RegistryKey Root="HKCU" Key="Software\{E5C9F391-5787-4fd1-81E6-D1A4A91D226D}">
-          <RegistryValue Value="DeviceHive" Type="string" KeyPath="yes" />
-        </RegistryKey>
-        <Shortcut Id="UninstallProduct" Name="Uninstall DeviceHive" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]" Directory="INSTALLFOLDER" Description="Uninstalls DeviceHive" />
-        <RemoveFolder Id="RemoveShorcutFolder" On="uninstall" />
-      </Component>
-    </DirectoryRef>
+        <!-- Certificates-->
+        <CustomAction Id="UpdateHttpsBinding" BinaryKey="CustomAction" DllEntry="UpdateHttpsBinding" Execute="immediate" Return="check" />
+        <CustomAction Id="NotElevated" Error="Ensure that the Installer is Run with elevated permissions (i.e. Run as Administrator)" />
 
-    <!-- License and images -->
-    <!-- WixVariable Id="WixUILicenseRtf" Value="$(var.MyWebResourceDir)\License.rtf" / -->
+        <!--IIS Settings-->
+        <CustomAction Id="InitializeSiteId" BinaryKey="CustomAction" DllEntry="InitializeSiteId" Return="check" />
+        <CustomAction Id="CheckBindingPort" BinaryKey="CustomAction" DllEntry="CheckBindingPort" Return="check" />
+        <CustomAction Id="UpdateBinding" BinaryKey="CustomAction" DllEntry="UpdateBinding" Execute="immediate" Return="check" />
+        <CustomAction Id="MessageBox" BinaryKey="CustomAction" DllEntry="MessageBox" Execute="immediate" Return="check" />
 
-    <!-- Specify UI -->
-    <UIRef Id="SetupUI" />
-    
-  </Product>
+        <!--Administrator settings-->
+        <CustomAction Id='CheckRunAsAdministrator' BinaryKey="CustomAction" DllEntry="CheckRunAsAdministrator" Execute="immediate" Return="check" />
+
+        <InstallUISequence>
+            <Custom Action="CheckRunAsAdministrator" Before="LaunchConditions"/>
+            <Custom Action="GetCertificates" After="CostFinalize" />
+        </InstallUISequence>
+
+        <InstallExecuteSequence>
+            <Custom Action="CheckRunAsAdministrator" Before="LaunchConditions">Installed</Custom>
+            <Custom Action="MakeWepApp20" After="InstallFinalize">ASPNETREGIIS AND NOT Installed</Custom>
+            <Custom Action="ChangeConfigJs" After="InstallFinalize">NOT Installed</Custom>
+            <Custom Action="RunDBMigrator" Before="InstallFinalize" >NOT Installed</Custom>
+            <Custom Action="UpdateBinding" After="InstallFinalize">NOT Installed</Custom>
+            <Custom Action="ScheduleTasks" Before="InstallFinalize">NOT Installed</Custom>
+            <Custom Action="UnScheduleTasks" After="InstallInitialize">Installed</Custom>
+        </InstallExecuteSequence>
+
+        <DirectoryRef Id="ApplicationProgramsFolder">
+            <Component Id="ApplicationShortcut" Guid="17aa44e9-5c7a-429b-9569-a373650ea3c6">
+                <Shortcut Id="AdminStartShortcut" Name="Admin Console" Description="DeviceHive Admin Console" Target="index.html" WorkingDirectory="INSTALLFOLDER"/>
+                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+                <RegistryValue Root="HKCU" Key="Software\DeviceHive" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+            </Component>
+
+            <Component Id="UninstallShortcutComponent" Guid="34c19832-b7b1-4153-b277-9b4281cea0b8">
+                <RegistryKey Root="HKMU" Key="Software\{E5C9F391-5787-4fd1-81E6-D1A4A91D226D}">
+                    <RegistryValue Value="DeviceHive" Type="string" KeyPath="yes" />
+                </RegistryKey>
+                <Shortcut Id="UninstallProduct" Name="Uninstall DeviceHive" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]" Directory="INSTALLFOLDER" Description="Uninstalls DeviceHive" />
+                <RemoveFolder Id="RemoveShorcutFolder" On="uninstall" />
+            </Component>
+        </DirectoryRef>
+
+        <!-- License and images -->
+        <WixVariable Id="WixUILicenseRtf" Value="..\License\License.rtf" />
+
+        <!-- Specify UI -->
+        <UIRef Id="SetupUI" />
+
+    </Product>
 </Wix>

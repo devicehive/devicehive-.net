@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Include>
   <Dialog Id="AuthenticationDlg" Width="370" Height="270" Title="Authentication Settings - [ProductName]" NoMinimize="yes">
-    <Control Id="AuthGoogleCheckBox" Type="CheckBox" X="45" Y="53" Width="220" Height="18" Property="AUTH_GOOGLE" CheckBoxValue="true" Text="&amp;Authentication Google"/>
-    <Control Id="AuthFacebookCheckBox" Type="CheckBox" X="45" Y="70" Width="220" Height="18" Property="AUTH_FACEBOOK" CheckBoxValue="true" Text="&amp;Authentication Facebook"/>
-    <Control Id="AuthGithubCheckBox" Type="CheckBox" X="45" Y="87" Width="220" Height="18" Property="AUTH_GITHUB" CheckBoxValue="true" Text="&amp;Authentication Github"/>
+      <Control Type="Text" Id="AuthHeader" Width="314" Height="17" X="45" Y="52" Text="Please select available identity providers for user authentication" />
 
-    <Control Id="AuthAdminLoginLabel" Type="Text" X="45" Y="120" Width="100" Height="15" TabSkip="no" Text="&amp;Admin Login:" />
-    <Control Id="AuthAdminLoginEdit" Type="Edit" X="45" Y="140" Width="220" Height="18" Property="AUTH_ADMIN_LOGIN" Text="{200}" />
-
-    <Control Id="AuthAdminPasswordLabel" Type="Text" X="45" Y="167" Width="100" Height="15" TabSkip="no" Text="&amp;Admin Password:" />
-    <Control Id="AuthAdminPasswordEdit" Type="Edit" X="45" Y="177" Width="220" Height="18" Property="AUTH_ADMIN_PASSWORD" Text="{200}" />
-
-    <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
-      <Publish Event="NewDialog" Value="SSLSetupDlg">1</Publish>
-    </Control>
-    <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
-      <Publish Event="NewDialog" Value="MiscSettingsDlg">1</Publish>
-    </Control>
-    <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
-      <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
-    </Control>
-    <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
-    <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
-      <Text>Please enter Authentication Configuration</Text>
-    </Control>
-    <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
-    <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
-      <Text>{\WixUI_Font_Title}Authentication Settings</Text>
-    </Control>
-    <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+      <Control Id="AuthGoogleCheckBox" Type="CheckBox" X="45" Y="73" Width="220" Height="18" Property="AUTH_GOOGLE" CheckBoxValue="true" Text="&amp;Authentication Google" />
+      <Control Id="AuthFacebookCheckBox" Type="CheckBox" X="45" Y="90" Width="220" Height="18" Property="AUTH_FACEBOOK" CheckBoxValue="true" Text="&amp;Authentication Facebook" />
+      <Control Id="AuthGithubCheckBox" Type="CheckBox" X="45" Y="107" Width="220" Height="18" Property="AUTH_GITHUB" CheckBoxValue="true" Text="&amp;Authentication Github" />
+      
+      <Control Id="AuthAdminLoginLabel" Type="Text" X="45" Y="140" Width="100" Height="15" TabSkip="no" Text="&amp;Admin Login:" />
+      <Control Id="AuthAdminLoginEdit" Type="Edit" X="45" Y="155" Width="220" Height="15" Property="AUTH_ADMIN_LOGIN" Text="{200}" />
+      
+      <Control Id="AuthAdminPasswordLabel" Type="Text" X="45" Y="180" Width="100" Height="15" TabSkip="no" Text="&amp;Admin Password:" />
+      <Control Id="AuthAdminPasswordEdit" Type="Edit" X="45" Y="195" Width="220" Height="15" Property="AUTH_ADMIN_PASSWORD" Text="{200}" />
+      <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="SSLSetupDlg">1</Publish>
+      </Control>
+      <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="MiscSettingsDlg">1</Publish>
+      </Control>
+      <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+      </Control>
+      <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+      <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>Please enter Authentication Configuration</Text>
+      </Control>
+      <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+      <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Authentication Settings</Text>
+      </Control>
+      <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
   </Dialog>
 </Include>

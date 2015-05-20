@@ -11,17 +11,33 @@
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <Name>DeviceHive.Setup</Name>
+    <WixVariables>
+    </WixVariables>
+    <BuildProjectReferences>true</BuildProjectReferences>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Debug;</DefineConstants>
+    <DefineConstants>Debug;Client=BuchiTeam;</DefineConstants>
     <WixVariables>
     </WixVariables>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Client=BuchiTeam;</DefineConstants>
+  </PropertyGroup>
+   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug;Client=BuchiTeam;</DefineConstants>
+    <WixVariables>
+    </WixVariables>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Client=BuchiTeam;</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="DatabaseConnection.wxs" />
@@ -36,32 +52,6 @@
     <Compile Include="WebConfigConfiguration.wxs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Server\DeviceHive.API\DeviceHive.API.csproj">
-      <Name>DeviceHive.API</Name>
-      <Project>{c75bf442-2b90-4066-aef9-2908475e853d}</Project>
-      <Private>True</Private>
-      <DoNotHarvest>
-      </DoNotHarvest>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLAPIFOLDER</RefTargetDir>
-      <WebProject>True</WebProject>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Server\DeviceHive.DBMigrator\DeviceHive.DBMigrator.csproj">
-      <Name>DeviceHive.DBMigrator</Name>
-      <Project>{3a08e496-1a7a-4137-971d-d215437f08d6}</Project>
-      <Private>True</Private>
-      <DoNotHarvest>True</DoNotHarvest>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Server\DeviceHive.WebSockets.API\DeviceHive.WebSockets.API.csproj">
-      <Name>DeviceHive.WebSockets.API</Name>
-      <Project>{500aff4c-a800-4119-aca8-07a47e74adf9}</Project>
-      <Private>True</Private>
-      <DoNotHarvest>True</DoNotHarvest>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
-    </ProjectReference>
     <ProjectReference Include="..\DeviceHive.Setup.Actions\DeviceHive.Setup.Actions.csproj">
       <Name>DeviceHive.Setup.Actions</Name>
       <Project>{96e08cc6-d7e2-47e0-a94f-c9f2465720ed}</Project>
@@ -99,15 +89,19 @@
     <Content Include="Dialogs\AuthenticationDlg.wxi" />
     <Content Include="Dialogs\DatabaseDlg.wxi" />
     <Content Include="Dialogs\HostingDlg.wxi" />
+    <Content Include="Dialogs\MessageBoxDlg.wxi" />
     <Content Include="Dialogs\MiscSettingsDlg.wxi" />
     <Content Include="Dialogs\MongoConnectionStringDlg.wxi" />
     <Content Include="Dialogs\SQLConnectionStringDlg.wxi" />
     <Content Include="Dialogs\SSLSetupDlg.wxi" />
     <Content Include="Dialogs\WebSocketDlg.wxi" />
+    <Content Include="Variables.wxi" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Dialogs" />
     <Folder Include="Files" />
+  </ItemGroup>
+  <ItemGroup>
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <!--
@@ -118,7 +112,44 @@
 	<Target Name="AfterBuild">
 	</Target>
 	-->
+  <Target Name="BuildDeviceHiveAPI">
+    <ItemGroup>
+      <DeviceHiveData Include="..\..\Server\DeviceHive.Data\DeviceHive.Data.csproj" />
+      <DeviceHiveDataEF Include="..\..\Server\DeviceHive.Data.EF\DeviceHive.Data.EF.csproj" />
+      <DeviceHiveDataMongoDB Include="..\..\Server\DeviceHive.Data.MongoDB\DeviceHive.Data.MongoDB.csproj" />
+      <DeviceHiveAPI Include="..\..\Server\DeviceHive.API\DeviceHive.API.csproj" />
+      <DeviceHiveDBMigrator Include="..\..\Server\DeviceHive.DBMigrator\DeviceHive.DBMigrator.csproj" />
+      <BuchiMessageHandlers Include="..\..\Server\Buchi.MessageHandlers\Buchi.MessageHandlers.csproj" />
+    </ItemGroup>
+
+    <Message Text="Build DeviceHive APIs..." />
+	
+    <MSBuild Projects="@(DeviceHiveData)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
+    <MSBuild Projects="@(DeviceHiveDataEF)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
+    <MSBuild Projects="@(DeviceHiveDataMongoDB)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
+    <MSBuild Projects="@(DeviceHiveDBMigrator)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
+    <MSBuild Projects="@(DeviceHiveAPI)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
+    <MSBuild Projects="@(BuchiMessageHandlers)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />    
+  </Target>
+  
+  <Target Name="BuildDeviceHiveWebSocketsAPI">
+	<ItemGroup>
+	  <DeviceHiveWebSocketsHost Include="..\..\Server\DeviceHive.WebSockets.Host\DeviceHive.WebSockets.Host.csproj" />
+	  <DeviceHiveWebSocketsCore Include="..\..\Server\DeviceHive.WebSockets.Core\DeviceHive.WebSockets.Core.csproj" />
+	  <DeviceHiveWebSocketsAPI Include="..\..\Server\DeviceHive.WebSockets.API\DeviceHive.WebSockets.API.csproj" />	 
+	</ItemGroup>
+	
+    <Message Text="Build DeviceHive WebSockets APIs..." />
+	
+	<MSBuild Projects="@(DeviceHiveWebSocketsHost)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
+    <MSBuild Projects="@(DeviceHiveWebSocketsCore)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
+    <MSBuild Projects="@(DeviceHiveWebSocketsAPI)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
+  </Target>	
+  
   <Target Name="BeforeBuild">
+    <CallTarget Targets="BuildDeviceHiveAPI" />
+    <CallTarget Targets="BuildDeviceHiveWebSocketsAPI" />
+	
     <MSBuild Projects="%(ProjectReference.FullPath)" Targets="Package" Properties="Configuration=$(Configuration);Platform=AnyCPU" Condition="'%(ProjectReference.WebProject)'=='True'" />
     <ItemGroup>
       <LinkerBindInputPaths Include="%(ProjectReference.RootDir)%(ProjectReference.Directory)obj\$(Configuration)\Package\PackageTmp\" />
@@ -137,5 +168,16 @@
   </Target>
   <PropertyGroup>
     <PreBuildEvent />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DefineConstants>Debug;Client=BuchiTeam;</DefineConstants>
+    <WixVariables />
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DefineConstants>Client=BuchiTeam;</DefineConstants>
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 </Project>

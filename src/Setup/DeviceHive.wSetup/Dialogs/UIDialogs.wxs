@@ -10,6 +10,7 @@
       <?include SSLSetupDlg.wxi ?>
       <?include AuthenticationDlg.wxi ?>
       <?include MiscSettingsDlg.wxi ?>
+      <?include MessageBoxDlg.wxi ?>
     </UI>
   </Fragment>
 
@@ -22,8 +23,8 @@
       <!-- Injection of custom UI -->
       <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="DatabaseDlg" Order="4">1</Publish>
       <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DatabaseDlg">1</Publish>
-      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="MiscSettingsDlg">1</Publish>
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MiscSettingsDlg">1</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="SSLSetupDlg">1</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="SSLSetupDlg">1</Publish>
     </UI>
   </Fragment>
 </Wix>

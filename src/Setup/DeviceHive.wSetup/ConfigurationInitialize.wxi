@@ -1,54 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Include>
-  <!-- DatabaseDlg -->
-  <Property Id="DATABASE_TYPE" Value="MS_SQL" />
+    <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
+    <!-- DatabaseDlg -->
+    <?if $(var.Client) = "BuchiTeam"?>
+        <Property Id="DATABASE_TYPE" Value="MONGO_DB" />
+    <?else?>
+        <Property Id="DATABASE_TYPE" Value="MS_SQL" />
+    <?endif?>
 
-  <!-- SQLConnectionStringDlg -->
-  <Property Id="SQL_SERVER" />
-  <Property Id="SQL_DATABASE" Value="devicehive" />
-  <Property Id="SQL_USER_ID" />
-  <Property Id="SQL_PASSWORD" />
+    <!-- SQLConnectionStringDlg -->
+    <Property Id="SQL_SERVER" Value="(local)"/>
+    <Property Id="SQL_DATABASE" Value="devicehive" />
+    <Property Id="SQL_USER_ID" />
+    <Property Id="SQL_PASSWORD" />
 
-  <!-- MongoConnectionStringDlg -->
-  <Property Id="MONGO_HOST" Value="localhost" />
-  <Property Id="MONGO_DATABASE" Value="devicehive" />
-  <Property Id="MONGO_LOGIN" />
-  <Property Id="MONGO_PASSWORD" />
+    <!-- MongoConnectionStringDlg -->
+    <Property Id="MONGO_HOST" Value="localhost" />
+    <Property Id="MONGO_DATABASE" Value="devicehive" />
+    <Property Id="MONGO_LOGIN" />
+    <Property Id="MONGO_PASSWORD" />
 
-  <!-- HostingDlg -->
-  <Property Id="DOMAIN_NAME" />
-  <Property Id="PORT_NUMBER" Value="80" />
-  
-  <!-- WebSocketDlg -->
-  <Property Id="WEB_SOCKET_ENABLED" Value="true" />
-  <Property Id="WEB_SOCKET_PORT_NUMBER" Value="8010" />
+    <!-- HostingDlg -->
+    <Property Id="DOMAIN_NAME" />
+    <Property Id="PORT_NUMBER" Value="80" />
 
-  <!-- SSLSetupDlg -->
-  <Property Id="SSL_ENABLED" Value="true" />
-  <Property Id="SSL_REQUIRED" />
-  <Property Id="SSL_WEB_PORT_NUMBER" Value="443"></Property>
-  <Property Id="SSL_WEB_SOCKET_PORT_NUMBER" Value="port"></Property>
-  <Property Id="SSL_CERTIFICATE" />
-  
-  <!-- AuthenticationDlg -->
-  <Property Id="AUTH_GOOGLE"></Property>
-  <Property Id="AUTH_FACEBOOK"></Property>
-  <Property Id="AUTH_GITHUB"></Property>
-  <Property Id="AUTH_ADMIN_LOGIN"></Property>
-  <Property Id="AUTH_ADMIN_PASSWORD"></Property>
+    <!-- WebSocketDlg -->
+    <Property Id="WEB_SOCKET_ENABLED" Value="true" />
+    <Property Id="WEB_SOCKET_PORT_NUMBER" Value="8010" />
 
-  <!-- MiscSettingsDlg -->
-  <Property Id="AUTOMATIC_NETWORK_CREATION"></Property>
-  
-  <!-- VIRTUAL_DIR_VAL property initialize -->
-  <Property Id="VIRTUAL_DIR_VAL" Value="DeviceHive.Api" />
+    <!-- SSLSetupDlg -->
+    <Property Id="SSL_ENABLED" Value="true" />
+    <Property Id="SSL_REQUIRED" />
+    <Property Id="SSL_PORT_NUMBER" Value="443"></Property>
+    <Property Id="SSL_WEB_SOCKET_PORT_NUMBER" Value="8443"></Property>
+    <Property Id="SSL_CERTIFICATE"/>
+    <Property Id="SSL_CERTIFICATE_STORAGE_EMPTY" Value="false"/>
 
-  <!-- web app name properties initialize -->
-  <Property Id="WEB_APP_NAME" Value="DeviceHive.Api" />
+    <!-- AuthenticationDlg -->
+    <Property Id="AUTH_GOOGLE"></Property>
+    <Property Id="AUTH_FACEBOOK"></Property>
+    <Property Id="AUTH_GITHUB"></Property>
+    <Property Id="AUTH_ADMIN_LOGIN"></Property>
+    <Property Id="AUTH_ADMIN_PASSWORD"></Property>
 
-  <!-- app pool identity properties initialize -->
-  <Property Id="WEB_APP_POOL_IDENTITY_DOMAIN" Value="POOL_DOMAIN" />
-  <Property Id="WEB_APP_POOL_IDENTITY_NAME" Value="account-name" />
-  <Property Id="WEB_APP_POOL_IDENTITY_PWD" Hidden="yes" />
+    <!-- MiscSettingsDlg -->
+    <Property Id="AUTOMATIC_NETWORK_CREATION"></Property>
+
+    <!-- VIRTUAL_DIR_VAL property initialize -->
+    <Property Id="VIRTUAL_DIR_VAL" Value="DeviceHive.Api" />
+
+    <!-- web app name properties initialize -->
+    <Property Id="SITE_ID" Value="1"/>
+    <Property Id="WEB_SITE_NAME" Value = "DeviceHive"/>
+    <Property Id="WEB_APP_NAME" Value="DeviceHive.Api" />
+
+    <!-- app pool identity properties initialize -->
+    <Property Id="WEB_APP_POOL_IDENTITY_DOMAIN" Value="POOL_DOMAIN" />
+    <Property Id="WEB_APP_POOL_IDENTITY_NAME" Value="account-name" />
+    <Property Id="WEB_APP_POOL_IDENTITY_PWD" Hidden="yes" />
 
 </Include>

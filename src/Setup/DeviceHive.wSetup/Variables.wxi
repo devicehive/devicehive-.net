@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+    <?if $(var.Platform) = "x64"?>
+    <?define Win64 = "yes"?>
+    <?define ProgramFilesFolder = "ProgramFiles64Folder"?>
+    <?else?>
+    <?define Win64 = "no"?>
+    <?define ProgramFilesFolder = "ProgramFilesFolder"?>
+    <?endif?>
+
+    <?define DeviceHiveServerRootDir = "..\..\..\..\Server"?>
+    <?define DeviceHiveApiRootDir = "$(var.DeviceHiveServerRootDir)\DeviceHive.API"?>
+    <?define DeviceHiveApiBinDir = "$(var.DeviceHiveApiRootDir)\bin"?>
+    <?define DeviceHiveDBMigratorBinDir = "$(var.DeviceHiveServerRootDir)\DeviceHive.DBMigrator\bin\$(var.Configuration)"?>
+    <?define DeviceHiveWebSocketsApiBinDir="$(var.DeviceHiveServerRootDir)\DeviceHive.WebSockets.API\bin\$(var.Configuration)\" ?>
+    <?define AdminConsoleSourcePath="..\..\..\..\devicehive-admin-console" ?>
+    <?define SchedulerSourcePath="..\..\..\tools\Scheduler" ?>
+</Include>

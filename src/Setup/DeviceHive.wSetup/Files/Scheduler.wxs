@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?define var.SchedulerSourcePath="..\..\..\tools\Scheduler" ?>
-
+  <?include ..\variables.wxi?>
   <!--  "$(WIX)bin\heat.exe" dir "..\..\..\..\..\tools\Scheduler" -cg CmpScheduler -gg -scom -sreg -sfrag -dr INSTALL_SCHEDULRE_FOLDER -out "$(ProjectDir)Files\Scheduler.wxs" -var var.SchedulerSourcePath-->
   <Fragment>
     <DirectoryRef Id="INSTALLFOLDER">

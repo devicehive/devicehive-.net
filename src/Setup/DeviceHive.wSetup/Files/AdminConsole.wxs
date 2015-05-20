@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?define var.AdminConsoleSourcePath="..\..\..\..\devicehive-admin-console" ?>
-
+  <?include ..\variables.wxi?>
   <!-- "$(WIX)bin\heat.exe" dir "..\..\..\..\..\..\devicehive-admin-console" -cg CmpAdminConsole -gg -scom -sreg -sfrag -dr INSTALL_ADMIN_CONSOLE_FOLDER -out "$(ProjectDir)Files\AdminConsole.wxs" -var var.AdminConsoleSourcePath -->
   <Fragment>
         <DirectoryRef Id="INSTALLFOLDER">

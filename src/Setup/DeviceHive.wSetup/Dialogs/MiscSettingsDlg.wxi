@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Include>
-  <Dialog Id="MiscSettingsDlg" Width="370" Height="270" Title="Automatic Network Creation - [ProductName]" NoMinimize="yes">
-    <Control Id="AutomaticNetworkCreationCheckBox" Type="CheckBox" X="45" Y="70" Width="220" Height="18" Property="AUTOMATIC_NETWORK_CREATION" CheckBoxValue="true" Text="&amp;Automatic Network Creation"/>
+  <Dialog Id="MiscSettingsDlg" Width="370" Height="270" Title="Miscellaneous - [ProductName]" NoMinimize="yes">
+    <Control Id="AutomaticNetworkCreationCheckBox" Type="CheckBox" X="45" Y="70" Width="220" Height="18" Property="AUTOMATIC_NETWORK_CREATION" CheckBoxValue="true" Text="&amp;Allow devices to create new networks"/>
 
     <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
       <Publish Event="NewDialog" Value="AuthenticationDlg">1</Publish>
@@ -23,7 +23,7 @@
     </Control>
     <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
     <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
-      <Text>{\WixUI_Font_Title}Automatic Network Creation Settings</Text>
+      <Text>{\WixUI_Font_Title}Miscellaneous Settings</Text>
     </Control>
     <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
   </Dialog>
