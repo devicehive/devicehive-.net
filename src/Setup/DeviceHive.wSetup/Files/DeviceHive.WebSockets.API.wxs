@@ -6,9 +6,6 @@
             <Component Id="cmp857EB6DCCF39EB3A73F919AD8B0B552E" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil687A73BA1B77A7168899B639ADB5EF8B" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\DeviceHive.Core.dll" />
             </Component>
-            <Component Id="cmpDF69E47F1DBBDF54ED69F66ADD6E937E" Guid="*" Win64="$(var.Win64)">
-                <File Id="filDA718232637DD3F9F612CA360ED667AE" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\DeviceHive.Core.xml" />
-            </Component>
             <Component Id="cmpD1F11A8CFAE6949EE9FCD29B0A0EC68C" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil69944CFEEE0B8F22A959F4051036A48B" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\DeviceHive.Data.dll" />
             </Component>
@@ -18,17 +15,11 @@
             <Component Id="cmpEE00355983CD245CF2CC55896E390DBB" Guid="*" Win64="$(var.Win64)">
                 <File Id="filF50CF485F2F7663C39FFEEE08BF1225D" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\DeviceHive.Data.MongoDB.dll" />
             </Component>
-            <Component Id="cmpC12F58B7FAAC517DF8CB99CA18516D3F" Guid="*" Win64="$(var.Win64)">
-                <File Id="fil025E7805CD7ED38C533EC6CAE90BEF9A" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\DeviceHive.Data.xml" />
-            </Component>
             <Component Id="cmp440BE561BA69BBB2EBB4F2DE40832EA2" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil2C4E375AB5F086E12AA505A2D3642DAB" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\DeviceHive.WebSockets.API.exe" />
             </Component>
             <Component Id="cmp4A5B9BC4AF2EBFA27A0422128FF47A97" Guid="*" Win64="$(var.Win64)">
                 <File Id="filA9F4D93A7A386CAEC8C15F83229C245A" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\DeviceHive.WebSockets.API.exe.config" />
-            </Component>
-            <Component Id="cmpF57D83276912E134AA27BBE1630A7F83" Guid="*" Win64="$(var.Win64)">
-                <File Id="fil83D3E27815D7ED16F52A442BFAD429E3" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\DeviceHive.WebSockets.API.XML" />
             </Component>
             <Component Id="cmpA93B16A6A73621B156B52ECEA360C1AD" Guid="*" Win64="$(var.Win64)">
                 <File Id="filCE1FE2BABF544078139966E66C4151A4" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\DeviceHive.WebSockets.Core.dll" />
@@ -39,74 +30,43 @@
             <Component Id="cmp932AA946F32ED819C7AE45B2290D7C0B" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil0FF2706BF53EF34AD6B4420125D256BB" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\EntityFramework.SqlServer.dll" />
             </Component>
-            <Component Id="cmpB063D8FDC94696D06C39B731E7D344AB" Guid="*" Win64="$(var.Win64)">
-                <File Id="fil4EBA2B184EFA476CAEC63B781ABD8AF8" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\EntityFramework.SqlServer.xml" />
-            </Component>
-            <Component Id="cmpDB321BA8323287A700D52F2EDDDEEE64" Guid="*" Win64="$(var.Win64)">
-                <File Id="fil3742BECED8070AD0C6D93062BA63E363" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\EntityFramework.xml" />
-            </Component>
             <Component Id="cmpC8E75065808648CDF3CCDA1DBD487FEE" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil85F6EAF22FE9F10765612954D637D6BC" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\Fleck.dll" />
             </Component>
             <Component Id="cmp5B4D774D8C6623C5CBC433E79E0FAB43" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil4BAADCFB654B9548732D1A4B4E3DE542" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\log4net.dll" />
             </Component>
-            <Component Id="cmp95048F68EC140D0F19ED4621582B714F" Guid="*" Win64="$(var.Win64)">
-                <File Id="filF2C00C7D24A2C764BB4B9CE3BDBBA450" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\log4net.xml" />
-            </Component>
             <Component Id="cmp876816A792EA9E936A76A635DA08B748" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil1FDC447BE9EA0D7317549E4C84744EB7" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\MongoDB.Bson.dll" />
-            </Component>
-            <Component Id="cmp0E0FD14B57114318D51426CC996491B2" Guid="*" Win64="$(var.Win64)">
-                <File Id="fil69C1C7C96A8E540B5650FF7BE1E11DCE" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\MongoDB.Bson.xml" />
             </Component>
             <Component Id="cmpF53E07E7A7EFD22EBD63E59494132DC3" Guid="*" Win64="$(var.Win64)">
                 <File Id="filD48C3F5E21A51B0673DB7CC44BAC1133" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\MongoDB.Driver.dll" />
             </Component>
-            <Component Id="cmp2415BEEFC9FF63AD84010DBB847BBDF6" Guid="*" Win64="$(var.Win64)">
-                <File Id="fil110A3C6367FA58D45B29B346C1F46753" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\MongoDB.Driver.xml" />
-            </Component>
             <Component Id="cmpF96B042D8557A49D424A098D61EB6D42" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil94DB32C1030544E194C2FA3C9B513DF5" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\Newtonsoft.Json.dll" />
             </Component>
-            <Component Id="cmp63B440DDB8A75F80A9EF6D434D3BF0EF" Guid="*" Win64="$(var.Win64)">
-                <File Id="fil617219FEBDE788686E630198DF4CEAF0" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\Newtonsoft.Json.xml" />
-            </Component>
             <Component Id="cmpC9251315D9F2600F74A330EAA0FDD6A7" Guid="*" Win64="$(var.Win64)">
                 <File Id="filD1BEE8991263B2ECFA23322899B78911" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\Ninject.dll" />
-            </Component>
-            <Component Id="cmpA59A2B94308E8DECDC3AE5621C200C07" Guid="*" Win64="$(var.Win64)">
-                <File Id="fil2647AC6303B35DB508278A3BC837A6DD" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsApiBinDir)\Ninject.xml" />
             </Component>
         </DirectoryRef>
     </Fragment>
     <Fragment>
         <ComponentGroup Id="DeviceHive.WebSockets.API_Project">
             <ComponentRef Id="cmp857EB6DCCF39EB3A73F919AD8B0B552E" />
-            <ComponentRef Id="cmpDF69E47F1DBBDF54ED69F66ADD6E937E" />
             <ComponentRef Id="cmpD1F11A8CFAE6949EE9FCD29B0A0EC68C" />
             <ComponentRef Id="cmp00A41B0720D78A88105A2500BECD49B4" />
             <ComponentRef Id="cmpEE00355983CD245CF2CC55896E390DBB" />
-            <ComponentRef Id="cmpC12F58B7FAAC517DF8CB99CA18516D3F" />
             <ComponentRef Id="cmp440BE561BA69BBB2EBB4F2DE40832EA2" />
             <ComponentRef Id="cmp4A5B9BC4AF2EBFA27A0422128FF47A97" />
-            <ComponentRef Id="cmpF57D83276912E134AA27BBE1630A7F83" />
             <ComponentRef Id="cmpA93B16A6A73621B156B52ECEA360C1AD" />
             <ComponentRef Id="cmp8FF960F1127837CA99517B4980138175" />
             <ComponentRef Id="cmp932AA946F32ED819C7AE45B2290D7C0B" />
-            <ComponentRef Id="cmpB063D8FDC94696D06C39B731E7D344AB" />
-            <ComponentRef Id="cmpDB321BA8323287A700D52F2EDDDEEE64" />
             <ComponentRef Id="cmpC8E75065808648CDF3CCDA1DBD487FEE" />
             <ComponentRef Id="cmp5B4D774D8C6623C5CBC433E79E0FAB43" />
-            <ComponentRef Id="cmp95048F68EC140D0F19ED4621582B714F" />
             <ComponentRef Id="cmp876816A792EA9E936A76A635DA08B748" />
-            <ComponentRef Id="cmp0E0FD14B57114318D51426CC996491B2" />
             <ComponentRef Id="cmpF53E07E7A7EFD22EBD63E59494132DC3" />
-            <ComponentRef Id="cmp2415BEEFC9FF63AD84010DBB847BBDF6" />
             <ComponentRef Id="cmpF96B042D8557A49D424A098D61EB6D42" />
-            <ComponentRef Id="cmp63B440DDB8A75F80A9EF6D434D3BF0EF" />
             <ComponentRef Id="cmpC9251315D9F2600F74A330EAA0FDD6A7" />
-            <ComponentRef Id="cmpA59A2B94308E8DECDC3AE5621C200C07" />
         </ComponentGroup>
     </Fragment>
 </Wix>
