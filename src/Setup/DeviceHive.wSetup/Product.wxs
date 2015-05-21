@@ -50,10 +50,9 @@
                 <ComponentGroupRef Id="CmpScheduler"/>
             </Feature>
 
-            <!--<Feature Id="WebSocket" Title="WebSockets.API">
-                --><!--~1~ Include WebSocket content. @1@--><!--
+            <Feature Id="WebSocket" Title="WebSockets.API">
                 <ComponentGroupRef Id="DeviceHive.WebSockets.API_Project" />
-            </Feature>-->
+            </Feature>
 
             <Feature Id="DBMigratorContent" Title="DeviceHive.DBMigrator" Description="The website content" Level="1">
                 <ComponentGroupRef Id="DeviceHive.DBMigrator_Project" />
