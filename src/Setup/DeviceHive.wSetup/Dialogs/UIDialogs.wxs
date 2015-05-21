@@ -24,7 +24,7 @@
       <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="DatabaseDlg" Order="4">1</Publish>
       <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="DatabaseDlg">1</Publish>
       <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="SSLSetupDlg">1</Publish>
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="SSLSetupDlg">1</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MiscSettingsDlg">1</Publish>
     </UI>
   </Fragment>
 </Wix>
