@@ -68,7 +68,7 @@
                 <CreateFolder/>
               </Component>
 
-              <Component Id="WebConfigSQLConnectionStringWithCredentials" Guid="{6E0B49AB-86F2-48FA-A55C-FD7376B58877}">
+              <Component Id="WebConfigSQLConnectionStringWithCredentials" Guid="{A904D2EF-3293-4B55-A9D5-16721D16067F}">
                 <!-- SQL Connection String with credentials-->
                 <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID <> "" AND SQL_PASSWORD <> ""]]></Condition>
                 <util:XmlFile Id="ModifySQLConnectionStringWithCredentials" Action="setValue" Permanent="yes"
@@ -118,6 +118,16 @@
                      File="[INSTALL_API_FOLDER]Web.config"
                      Value="true"
                      SelectionLanguage="XSLPattern" Sequence="1" />
+                <util:XmlFile Id="ModifyAuthenticationGoogleClientId" Action="setValue" Permanent="yes"
+                     ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='google'[\]]" Name="clientId"
+                     File="[INSTALL_API_FOLDER]Web.config"
+                     Value="[AUTH_GOOGLE_CLIENT_ID]"
+                     SelectionLanguage="XSLPattern" Sequence="2" />
+                <util:XmlFile Id="ModifyAuthenticationGoogleClientSecret" Action="setValue" Permanent="yes"
+                     ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='google'[\]]" Name="clientSecret"
+                     File="[INSTALL_API_FOLDER]Web.config"
+                     Value="[AUTH_GOOGLE_CLIENT_SECRET]"
+                     SelectionLanguage="XSLPattern" Sequence="3" />
                 <CreateFolder/>
               </Component>
               <Component Id="WebConfigAuthenticationGoogleFalse" Guid="{7ECF356B-A599-45B7-B3F9-4541B60F5D16}">
@@ -138,6 +148,16 @@
                      File="[INSTALL_API_FOLDER]Web.config"
                      Value="true"
                      SelectionLanguage="XSLPattern" Sequence="1" />
+                <util:XmlFile Id="ModifyAuthenticationFacebookClientId" Action="setValue" Permanent="yes"
+                     ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='facebook'[\]]" Name="clientId"
+                     File="[INSTALL_API_FOLDER]Web.config"
+                     Value="[AUTH_FACEBOOK_CLIENT_ID]"
+                     SelectionLanguage="XSLPattern" Sequence="2" />
+                <util:XmlFile Id="ModifyAuthenticationFacebookClientSecret" Action="setValue" Permanent="yes"
+                     ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='facebook'[\]]" Name="clientSecret"
+                     File="[INSTALL_API_FOLDER]Web.config"
+                     Value="[AUTH_FACEBOOK_CLIENT_SECRET]"
+                     SelectionLanguage="XSLPattern" Sequence="3" />
                 <CreateFolder/>
               </Component>
               <Component Id="WebConfigAuthenticationFacebookFalse" Guid="{C45C487C-7130-490E-895D-CEFB59A2FA52}">
@@ -157,6 +177,16 @@
                      ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='github'[\]]" Name="enabled"
                      File="[INSTALL_API_FOLDER]Web.config"
                      Value="true"
+                     SelectionLanguage="XSLPattern" Sequence="1" />
+                <util:XmlFile Id="ModifyAuthenticationGithubClientId" Action="setValue" Permanent="yes"
+                     ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='github'[\]]" Name="clientId"
+                     File="[INSTALL_API_FOLDER]Web.config"
+                     Value="[AUTH_GITHUB_CLIENT_ID]"
+                     SelectionLanguage="XSLPattern" Sequence="1" />
+                <util:XmlFile Id="ModifyAuthenticationGithubClientSecret" Action="setValue" Permanent="yes"
+                     ElementPath="/configuration/deviceHive/authentication/providers/add[\[]@name='github'[\]]" Name="clientSecret"
+                     File="[INSTALL_API_FOLDER]Web.config"
+                     Value="[AUTH_GITHUB_CLIENT_SECRET]"
                      SelectionLanguage="XSLPattern" Sequence="1" />
                 <CreateFolder/>
               </Component>

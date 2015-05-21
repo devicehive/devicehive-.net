@@ -334,6 +334,27 @@ namespace DeviceHive.Setup.Actions
             return result;
         }
 
+        [CustomAction]
+        public static ActionResult CheckGoogleAuthenticationSettings(Session session)
+        {
+            CheckAuthenticationSettings(session, "Google", "AUTH_GOOGLE_CLIENT_ID", "AUTH_GOOGLE_CLIENT_SECRET");
+            return ActionResult.Success;
+        }
+
+        [CustomAction]
+        public static ActionResult CheckFacebookAuthenticationSettings(Session session)
+        {
+            CheckAuthenticationSettings(session, "Facebook", "AUTH_FACEBOOK_CLIENT_ID", "AUTH_FACEBOOK_CLIENT_SECRET");
+            return ActionResult.Success;
+        }
+
+        [CustomAction]
+        public static ActionResult CheckGithubAuthenticationSettings(Session session)
+        {
+            CheckAuthenticationSettings(session, "Github", "AUTH_GITHUB_CLIENT_ID", "AUTH_GITHUB_CLIENT_SECRET");
+            return ActionResult.Success;
+        }
+
         private static void UpdateHttpBinding(ServerManager serverManager, Site site, Session session)
         {
             string portNumber = GetPropertyStringValue(session, "PORT_NUMBER", true);
@@ -483,6 +504,30 @@ namespace DeviceHive.Setup.Actions
         {
             session["MESSAGE_TEXT"] = message;
             session["MESSAGE_TYPE"] = messageType;
+        }
+
+        private static void CheckAuthenticationSettings(Session session, string providerName, string clientIdPropertyName, string clientSecretPropertyName)
+        {
+            session["AUTHENTICATION_SETTINGS_IS_VALID"] = "0";
+
+            try
+            {
+                string clientIdValue = GetPropertyStringValue(session, clientIdPropertyName);
+                if (string.IsNullOrEmpty(clientIdValue))
+                {
+                    throw new Exception(string.Format("Client Id for Authentication {0} provider is empty. Please enter a correct value.", providerName));
+                }
+                string clientSecretValue = GetPropertyStringValue(session, clientSecretPropertyName);
+                if (string.IsNullOrEmpty(clientSecretValue))
+                {
+                    throw new Exception(string.Format("Client Secret for Authentication {0} provider is empty. Please enter a correct value.", providerName));
+                }
+                session["AUTHENTICATION_SETTINGS_IS_VALID"] = "1";
+            }
+            catch(Exception e)
+            {
+                InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
+            }
         }
     }
 }

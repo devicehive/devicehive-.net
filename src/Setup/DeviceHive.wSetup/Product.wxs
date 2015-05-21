@@ -122,6 +122,11 @@
     <!--Administrator settings-->
     <CustomAction Id='CheckRunAsAdministrator' BinaryKey="CustomAction" DllEntry="CheckRunAsAdministrator" Execute="immediate" Return="check" />
 
+    <!--Authentication Provider settings-->
+    <CustomAction Id='CheckGoogleAuthenticationSettings' BinaryKey="CustomAction" DllEntry="CheckGoogleAuthenticationSettings" Execute="immediate" Return="check" />
+    <CustomAction Id='CheckFacebookAuthenticationSettings' BinaryKey="CustomAction" DllEntry="CheckFacebookAuthenticationSettings" Execute="immediate" Return="check" />
+    <CustomAction Id='CheckGithubAuthenticationSettings' BinaryKey="CustomAction" DllEntry="CheckGithubAuthenticationSettings" Execute="immediate" Return="check" />
+
     <InstallUISequence>
       <Custom Action="CheckRunAsAdministrator" Before="LaunchConditions"/>
       <Custom Action="GetCertificates" After="CostFinalize" />
@@ -139,7 +144,7 @@
 
     <DirectoryRef Id="ApplicationProgramsFolder">
       <Component Id="ApplicationShortcut" Guid="17aa44e9-5c7a-429b-9569-a373650ea3c6">
-        <Shortcut Id="AdminStartShortcut" Name="Admin Console" Description="DeviceHive Admin Console" Target="index.html" WorkingDirectory="INSTALLFOLDER"/>
+        <Shortcut Id="AdminStartShortcut" Name="Admin Console" Description="DeviceHive Admin Console" Target="index.html" WorkingDirectory="INSTALL_ADMIN_FOLDER"/>
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
         <RegistryValue Root="HKCU" Key="Software\DeviceHive" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
       </Component>

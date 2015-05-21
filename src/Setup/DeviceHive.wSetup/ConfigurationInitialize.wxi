@@ -7,14 +7,14 @@
     <!-- SQLConnectionStringDlg -->
     <Property Id="SQL_SERVER" Value="(local)"/>
     <Property Id="SQL_DATABASE" Value="devicehive" />
-    <Property Id="SQL_USER_ID" />
-    <Property Id="SQL_PASSWORD" />
+    <Property Id="SQL_USER_ID" Hidden="yes"/>
+    <Property Id="SQL_PASSWORD" Hidden="yes"/>
 
     <!-- MongoConnectionStringDlg -->
     <Property Id="MONGO_HOST" Value="localhost" />
     <Property Id="MONGO_DATABASE" Value="devicehive" />
-    <Property Id="MONGO_LOGIN" />
-    <Property Id="MONGO_PASSWORD" />
+    <Property Id="MONGO_LOGIN" Hidden="yes"/>
+    <Property Id="MONGO_PASSWORD" Hidden="yes"/>
 
     <!-- HostingDlg -->
     <Property Id="DOMAIN_NAME" />
@@ -36,6 +36,16 @@
     <Property Id="AUTH_GOOGLE"></Property>
     <Property Id="AUTH_FACEBOOK"></Property>
     <Property Id="AUTH_GITHUB"></Property>
+
+    <Property Id="AUTH_GOOGLE_CLIENT_ID" Hidden="yes" />
+    <Property Id="AUTH_GOOGLE_CLIENT_SECRET" Hidden="yes" />
+
+    <Property Id="AUTH_FACEBOOK_CLIENT_ID" Hidden="yes" />
+    <Property Id="AUTH_FACEBOOK_CLIENT_SECRET" Hidden="yes" />
+
+    <Property Id="AUTH_GITHUB_CLIENT_ID" Hidden="yes" />
+    <Property Id="AUTH_GITHUB_CLIENT_SECRET" Hidden="yes" />
+
     <Property Id="AUTH_ADMIN_LOGIN"></Property>
     <Property Id="AUTH_ADMIN_PASSWORD"></Property>
 
@@ -54,5 +64,4 @@
     <Property Id="WEB_APP_POOL_IDENTITY_DOMAIN" Value="POOL_DOMAIN" />
     <Property Id="WEB_APP_POOL_IDENTITY_NAME" Value="account-name" />
     <Property Id="WEB_APP_POOL_IDENTITY_PWD" Hidden="yes" />
-
 </Include>
