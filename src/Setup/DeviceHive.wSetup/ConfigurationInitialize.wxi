@@ -2,11 +2,7 @@
 <Include>
     <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
     <!-- DatabaseDlg -->
-    <?if $(var.Client) = "BuchiTeam"?>
-        <Property Id="DATABASE_TYPE" Value="MONGO_DB" />
-    <?else?>
-        <Property Id="DATABASE_TYPE" Value="MS_SQL" />
-    <?endif?>
+    <Property Id="DATABASE_TYPE" Value="MS_SQL" />
 
     <!-- SQLConnectionStringDlg -->
     <Property Id="SQL_SERVER" Value="(local)"/>
