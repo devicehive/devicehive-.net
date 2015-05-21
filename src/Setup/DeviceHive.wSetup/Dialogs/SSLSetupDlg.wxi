@@ -33,12 +33,12 @@
     <Control Id="SSLWebSocketPortNumberLabel" Type="Text" X="45" Y="135" Width="214" Height="15" TabSkip="no" Text="&amp;SSL Web Socket Port Number:">
       <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
       <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
-      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true" OR WEB_SOCKET_ENABLED <> "true"]]></Condition>
     </Control>
     <Control Id="SSLWebSocketPortNumberEdit" Type="Edit" X="45" Y="150" Width="220" Height="15" Property="SSL_WEB_SOCKET_PORT_NUMBER" Text="{200}">
       <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
       <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
-      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true" OR WEB_SOCKET_ENABLED <> "true"]]></Condition>
     </Control>
     <Control Id="SSLCertificateLabel" Type="Text" X="45" Y="175" Width="100" Height="15" TabSkip="no" Text="&amp;SSL Certificate:">
       <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
