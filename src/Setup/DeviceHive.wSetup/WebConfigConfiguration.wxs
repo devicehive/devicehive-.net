@@ -56,23 +56,20 @@
                 <CreateFolder/>
               </Component>
 
-              <Component Id="WebConfigCmp" Guid="{90C4CA30-71A9-4CDC-9CC1-5C878BE6344C}">
+              <Component Id="WebConfigWebSocketEndpoinPortNumber" Guid="{90C4CA30-71A9-4CDC-9CC1-5C878BE6344C}">
                 <!-- SQL Connection String -->
                 <!--              <util:XmlFile Id="ModifyConnectionString" Action="setValue" Permanent="yes"-->
                 <!--                   ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"-->
                 <!--                   File="[INSTALL_API_FOLDER]Web.config"-->
                 <!--                   Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USERID];Pwd=[SQL_PASSWORD]"-->
                 <!--                   SelectionLanguage="XSLPattern" Sequence="1" />-->
-
-
-
                 <!-- WebSocket endpoint URL -->
-                <!--              <util:XmlFile Id="ModifyWebSocketEndpointUrl" Action="setValue" Permanent="yes"-->
-                <!--                   ElementPath="/configuration/deviceHive/webSocketEndpoint" Name="url"-->
-                <!--                   File="[INSTALL_API_FOLDER]Web.config"-->
-                <!--                   Value="ws://localhost:[WEB_SOCKET_PORT_NUMBER]"-->
-                <!--                   SelectionLanguage="XSLPattern" Sequence="1" />-->
-
+                <Condition><![CDATA[WEB_SOCKET_ENABLED="true"]]></Condition>
+                <util:XmlFile Id="ModifyWebSocketEndpointUrl" Action="setValue" Permanent="yes"
+                     ElementPath="/configuration/deviceHive/webSocketEndpoint" Name="url"
+                     File="[INSTALL_API_FOLDER]Web.config"
+                     Value="ws://localhost:[WEB_SOCKET_PORT_NUMBER]"
+                     SelectionLanguage="XSLPattern" Sequence="1" />
                 <CreateFolder/>
               </Component>
 

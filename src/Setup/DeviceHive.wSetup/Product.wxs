@@ -30,7 +30,7 @@
         <ComponentGroupRef Id="DeviceHive.API_Project" />
 
         <!-- Perform changes in the web.config file. -->
-        <ComponentRef Id="WebConfigCmp" />
+        <ComponentRef Id="WebConfigWebSocketEndpoinPortNumber" />
         <!--        <ComponentRef Id="WebConfigSQL"></ComponentRef>-->
         <ComponentRef Id="WebConfigMongo"></ComponentRef>
         <ComponentRef Id="WebConfigMongoConnectionStringWithCredentials"></ComponentRef>
