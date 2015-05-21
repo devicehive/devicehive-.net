@@ -15,15 +15,16 @@
           <Directory Id="INSTALL_WEB_FOLDER" Name="web">
             <Directory Id="INSTALL_API_FOLDER" Name="api">
               <!-- Choose database: SQL or Mongo -->
-              <!--            <Component Id="WebConfigSQL" Guid="">-->
-              <!--              <Condition><![CDATA[DATABASE_TYPE = "MS_SQL"]]></Condition>-->
-              <!--              <util:XmlFile Id="SQLRepositoryAssembly" Action="setValue" Permanent="yes"-->
-              <!--                   ElementPath="/configuration/appSettings/add[\[]@key='RepositoryAssembly'[\]]" Name="value"-->
-              <!--                   File="[INSTALL_API_FOLDER]Web.config"-->
-              <!--                   Value="DeviceHive.Data.EF"-->
-              <!--                   SelectionLanguage="XSLPattern" Sequence="1" />-->
-              <!--              <CreateFolder/>-->
-              <!--            </Component>-->
+              <Component Id="WebConfigSQL" Guid="">
+                <Condition><![CDATA[DATABASE_TYPE = "MS_SQL"]]></Condition>
+                <util:XmlFile Id="SQLRepositoryAssembly" Action="setValue" Permanent="yes"
+                      ElementPath="/configuration/appSettings/add[\[]@key='RepositoryAssembly'[\]]" Name="value"
+                      File="[INSTALL_API_FOLDER]Web.config"
+                      Value="DeviceHive.Data.EF"
+                      SelectionLanguage="XSLPattern" Sequence="1" />
+                <CreateFolder/>
+              </Component>
+
               <Component Id="WebConfigMongo" Guid="{B1943052-0BF2-48AC-AD37-DF3B41A57AEC}">
                 <Condition><![CDATA[DATABASE_TYPE = "MONGO_DB"]]></Condition>
                 <util:XmlFile Id="MongoRepositoryAssembly" Action="setValue" Permanent="yes"
@@ -56,13 +57,29 @@
                 <CreateFolder/>
               </Component>
 
+              <Component Id="WebConfigSQLConnectionStringWOCredentials" Guid="{6E0B49AB-86F2-48FA-A55C-FD7376B58877}">
+                <!-- SQL Connection String without credentials-->
+                <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID = "" AND SQL_PASSWORD = ""]]></Condition>
+                <util:XmlFile Id="ModifySQLConnectionStringWOCredentials" Action="setValue" Permanent="yes"
+                     ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
+                     File="[INSTALL_API_FOLDER]Web.config"
+                     Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];Trusted_Connection=Yes;"
+                     SelectionLanguage="XSLPattern" Sequence="1" />
+                <CreateFolder/>
+              </Component>
+
+              <Component Id="WebConfigSQLConnectionStringWithCredentials" Guid="{6E0B49AB-86F2-48FA-A55C-FD7376B58877}">
+                <!-- SQL Connection String with credentials-->
+                <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID <> "" AND SQL_PASSWORD <> ""]]></Condition>
+                <util:XmlFile Id="ModifySQLConnectionStringWithCredentials" Action="setValue" Permanent="yes"
+                     ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
+                     File="[INSTALL_API_FOLDER]Web.config"
+                     Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USERID];Pwd=[SQL_PASSWORD]"
+                     SelectionLanguage="XSLPattern" Sequence="1" />
+                <CreateFolder/>
+              </Component>
+
               <Component Id="WebConfigWebSocketEndpoinPortNumber" Guid="{90C4CA30-71A9-4CDC-9CC1-5C878BE6344C}">
-                <!-- SQL Connection String -->
-                <!--              <util:XmlFile Id="ModifyConnectionString" Action="setValue" Permanent="yes"-->
-                <!--                   ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"-->
-                <!--                   File="[INSTALL_API_FOLDER]Web.config"-->
-                <!--                   Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USERID];Pwd=[SQL_PASSWORD]"-->
-                <!--                   SelectionLanguage="XSLPattern" Sequence="1" />-->
                 <!-- WebSocket endpoint URL -->
                 <Condition><![CDATA[WEB_SOCKET_ENABLED="true"]]></Condition>
                 <util:XmlFile Id="ModifyWebSocketEndpointUrl" Action="setValue" Permanent="yes"
@@ -112,6 +129,7 @@
                      SelectionLanguage="XSLPattern" Sequence="1" />
                 <CreateFolder/>
               </Component>
+
               <!--~1~ Authentication Facebook @1@-->
               <Component Id="WebConfigAuthenticationFacebookTrue" Guid="{59CBD2AF-6301-4981-95B5-693B411C439C}">
                 <Condition><![CDATA[AUTH_FACEBOOK="true"]]></Condition>
@@ -176,23 +194,21 @@
             </Directory>
           </Directory>
 
-          <!--Directory Id="INSTALL_ADMIN_CONSOLE_FOLDER" Name="AdminConsole">
-          </Directory-->
-
           <Directory Id="INSTALL_WINSOCKET_FOLDER" Name="WinSocket">
           </Directory>
 
           <Directory Id="INSTALL_DBMIGRATOR_FOLDER" Name="DBMigrator">
             <!-- Choose database: SQL or Mongo -->
-            <!--            <Component Id="DBMigratorConfigSQL" Guid="{03043AC8-2159-41ED-99CB-39A6464078DB}">-->
-            <!--              <Condition><![CDATA[DATABASE_TYPE = "MS_SQL"]]></Condition>-->
-            <!--              <util:XmlFile Id="DBMigratorSQL" Action="setValue" Permanent="yes"-->
-            <!--                   ElementPath="/configuration/appSettings/add[\[]@key='RepositoryAssembly'[\]]" Name="value"-->
-            <!--                   File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"-->
-            <!--                   Value="DeviceHive.Data.EF"-->
-            <!--                   SelectionLanguage="XSLPattern" Sequence="1" />-->
-            <!--              <CreateFolder/>-->
-            <!--            </Component>-->
+            <Component Id="DBMigratorSQL" Guid="{03043AC8-2159-41ED-99CB-39A6464078DB}">
+              <Condition><![CDATA[DATABASE_TYPE = "MS_SQL"]]></Condition>
+              <util:XmlFile Id="DBMigratorSQL" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/appSettings/add[\[]@key='RepositoryAssembly'[\]]" Name="value"
+                   File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
+                   Value="DeviceHive.Data.EF"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+
             <Component Id="DBMigratorMongo" Guid="{5EB08DAA-E367-4E73-9943-9683F6E1C088}">
               <Condition><![CDATA[DATABASE_TYPE = "MONGO_DB"]]></Condition>
               <util:XmlFile Id="DBMigratorMongo" Action="setValue" Permanent="yes"
@@ -225,10 +241,21 @@
               <CreateFolder/>
             </Component>
 
-            <Component Id="DBMigratorConfigCmp" Guid="{359352DD-638F-4D96-84FD-9833F3511DC9}">
-              <!-- SQL Connection String -->
-              <Condition><![CDATA[DATABASE_TYPE = "MS_SQL"]]></Condition>
-              <util:XmlFile Id="DBMigratorSQLConnectionString" Action="setValue" Permanent="yes"
+            <Component Id="DBMigratorSQLConnectionStringWOCredentials" Guid="{359352DD-638F-4D96-84FD-9833F3511DC9}">
+              <!-- SQL Connection String without credentials-->
+              <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID = "" AND SQL_PASSWORD = ""]]></Condition>
+              <util:XmlFile Id="DBMigratorSQLConnectionStringWOCredentials" Action="setValue" Permanent="yes"
+                   ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
+                   File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
+                   Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];Trusted_Connection=Yes;"
+                   SelectionLanguage="XSLPattern" Sequence="1" />
+              <CreateFolder/>
+            </Component>
+
+            <Component Id="DBMigratorSQLConnectionStringWithCredentials" Guid="{BAFF0865-3731-4262-8E57-99A64FC5069E}">
+              <!-- SQL Connection String with credentials-->
+              <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID <> "" AND SQL_PASSWORD <> ""]]></Condition>
+              <util:XmlFile Id="DBMigratorSQLConnectionStringWithCredentials" Action="setValue" Permanent="yes"
                    ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
                    File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
                    Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USERID];Pwd=[SQL_PASSWORD]"

@@ -31,12 +31,17 @@
 
         <!-- Perform changes in the web.config file. -->
         <ComponentRef Id="WebConfigWebSocketEndpoinPortNumber" />
-        <!--        <ComponentRef Id="WebConfigSQL"></ComponentRef>-->
+        <ComponentRef Id="WebConfigSQL"></ComponentRef>
+        <ComponentRef Id="WebConfigSQLConnectionStringWithCredentials"></ComponentRef>
+        <ComponentRef Id="WebConfigSQLConnectionStringWOCredentials"></ComponentRef>
+        
         <ComponentRef Id="WebConfigMongo"></ComponentRef>
         <ComponentRef Id="WebConfigMongoConnectionStringWithCredentials"></ComponentRef>
         <ComponentRef Id="WebConfigMongoConnectionStringWOCredentials"></ComponentRef>
+
         <ComponentRef Id="WebConfigWebSocketEndpointEnabledTrue"></ComponentRef>
         <ComponentRef Id="WebConfigWebSocketEndpointEnabledFalse"></ComponentRef>
+
         <ComponentRef Id="WebConfigAutomaticNetworkCreationTrue"></ComponentRef>
         <ComponentRef Id="WebConfigAutomaticNetworkCreationFalse"></ComponentRef>
         <ComponentRef Id="WebConfigAuthenticationGoogleTrue"></ComponentRef>
@@ -56,10 +61,13 @@
 
       <Feature Id="DBMigratorContent" Title="DeviceHive.DBMigrator" Description="The website content" Level="1">
         <ComponentGroupRef Id="DeviceHive.DBMigrator_Project" />
-        <ComponentRef Id="DBMigratorConfigCmp" />
+
+        <ComponentRef Id="DBMigratorSQLConnectionStringWOCredentials" />
+        <ComponentRef Id="DBMigratorSQLConnectionStringWithCredentials" />
+        <ComponentRef Id="DBMigratorSQL" />
+
         <ComponentRef Id="DBMigratorMongoConnectionStringWOCredentials" />
         <ComponentRef Id="DBMigratorMongoConnectionStringWithCredentials" />
-        <!--        <ComponentRef Id="DBMigratorConfigSQL" />-->
         <ComponentRef Id="DBMigratorMongo" />
       </Feature>
 
