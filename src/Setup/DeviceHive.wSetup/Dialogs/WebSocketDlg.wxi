@@ -2,8 +2,14 @@
 <Include>
   <Dialog Id="WebSocketDlg" Width="370" Height="270" Title="Web Socket Settings - [ProductName]" NoMinimize="yes">
     <Control Id="WebSocketEnabledCheckBox" Type="CheckBox" X="45" Y="55" Width="220" Height="18" Property="WEB_SOCKET_ENABLED" CheckBoxValue="true" Text="&amp;Web Socket Enabled" />
-    <Control Id="WebSocketPortNumberLabel" Type="Text" X="45" Y="80" Width="100" Height="15" TabSkip="no" Text="&amp;Port Number:" />
-    <Control Id="WebSocketPortNumberEdit" Type="Edit" X="45" Y="95" Width="220" Height="15" Property="WEB_SOCKET_PORT_NUMBER" Text="{200}" />
+    <Control Id="WebSocketPortNumberLabel" Type="Text" X="45" Y="80" Width="100" Height="15" TabSkip="no" Text="&amp;Port Number:">
+      <Condition Action="enable"><![CDATA[WEB_SOCKET_ENABLED = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[WEB_SOCKET_ENABLED <> "true"]]></Condition>
+    </Control>
+    <Control Id="WebSocketPortNumberEdit" Type="Edit" X="45" Y="95" Width="220" Height="15" Property="WEB_SOCKET_PORT_NUMBER" Text="{200}">
+      <Condition Action="enable"><![CDATA[WEB_SOCKET_ENABLED = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[WEB_SOCKET_ENABLED <> "true"]]></Condition>
+    </Control>
     <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
       <Publish Event="NewDialog" Value="HostingDlg">1</Publish>
     </Control>
