@@ -1,15 +1,18 @@
 ﻿using DeviceHive.API.Controllers;
 using DeviceHive.API.Internal;
+using DeviceHive.API.Models;
 using DeviceHive.Core;
 using DeviceHive.Core.Authentication;
 using DeviceHive.Data.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Http;
 using System.Web.Http.Filters;
 
 namespace DeviceHive.API.Filters
@@ -98,6 +101,13 @@ namespace DeviceHive.API.Filters
                     var authDeviceKey = context.Request.GetCustomHeader("Auth-DeviceKey");
                     if (authDeviceKey != null && device.Key == authDeviceKey)
                     {
+                        // ensure the device is not blocked
+                        if (device.IsBlocked)
+                        {
+                            throw new HttpResponseException(context.Request.CreateResponse(
+                                HttpStatusCode.Forbidden, new ErrorDetail(11, "Device has been blocked")));
+                        }
+
                         // authenticate the device and update last online
                         controller.CallContext.CurrentDevice = device;
                         controller.DataContext.Device.SetLastOnline(device.ID);

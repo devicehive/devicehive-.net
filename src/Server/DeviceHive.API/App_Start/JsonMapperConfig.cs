@@ -21,7 +21,8 @@ namespace DeviceHive.API
                 .Property(e => e.GithubLogin, "githubLogin")
                 .Property(e => e.Role, "role")
                 .Property(e => e.Status, "status")
-                .Property(e => e.LastLogin, "lastLogin", JsonMapperEntryMode.ToJson);
+                .Property(e => e.LastLogin, "lastLogin", JsonMapperEntryMode.ToJson)
+                .RawJsonProperty(e => e.Data, "data");
 
             context.Kernel.ConfigureMapping<Network, NetworkJsonMapper>()
                 .Property(e => e.ID, "id", JsonMapperEntryMode.ToJson)
@@ -66,6 +67,7 @@ namespace DeviceHive.API
             context.Kernel.ConfigureMapping<Device>()
                 .Property(e => e.GUID, "id", JsonMapperEntryMode.ToJson)
                 .Property(e => e.Key, "key", JsonMapperEntryMode.FromJson)
+                .Property(e => e.IsBlocked, "isBlocked")
                 .Property(e => e.Name, "name")
                 .Property(e => e.Status, "status")
                 .RawJsonProperty(e => e.Data, "data")

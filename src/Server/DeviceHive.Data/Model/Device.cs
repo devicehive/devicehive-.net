@@ -78,6 +78,13 @@ namespace DeviceHive.Data.Model
         public string Key { get; set; }
 
         /// <summary>
+        /// Signifies whether the device is blocked.
+        /// When blocked, device is unable to make any calls to DeviceHive using device key authentication.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool IsBlocked { get; set; }
+
+        /// <summary>
         /// Device display name.
         /// </summary>
         [Required]

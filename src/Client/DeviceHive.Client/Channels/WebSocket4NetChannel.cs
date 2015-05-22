@@ -204,6 +204,27 @@ namespace DeviceHive.Client
                 new JProperty("commandId", command.Id),
                 new JProperty("command", Serialize(update)));
         }
+
+        /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        public override async Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token = null)
+        {
+            if (string.IsNullOrEmpty(deviceGuid))
+                throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
+
+            var taskSource = new TaskCompletionSource<Command>();
+            RegisterCommandCallback(commandId, command => taskSource.TrySetResult(command));
+            if (token != null)
+                token.Value.Register(() => taskSource.TrySetCanceled());
+
+            return await taskSource.Task;
+        }
+
         #endregion
 
         #region Protected Methods

@@ -53,6 +53,11 @@ namespace DeviceHive.Client
         public UserRole Role { get; set; }
 
         /// <summary>
+        /// Gets or sets associated user data.
+        /// </summary>
+        public JToken Data { get; set; }
+
+        /// <summary>
         /// Gets or sets the list of associated networks.
         /// </summary>
         public List<UserNetwork> Networks { get; set; }

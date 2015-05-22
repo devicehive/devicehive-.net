@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using DeviceHive.Data.Validation;
 
 namespace DeviceHive.Data.Model
 {
@@ -156,6 +157,12 @@ namespace DeviceHive.Data.Model
         /// User last login timestamp (UTC).
         /// </summary>
         public DateTime? LastLogin { get; set; }
+
+        /// <summary>
+        /// Arbitrary user data.
+        /// </summary>
+        [JsonField]
+        public string Data { get; set; }
 
         #endregion
 

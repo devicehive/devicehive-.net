@@ -11,6 +11,7 @@ namespace DeviceHive.Client
     /// </summary>
     public class LongPollingChannel : Channel
     {
+        private const int FAILED_POLL_RETRY_TIMEOUT = 1000; // milliseconds to wait before retrying a poll in case of a failure
         private readonly Dictionary<Guid, SubscriptionTask> _subscriptionTasks = new Dictionary<Guid, SubscriptionTask>();
 
         #region Constructor
@@ -164,6 +165,21 @@ namespace DeviceHive.Client
             var update = new Command { Status = command.Status, Result = command.Result };
             await RestClient.PutAsync(string.Format("device/{0}/command/{1}", deviceGuid, command.Id), update);
         }
+
+        /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        public override async Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token = null)
+        {
+            if (string.IsNullOrEmpty(deviceGuid))
+                throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
+
+            return await PollCommandUpdateAsync(deviceGuid, commandId, token ?? CancellationToken.None);
+        }
         #endregion
 
         #region Protected Methods
@@ -249,7 +265,8 @@ namespace DeviceHive.Client
                 catch (Exception)
                 {
                     NotifyPollResult(subscriptionTask, true);
-                    Task.Delay(1000).Wait(cancellationToken); // retry with small wait
+                    if (cancellationToken.WaitHandle.WaitOne(FAILED_POLL_RETRY_TIMEOUT)) // retry with small wait
+                        return;
                 }
             }
         }
@@ -280,7 +297,8 @@ namespace DeviceHive.Client
                 catch (Exception)
                 {
                     NotifyPollResult(subscriptionTask, true);
-                    Task.Delay(1000).Wait(cancellationToken); // retry with small wait
+                    if (cancellationToken.WaitHandle.WaitOne(FAILED_POLL_RETRY_TIMEOUT)) // retry with small wait
+                        return;
                 }
             }
         }

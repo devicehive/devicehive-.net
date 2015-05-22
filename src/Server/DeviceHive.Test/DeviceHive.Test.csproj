@@ -146,4 +146,9 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <StartArguments>DeviceHive.Test.dll</StartArguments>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(ProjectDir)\..\..\..\packages\NUnit.Runners.2.6.4\tools\nunit-x86.exe</StartProgram>
+  </PropertyGroup>
 </Project>
