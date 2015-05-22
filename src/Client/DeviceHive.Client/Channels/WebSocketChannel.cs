@@ -86,10 +86,6 @@ namespace DeviceHive.Client
 
                 SetChannelState(ChannelState.Connecting);
 
-                _webSocket = new MessageWebSocket();
-                _webSocket.Control.MessageType = SocketMessageType.Utf8;
-                _webSocket.MessageReceived += (s, e) => Task.Run(() => HandleMessage(e));
-                _webSocket.Closed += (s, e) => Task.Run(() => HandleConnectionClose());
                 _isClosedByClient = false;
 
                 await OpenWebSocketAsync();
@@ -251,18 +247,29 @@ namespace DeviceHive.Client
             try
             {
                 var webSocketUrl = (await GetApiInfoAsync()).WebSocketServerUrl + "/client";
+
+                _webSocket = new MessageWebSocket();
+                _webSocket.Control.MessageType = SocketMessageType.Utf8;
+                _webSocket.MessageReceived += (s, e) => Task.Run(() => HandleMessage(e));
+                _webSocket.Closed += (s, e) => Task.Run(() => HandleConnectionClose());
                 await _webSocket.ConnectAsync(new Uri(webSocketUrl));
+
                 _socketWriter = new DataWriter(_webSocket.OutputStream);
 
                 await AuthenticateAsync();
 
                 SetChannelState(ChannelState.Connected);
             }
-            catch (Exception)
+            catch
             {
-                // TODO check that not closed
-                _webSocket.Close(1006, "Abnormal Closure");
-                _closeTaskCompletionSource.Task.Wait();
+                try
+                {
+                    if (_webSocket != null)
+                    {
+                        _webSocket.Close(1000, "Abnormal Closure");
+                    }
+                }
+                catch { }
                 throw;
             }
         }
@@ -319,10 +326,35 @@ namespace DeviceHive.Client
         private void HandleMessage(MessageWebSocketMessageReceivedEventArgs args)
         {
             string message;
-            using (DataReader reader = args.GetDataReader())
+            DataReader reader = null;
+            try
             {
+                try
+                {
+                    reader = args.GetDataReader();
+                }
+                catch
+                {
+                    try
+                    {
+                        _webSocket.Close(1001, "Abnormal Closure");
+                    }
+                    catch
+                    {
+                        HandleConnectionClose();
+                    }
+                    return;
+                }
+
                 reader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
                 message = reader.ReadString(reader.UnconsumedBufferLength);
+            }
+            finally
+            {
+                if (reader != null)
+                {
+                    reader.Dispose();
+                }
             }
 
             var json = JObject.Parse(message);
@@ -370,6 +402,12 @@ namespace DeviceHive.Client
 
         private void HandleConnectionClose()
         {
+            if (_webSocket != null)
+            {
+                _webSocket.Dispose();
+                _webSocket = null;
+            }
+
             // change channel state
             var tryReconnect = (State == ChannelState.Connected || State == ChannelState.Reconnecting) && !_isClosedByClient;
             if (tryReconnect)
@@ -398,27 +436,32 @@ namespace DeviceHive.Client
 
         private async Task Reconnect()
         {
-            // wait for some time
-            await Task.Delay(1000);
-            if (_isClosedByClient)
-                return;
-
-            using (var releaser = await _lock.LockAsync())
+            while (State != ChannelState.Connected)
             {
-                try
-                {
-                    // try opening a WebSocket connection
-                    await OpenWebSocketAsync();
+                // wait for some time
+                await Task.Delay(1000);
+                if (_isClosedByClient)
+                    return;
 
-                    // restore subscriptions
-                    foreach (var subscription in GetSubscriptions().Cast<Subscription>())
-                    {
-                        subscription.Id = await SubscriptionAdding(subscription);
-                    }
-                }
-                catch (Exception)
+                using (var releaser = await _lock.LockAsync())
                 {
-                    // do nothing, HandleConnectionClose will trigger another reconnect
+                    try
+                    {
+                        // try opening a WebSocket connection
+                        await OpenWebSocketAsync();
+
+                        // restore subscriptions
+                        foreach (var subscription in GetSubscriptions().Cast<Subscription>())
+                        {
+                            subscription.Id = await SubscriptionAdding(subscription);
+                        }
+
+                        return; // reconnected
+                    }
+                    catch
+                    {
+                        // do nothing, continue reconnecting
+                    }
                 }
             }
         }
