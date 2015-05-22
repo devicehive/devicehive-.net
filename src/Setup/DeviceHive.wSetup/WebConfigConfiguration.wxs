@@ -57,24 +57,13 @@
                 <CreateFolder/>
               </Component>
 
-              <Component Id="WebConfigSQLConnectionStringWOCredentials" Guid="{6E0B49AB-86F2-48FA-A55C-FD7376B58877}">
-                <!-- SQL Connection String without credentials-->
-                <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID = "" AND SQL_PASSWORD = ""]]></Condition>
-                <util:XmlFile Id="ModifySQLConnectionStringWOCredentials" Action="setValue" Permanent="yes"
-                     ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
-                     File="[INSTALL_API_FOLDER]Web.config"
-                     Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];Trusted_Connection=Yes;"
-                     SelectionLanguage="XSLPattern" Sequence="1" />
-                <CreateFolder/>
-              </Component>
-
-              <Component Id="WebConfigSQLConnectionStringWithCredentials" Guid="{A904D2EF-3293-4B55-A9D5-16721D16067F}">
+              <Component Id="WebConfigSQLConnectionString" Guid="{A904D2EF-3293-4B55-A9D5-16721D16067F}">
                 <!-- SQL Connection String with credentials-->
                 <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID <> "" AND SQL_PASSWORD <> ""]]></Condition>
-                <util:XmlFile Id="ModifySQLConnectionStringWithCredentials" Action="setValue" Permanent="yes"
+                <util:XmlFile Id="ModifySQLConnectionString" Action="setValue" Permanent="yes"
                      ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
                      File="[INSTALL_API_FOLDER]Web.config"
-                     Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USERID];Pwd=[SQL_PASSWORD]"
+                     Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USER_ID];Pwd=[SQL_PASSWORD]"
                      SelectionLanguage="XSLPattern" Sequence="1" />
                 <CreateFolder/>
               </Component>
@@ -271,24 +260,13 @@
               <CreateFolder/>
             </Component>
 
-            <Component Id="DBMigratorSQLConnectionStringWOCredentials" Guid="{359352DD-638F-4D96-84FD-9833F3511DC9}">
-              <!-- SQL Connection String without credentials-->
-              <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID = "" AND SQL_PASSWORD = ""]]></Condition>
-              <util:XmlFile Id="DBMigratorSQLConnectionStringWOCredentials" Action="setValue" Permanent="yes"
-                   ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
-                   File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
-                   Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];Trusted_Connection=Yes;"
-                   SelectionLanguage="XSLPattern" Sequence="1" />
-              <CreateFolder/>
-            </Component>
-
-            <Component Id="DBMigratorSQLConnectionStringWithCredentials" Guid="{BAFF0865-3731-4262-8E57-99A64FC5069E}">
+            <Component Id="DBMigratorSQLConnectionString" Guid="{BAFF0865-3731-4262-8E57-99A64FC5069E}">
               <!-- SQL Connection String with credentials-->
               <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID <> "" AND SQL_PASSWORD <> ""]]></Condition>
-              <util:XmlFile Id="DBMigratorSQLConnectionStringWithCredentials" Action="setValue" Permanent="yes"
+              <util:XmlFile Id="DBMigratorSQLConnectionString" Action="setValue" Permanent="yes"
                    ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
                    File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
-                   Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USERID];Pwd=[SQL_PASSWORD]"
+                   Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USER_ID];Pwd=[SQL_PASSWORD]"
                    SelectionLanguage="XSLPattern" Sequence="1" />
               <CreateFolder/>
             </Component>

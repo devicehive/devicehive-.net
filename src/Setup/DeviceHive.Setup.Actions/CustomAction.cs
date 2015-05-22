@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
@@ -126,23 +127,42 @@ namespace DeviceHive.Setup.Actions
                 InitializeMessageBox(session, "Database name is empty. Please enter a correct value.", ERROR_MESSAGE);
                 return ActionResult.Success;
             }
+            string userName = GetPropertyStringValue(session, "SQL_USER_ID");
+            if (string.IsNullOrEmpty(userName))
+            {
+                InitializeMessageBox(session, "User login is empty. Please enter a correct value.", ERROR_MESSAGE);
+                return ActionResult.Success;
+            }
+
+            string password = GetPropertyStringValue(session, "SQL_PASSWORD");
+            if (string.IsNullOrEmpty(password))
+            {
+                InitializeMessageBox(session, "Password is empty. Please enter a correct value.", ERROR_MESSAGE);
+                return ActionResult.Success;
+            }
 
             try
             {
-                string userName = GetPropertyStringValue(session, "SQL_USER_ID");
-                string password = GetPropertyStringValue(session, "SQL_PASSWORD");
-
-                string connectionString = string.Format("Data Source={0};Trusted_Connection = Yes;", serverName);
-                if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password))
-                {
-                    connectionString = string.Format("Data Source={0};UID={1};Password={2};", serverName, userName, password);
-                }
-
+                string connectionString = string.Format("Data Source={0};UID={1};Password={2};", serverName, userName, password);
                 session.Log("Connection string to SQL Server: {0}", connectionString);
 
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
+
+                    if (!IsDatabaseExists(connection, database))
+                    {
+                        string errorMessage = string.Format("Database '{0}' does not exist. Please enter a correct database name.", database);
+                        InitializeMessageBox(session, errorMessage, ERROR_MESSAGE);
+                        return ActionResult.Success;
+                    }
+
+                    if (!HasDatabasePermission(connection, database, "CREATE TABLE"))
+                    {
+                        string errorMessage = string.Format("User '{0}' does not have permission to create tables in database '{1}'.", userName, database);
+                        InitializeMessageBox(session, errorMessage, ERROR_MESSAGE);
+                        return ActionResult.Success;
+                    }
                     session["SQL_CONNECTION_ESTABLISHED"] = "1";
                 }
             }
@@ -471,7 +491,7 @@ namespace DeviceHive.Setup.Actions
             return propertyValue.Trim();
         }
 
-        private static void CreateRecordItem( View view, int numRows, string propertyName, string text, string value)
+        private static void CreateRecordItem(View view, int numRows, string propertyName, string text, string value)
         {
             Record record = new Record(4);
             record.SetString(1, propertyName);
@@ -524,10 +544,24 @@ namespace DeviceHive.Setup.Actions
                 }
                 session["AUTHENTICATION_SETTINGS_IS_VALID"] = "1";
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
             }
+        }
+
+        private static bool IsDatabaseExists(SqlConnection connection, string database)
+        {
+            string sqlCommand = string.Format("SELECT CASE WHEN db_id('{0}') is null THEN 0 ELSE 1 END", database);
+            IDbCommand command = new SqlCommand(sqlCommand, connection);
+            return Convert.ToBoolean(command.ExecuteScalar());
+        }
+
+        private static bool HasDatabasePermission(SqlConnection connection, string database, string permissionName)
+        {
+            string sqlCommand = string.Format("SELECT HAS_PERMS_BY_NAME('{0}', 'DATABASE', '{1}')", database, permissionName);
+            IDbCommand command = new SqlCommand(sqlCommand, connection);
+            return Convert.ToBoolean(command.ExecuteScalar());
         }
     }
 }
