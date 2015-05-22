@@ -221,6 +221,7 @@ namespace DeviceHive.Data.MongoDB
                     {
                         cm.AutoMap();
                         cm.SetIdMember(cm.GetMemberMap(e => e.ID));
+                        cm.GetMemberMap(e => e.Data).SetSerializer(rawJsonSerializer);
                     });
 
                 BsonClassMap.RegisterClassMap<UserNetwork>(cm =>
@@ -398,7 +399,7 @@ namespace DeviceHive.Data.MongoDB
                 }
 
                 var bsonValue = BsonSerializer.Deserialize<BsonValue>(bsonReader);
-                return bsonValue.ToJson();
+                return bsonValue.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict });
             }
 
             public IBsonSerializationOptions GetDefaultSerializationOptions()
