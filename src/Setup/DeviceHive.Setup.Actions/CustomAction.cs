@@ -375,6 +375,32 @@ namespace DeviceHive.Setup.Actions
             return ActionResult.Success;
         }
 
+        [CustomAction]
+        public static ActionResult CheckAdministratorCredentials(Session session)
+        {
+            session["ADMINISTRATOR_CREDENTIALS_IS_VALID"] = "1";
+
+            string adminLogin = GetPropertyStringValue(session, "AUTH_ADMIN_LOGIN");
+            string adminPasssword = GetPropertyStringValue(session, "AUTH_ADMIN_PASSWORD");
+
+            if (string.IsNullOrEmpty(adminLogin) && string.IsNullOrEmpty(adminPasssword))
+            {
+                return ActionResult.Success;
+            }
+
+            try
+            {
+                AdministratorCredentialsValidator validator = new AdministratorCredentialsValidator();
+                validator.Validate(adminLogin, adminPasssword);
+            }
+            catch (Exception e)
+            {
+                InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
+                session["ADMINISTRATOR_CREDENTIALS_IS_VALID"] = "0";
+            }
+            return ActionResult.Success;
+        }
+
         private static void UpdateHttpBinding(ServerManager serverManager, Site site, Session session)
         {
             string portNumber = GetPropertyStringValue(session, "PORT_NUMBER", true);

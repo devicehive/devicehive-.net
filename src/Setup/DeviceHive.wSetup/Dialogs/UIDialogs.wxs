@@ -11,6 +11,7 @@
       <?include AuthenticationDlg.wxi ?>
       <?include MiscSettingsDlg.wxi ?>
       <?include MessageBoxDlg.wxi ?>
+      <?include AdministratorCredentialsDlg.wxi ?>
     </UI>
   </Fragment>
 

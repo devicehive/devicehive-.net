@@ -64,7 +64,7 @@
       <Publish Event="SpawnDialog" Order="5" Value="MessageBoxDlg"><![CDATA[(AUTH_FACEBOOK = "true") AND (AUTHENTICATION_SETTINGS_IS_VALID = 0)]]></Publish>
       <Publish Event="DoAction" Order="6" Value="CheckGithubAuthenticationSettings"><![CDATA[(AUTH_GITHUB = "true") AND (AUTHENTICATION_SETTINGS_IS_VALID = 1)]]></Publish>
       <Publish Event="SpawnDialog" Order="7" Value="MessageBoxDlg"><![CDATA[(AUTH_GITHUB = "true") AND (AUTHENTICATION_SETTINGS_IS_VALID = 0)]]></Publish>
-      <Publish Event="NewDialog" Order="8" Value="MiscSettingsDlg"><![CDATA[(AUTH_GOOGLE <> "true" AND AUTH_FACEBOOK <> "true" AND AUTH_GITHUB <> "true") OR (AUTHENTICATION_SETTINGS_IS_VALID = 1)]]></Publish>
+      <Publish Event="NewDialog" Order="8" Value="AdministratorCredentialsDlg"><![CDATA[(AUTH_GOOGLE <> "true" AND AUTH_FACEBOOK <> "true" AND AUTH_GITHUB <> "true") OR (AUTHENTICATION_SETTINGS_IS_VALID = 1)]]></Publish>
     </Control>
     <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
       <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>

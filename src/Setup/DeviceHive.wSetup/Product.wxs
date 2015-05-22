@@ -119,6 +119,7 @@
 
     <!--Administrator settings-->
     <CustomAction Id='CheckRunAsAdministrator' BinaryKey="CustomAction" DllEntry="CheckRunAsAdministrator" Execute="immediate" Return="check" />
+    <CustomAction Id='CheckAdministratorCredentials' BinaryKey="CustomAction" DllEntry="CheckAdministratorCredentials" Execute="immediate" Return="check" />
 
     <!--Authentication Provider settings-->
     <CustomAction Id='CheckGoogleAuthenticationSettings' BinaryKey="CustomAction" DllEntry="CheckGoogleAuthenticationSettings" Execute="immediate" Return="check" />
