@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
@@ -7,8 +6,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 using Microsoft.Deployment.WindowsInstaller;
-using MongoDB.Driver;
 using Microsoft.Web.Administration;
+using MongoDB.Driver;
 
 namespace DeviceHive.Setup.Actions
 {
@@ -150,23 +149,16 @@ namespace DeviceHive.Setup.Actions
                 {
                     connection.Open();
 
-                    if (!IsDatabaseExists(connection, database))
-                    {
-                        string errorMessage = string.Format("Database '{0}' does not exist. Please enter a correct database name.", database);
-                        InitializeMessageBox(session, errorMessage, ERROR_MESSAGE);
-                        return ActionResult.Success;
-                    }
+                    SqlDatabaseValidator databaseValidator = new SqlDatabaseValidator(connection);
+                    databaseValidator.Validate(database);
 
-                    if (!HasDatabasePermission(connection, database, "CREATE TABLE"))
-                    {
-                        string errorMessage = string.Format("User '{0}' does not have permission to create tables in database '{1}'.", userName, database);
-                        InitializeMessageBox(session, errorMessage, ERROR_MESSAGE);
-                        return ActionResult.Success;
-                    }
+                    SqlDatabasePermissionValidator databasePermissionValidator = new SqlDatabasePermissionValidator(connection);
+                    databasePermissionValidator.Validate(database, "CREATE TABLE");
+
                     session["SQL_CONNECTION_ESTABLISHED"] = "1";
                 }
             }
-            catch (SqlException e)
+            catch (Exception e)
             {
                 InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
                 session.Log("Error: {0}; {1};", e.Message, e.StackTrace);
@@ -574,20 +566,6 @@ namespace DeviceHive.Setup.Actions
             {
                 InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
             }
-        }
-
-        private static bool IsDatabaseExists(SqlConnection connection, string database)
-        {
-            string sqlCommand = string.Format("SELECT CASE WHEN db_id('{0}') is null THEN 0 ELSE 1 END", database);
-            IDbCommand command = new SqlCommand(sqlCommand, connection);
-            return Convert.ToBoolean(command.ExecuteScalar());
-        }
-
-        private static bool HasDatabasePermission(SqlConnection connection, string database, string permissionName)
-        {
-            string sqlCommand = string.Format("SELECT HAS_PERMS_BY_NAME('{0}', 'DATABASE', '{1}')", database, permissionName);
-            IDbCommand command = new SqlCommand(sqlCommand, connection);
-            return Convert.ToBoolean(command.ExecuteScalar());
         }
     }
 }

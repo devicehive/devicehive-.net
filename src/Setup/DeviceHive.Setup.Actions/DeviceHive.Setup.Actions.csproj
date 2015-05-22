@@ -60,6 +60,8 @@
     </Compile>
     <Compile Include="CustomAction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Validation\SqlDatabasePermissionValidator.cs" />
+    <Compile Include="Validation\SqlDatabaseValidator.cs" />
     <Content Include="CustomAction.config" />
   </ItemGroup>
   <ItemGroup>
