@@ -35,18 +35,7 @@
                 <CreateFolder/>
               </Component>
 
-              <Component Id="WebConfigMongoConnectionStringWOCredentials" Guid="{11F28130-A3E6-46FA-8121-43F39E339F3A}">
-                <!-- Mongo Connection String without credentials -->
-                <Condition><![CDATA[DATABASE_TYPE = "MONGO_DB" AND (MONGO_LOGIN = "" OR MONGO_PASSWORD = "")]]></Condition>
-                <util:XmlFile Id="ModifyMongoConnectionStringWOCredentials" Action="setValue" Permanent="yes"
-                     ElementPath="/configuration/appSettings/add[\[]@key='MongoConnection'[\]]" Name="value"
-                     File="[INSTALL_API_FOLDER]Web.config"
-                     Value="mongodb://[MONGO_HOST]/[MONGO_DATABASE]"
-                     SelectionLanguage="XSLPattern" Sequence="1" />
-                <CreateFolder/>
-              </Component>
-
-              <Component Id="WebConfigMongoConnectionStringWithCredentials" Guid="{EDA8D88A-D41C-41F3-BF5B-0295387E2CE4}">
+              <Component Id="WebConfigMongoConnectionString" Guid="{EDA8D88A-D41C-41F3-BF5B-0295387E2CE4}">
                 <!-- Mongo Connection String with credentials -->
                 <Condition><![CDATA[DATABASE_TYPE = "MONGO_DB" AND MONGO_LOGIN <> "" AND MONGO_PASSWORD <> ""]]></Condition>
                 <util:XmlFile Id="ModifyMongoConnectionStringWithCredentials" Action="setValue" Permanent="yes"
@@ -238,21 +227,10 @@
               <CreateFolder/>
             </Component>
 
-            <Component Id="DBMigratorMongoConnectionStringWOCredentials" Guid="{2438FC6C-A689-4923-BB2A-52124484A3AB}">
-              <!-- Mongo Connection String without credentials -->
-              <Condition><![CDATA[DATABASE_TYPE = "MONGO_DB" AND (MONGO_LOGIN = "" OR MONGO_PASSWORD = "")]]></Condition>
-              <util:XmlFile Id="DBMigratorMongoConnectionStringWOCredentials" Action="setValue" Permanent="yes"
-                 ElementPath="/configuration/appSettings/add[\[]@key='MongoConnection'[\]]" Name="value"
-                 File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
-                 Value="mongodb://[MONGO_HOST]/[MONGO_DATABASE]"
-                 SelectionLanguage="XSLPattern" Sequence="1"/>
-              <CreateFolder/>
-            </Component>
-
-            <Component Id="DBMigratorMongoConnectionStringWithCredentials" Guid="{36BD74D0-B549-4E1F-A0B5-53136334754C}">
+            <Component Id="DBMigratorMongoConnectionString" Guid="{36BD74D0-B549-4E1F-A0B5-53136334754C}">
               <!-- Mongo Connection String with credentials -->
               <Condition><![CDATA[DATABASE_TYPE = "MONGO_DB" AND MONGO_LOGIN <> "" AND MONGO_PASSWORD <> ""]]></Condition>
-              <util:XmlFile Id="DBMigratorMongoConnectionStringWithCredentials" Action="setValue" Permanent="yes"
+              <util:XmlFile Id="DBMigratorMongoConnectionString" Action="setValue" Permanent="yes"
                  ElementPath="/configuration/appSettings/add[\[]@key='MongoConnection'[\]]" Name="value"
                  File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
                  Value="mongodb://[MONGO_LOGIN]:[MONGO_PASSWORD]@[MONGO_HOST]/[MONGO_DATABASE]"

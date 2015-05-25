@@ -63,7 +63,7 @@ namespace DeviceHive.Setup.Actions
         {
             session.Log("Start: CheckMongoDbConnection.");
 
-            session["MONGODB_CONNECTION_ESTABLISHED"] = "0";
+            session["MONGODB_CONNECTION_ESTABLISHED"] = "1";
 
             try
             {
@@ -73,25 +73,37 @@ namespace DeviceHive.Setup.Actions
                     throw new Exception("Host name is empty. Please enter a correct value.");
                 }
 
-                string database = GetPropertyStringValue(session, "MONGO_DATABASE");
-                if (string.IsNullOrEmpty(database))
+                string databaseName = GetPropertyStringValue(session, "MONGO_DATABASE");
+                if (string.IsNullOrEmpty(databaseName))
                 {
                     throw new Exception("Database name is empty. Please enter a correct value.");
+                }
+
+                string userName = GetPropertyStringValue(session, "MONGO_LOGIN");
+                if (string.IsNullOrEmpty(userName))
+                {
+                    throw new Exception("Login is empty. Please enter a correct value.");
+                }
+
+                string password = GetPropertyStringValue(session, "MONGO_PASSWORD");
+                if (string.IsNullOrEmpty(password))
+                {
+                    throw new Exception("Password is empty. Please enter a correct value.");
                 }
 
                 string connectionString = GetPropertyStringValue(session, "DATABASE_CONNECTION_STRING");
                 session.Log("Connection string to MongoDB: {0}", connectionString);
 
-                var mongoDb = new MongoClient(connectionString).GetServer();
-                var databaseExists = mongoDb.DatabaseExists(database);
-                session.Log("Database {0} {1} exist.", database, databaseExists ? "already" : "does not");
+                var mongoServer = new MongoClient(connectionString).GetServer();
 
-                session["MONGODB_CONNECTION_ESTABLISHED"] = "1";
+                MongoDatabaseValidator databaseValidator = new MongoDatabaseValidator(mongoServer);
+                databaseValidator.Validate(databaseName);
             }
             catch (Exception e)
             {
                 InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
                 session.Log("Error: {0}; {1};", e.Message, e.StackTrace);
+                session["MONGODB_CONNECTION_ESTABLISHED"] = "0";
             }
 
             session.Log("Finish: CheckMongoDbConnection.");
@@ -104,7 +116,7 @@ namespace DeviceHive.Setup.Actions
         {
             session.Log("Start: CheckSqlServerConnection.");
 
-            session["SQL_CONNECTION_ESTABLISHED"] = "0";
+            session["SQL_CONNECTION_ESTABLISHED"] = "1";
 
             try
             {
@@ -119,6 +131,7 @@ namespace DeviceHive.Setup.Actions
                 {
                     throw new Exception("Database name is empty. Please enter a correct value.");
                 }
+
                 string userName = GetPropertyStringValue(session, "SQL_USER_ID");
                 if (string.IsNullOrEmpty(userName))
                 {
@@ -143,14 +156,13 @@ namespace DeviceHive.Setup.Actions
 
                     SqlDatabasePermissionValidator databasePermissionValidator = new SqlDatabasePermissionValidator(connection);
                     databasePermissionValidator.Validate(database, "CREATE TABLE");
-
-                    session["SQL_CONNECTION_ESTABLISHED"] = "1";
                 }
             }
             catch (Exception e)
             {
                 InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
                 session.Log("Error: {0}; {1};", e.Message, e.StackTrace);
+                session["SQL_CONNECTION_ESTABLISHED"] = "0";
             }
 
             session.Log("Finish: CheckSqlServerConnection.");

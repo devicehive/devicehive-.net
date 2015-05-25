@@ -35,8 +35,7 @@
         <ComponentRef Id="WebConfigSQLConnectionString"></ComponentRef>
         
         <ComponentRef Id="WebConfigMongo"></ComponentRef>
-        <ComponentRef Id="WebConfigMongoConnectionStringWithCredentials"></ComponentRef>
-        <ComponentRef Id="WebConfigMongoConnectionStringWOCredentials"></ComponentRef>
+        <ComponentRef Id="WebConfigMongoConnectionString"></ComponentRef>
 
         <ComponentRef Id="WebConfigWebSocketEndpointEnabledTrue"></ComponentRef>
         <ComponentRef Id="WebConfigWebSocketEndpointEnabledFalse"></ComponentRef>
@@ -64,8 +63,7 @@
         <ComponentRef Id="DBMigratorSQLConnectionString" />
         <ComponentRef Id="DBMigratorSQL" />
 
-        <ComponentRef Id="DBMigratorMongoConnectionStringWOCredentials" />
-        <ComponentRef Id="DBMigratorMongoConnectionStringWithCredentials" />
+        <ComponentRef Id="DBMigratorMongoConnectionString" />
         <ComponentRef Id="DBMigratorMongo" />
       </Feature>
 

@@ -5,7 +5,7 @@
     <Control Id="MongoHostEdit" Type="Edit" X="45" Y="70" Width="220" Height="15" Property="MONGO_HOST" Text="{200}" />
     <Control Id="MongoDatabaseLabel" Type="Text" X="45" Y="95" Width="100" Height="15" TabSkip="no" Text="&amp;Database:" />
     <Control Id="MongoDatabaseEdit" Type="Edit" X="45" Y="110" Width="220" Height="15" Property="MONGO_DATABASE" Text="{200}" />
-    <Control Id="MongoLoginLabel" Type="Text" X="45" Y="135" Width="100" Height="15" TabSkip="no" Text="&amp;Login:" />
+    <Control Id="MongoLoginLabel" Type="Text" X="45" Y="135" Width="100" Height="15" TabSkip="no" Text="&amp;User Login:" />
     <Control Id="MongoLoginEdit" Type="Edit" X="45" Y="150" Width="220" Height="15" Property="MONGO_LOGIN" Text="{200}" />
     <Control Id="MongoPasswordLabel" Type="Text" X="45" Y="175" Width="100" Height="15" TabSkip="no" Text="&amp;Password:" />
     <Control Id="MongoPasswordEdit" Type="Edit" X="45" Y="190" Width="220" Height="15" Property="MONGO_PASSWORD" Text="{200}" />
@@ -13,8 +13,7 @@
       <Publish Event="NewDialog" Value="DatabaseDlg">1</Publish>
     </Control>
     <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
-      <Publish Order="1" Property="DATABASE_CONNECTION_STRING" Value="mongodb://[MONGO_LOGIN]:[MONGO_PASSWORD]@[MONGO_HOST]/[MONGO_DATABASE]"><![CDATA[MONGO_LOGIN <> "" AND MONGO_PASSWORD <> ""]]></Publish>
-      <Publish Order="1" Property="DATABASE_CONNECTION_STRING" Value="mongodb://[MONGO_HOST]/[MONGO_DATABASE]"><![CDATA[MONGO_LOGIN = "" AND MONGO_PASSWORD = ""]]></Publish>
+      <Publish Order="1" Property="DATABASE_CONNECTION_STRING" Value="mongodb://[MONGO_LOGIN]:[MONGO_PASSWORD]@[MONGO_HOST]/[MONGO_DATABASE]">1</Publish>
       <Publish Event="DoAction" Order="2" Value="CheckMongoDbConnection">1</Publish>
       <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[MONGODB_CONNECTION_ESTABLISHED = 0]]></Publish>
       <Publish Event="NewDialog" Order="4" Value="HostingDlg"><![CDATA[MONGODB_CONNECTION_ESTABLISHED = 1]]></Publish>
