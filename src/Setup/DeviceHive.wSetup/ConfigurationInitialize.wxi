@@ -65,4 +65,6 @@
     <Property Id="WEB_APP_POOL_IDENTITY_DOMAIN" Value="POOL_DOMAIN" />
     <Property Id="WEB_APP_POOL_IDENTITY_NAME" Value="account-name" />
     <Property Id="WEB_APP_POOL_IDENTITY_PWD" Hidden="yes" />
+  
+    <Property Id="WEB_SOCKET_API_SERVICE_NAME" Value="DeviceHive.WebSockets"/>
 </Include>

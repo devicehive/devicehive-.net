@@ -4,7 +4,6 @@
   <?include variables.wxi?>
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
-
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="DeviceHive">
         </Directory>
@@ -202,8 +201,8 @@
             </Directory>
           </Directory>
 
-          <Directory Id="INSTALL_WINSOCKET_FOLDER" Name="WinSocket">
-          </Directory>
+          <!--<Directory Id="INSTALL_WINSOCKET_FOLDER" Name="WinSocket">
+          </Directory>-->
 
           <Directory Id="INSTALL_DBMIGRATOR_FOLDER" Name="DBMigrator">
             <!-- Choose database: SQL or Mongo -->
