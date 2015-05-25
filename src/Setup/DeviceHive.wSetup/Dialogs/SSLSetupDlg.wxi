@@ -30,7 +30,7 @@
       <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
       <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
     </Control>
-    <Control Id="SSLWebSocketPortNumberLabel" Type="Text" X="45" Y="135" Width="214" Height="15" TabSkip="no" Text="&amp;SSL Web Socket Port Number:">
+    <!--<Control Id="SSLWebSocketPortNumberLabel" Type="Text" X="45" Y="135" Width="214" Height="15" TabSkip="no" Text="&amp;SSL Web Socket Port Number:">
       <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
       <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
       <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true" OR WEB_SOCKET_ENABLED <> "true"]]></Condition>
@@ -39,7 +39,7 @@
       <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
       <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
       <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true" OR WEB_SOCKET_ENABLED <> "true"]]></Condition>
-    </Control>
+    </Control>-->
     <Control Id="SSLCertificateLabel" Type="Text" X="45" Y="175" Width="100" Height="15" TabSkip="no" Text="&amp;SSL Certificate:">
       <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
       <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
@@ -55,7 +55,8 @@
       <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
     </Control>
     <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
-      <Publish Event="NewDialog" Value="WebSocketDlg">1</Publish>
+      <!--<Publish Event="NewDialog" Value="WebSocketDlg">1</Publish>-->
+      <Publish Event="NewDialog" Value="HostingDlg">1</Publish>
     </Control>
     <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
       <Condition Action="disable"><![CDATA[(SSL_CERTIFICATE = "Not Selected") AND (SSL_ENABLED = "true")]]></Condition>

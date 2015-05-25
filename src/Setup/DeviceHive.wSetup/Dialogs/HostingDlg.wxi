@@ -18,7 +18,8 @@
       <Publish Event="DoAction" Order="2" Value="CheckBindingPort">1</Publish>
       <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[PORT_NUMBER_IS_VALID = 0]]></Publish>
       <Publish Event="DoAction" Order="4" Value="InitializeSiteId"><![CDATA[PORT_NUMBER_IS_VALID = 1]]></Publish>
-      <Publish Event="NewDialog" Order="5" Value="WebSocketDlg"><![CDATA[PORT_NUMBER_IS_VALID = 1]]></Publish>
+      <!--<Publish Event="NewDialog" Order="5" Value="WebSocketDlg"><![CDATA[PORT_NUMBER_IS_VALID = 1]]></Publish>-->
+      <Publish Event="NewDialog" Order="5" Value="SSLSetupDlg"><![CDATA[PORT_NUMBER_IS_VALID = 1]]></Publish>
     </Control>
     <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
       <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>

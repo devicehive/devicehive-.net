@@ -33,7 +33,7 @@
         <ComponentRef Id="WebConfigWebSocketEndpoinPortNumber" />
         <ComponentRef Id="WebConfigSQL"></ComponentRef>
         <ComponentRef Id="WebConfigSQLConnectionString"></ComponentRef>
-        
+
         <ComponentRef Id="WebConfigMongo"></ComponentRef>
         <ComponentRef Id="WebConfigMongoConnectionString"></ComponentRef>
 
@@ -53,9 +53,10 @@
         <ComponentGroupRef Id="CmpScheduler"/>
       </Feature>
 
-      <Feature Id="WebSocket" Title="WebSockets.API">
+      <!--<Feature Id="WebSocket" Title="WebSockets.API">
         <ComponentGroupRef Id="DeviceHive.WebSockets.API_Project" />
-      </Feature>
+        <ComponentGroupRef Id="DeviceHive.WebSockets.API_Configuration" />
+      </Feature>-->
 
       <Feature Id="DBMigratorContent" Title="DeviceHive.DBMigrator" Description="The website content" Level="1">
         <ComponentGroupRef Id="DeviceHive.DBMigrator_Project" />
