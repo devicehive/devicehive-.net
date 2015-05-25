@@ -55,6 +55,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Credentials\CredentialManager.cs" />
+    <Compile Include="Credentials\MongoDBCredentialManager.cs" />
+    <Compile Include="Credentials\SqlCredentialManager.cs" />
     <Compile Include="Validation\AdministratorCredentialsValidator.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
+using DeviceHive.Setup.Actions.Credentials;
 using Microsoft.Deployment.WindowsInstaller;
 using Microsoft.Web.Administration;
 using MongoDB.Driver;
@@ -77,19 +78,11 @@ namespace DeviceHive.Setup.Actions
                 return ActionResult.Success;
             }
 
-            string login = GetPropertyStringValue(session, "MONGO_LOGIN");
-            string password = GetPropertyStringValue(session, "MONGO_PASSWORD");
-
-            var connectionString = string.Format("mongodb://{0}/{1}", hostName, database);
-            if (!string.IsNullOrWhiteSpace(login) && !string.IsNullOrWhiteSpace(password))
-            {
-                connectionString = string.Format("mongodb://{0}:{1}@{2}/{3}", login, password, hostName, database);
-            }
-
-            session.Log("Connection string to MongoDB: {0}", connectionString);
-
             try
             {
+                string connectionString = GetPropertyStringValue(session, "DATABASE_CONNECTION_STRING");
+                session.Log("Connection string to MongoDB: {0}", connectionString);
+
                 var mongoDb = new MongoClient(connectionString).GetServer();
                 var databaseExists = mongoDb.DatabaseExists(database);
                 session.Log("Database {0} {1} exist.", database, databaseExists ? "already" : "does not");
@@ -129,7 +122,7 @@ namespace DeviceHive.Setup.Actions
             string userName = GetPropertyStringValue(session, "SQL_USER_ID");
             if (string.IsNullOrEmpty(userName))
             {
-                InitializeMessageBox(session, "User login is empty. Please enter a correct value.", ERROR_MESSAGE);
+                InitializeMessageBox(session, "Login is empty. Please enter a correct value.", ERROR_MESSAGE);
                 return ActionResult.Success;
             }
 
@@ -142,7 +135,7 @@ namespace DeviceHive.Setup.Actions
 
             try
             {
-                string connectionString = string.Format("Data Source={0};UID={1};Password={2};", serverName, userName, password);
+                string connectionString = GetPropertyStringValue(session, "DATABASE_CONNECTION_STRING");
                 session.Log("Connection string to SQL Server: {0}", connectionString);
 
                 using (SqlConnection connection = new SqlConnection(connectionString))
@@ -389,6 +382,31 @@ namespace DeviceHive.Setup.Actions
             {
                 InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
                 session["ADMINISTRATOR_CREDENTIALS_IS_VALID"] = "0";
+            }
+            return ActionResult.Success;
+        }
+
+        [CustomAction]
+        public static ActionResult UpdateAdminCredentials(Session session)
+        {
+            if (!GetPropertyBoolValue(session, "CHANGE_ADMIN_CREDENTIALS_IS_ENABLED"))
+            {
+                return ActionResult.Success;
+            }
+
+            try
+            {
+                string databaseType = GetPropertyStringValue(session, "DATABASE_TYPE");
+                string connectionString = GetPropertyStringValue(session, "DATABASE_CONNECTION_STRING");
+                CredentialManager credentialManager = CredentialManager.GetCreadentialManagerByDatabaseType(databaseType, connectionString);
+
+                string adminLogin = GetPropertyStringValue(session, "AUTH_ADMIN_LOGIN");
+                string adminPasssword = GetPropertyStringValue(session, "AUTH_ADMIN_PASSWORD");
+                credentialManager.Update(adminLogin, adminPasssword);
+            }
+            catch (Exception e)
+            {
+                session.Log("Error: {0}; {1};", e.Message, e.StackTrace);
             }
             return ActionResult.Success;
         }

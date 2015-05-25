@@ -8,14 +8,15 @@
     <Control Id="SQLLoginLabel" Type="Text" X="45" Y="135" Width="100" Height="15" TabSkip="no" Text="&amp;User Login:" />
     <Control Id="SQLLoginEdit" Type="Edit" X="45" Y="150" Width="220" Height="15" Property="SQL_USER_ID" Text="{200}" />
     <Control Id="SQLPasswordLabel" Type="Text" X="45" Y="175" Width="100" Height="15" TabSkip="no" Text="&amp;Password:" />
-    <Control Id="SQLPasswordEdit" Type="Edit" X="45" Y="190" Width="220" Height="15" Property="SQL_PASSWORD" Text="{200}" />
+    <Control Id="SQLPasswordEdit" Type="Edit" X="45" Y="190" Width="220" Height="15" Property="SQL_PASSWORD" Text="{200}"/>
     <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
       <Publish Event="NewDialog" Value="DatabaseDlg">1</Publish>
     </Control>
     <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
-      <Publish Event="DoAction" Order="1" Value="CheckSqlServerConnection">1</Publish>
-      <Publish Event="SpawnDialog" Order="2" Value="MessageBoxDlg"><![CDATA[SQL_CONNECTION_ESTABLISHED = 0]]></Publish>
-      <Publish Event="NewDialog" Order="3" Value="HostingDlg"><![CDATA[SQL_CONNECTION_ESTABLISHED = 1]]></Publish>
+      <Publish Order="1" Property="DATABASE_CONNECTION_STRING" Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USER_ID];Pwd=[SQL_PASSWORD]">1</Publish>
+      <Publish Event="DoAction" Order="2" Value="CheckSqlServerConnection">1</Publish>
+      <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[SQL_CONNECTION_ESTABLISHED = 0]]></Publish>
+      <Publish Event="NewDialog" Order="4" Value="HostingDlg"><![CDATA[SQL_CONNECTION_ESTABLISHED = 1]]></Publish>
     </Control>
     <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
       <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
