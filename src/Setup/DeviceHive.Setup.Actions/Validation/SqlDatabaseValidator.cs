@@ -19,7 +19,7 @@ namespace DeviceHive.Setup.Actions
 
         public void Validate(string databaseName)
         {
-            if (databaseName == null)
+            if (string.IsNullOrEmpty(databaseName))
                 throw new ArgumentNullException("databaseName");
 
             string sqlCommand = string.Format("SELECT CASE WHEN db_id('{0}') is null THEN 0 ELSE 1 END", databaseName);
