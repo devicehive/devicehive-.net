@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Include>
   <Dialog Id="MiscSettingsDlg" Width="370" Height="270" Title="Miscellaneous Settings - [ProductName]" NoMinimize="yes">
-    <Control Id="AutomaticNetworkCreationCheckBox" Type="CheckBox" X="45" Y="55" Width="220" Height="18" Property="AUTOMATIC_NETWORK_CREATION" CheckBoxValue="true" Text="&amp;Allow devices to create new networks" />
+    <Control Id="AutomaticNetworkCreationCheckBox" Type="CheckBox" X="45" Y="55" Width="220" Height="15" Property="AUTOMATIC_NETWORK_CREATION" CheckBoxValue="true" Text="&amp;Allow devices to create new networks" />
     <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
       <Publish Event="NewDialog" Value="AdministratorCredentialsDlg">1</Publish>
     </Control>
