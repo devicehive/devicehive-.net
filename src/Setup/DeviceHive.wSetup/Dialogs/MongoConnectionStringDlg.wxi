@@ -8,7 +8,7 @@
     <Control Id="MongoLoginLabel" Type="Text" X="45" Y="135" Width="100" Height="15" TabSkip="no" Text="&amp;User Login:" />
     <Control Id="MongoLoginEdit" Type="Edit" X="45" Y="150" Width="220" Height="15" Property="MONGO_LOGIN" Text="{200}" />
     <Control Id="MongoPasswordLabel" Type="Text" X="45" Y="175" Width="100" Height="15" TabSkip="no" Text="&amp;Password:" />
-    <Control Id="MongoPasswordEdit" Type="Edit" X="45" Y="190" Width="220" Height="15" Property="MONGO_PASSWORD" Text="{200}" />
+    <Control Id="MongoPasswordEdit" Type="Edit" X="45" Y="190" Width="220" Height="15" Property="MONGO_PASSWORD" Text="{200}" Password="yes"/>
     <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
       <Publish Event="NewDialog" Value="DatabaseDlg">1</Publish>
     </Control>
