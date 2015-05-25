@@ -63,6 +63,18 @@
     </Compile>
     <Compile Include="CustomAction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Validation\Authentication\AuthenticationValidator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Validation\Authentication\FacebookAuthenticationValidator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Validation\Authentication\GithubAuthenticationValidator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Validation\Authentication\GoogleAuthenticationValidator.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Validation\SqlDatabasePermissionValidator.cs" />
     <Compile Include="Validation\SqlDatabaseValidator.cs" />
     <Content Include="CustomAction.config" />

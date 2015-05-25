@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 using DeviceHive.Setup.Actions.Credentials;
+using DeviceHive.Setup.Actions.Validation.AuthenticationProvider;
 using Microsoft.Deployment.WindowsInstaller;
 using Microsoft.Web.Administration;
 using MongoDB.Driver;
@@ -64,31 +65,30 @@ namespace DeviceHive.Setup.Actions
 
             session["MONGODB_CONNECTION_ESTABLISHED"] = "0";
 
-            string hostName = GetPropertyStringValue(session, "MONGO_HOST");
-            if (string.IsNullOrEmpty(hostName))
-            {
-                InitializeMessageBox(session, "Host name is empty. Please enter a correct value.", ERROR_MESSAGE);
-                return ActionResult.Success;
-            }
-
-            string database = GetPropertyStringValue(session, "MONGO_DATABASE");
-            if (string.IsNullOrEmpty(database))
-            {
-                InitializeMessageBox(session, "Database name is empty. Please enter a correct value.", ERROR_MESSAGE);
-                return ActionResult.Success;
-            }
-
             try
             {
+                string hostName = GetPropertyStringValue(session, "MONGO_HOST");
+                if (string.IsNullOrEmpty(hostName))
+                {
+                    throw new Exception("Host name is empty. Please enter a correct value.");
+                }
+
+                string database = GetPropertyStringValue(session, "MONGO_DATABASE");
+                if (string.IsNullOrEmpty(database))
+                {
+                    throw new Exception("Database name is empty. Please enter a correct value.");
+                }
+
                 string connectionString = GetPropertyStringValue(session, "DATABASE_CONNECTION_STRING");
                 session.Log("Connection string to MongoDB: {0}", connectionString);
 
                 var mongoDb = new MongoClient(connectionString).GetServer();
                 var databaseExists = mongoDb.DatabaseExists(database);
                 session.Log("Database {0} {1} exist.", database, databaseExists ? "already" : "does not");
+
                 session["MONGODB_CONNECTION_ESTABLISHED"] = "1";
             }
-            catch (MongoConnectionException e)
+            catch (Exception e)
             {
                 InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
                 session.Log("Error: {0}; {1};", e.Message, e.StackTrace);
@@ -106,35 +106,31 @@ namespace DeviceHive.Setup.Actions
 
             session["SQL_CONNECTION_ESTABLISHED"] = "0";
 
-            string serverName = GetPropertyStringValue(session, "SQL_SERVER");
-            if (string.IsNullOrEmpty(serverName))
-            {
-                InitializeMessageBox(session, "Server name is empty. Please enter a correct value.", ERROR_MESSAGE);
-                return ActionResult.Success;
-            }
-
-            string database = GetPropertyStringValue(session, "SQL_DATABASE");
-            if (string.IsNullOrEmpty(database))
-            {
-                InitializeMessageBox(session, "Database name is empty. Please enter a correct value.", ERROR_MESSAGE);
-                return ActionResult.Success;
-            }
-            string userName = GetPropertyStringValue(session, "SQL_USER_ID");
-            if (string.IsNullOrEmpty(userName))
-            {
-                InitializeMessageBox(session, "Login is empty. Please enter a correct value.", ERROR_MESSAGE);
-                return ActionResult.Success;
-            }
-
-            string password = GetPropertyStringValue(session, "SQL_PASSWORD");
-            if (string.IsNullOrEmpty(password))
-            {
-                InitializeMessageBox(session, "Password is empty. Please enter a correct value.", ERROR_MESSAGE);
-                return ActionResult.Success;
-            }
-
             try
             {
+                string serverName = GetPropertyStringValue(session, "SQL_SERVER");
+                if (string.IsNullOrEmpty(serverName))
+                {
+                    throw new Exception("Server name is empty. Please enter a correct value.");
+                }
+
+                string database = GetPropertyStringValue(session, "SQL_DATABASE");
+                if (string.IsNullOrEmpty(database))
+                {
+                    throw new Exception("Database name is empty. Please enter a correct value.");
+                }
+                string userName = GetPropertyStringValue(session, "SQL_USER_ID");
+                if (string.IsNullOrEmpty(userName))
+                {
+                    throw new Exception("Login is empty. Please enter a correct value.");
+                }
+
+                string password = GetPropertyStringValue(session, "SQL_PASSWORD");
+                if (string.IsNullOrEmpty(password))
+                {
+                    throw new Exception("Password is empty. Please enter a correct value.");
+                }
+
                 string connectionString = GetPropertyStringValue(session, "DATABASE_CONNECTION_STRING");
                 session.Log("Connection string to SQL Server: {0}", connectionString);
 
@@ -342,21 +338,65 @@ namespace DeviceHive.Setup.Actions
         [CustomAction]
         public static ActionResult CheckGoogleAuthenticationSettings(Session session)
         {
-            CheckAuthenticationSettings(session, "Google", "AUTH_GOOGLE_CLIENT_ID", "AUTH_GOOGLE_CLIENT_SECRET");
+            session["AUTHENTICATION_SETTINGS_IS_VALID"] = "1";
+            try
+            {
+                AuthenticationValidator authenticationValidator = new GoogleAuthenticationProviderValidator();
+
+                string clientId = GetPropertyStringValue(session, "AUTH_GOOGLE_CLIENT_ID");
+                string clientSecret = GetPropertyStringValue(session, "AUTH_GOOGLE_CLIENT_SECRET");
+
+                authenticationValidator.Validate(clientId, clientSecret);
+            }
+            catch (Exception e)
+            {
+                InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
+                session["AUTHENTICATION_SETTINGS_IS_VALID"] = "0";
+            }
             return ActionResult.Success;
         }
 
         [CustomAction]
         public static ActionResult CheckFacebookAuthenticationSettings(Session session)
         {
-            CheckAuthenticationSettings(session, "Facebook", "AUTH_FACEBOOK_CLIENT_ID", "AUTH_FACEBOOK_CLIENT_SECRET");
+            session["AUTHENTICATION_SETTINGS_IS_VALID"] = "1";
+            try
+            {
+                AuthenticationValidator authenticationValidator = new FacebookAuthenticationValidator();
+
+                string clientId = GetPropertyStringValue(session, "AUTH_FACEBOOK_CLIENT_ID");
+                string clientSecret = GetPropertyStringValue(session, "AUTH_FACEBOOK_CLIENT_SECRET");
+
+                authenticationValidator.Validate(clientId, clientSecret);
+            }
+            catch (Exception e)
+            {
+                InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
+                session["AUTHENTICATION_SETTINGS_IS_VALID"] = "0";
+            }
+
             return ActionResult.Success;
         }
 
         [CustomAction]
         public static ActionResult CheckGithubAuthenticationSettings(Session session)
         {
-            CheckAuthenticationSettings(session, "Github", "AUTH_GITHUB_CLIENT_ID", "AUTH_GITHUB_CLIENT_SECRET");
+            session["AUTHENTICATION_SETTINGS_IS_VALID"] = "1";
+            try
+            {
+                AuthenticationValidator authenticationValidator = new GithubAuthenticationValidator();
+
+                string clientId = GetPropertyStringValue(session, "AUTH_GITHUB_CLIENT_ID");
+                string clientSecret = GetPropertyStringValue(session, "AUTH_GITHUB_CLIENT_SECRET");
+
+                authenticationValidator.Validate(clientId, clientSecret);
+            }
+            catch (Exception e)
+            {
+                InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
+                session["AUTHENTICATION_SETTINGS_IS_VALID"] = "0";
+            }
+
             return ActionResult.Success;
         }
 
@@ -560,30 +600,6 @@ namespace DeviceHive.Setup.Actions
         {
             session["MESSAGE_TEXT"] = message;
             session["MESSAGE_TYPE"] = messageType;
-        }
-
-        private static void CheckAuthenticationSettings(Session session, string providerName, string clientIdPropertyName, string clientSecretPropertyName)
-        {
-            session["AUTHENTICATION_SETTINGS_IS_VALID"] = "0";
-
-            try
-            {
-                string clientIdValue = GetPropertyStringValue(session, clientIdPropertyName);
-                if (string.IsNullOrEmpty(clientIdValue))
-                {
-                    throw new Exception(string.Format("Client Id for Authentication {0} provider is empty. Please enter a correct value.", providerName));
-                }
-                string clientSecretValue = GetPropertyStringValue(session, clientSecretPropertyName);
-                if (string.IsNullOrEmpty(clientSecretValue))
-                {
-                    throw new Exception(string.Format("Client Secret for Authentication {0} provider is empty. Please enter a correct value.", providerName));
-                }
-                session["AUTHENTICATION_SETTINGS_IS_VALID"] = "1";
-            }
-            catch (Exception e)
-            {
-                InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
-            }
         }
     }
 }
