@@ -94,6 +94,27 @@
       </DirectorySearch>
     </Property>
 
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="DeviceHive">
+        </Directory>
+      </Directory>
+      <Directory Id="$(var.ProgramFilesFolder)">
+        <Directory Id="INSTALLFOLDER" Name="DeviceHive">
+          <Directory Id="INSTALL_WEB_FOLDER" Name="web">
+            <Directory Id="INSTALL_API_FOLDER" Name="api">
+            </Directory>
+            <Directory Id="INSTALL_ADMIN_FOLDER" Name="admin">
+            </Directory>
+          </Directory>
+          <!--<Directory Id="INSTALL_WINSOCKET_FOLDER" Name="WinSocket">
+          </Directory>-->
+          <Directory Id="INSTALL_DBMIGRATOR_FOLDER" Name="DBMigrator">
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+
     <!-- Switch ASP.NET to version 2.0 -->
     <CustomAction Id="MakeWepApp20" Directory="INSTALL_API_FOLDER" ExeCommand="[ASPNETREGIIS] -norestart -s W3SVC/[SITE_ID]/ROOT/api" Return="check"/>
 
