@@ -26,7 +26,7 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
-   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
     <DefineConstants>Debug;</DefineConstants>
@@ -48,6 +48,7 @@
     <Compile Include="IISConfiguration.wxs" />
     <Compile Include="Product.wxs" />
     <Compile Include="WebConfigConfiguration.wxs" />
+    <Compile Include="WebSocketApiConfiguration.wxs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DeviceHive.Setup.Actions\DeviceHive.Setup.Actions.csproj">
@@ -84,6 +85,7 @@
   <ItemGroup>
     <Content Include="Conditions.wxi" />
     <Content Include="ConfigurationInitialize.wxi" />
+    <Content Include="Dialogs\AdministratorCredentialsDlg.wxi" />
     <Content Include="Dialogs\AuthenticationDlg.wxi" />
     <Content Include="Dialogs\DatabaseDlg.wxi" />
     <Content Include="Dialogs\HostingDlg.wxi" />
@@ -116,48 +118,48 @@
       <DeviceHiveDataEF Include="..\..\Server\DeviceHive.Data.EF\DeviceHive.Data.EF.csproj" />
       <DeviceHiveDataMongoDB Include="..\..\Server\DeviceHive.Data.MongoDB\DeviceHive.Data.MongoDB.csproj" />
       <DeviceHiveAPI Include="..\..\Server\DeviceHive.API\DeviceHive.API.csproj" />
-      <DeviceHiveDBMigrator Include="..\..\Server\DeviceHive.DBMigrator\DeviceHive.DBMigrator.csproj" />      
+      <DeviceHiveDBMigrator Include="..\..\Server\DeviceHive.DBMigrator\DeviceHive.DBMigrator.csproj" />
     </ItemGroup>
-
     <Message Text="Build DeviceHive APIs..." />
-	
     <MSBuild Projects="@(DeviceHiveData)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
     <MSBuild Projects="@(DeviceHiveDataEF)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
     <MSBuild Projects="@(DeviceHiveDataMongoDB)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
     <MSBuild Projects="@(DeviceHiveDBMigrator)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
     <MSBuild Projects="@(DeviceHiveAPI)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
-    <MSBuild Projects="@(BuchiMessageHandlers)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />    
+    <MSBuild Projects="@(BuchiMessageHandlers)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
   </Target>
-  
   <Target Name="BuildDeviceHiveWebSocketsAPI">
-	<ItemGroup>
-	  <DeviceHiveWebSocketsHost Include="..\..\Server\DeviceHive.WebSockets.Host\DeviceHive.WebSockets.Host.csproj" />
-	  <DeviceHiveWebSocketsCore Include="..\..\Server\DeviceHive.WebSockets.Core\DeviceHive.WebSockets.Core.csproj" />
-	  <DeviceHiveWebSocketsAPI Include="..\..\Server\DeviceHive.WebSockets.API\DeviceHive.WebSockets.API.csproj" />	 
-	</ItemGroup>
-	
+    <ItemGroup>
+      <DeviceHiveWebSocketsHost Include="..\..\Server\DeviceHive.WebSockets.Host\DeviceHive.WebSockets.Host.csproj" />
+      <DeviceHiveWebSocketsCore Include="..\..\Server\DeviceHive.WebSockets.Core\DeviceHive.WebSockets.Core.csproj" />
+      <DeviceHiveWebSocketsAPI Include="..\..\Server\DeviceHive.WebSockets.API\DeviceHive.WebSockets.API.csproj" />
+    </ItemGroup>
     <Message Text="Build DeviceHive WebSockets APIs..." />
-	
-	<MSBuild Projects="@(DeviceHiveWebSocketsHost)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
+    <MSBuild Projects="@(DeviceHiveWebSocketsHost)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
     <MSBuild Projects="@(DeviceHiveWebSocketsCore)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
     <MSBuild Projects="@(DeviceHiveWebSocketsAPI)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
-  </Target>	
-  
+  </Target>
+  <Target Name="RetrieveProductVersion">
+    <GetAssemblyIdentity AssemblyFiles="..\..\Server\DeviceHive.API\bin\DeviceHive.API.dll">
+      <Output TaskParameter="Assemblies" ItemName="AssemblyVersion" />
+    </GetAssemblyIdentity>
+    <PropertyGroup>
+      <DefineConstants>ProductVersion=%(AssemblyVersion.Version)</DefineConstants>
+    </PropertyGroup>
+  </Target>
   <Target Name="BeforeBuild">
     <CallTarget Targets="BuildDeviceHiveAPI" />
     <CallTarget Targets="BuildDeviceHiveWebSocketsAPI" />
-	
+    <CallTarget Targets="RetrieveProductVersion" />
     <MSBuild Projects="%(ProjectReference.FullPath)" Targets="Package" Properties="Configuration=$(Configuration);Platform=AnyCPU" Condition="'%(ProjectReference.WebProject)'=='True'" />
     <ItemGroup>
       <LinkerBindInputPaths Include="%(ProjectReference.RootDir)%(ProjectReference.Directory)obj\$(Configuration)\Package\PackageTmp\" />
     </ItemGroup>
     <HeatDirectory OutputFile="Files/%(ProjectReference.Filename).wxs" Directory="%(ProjectReference.RootDir)%(ProjectReference.Directory)obj\$(Configuration)\Package\PackageTmp\" DirectoryRefId="INSTALL_API_FOLDER" ComponentGroupName="%(ProjectReference.Filename)_Project" AutogenerateGuids="true" SuppressCom="true" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" ToolPath="$(WixToolPath)" Condition="'%(ProjectReference.WebProject)'=='True'" />
-    <MSBuild Projects="%(ProjectReference.FullPath)" Condition="'%(ProjectReference.WinSocketProject)'=='True'" />
     <ItemGroup>
       <LinkerBindInputPaths Include="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\" />
     </ItemGroup>
     <HeatDirectory OutputFile="Files/%(ProjectReference.Filename).wxs" Directory="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\" DirectoryRefId="INSTALL_WINSOCKET_FOLDER" ComponentGroupName="%(ProjectReference.Filename)_Project" AutogenerateGuids="true" SuppressCom="true" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" ToolPath="$(WixToolPath)" Condition="'%(ProjectReference.WinSocketProject)'=='True'" />
-    <MSBuild Projects="%(ProjectReference.FullPath)" Condition="'%(ProjectReference.DBMigratorProject)'=='True'" />
     <ItemGroup>
       <LinkerBindInputPaths Include="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\" />
     </ItemGroup>
