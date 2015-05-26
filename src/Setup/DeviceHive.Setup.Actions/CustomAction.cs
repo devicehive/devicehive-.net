@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 using DeviceHive.Setup.Actions.Credentials;
+using DeviceHive.Setup.Actions.Validation;
 using DeviceHive.Setup.Actions.Validation.AuthenticationProvider;
 using Microsoft.Deployment.WindowsInstaller;
 using Microsoft.Web.Administration;
@@ -417,16 +418,11 @@ namespace DeviceHive.Setup.Actions
         {
             session["ADMINISTRATOR_CREDENTIALS_IS_VALID"] = "1";
 
-            string adminLogin = GetPropertyStringValue(session, "AUTH_ADMIN_LOGIN");
-            string adminPasssword = GetPropertyStringValue(session, "AUTH_ADMIN_PASSWORD");
-
-            if (string.IsNullOrEmpty(adminLogin) && string.IsNullOrEmpty(adminPasssword))
-            {
-                return ActionResult.Success;
-            }
-
             try
             {
+                string adminLogin = GetPropertyStringValue(session, "AUTH_ADMIN_LOGIN");
+                string adminPasssword = GetPropertyStringValue(session, "AUTH_ADMIN_PASSWORD");
+
                 AdministratorCredentialsValidator validator = new AdministratorCredentialsValidator();
                 validator.Validate(adminLogin, adminPasssword);
             }
@@ -439,13 +435,8 @@ namespace DeviceHive.Setup.Actions
         }
 
         [CustomAction]
-        public static ActionResult UpdateAdminCredentials(Session session)
+        public static ActionResult UpdateAdministratorCredentials(Session session)
         {
-            if (!GetPropertyBoolValue(session, "CHANGE_ADMIN_CREDENTIALS_IS_ENABLED"))
-            {
-                return ActionResult.Success;
-            }
-
             try
             {
                 string databaseType = GetPropertyStringValue(session, "DATABASE_TYPE");

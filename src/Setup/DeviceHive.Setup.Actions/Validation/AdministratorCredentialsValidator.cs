@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace DeviceHive.Setup.Actions
+namespace DeviceHive.Setup.Actions.Validation
 {
-    class AdministratorCredentialsValidator
+    public class AdministratorCredentialsValidator
     {
         private const int PASSWORD_MIN_LENGTH = 8;
 

@@ -20,12 +20,13 @@ namespace DeviceHive.Setup.Actions.Credentials
             var mongoDb = new MongoClient(ConnectionString).GetServer();
             var db = mongoDb.GetDatabase(new MongoUrl(ConnectionString).DatabaseName);
             var collection = db.GetCollection<BsonDocument>("users");
-            var user = collection.FindOne(Query.EQ("Login", login));
+            var user = collection.FindOne(Query.EQ("Login", DEFAULT_ADMIN_LOGIN));
             if (user == null)
             {
                 throw new Exception("User not found!");
             }
 
+            user["Login"] = login;
             user["PasswordHash"] = passwordHash;
             user["PasswordSalt"] = passwordSalt;
             collection.Save(user);

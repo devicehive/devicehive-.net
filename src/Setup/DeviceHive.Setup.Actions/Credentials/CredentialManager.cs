@@ -6,6 +6,7 @@ namespace DeviceHive.Setup.Actions.Credentials
 {
     public abstract class CredentialManager
     {
+        protected const string DEFAULT_ADMIN_LOGIN = "dhadmin";
         protected string ConnectionString { get; private set; }
 
         #region Constructor
@@ -56,13 +57,13 @@ namespace DeviceHive.Setup.Actions.Credentials
             if (string.IsNullOrEmpty(databaseType))
                 throw new ArgumentNullException("databaseType");
 
-            if (connectionString == null)
+            if (string.IsNullOrEmpty(connectionString))
                 throw new ArgumentNullException("connectionString");
 
-            if (databaseType == "MS_SQL")
+            if ("MS_SQL".Equals(databaseType, StringComparison.InvariantCultureIgnoreCase))
                 return new SqlCredentialManager(connectionString);
 
-            if (databaseType == "MONGO_DB")
+            if ("MONGO_DB".Equals(databaseType, StringComparison.InvariantCultureIgnoreCase))
                 return new MongoDBCredentialManager(connectionString);
 
             throw new ArgumentException("Invalid database type.");

@@ -122,7 +122,7 @@
     <CustomAction Id="CheckMongoDbConnection" BinaryKey="CustomAction" DllEntry="CheckMongoDbConnection" Return="check" />
     <CustomAction Id="CheckSqlServerConnection" BinaryKey="CustomAction" DllEntry="CheckSqlServerConnection" Return="check" />
     <CustomAction Id="GetCertificates" BinaryKey="CustomAction" DllEntry="GetCertificates" Return="ignore" />
-    <CustomAction Id="UpdateAdminCredentials" BinaryKey="CustomAction" DllEntry="UpdateAdminCredentials" Execute="immediate" Return="check" />
+    <CustomAction Id="UpdateAdministratorCredentials" BinaryKey="CustomAction" DllEntry="UpdateAdministratorCredentials" Execute="immediate" Return="check" />
     <CustomAction Id="ChangeConfigJs" BinaryKey="CustomAction" DllEntry="ChangeConfigJs" Execute="immediate" Return="check" />
     <CustomAction Id="RunDBMigrator" Directory="INSTALL_DBMIGRATOR_FOLDER" ExeCommand='"[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe"' Execute="deferred" Return="check"/>
     <CustomAction Id="ScheduleTasks" Directory="INSTALL_SCHEDULER_FOLDER" ExeCommand='"[INSTALL_SCHEDULER_FOLDER]schedule_tasks.cmd" http://localhost/api' Execute="deferred" Return="check" />
@@ -157,7 +157,7 @@
       <Custom Action="MakeWepApp20" After="InstallFinalize">ASPNETREGIIS AND NOT Installed</Custom>
       <Custom Action="ChangeConfigJs" After="InstallFinalize">NOT Installed</Custom>
       <Custom Action="RunDBMigrator" Before="InstallFinalize">NOT Installed</Custom>
-      <Custom Action="UpdateAdminCredentials" After="RunDBMigrator">NOT Installed</Custom>
+      <Custom Action="UpdateAdministratorCredentials" After="RunDBMigrator">NOT Installed</Custom>
       <Custom Action="UpdateBinding" After="InstallFinalize">NOT Installed</Custom>
       <Custom Action="ScheduleTasks" Before="InstallFinalize">NOT Installed</Custom>
       <Custom Action="UnScheduleTasks" After="InstallInitialize">Installed</Custom>
