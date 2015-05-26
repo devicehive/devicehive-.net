@@ -26,7 +26,7 @@
             <!-- Configure DeviceHive virtual dir -->
             <Component Id="DeviceHiveVirtualDirCmp" Guid="{751DEB01-ECC1-48ff-869A-65BCEE9E0528}" KeyPath="yes" >
                 <iis:WebVirtualDir Id="DeviceHiveVirtualDir" Alias="api" Directory="INSTALL_API_FOLDER" WebSite="DeviceHiveWebSite">
-                    <iis:WebDirProperties Id="DeviceHiveApiVirtDirProperties" AnonymousAccess="yes" BasicAuthentication="no" WindowsAuthentication="yes" />
+                    <iis:WebDirProperties Id="DeviceHiveApiVirtDirProperties" AnonymousAccess="yes"/>
                     <iis:WebApplication Id="DeviceHiveWebApplication" Name="api" WebAppPool="DeviceHiveAppPool" />
                 </iis:WebVirtualDir>
             </Component>
