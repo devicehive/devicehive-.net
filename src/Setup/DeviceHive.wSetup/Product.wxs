@@ -51,9 +51,12 @@
 
         <ComponentRef Id="WebConfigCompilationDebug"></ComponentRef>
         <ComponentRef Id="WebConfigClientEndpoints"></ComponentRef>
+        <ComponentRef Id="WebConfigLog4netOutputDir"></ComponentRef>
 
         <ComponentGroupRef Id="CmpAdminConsole"/>
         <ComponentGroupRef Id="CmpScheduler"/>
+
+        <ComponentRef Id="LogFolder"/>
       </Feature>
 
       <!--<Feature Id="WebSocket" Title="WebSockets.API">
@@ -104,6 +107,14 @@
       </Directory>
       <Directory Id="$(var.ProgramFilesFolder)">
         <Directory Id="INSTALLFOLDER" Name="DeviceHive">
+          <Directory Id="INSTALL_WEB_LOG_FOLDER" Name="log">
+            <Component Id="LogFolder" Guid="{23D8FF25-1FD1-4b64-BD87-5FCB708C4D67}">
+              <CreateFolder Directory="INSTALL_WEB_LOG_FOLDER">
+                <Permission User="Administrators" Read="yes" Delete="yes" ReadPermission="yes" ChangePermission="yes" TakeOwnership="yes" ReadAttributes="yes" WriteAttributes="yes" ReadExtendedAttributes="yes" WriteExtendedAttributes="yes" CreateFile="yes" CreateChild="yes" DeleteChild="yes" Traverse="yes" GenericAll="yes" GenericExecute="yes" GenericWrite="yes" GenericRead="yes" />
+                <Permission User="IIS APPPOOL\DeviceHiveAppPool"  Read="yes" Delete="yes" TakeOwnership="yes" ReadAttributes="yes" WriteAttributes="yes" ReadExtendedAttributes="yes" WriteExtendedAttributes="yes" CreateFile="yes" CreateChild="yes" DeleteChild="yes" GenericWrite="yes" GenericRead="yes" />
+              </CreateFolder>
+            </Component>
+          </Directory>
           <Directory Id="INSTALL_WEB_FOLDER" Name="web">
             <Directory Id="INSTALL_API_FOLDER" Name="api">
             </Directory>

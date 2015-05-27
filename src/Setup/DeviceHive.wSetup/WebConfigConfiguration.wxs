@@ -209,6 +209,19 @@
                         Sequence="1" />
         <CreateFolder/>
       </Component>
+
+      <!--Log4Net-->
+      <Component Id="WebConfigLog4netOutputDir" Guid="{63299A65-52E1-4001-BBEF-76D2BAACDEF4}">
+        <util:XmlFile Id="ModifyLog4netOutputDir" Action="setValue" Permanent="yes"
+                      ElementPath="/configuration/log4net/appender[\[]@name='RollingFileAppender'[\]]/file"
+                      Name="value"
+                      File="[INSTALL_API_FOLDER]Web.config"
+                      Value="..\..\log\log.txt"
+                      SelectionLanguage="XSLPattern"
+                      Sequence="1" />
+        <CreateFolder/>
+      </Component>
+      
     </DirectoryRef>
 
     <DirectoryRef Id="INSTALL_DBMIGRATOR_FOLDER">
