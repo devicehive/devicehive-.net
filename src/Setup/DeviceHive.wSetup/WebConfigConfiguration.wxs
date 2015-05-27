@@ -195,6 +195,20 @@
                       SelectionLanguage="XSLPattern" Sequence="1" />
         <CreateFolder/>
       </Component>
+      
+      <!--tcpSocketMessageBus\clientEndpoints-->
+      <Component Id="WebConfigClientEndpoints" Guid="{F4609372-E70D-4CE5-A327-1BDA5490D72B}">
+        <util:XmlConfig Id="ModifyclientEndpoints"
+                        File="[INSTALL_API_FOLDER]Web.config"
+                        Action="delete"
+                        Node="element"
+                        On="install"
+                        ElementPath="/configuration/tcpSocketMessageBus/clientEndpoints"
+                        VerifyPath="/configuration/tcpSocketMessageBus/clientEndpoints/add"
+                        PreserveModifiedDate="yes"
+                        Sequence="1" />
+        <CreateFolder/>
+      </Component>
     </DirectoryRef>
 
     <DirectoryRef Id="INSTALL_DBMIGRATOR_FOLDER">

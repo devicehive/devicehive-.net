@@ -50,6 +50,7 @@
         <ComponentRef Id="WebConfigAuthenticationGithubFalse"></ComponentRef>
 
         <ComponentRef Id="WebConfigCompilationDebug"></ComponentRef>
+        <ComponentRef Id="WebConfigClientEndpoints"></ComponentRef>
 
         <ComponentGroupRef Id="CmpAdminConsole"/>
         <ComponentGroupRef Id="CmpScheduler"/>
