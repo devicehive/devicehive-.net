@@ -22,7 +22,7 @@
     <Property Id="PORT_NUMBER" Value="80" />
 
     <!-- WebSocketDlg -->
-    <Property Id="WEB_SOCKET_ENABLED" Value="true" />
+    <Property Id="WEB_SOCKET_ENABLED" Value="false" />
     <Property Id="WEB_SOCKET_PORT_NUMBER" Value="8010" />
 
     <!-- SSLSetupDlg -->
