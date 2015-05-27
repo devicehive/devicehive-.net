@@ -49,6 +49,8 @@
         <ComponentRef Id="WebConfigAuthenticationGithubTrue"></ComponentRef>
         <ComponentRef Id="WebConfigAuthenticationGithubFalse"></ComponentRef>
 
+        <ComponentRef Id="WebConfigCompilationDebug"></ComponentRef>
+
         <ComponentGroupRef Id="CmpAdminConsole"/>
         <ComponentGroupRef Id="CmpScheduler"/>
       </Feature>

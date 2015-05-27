@@ -187,6 +187,14 @@
              SelectionLanguage="XSLPattern" Sequence="2" />
         <CreateFolder/>
       </Component>
+
+      <!--compilation debug-->
+      <Component Id="WebConfigCompilationDebug" Guid="{0B3CBEA8-1997-4E84-8BF0-56E4765BF95A}">
+        <util:XmlFile Id="ModifyCompilationDebug" File="[INSTALL_API_FOLDER]Web.config" Permanent="yes"
+                      Action="setValue" ElementPath="/configuration/system.web/compilation" Name="debug" Value="false"
+                      SelectionLanguage="XSLPattern" Sequence="1" />
+        <CreateFolder/>
+      </Component>
     </DirectoryRef>
 
     <DirectoryRef Id="INSTALL_DBMIGRATOR_FOLDER">
