@@ -7,18 +7,12 @@
             <Component Id="cmp0714EE5B2AE82E5A1DB4BB13BEA928B3" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil543FDBDCBAE8393B3BE60DA9721540C0" KeyPath="yes" Source="$(var.DeviceHiveApiRootDir)\Global.asax" />
             </Component>
-            <Component Id="cmp2CD670A2B42C18AEA4F0A4A864C2A88D" Guid="*" Win64="$(var.Win64)">
-                <File Id="fil4340CC7C5EC158417CDFA11270476047" KeyPath="yes" Source="$(var.DeviceHiveApiRootDir)\packages.config" />
-            </Component>
             <Component Id="cmp7F0B422ABD8D3E67CC6D683625C12141" Guid="*" Win64="$(var.Win64)">
                 <File Id="fil30EB236E083A2592873116ABAC4D280A" KeyPath="yes" Source="$(var.DeviceHiveApiRootDir)\Web.config" />
             </Component>
             <Directory Id="dir44DD9D0E3568A7E58513E89865B00349" Name="bin">
                 <Component Id="cmp8EEC4A94DAA9B4C4893EAEE8ADBB20F7" Guid="*" Win64="$(var.Win64)">
                     <File Id="fil1BBDDA8619A48F354DC3DED0CD152AD6" KeyPath="yes" Source="$(var.DeviceHiveApiBinDir)\DeviceHive.API.dll" />
-                </Component>
-                <Component Id="cmp696856EA8EF1FE8D9DCB7EB805D8CB2B" Guid="*" Win64="$(var.Win64)">
-                    <File Id="filC381A885C32B91FA1E16A52C1386B366" KeyPath="yes" Source="$(var.DeviceHiveApiBinDir)\DeviceHive.API.XML" />
                 </Component>
                 <Component Id="cmpC7AE2096122795E16947F2B6AA8E295A" Guid="*" Win64="$(var.Win64)">
                     <File Id="fil77D50AC69DA142423B761718769AB93C" KeyPath="yes" Source="$(var.DeviceHiveApiBinDir)\DeviceHive.Core.dll" />
@@ -83,10 +77,8 @@
     <Fragment>
         <ComponentGroup Id="DeviceHive.API_Project">
             <ComponentRef Id="cmp0714EE5B2AE82E5A1DB4BB13BEA928B3" />
-            <ComponentRef Id="cmp2CD670A2B42C18AEA4F0A4A864C2A88D" />
             <ComponentRef Id="cmp7F0B422ABD8D3E67CC6D683625C12141" />
             <ComponentRef Id="cmp8EEC4A94DAA9B4C4893EAEE8ADBB20F7" />
-            <ComponentRef Id="cmp696856EA8EF1FE8D9DCB7EB805D8CB2B" />
             <ComponentRef Id="cmpC7AE2096122795E16947F2B6AA8E295A" />
             <ComponentRef Id="cmp92A03E331B33BE7BB3B5F5620B1F5A04" />
             <ComponentRef Id="cmp8BF9188092FAF017AE3FE158E46E609F" />
