@@ -155,7 +155,7 @@
 
     <!--IIS Settings-->
     <CustomAction Id="InitializeSiteId" BinaryKey="CustomAction" DllEntry="InitializeSiteId" Return="check" />
-    <CustomAction Id="CheckBindingPort" BinaryKey="CustomAction" DllEntry="CheckBindingPort" Return="check" />
+    <CustomAction Id="CheckSiteBinding" BinaryKey="CustomAction" DllEntry="CheckSiteBinding" Return="check" />
     <CustomAction Id="UpdateBinding" BinaryKey="CustomAction" DllEntry="UpdateBinding" Execute="immediate" Return="check" />
     <CustomAction Id="MessageBox" BinaryKey="CustomAction" DllEntry="MessageBox" Execute="immediate" Return="check" />
 

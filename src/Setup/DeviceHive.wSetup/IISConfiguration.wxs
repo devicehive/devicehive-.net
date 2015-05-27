@@ -11,15 +11,14 @@
             <!-- Configuring app pool -->
             <Component Id="DeviceHiveAppPoolCmp" Guid="{784ae9fd-66db-4671-9489-0aa167758c67}" KeyPath="yes">
                 <util:User Id="DeviceHiveAppPoolUser" CreateUser="no" Name="DeviceHiveUser" Domain="DeviceHiveAppPoolDomain" />
-                <iis:WebAppPool Id="DeviceHiveAppPool" Name="DeviceHiveAppPool" ManagedPipelineMode="Integrated" />
+                <iis:WebAppPool Id="DeviceHiveAppPool" Name="[WEB_APPLICATION_POOL]" ManagedPipelineMode="Integrated" />
             </Component>
 
             <Component Id="InstallDeviceHiveWebsite" Guid="{9CD7C833-C087-4CF9-8EF5-15A9EEDCC267}" KeyPath="yes">
                 <!-- Install to default web site -->
-                <!-- iis:WebSite Id="DeviceHiveWebSite" Description='[DOMAIN_NAME]' SiteId="*" Directory="INSTALL_API_FOLDER" -->
-                <!--        DeviceHive-->
-                <iis:WebSite Id="DeviceHiveWebSite" Description="[WEB_SITE_NAME]" Directory="INSTALL_WEB_FOLDER" AutoStart="yes" StartOnInstall="yes" SiteId="[SITE_ID]">
-                    <iis:WebAddress Id="AllUnassigned" Port="[PORT_NUMBER]" />
+                <iis:WebSite Id="DeviceHiveWebSite" Description="[WEB_SITE_NAME]" Directory="INSTALL_WEB_FOLDER" AutoStart="yes" StartOnInstall="yes" SiteId="[SITE_ID]" >
+                    <iis:WebAddress Id="AllUnassigned" Port="[PORT_NUMBER]"/>
+                    <iis:WebApplication Id="DeviceHiveWebSiteApplication" Name="[WEB_SITE_NAME]" WebAppPool="DeviceHiveAppPool" />
                 </iis:WebSite>
             </Component>
             

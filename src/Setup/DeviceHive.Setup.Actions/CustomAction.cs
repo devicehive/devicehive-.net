@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
-using System.Text.RegularExpressions;
 using DeviceHive.Setup.Actions.Credentials;
 using DeviceHive.Setup.Actions.Validation;
 using DeviceHive.Setup.Actions.Validation.AuthenticationProvider;
@@ -257,54 +256,31 @@ namespace DeviceHive.Setup.Actions
         }
 
         [CustomAction]
-        public static ActionResult CheckBindingPort(Session session)
+        public static ActionResult CheckSiteBinding(Session session)
         {
-            session.Log("Start: CheckBindingPort.");
+            session.Log("Start: CheckSiteBinding.");
 
-            session["PORT_NUMBER_IS_VALID"] = "1";
-
-            ActionResult result = ActionResult.Success;
+            session["SITE_BINDING_IS_VALID"] = "1";
 
             try
             {
                 string webSiteName = GetPropertyStringValue(session, "WEB_SITE_NAME", true);
                 string portNumber = GetPropertyStringValue(session, "WEB_SITE_PORT_NUMBER");
-                if (!IsPort(portNumber))
-                {
-                    InitializeMessageBox(session, "Port Number is invalid. Please enter a correct value.", ERROR_MESSAGE);
+                string hostName = GetPropertyStringValue(session, "DOMAIN_NAME");
 
-                    session["PORT_NUMBER_IS_VALID"] = "0";
-                    return ActionResult.Success;
-                }
-
-                using (var serverManager = new ServerManager())
-                {
-                    foreach (var site in serverManager.Sites.Where(s => s.Name != webSiteName && s.State == ObjectState.Started))
-                    {
-                        foreach (var binding in site.Bindings)
-                        {
-                            if (binding.EndPoint.Port.ToString(CultureInfo.InvariantCulture) == portNumber)
-                            {
-                                string message = string.Format("Current Port Number {0} already used by {1}.", binding.EndPoint.Port, site.Name);
-                                InitializeMessageBox(session, message, ERROR_MESSAGE);
-
-                                session["PORT_NUMBER_IS_VALID"] = "0";
-                                break;
-                            }
-                        }
-                    }
-                }
+                SiteBindingValidator siteBindingValidator = new SiteBindingValidator();
+                siteBindingValidator.Validate(webSiteName, hostName, portNumber);
             }
             catch (Exception e)
             {
-                result = ActionResult.Failure;
-                session.Log("Error: {0}; {1};", e.Message, e.StackTrace);
+                InitializeMessageBox(session, e.Message, ERROR_MESSAGE);
+                session["SITE_BINDING_IS_VALID"] = "0";
             }
             finally
             {
-                session.Log("Finish: CheckBindingPort.");
+                session.Log("Finish: CheckSiteBinding.");
             }
-            return result;
+            return ActionResult.Success;
         }
 
         [CustomAction]
@@ -514,24 +490,7 @@ namespace DeviceHive.Setup.Actions
                 store.Close();
             }
         }
-
-        private static bool IsPort(string portNumber)
-        {
-            if (string.IsNullOrEmpty(portNumber))
-                return false;
-
-            Regex numeric = new Regex(@"^[1-9]\d{1,5}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            if (!numeric.IsMatch(portNumber))
-                return false;
-
-            int value;
-            if (int.TryParse(portNumber, out value))
-            {
-                return value >= 1 && value < 65536;
-            }
-            return false;
-        }
-
+        
         private static string GetCertificateFriendlyName(X509Certificate2 certificate)
         {
             if (!string.IsNullOrEmpty(certificate.FriendlyName))

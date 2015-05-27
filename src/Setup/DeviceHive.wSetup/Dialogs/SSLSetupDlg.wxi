@@ -62,9 +62,9 @@
       <Condition Action="disable"><![CDATA[(SSL_CERTIFICATE = "Not Selected") AND (SSL_ENABLED = "true")]]></Condition>
       <Condition Action="enable"><![CDATA[(SSL_CERTIFICATE <> "Not Selected") OR (SSL_ENABLED <> "true") OR (SSL_CERTIFICATE_STORAGE_EMPTY = "true")]]></Condition>
       <Publish Property="WEB_SITE_PORT_NUMBER" Order="1" Value="[SSL_PORT_NUMBER]"><![CDATA[(SSL_ENABLED = "true") AND (SSL_CERTIFICATE_STORAGE_EMPTY <> "true")]]></Publish>
-      <Publish Event="DoAction" Order="2" Value="CheckBindingPort"><![CDATA[(SSL_ENABLED = "true") AND (SSL_CERTIFICATE_STORAGE_EMPTY <> "true")]]></Publish>
-      <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[(PORT_NUMBER_IS_VALID = 0) AND (SSL_ENABLED = "true") AND (SSL_CERTIFICATE_STORAGE_EMPTY <> "true")]]></Publish>
-      <Publish Event="NewDialog" Order="4" Value="AuthenticationDlg"><![CDATA[(PORT_NUMBER_IS_VALID = 1) OR (SSL_ENABLED <> "true") OR (SSL_CERTIFICATE_STORAGE_EMPTY = "true")]]></Publish>
+      <Publish Event="DoAction" Order="2" Value="CheckSiteBinding"><![CDATA[(SSL_ENABLED = "true") AND (SSL_CERTIFICATE_STORAGE_EMPTY <> "true")]]></Publish>
+      <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[(SITE_BINDING_IS_VALID = 0) AND (SSL_ENABLED = "true") AND (SSL_CERTIFICATE_STORAGE_EMPTY <> "true")]]></Publish>
+      <Publish Event="NewDialog" Order="4" Value="AuthenticationDlg"><![CDATA[(SITE_BINDING_IS_VALID = 1) OR (SSL_ENABLED <> "true") OR (SSL_CERTIFICATE_STORAGE_EMPTY = "true")]]></Publish>
     </Control>
     <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
       <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>

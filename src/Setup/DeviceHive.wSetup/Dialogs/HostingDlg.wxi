@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Include>
   <Dialog Id="HostingDlg" Width="370" Height="270" Title="Hosting Settings - [ProductName]" NoMinimize="yes">
-    <Control Id="DomainNameLabel" Type="Text" X="45" Y="55" Width="100" Height="15" TabSkip="no" Text="&amp;Domain Name:" />
+    <Control Id="DomainNameLabel" Type="Text" X="45" Y="55" Width="100" Height="15" TabSkip="no" Text="&amp;Host Name:" />
     <Control Id="DomainNameEdit" Type="Edit" X="45" Y="70" Width="220" Height="15" Property="DOMAIN_NAME" Text="{200}" />
     <Control Id="PortNumberLabel" Type="Text" X="45" Y="95" Width="100" Height="15" TabSkip="no" Text="&amp;Port Number:" />
     <Control Id="PortNumberEdit" Type="Edit" X="45" Y="110" Width="220" Height="15" Property="PORT_NUMBER" Text="{200}" />
@@ -15,11 +15,11 @@
     </Control>
     <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
       <Publish Property="WEB_SITE_PORT_NUMBER" Order="1" Value="[PORT_NUMBER]">1</Publish>
-      <Publish Event="DoAction" Order="2" Value="CheckBindingPort">1</Publish>
-      <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[PORT_NUMBER_IS_VALID = 0]]></Publish>
-      <Publish Event="DoAction" Order="4" Value="InitializeSiteId"><![CDATA[PORT_NUMBER_IS_VALID = 1]]></Publish>
-      <!--<Publish Event="NewDialog" Order="5" Value="WebSocketDlg"><![CDATA[PORT_NUMBER_IS_VALID = 1]]></Publish>-->
-      <Publish Event="NewDialog" Order="5" Value="SSLSetupDlg"><![CDATA[PORT_NUMBER_IS_VALID = 1]]></Publish>
+      <Publish Event="DoAction" Order="2" Value="CheckSiteBinding">1</Publish>
+      <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[SITE_BINDING_IS_VALID = 0]]></Publish>
+      <Publish Event="DoAction" Order="4" Value="InitializeSiteId"><![CDATA[SITE_BINDING_IS_VALID = 1]]></Publish>
+      <!--<Publish Event="NewDialog" Order="5" Value="WebSocketDlg"><![CDATA[SITE_BINDING_IS_VALID = 1]]></Publish>-->
+      <Publish Event="NewDialog" Order="5" Value="SSLSetupDlg"><![CDATA[SITE_BINDING_IS_VALID = 1]]></Publish>
     </Control>
     <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
       <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>

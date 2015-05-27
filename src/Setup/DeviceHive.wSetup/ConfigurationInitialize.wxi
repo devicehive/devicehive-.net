@@ -60,6 +60,7 @@
     <Property Id="SITE_ID" Value="1"/>
     <Property Id="WEB_SITE_NAME" Value = "DeviceHive"/>
     <Property Id="WEB_APP_NAME" Value="DeviceHive.Api" />
+    <Property Id="WEB_APPLICATION_POOL" Value="DeviceHiveAppPool" />
 
     <!-- app pool identity properties initialize -->
     <Property Id="WEB_APP_POOL_IDENTITY_DOMAIN" Value="POOL_DOMAIN" />
