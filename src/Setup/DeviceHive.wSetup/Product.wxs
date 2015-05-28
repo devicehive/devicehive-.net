@@ -4,8 +4,7 @@
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
      xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
 
-  <Product Id="{FA1B9338-B6F6-413e-B67F-86CA8BCED6E1}" Name="DeviceHive Server" Language="1033" Version="$(var.ProductVersion)" Manufacturer="DataArt" UpgradeCode="{E5C9F391-5787-4fd1-81E6-D1A4A91D226D}">
-
+  <Product Id="{FA1B9338-B6F6-413e-B67F-86CA8BCED6E1}" Name="DeviceHive Server" Language="1033" Version="!(bind.fileVersion.fil1BBDDA8619A48F354DC3DED0CD152AD6)" Manufacturer="DataArt" UpgradeCode="{E5C9F391-5787-4fd1-81E6-D1A4A91D226D}">
     <Package InstallerVersion="200"
              Compressed="yes"
              InstallScope="perMachine"
