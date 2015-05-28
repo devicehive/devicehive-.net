@@ -20,23 +20,20 @@ namespace DeviceHive.Setup.Actions.Validation
             {
                 int portNumberValue = Convert.ToInt32(portNumber);
 
-                foreach (var site in serverManager.Sites.Where(s => s.Name != webSiteName && s.State == ObjectState.Started))
+                foreach (var site in serverManager.Sites.Where(s => !string.Equals(s.Name, webSiteName, StringComparison.Ordinal) && s.State == ObjectState.Started))
                 {
                     foreach (var binding in site.Bindings)
                     {
-                        if (string.IsNullOrEmpty(hostName))
+                        if (binding.EndPoint.Port != portNumberValue)
+                            continue;
+
+                        if (string.IsNullOrEmpty(hostName) && string.IsNullOrEmpty(binding.Host))
                         {
-                            if (binding.EndPoint.Port == portNumberValue)
-                            {
-                                throw new Exception(string.Format("The specified port number {0} already used by {1} site.", binding.EndPoint.Port, site.Name));
-                            }
+                            throw new Exception(string.Format("The specified port number '{0}' already used by '{1}' site.", binding.EndPoint.Port, site.Name));
                         }
-                        else
+                        else if (string.Equals(binding.Host, hostName, StringComparison.Ordinal))
                         {
-                            if (binding.EndPoint.Port == portNumberValue && string.Equals(binding.Host, hostName, StringComparison.Ordinal))
-                            {
-                                throw new Exception(string.Format("The specified host name {0} and port Number {1} already used by {2} site.", binding.Host, binding.EndPoint.Port, site.Name));
-                            }
+                            throw new Exception(string.Format("The specified host name '{0}' and port Number '{1}' already used by '{2}' site.", binding.Host, binding.EndPoint.Port, site.Name));
                         }
                     }
                 }
