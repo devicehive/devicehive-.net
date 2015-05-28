@@ -3,7 +3,7 @@
     <Condition Message='Windows Server 2008 (Windows 7) or higher'>
         <![CDATA[(VersionNT >= 600 AND MsiNTProductType = 3) OR (VersionNT >= 601 AND MsiNTProductType = 1)]]>
     </Condition>
-    <Condition Message="[ProductName] requires IIS 7 or latest. Please install an IIS then run this installer again.">
+    <Condition Message="[ProductName] requires IIS 7 or later. Please install the IIS and then run this installer again.">
         <![CDATA[Installed OR IISMAJORVERSION]]>
     </Condition>
     <Condition Message="[ProductName] requires .NET Framework 4.5. Please install the .NET Framework then run this installer again.">
