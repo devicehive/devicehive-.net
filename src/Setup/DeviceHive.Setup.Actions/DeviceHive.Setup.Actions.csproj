@@ -76,7 +76,6 @@
     <Compile Include="Validation\Authentication\GoogleAuthenticationValidator.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Validation\MongoDatabaseValidator.cs" />
     <Compile Include="Validation\SiteBindingValidator.cs" />
     <Compile Include="Validation\SqlDatabasePermissionValidator.cs" />
     <Compile Include="Validation\SqlDatabaseValidator.cs" />

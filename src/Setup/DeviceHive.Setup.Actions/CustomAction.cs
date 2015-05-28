@@ -79,25 +79,12 @@ namespace DeviceHive.Setup.Actions
                     throw new Exception("Database name is empty. Please enter a correct value.");
                 }
 
-                string userName = GetPropertyStringValue(session, "MONGO_LOGIN");
-                if (string.IsNullOrEmpty(userName))
-                {
-                    throw new Exception("Login is empty. Please enter a correct value.");
-                }
-
-                string password = GetPropertyStringValue(session, "MONGO_PASSWORD");
-                if (string.IsNullOrEmpty(password))
-                {
-                    throw new Exception("Password is empty. Please enter a correct value.");
-                }
-
                 string connectionString = GetPropertyStringValue(session, "DATABASE_CONNECTION_STRING");
                 session.Log("Connection string to MongoDB: {0}", connectionString);
 
-                var mongoServer = new MongoClient(connectionString).GetServer();
-
-                MongoDatabaseValidator databaseValidator = new MongoDatabaseValidator(mongoServer);
-                databaseValidator.Validate(databaseName);
+                var mongoDb = new MongoClient(connectionString).GetServer();
+                var databaseExists = mongoDb.DatabaseExists(databaseName);
+                session.Log("Database {0} {1} exist.", databaseName, databaseExists ? "already" : "does not");
             }
             catch (Exception e)
             {

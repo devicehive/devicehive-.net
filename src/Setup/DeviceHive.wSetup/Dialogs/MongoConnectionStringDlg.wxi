@@ -13,7 +13,8 @@
       <Publish Event="NewDialog" Value="DatabaseDlg">1</Publish>
     </Control>
     <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
-      <Publish Order="1" Property="DATABASE_CONNECTION_STRING" Value="mongodb://[MONGO_LOGIN]:[MONGO_PASSWORD]@[MONGO_HOST]/[MONGO_DATABASE]">1</Publish>
+      <Publish Order="1" Property="DATABASE_CONNECTION_STRING" Value="mongodb://[MONGO_LOGIN]:[MONGO_PASSWORD]@[MONGO_HOST]/[MONGO_DATABASE]"><![CDATA[MONGO_LOGIN <> "" AND MONGO_PASSWORD <> ""]]></Publish>
+      <Publish Order="1" Property="DATABASE_CONNECTION_STRING" Value="mongodb://[MONGO_HOST]/[MONGO_DATABASE]"><![CDATA[MONGO_LOGIN = "" AND MONGO_PASSWORD = ""]]></Publish>
       <Publish Event="DoAction" Order="2" Value="CheckMongoDbConnection">1</Publish>
       <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[MONGODB_CONNECTION_ESTABLISHED = 0]]></Publish>
       <Publish Event="NewDialog" Order="4" Value="HostingDlg"><![CDATA[MONGODB_CONNECTION_ESTABLISHED = 1]]></Publish>
