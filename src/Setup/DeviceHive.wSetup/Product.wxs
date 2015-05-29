@@ -168,12 +168,10 @@
     <CustomAction Id='CheckGithubAuthenticationSettings' BinaryKey="CustomAction" DllEntry="CheckGithubAuthenticationSettings" Execute="immediate" Return="check" />
 
     <InstallUISequence>
-      <Custom Action="CheckRunAsAdministrator" Before="LaunchConditions"/>
       <Custom Action="GetCertificates" After="CostFinalize" />
     </InstallUISequence>
 
     <InstallExecuteSequence>
-      <Custom Action="CheckRunAsAdministrator" Before="LaunchConditions">Installed</Custom>
       <!--<Custom Action="MakeWepApp20" After="InstallFinalize">ASPNETREGIIS AND NOT Installed</Custom>-->
       <Custom Action="ChangeConfigJs" After="InstallFinalize">NOT Installed</Custom>
       <Custom Action="RunDBMigrator" Before="InstallFinalize">NOT Installed</Custom>

@@ -9,7 +9,4 @@
     <Condition Message="[ProductName] requires .NET Framework 4.5. Please install the .NET Framework then run this installer again.">
         <![CDATA[Installed OR NETFRAMEWORK45]]>
     </Condition>
-    <Condition Message="You need to be an administrator to install this product.">
-        <![CDATA[IS_ADMIN = 1]]>
-    </Condition>
 </Include>
