@@ -38,11 +38,11 @@
 
       <Component Id="WebConfigSQLConnectionString" Guid="{A904D2EF-3293-4B55-A9D5-16721D16067F}">
         <!-- SQL Connection String with credentials-->
-        <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID <> "" AND SQL_PASSWORD <> ""]]></Condition>
+        <Condition><![CDATA[DATABASE_TYPE = "MS_SQL"]]></Condition>
         <util:XmlFile Id="ModifySQLConnectionString" Action="setValue" Permanent="yes"
              ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
              File="[INSTALL_API_FOLDER]Web.config"
-             Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USER_ID];Pwd=[SQL_PASSWORD]"
+             Value="[DATABASE_CONNECTION_STRING]"
              SelectionLanguage="XSLPattern" Sequence="1" />
         <CreateFolder/>
       </Component>
@@ -259,11 +259,11 @@
 
       <Component Id="DBMigratorSQLConnectionString" Guid="{BAFF0865-3731-4262-8E57-99A64FC5069E}">
         <!-- SQL Connection String with credentials-->
-        <Condition><![CDATA[DATABASE_TYPE = "MS_SQL" AND SQL_USER_ID <> "" AND SQL_PASSWORD <> ""]]></Condition>
+        <Condition><![CDATA[DATABASE_TYPE = "MS_SQL"]]></Condition>
         <util:XmlFile Id="DBMigratorSQLConnectionString" Action="setValue" Permanent="yes"
              ElementPath="/configuration/connectionStrings/add[\[]@name='DeviceHiveContext'[\]]" Name="connectionString"
              File="[INSTALL_DBMIGRATOR_FOLDER]DeviceHive.DBMigrator.exe.config"
-             Value="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USER_ID];Pwd=[SQL_PASSWORD]"
+             Value="[DATABASE_CONNECTION_STRING]"
              SelectionLanguage="XSLPattern" Sequence="1" />
         <CreateFolder/>
       </Component>
