@@ -6,9 +6,9 @@ using System.Text.RegularExpressions;
 
 namespace DeviceHive.Setup.Actions.Validation
 {
-    internal class SiteBindingValidator
+    public class SiteBindingValidator
     {
-        internal void Validate(string webSiteName, string hostName, string portNumber)
+        public void Validate(string webSiteName, string hostName, string portNumber)
         {
             if (string.IsNullOrEmpty(webSiteName))
                 throw new ArgumentNullException("webSiteName");

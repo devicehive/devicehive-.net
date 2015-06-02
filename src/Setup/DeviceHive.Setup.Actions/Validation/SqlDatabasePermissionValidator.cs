@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 
 namespace DeviceHive.Setup.Actions
 {
-    class SqlDatabasePermissionValidator
+    public class SqlDatabasePermissionValidator
     {
         private SqlConnection _connection;
 

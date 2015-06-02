@@ -5,7 +5,7 @@ using Microsoft.SqlServer.Server;
 
 namespace DeviceHive.Setup.Actions
 {
-    class SqlDatabaseValidator
+    public class SqlDatabaseValidator
     {
         private SqlConnection _connection;
 
