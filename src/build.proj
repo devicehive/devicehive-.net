@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <OutDir Condition=" '$(OutDir)'=='' ">$(MSBuildThisFileDirectory)..\bin\</OutDir>
+    <Configuration Condition=" '$(Configuration)'=='' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)'=='' ">x64</Platform>
+    <DeviceHiveServerHome Condition=" '$(DeviceHiveServerHome)'=='' ">$(MSBuildThisFileDirectory)Server\</DeviceHiveServerHome>
+    <DeviceHiveSetupHome Condition=" '$(DeviceHiveSetupHome)'=='' ">$(MSBuildThisFileDirectory)Setup\</DeviceHiveSetupHome>
+    <ToolsHome Condition=" '$(ToolsHome)'=='' ">$(MSBuildThisFileDirectory)..\tools\</ToolsHome>
+    <DestinationFolder Condition=" '$(DestinationFolder)'=='' ">$(OutDir)\Server\</DestinationFolder>
+    <DeviceHiveApiDestinationFolder>$(DestinationFolder)web</DeviceHiveApiDestinationFolder>
+    <DeviceHiveWebSocketsAPIDestinationFolder>$(DestinationFolder)WebSockets.API</DeviceHiveWebSocketsAPIDestinationFolder>
+    <DeviceHiveWebSocketsHostDestinationFolder>$(DestinationFolder)WebSockets.Host</DeviceHiveWebSocketsHostDestinationFolder>
+    <DeviceHiveDBMigratorDestinationFolder>$(DestinationFolder)DBMigrator</DeviceHiveDBMigratorDestinationFolder>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>
+        DeviceHiveDBMigratorDestinationFolder=$(DeviceHiveDBMigratorDestinationFolder)%3b
+        DeviceHiveApiDestinationFolder=$(DeviceHiveApiDestinationFolder)%3b
+        DeviceHiveWebSocketsAPIDestinationFolder=$(DeviceHiveWebSocketsAPIDestinationFolder)
+    </DefineConstants>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <DeviceHiveWebSocketsAPIOutputFolder Include="$(DeviceHiveServerHome)DeviceHive.WebSockets.API\bin\$(Configuration)\*.*"></DeviceHiveWebSocketsAPIOutputFolder>  
+    <DeviceHiveWebSocketsHostOutputFolder Include="$(DeviceHiveServerHome)DeviceHive.WebSockets.Host\bin\$(Configuration)\*.*"></DeviceHiveWebSocketsHostOutputFolder>  
+    <DBMigratorOutputFolder Include="$(DeviceHiveServerHome)DeviceHive.DBMigrator\bin\$(Configuration)\*.*"></DBMigratorOutputFolder>  
+  </ItemGroup>
+
+  <ItemGroup>
+    <DeviceHiveServerSolution Include="$(DeviceHiveServerHome)*.sln">
+      <AdditionalProperties>DeployOnBuild=true;_PackageTempDir=$(DeviceHiveApiDestinationFolder);Configuration=$(Configuration)</AdditionalProperties>
+    </DeviceHiveServerSolution>
+    <DeviceHiveSetupMsiSolution Include="$(DeviceHiveSetupHome)DeviceHive.wSetup\*.wixproj">
+      <AdditionalProperties>Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
+    </DeviceHiveSetupMsiSolution>
+    <DeviceHiveSetupSolution Include="$(DeviceHiveSetupHome)Setup\*.vcxproj">
+      <AdditionalProperties>OutDir=$(OutDir);Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
+    </DeviceHiveSetupSolution>
+  </ItemGroup>
+
+  <Target Name="Build" DependsOnTargets="BuildDeviceHiveSetupMsiSolution">
+    <MSBuild Targets="Build" Projects="@(DeviceHiveSetupSolution)"/>
+  </Target>
+
+  <Target Name="BuildDeviceHiveSetupMsiSolution" DependsOnTargets="BuildDeviceHiveServerSolution">
+    <MSBuild Targets="Build" Projects="@(DeviceHiveSetupMsiSolution)" Properties="DefineConstants=$(DefineConstants)" />
+  </Target>
+  
+  <Target Name="BuildDeviceHiveServerSolution" DependsOnTargets="RestorePackages">
+    <MSBuild Targets="Build" Projects="@(DeviceHiveServerSolution)"/>
+    <Copy SourceFiles="@(DeviceHiveWebSocketsAPIOutputFolder)" DestinationFolder="$(DeviceHiveWebSocketsAPIDestinationFolder)"/>
+    <Copy SourceFiles="@(DeviceHiveWebSocketsHostOutputFolder)" DestinationFolder="$(DeviceHiveWebSocketsHostDestinationFolder)"/>
+    <Copy SourceFiles="@(DBMigratorOutputFolder)" DestinationFolder="$(DeviceHiveDBMigratorDestinationFolder)"/>  
+  </Target>
+  
+  <Target Name="RestorePackages">
+    <Exec Command="&quot;$(ToolsHome)NuGet.exe&quot; restore &quot;%(DeviceHiveServerSolution.Identity)&quot;" />
+  </Target>
+  
+  <Target Name="Clean">
+    <MSBuild Targets="Clean" Projects="@(DeviceHiveServerSolution)" />
+    <MSBuild Targets="Clean" Projects="@(DeviceHiveSetupMsiSolution)" />
+    <MSBuild Targets="Clean" Projects="@(DeviceHiveSetupSolution)" />
+  </Target>
+
+</Project>
