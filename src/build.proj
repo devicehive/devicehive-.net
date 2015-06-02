@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <Version Condition=" '$(Version)'=='' ">1.3.0.0</Version>
     <OutDir Condition=" '$(OutDir)'=='' ">$(MSBuildThisFileDirectory)..\bin\</OutDir>
     <Configuration Condition=" '$(Configuration)'=='' ">Release</Configuration>
     <Platform Condition=" '$(Platform)'=='' ">x64</Platform>
     <DeviceHiveServerHome Condition=" '$(DeviceHiveServerHome)'=='' ">$(MSBuildThisFileDirectory)Server\</DeviceHiveServerHome>
     <DeviceHiveSetupHome Condition=" '$(DeviceHiveSetupHome)'=='' ">$(MSBuildThisFileDirectory)Setup\</DeviceHiveSetupHome>
     <ToolsHome Condition=" '$(ToolsHome)'=='' ">$(MSBuildThisFileDirectory)..\tools\</ToolsHome>
-    <DestinationFolder Condition=" '$(DestinationFolder)'=='' ">$(OutDir)\Server\</DestinationFolder>
+    <DestinationFolder Condition=" '$(DestinationFolder)'=='' ">$(OutDir)Server\</DestinationFolder>
     <DeviceHiveApiDestinationFolder>$(DestinationFolder)web</DeviceHiveApiDestinationFolder>
     <DeviceHiveWebSocketsAPIDestinationFolder>$(DestinationFolder)WebSockets.API</DeviceHiveWebSocketsAPIDestinationFolder>
     <DeviceHiveWebSocketsHostDestinationFolder>$(DestinationFolder)WebSockets.Host</DeviceHiveWebSocketsHostDestinationFolder>
@@ -32,20 +33,21 @@
     <DeviceHiveServerSolution Include="$(DeviceHiveServerHome)*.sln">
       <AdditionalProperties>DeployOnBuild=true;_PackageTempDir=$(DeviceHiveApiDestinationFolder);Configuration=$(Configuration)</AdditionalProperties>
     </DeviceHiveServerSolution>
-    <DeviceHiveSetupMsiSolution Include="$(DeviceHiveSetupHome)DeviceHive.wSetup\*.wixproj">
+	<DeviceHiveSetupMsiSolution Include="$(DeviceHiveSetupHome)*.sln"/>	
+    <DeviceHiveSetupMsiProject Include="$(DeviceHiveSetupHome)DeviceHive.wSetup\*.wixproj">
       <AdditionalProperties>Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
-    </DeviceHiveSetupMsiSolution>
+    </DeviceHiveSetupMsiProject>
     <DeviceHiveSetupSolution Include="$(DeviceHiveSetupHome)Setup\*.vcxproj">
       <AdditionalProperties>OutDir=$(OutDir);Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
     </DeviceHiveSetupSolution>
   </ItemGroup>
 
-  <Target Name="Build" DependsOnTargets="BuildDeviceHiveSetupMsiSolution">
+  <Target Name="Build" DependsOnTargets="Clean;BuildDeviceHiveSetupMsiProject">
     <MSBuild Targets="Build" Projects="@(DeviceHiveSetupSolution)"/>
   </Target>
 
-  <Target Name="BuildDeviceHiveSetupMsiSolution" DependsOnTargets="BuildDeviceHiveServerSolution">
-    <MSBuild Targets="Build" Projects="@(DeviceHiveSetupMsiSolution)" Properties="DefineConstants=$(DefineConstants)" />
+  <Target Name="BuildDeviceHiveSetupMsiProject" DependsOnTargets="BuildDeviceHiveServerSolution">
+    <MSBuild Targets="Build" Projects="@(DeviceHiveSetupMsiProject)" Properties="DefineConstants=$(DefineConstants)" />
   </Target>
   
   <Target Name="BuildDeviceHiveServerSolution" DependsOnTargets="RestorePackages">
@@ -57,11 +59,14 @@
   
   <Target Name="RestorePackages">
     <Exec Command="&quot;$(ToolsHome)NuGet.exe&quot; restore &quot;%(DeviceHiveServerSolution.Identity)&quot;" />
+    <Exec Command="&quot;$(ToolsHome)NuGet.exe&quot; restore &quot;%(DeviceHiveSetupMsiSolution.Identity)&quot;" />
   </Target>
   
   <Target Name="Clean">
+    <RemoveDir Directories="$(OutDir)" />
+  
     <MSBuild Targets="Clean" Projects="@(DeviceHiveServerSolution)" />
-    <MSBuild Targets="Clean" Projects="@(DeviceHiveSetupMsiSolution)" />
+    <MSBuild Targets="Clean" Projects="@(DeviceHiveSetupMsiProject)" />
     <MSBuild Targets="Clean" Projects="@(DeviceHiveSetupSolution)" />
   </Target>
 
