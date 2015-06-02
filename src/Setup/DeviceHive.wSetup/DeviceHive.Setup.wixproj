@@ -13,28 +13,28 @@
     <Name>DeviceHive.Setup</Name>
     <WixVariables>
     </WixVariables>
-    <BuildProjectReferences>true</BuildProjectReferences>
+	<DefineSolutionProperties>false</DefineSolutionProperties>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <DefineConstants>Debug;</DefineConstants>
     <WixVariables>
     </WixVariables>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
-    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
     <DefineConstants>Debug;</DefineConstants>
     <WixVariables>
     </WixVariables>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
-    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
@@ -112,36 +112,10 @@
 	<Target Name="AfterBuild">
 	</Target>
 	-->
-  <Target Name="BuildDeviceHiveAPI">
-    <ItemGroup>
-      <DeviceHiveData Include="..\..\Server\DeviceHive.Data\DeviceHive.Data.csproj" />
-      <DeviceHiveDataEF Include="..\..\Server\DeviceHive.Data.EF\DeviceHive.Data.EF.csproj" />
-      <DeviceHiveDataMongoDB Include="..\..\Server\DeviceHive.Data.MongoDB\DeviceHive.Data.MongoDB.csproj" />
-      <DeviceHiveAPI Include="..\..\Server\DeviceHive.API\DeviceHive.API.csproj" />
-      <DeviceHiveDBMigrator Include="..\..\Server\DeviceHive.DBMigrator\DeviceHive.DBMigrator.csproj" />
-    </ItemGroup>
-    <Message Text="Build DeviceHive APIs..." />
-    <MSBuild Projects="@(DeviceHiveData)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
-    <MSBuild Projects="@(DeviceHiveDataEF)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
-    <MSBuild Projects="@(DeviceHiveDataMongoDB)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
-    <MSBuild Projects="@(DeviceHiveDBMigrator)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
-    <MSBuild Projects="@(DeviceHiveAPI)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
-    <MSBuild Projects="@(BuchiMessageHandlers)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
-  </Target>
-  <Target Name="BuildDeviceHiveWebSocketsAPI">
-    <ItemGroup>
-      <DeviceHiveWebSocketsHost Include="..\..\Server\DeviceHive.WebSockets.Host\DeviceHive.WebSockets.Host.csproj" />
-      <DeviceHiveWebSocketsCore Include="..\..\Server\DeviceHive.WebSockets.Core\DeviceHive.WebSockets.Core.csproj" />
-      <DeviceHiveWebSocketsAPI Include="..\..\Server\DeviceHive.WebSockets.API\DeviceHive.WebSockets.API.csproj" />
-    </ItemGroup>
-    <Message Text="Build DeviceHive WebSockets APIs..." />
-    <MSBuild Projects="@(DeviceHiveWebSocketsHost)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
-    <MSBuild Projects="@(DeviceHiveWebSocketsCore)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
-    <MSBuild Projects="@(DeviceHiveWebSocketsAPI)" RebaseOutputs="true" Properties="Configuration=$(Configuration);Platform=x86" />
-  </Target>
   <Target Name="BeforeBuild">
-    <CallTarget Targets="BuildDeviceHiveAPI" />
-    <CallTarget Targets="BuildDeviceHiveWebSocketsAPI" />
+	<CreateProperty Value="$([MSBuild]::Unescape($(DefineConstants)))">
+      <Output TaskParameter="Value" PropertyName="DefineConstants" />
+    </CreateProperty>
     <MSBuild Projects="%(ProjectReference.FullPath)" Targets="Package" Properties="Configuration=$(Configuration);Platform=AnyCPU" Condition="'%(ProjectReference.WebProject)'=='True'" />
     <ItemGroup>
       <LinkerBindInputPaths Include="%(ProjectReference.RootDir)%(ProjectReference.Directory)obj\$(Configuration)\Package\PackageTmp\" />
