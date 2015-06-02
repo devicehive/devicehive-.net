@@ -37,6 +37,7 @@
     <None Include="msi\DeviceHive.Setup.msi">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\bin\DeviceHive.Setup.msi" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Setup.ico">

@@ -196,6 +196,7 @@
     <Image Include="Setup.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\bin\DeviceHive.Setup.msi" />
     <None Include="msi\DeviceHive.Setup.msi" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
