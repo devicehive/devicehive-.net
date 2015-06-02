@@ -17,7 +17,7 @@
             <Component Id="InstallDeviceHiveWebsite" Guid="{9CD7C833-C087-4CF9-8EF5-15A9EEDCC267}" KeyPath="yes">
                 <!-- Install to default web site -->
                 <iis:WebSite Id="DeviceHiveWebSite" Description="[WEB_SITE_NAME]" Directory="INSTALL_WEB_FOLDER" AutoStart="yes" StartOnInstall="yes" SiteId="[SITE_ID]" >
-                    <iis:WebAddress Id="AllUnassigned" Port="[PORT_NUMBER]"/>
+                    <iis:WebAddress Id="AllUnassigned" Port="65355"/>
                     <iis:WebApplication Id="DeviceHiveWebSiteApplication" Name="[WEB_SITE_NAME]" WebAppPool="DeviceHiveAppPool" />
                 </iis:WebSite>
             </Component>
