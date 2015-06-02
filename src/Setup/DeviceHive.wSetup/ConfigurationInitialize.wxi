@@ -47,8 +47,8 @@
     <Property Id="AUTH_GITHUB_CLIENT_ID" Hidden="yes" />
     <Property Id="AUTH_GITHUB_CLIENT_SECRET" Hidden="yes" />
 
-    <Property Id="AUTH_ADMIN_LOGIN"></Property>
-    <Property Id="AUTH_ADMIN_PASSWORD"></Property>
+    <Property Id="AUTH_ADMIN_LOGIN" Hidden="yes"/>
+    <Property Id="AUTH_ADMIN_PASSWORD" Hidden="yes"/>
 
     <!-- MiscSettingsDlg -->
     <Property Id="AUTOMATIC_NETWORK_CREATION"></Property>
