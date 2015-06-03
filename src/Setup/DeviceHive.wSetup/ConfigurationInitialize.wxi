@@ -3,7 +3,6 @@
     <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
     <!-- DatabaseDlg -->
     <Property Id="DATABASE_TYPE" Value="MS_SQL" />
-    <Property Id="DATABASE_CONNECTION_STRING"/>
 
     <!-- SQLConnectionStringDlg -->
     <Property Id="SQL_SERVER" Value="(local)"/>
@@ -18,7 +17,6 @@
     <Property Id="MONGO_PASSWORD" Hidden="yes"/>
 
     <!-- HostingDlg -->
-    <Property Id="DOMAIN_NAME" />
     <Property Id="PORT_NUMBER" Value="80" />
 
     <!-- WebSocketDlg -->
@@ -27,16 +25,11 @@
 
     <!-- SSLSetupDlg -->
     <Property Id="SSL_ENABLED" Value="true" />
-    <Property Id="SSL_REQUIRED" />
     <Property Id="SSL_PORT_NUMBER" Value="443"></Property>
     <Property Id="SSL_WEB_SOCKET_PORT_NUMBER" Value="8443"></Property>
-    <Property Id="SSL_CERTIFICATE"/>
     <Property Id="SSL_CERTIFICATE_STORAGE_EMPTY" Value="false"/>
 
     <!-- AuthenticationDlg -->
-    <Property Id="AUTH_GOOGLE"></Property>
-    <Property Id="AUTH_FACEBOOK"></Property>
-    <Property Id="AUTH_GITHUB"></Property>
 
     <Property Id="AUTH_GOOGLE_CLIENT_ID" Hidden="yes" />
     <Property Id="AUTH_GOOGLE_CLIENT_SECRET" Hidden="yes" />
@@ -49,9 +42,6 @@
 
     <Property Id="AUTH_ADMIN_LOGIN" Hidden="yes"/>
     <Property Id="AUTH_ADMIN_PASSWORD" Hidden="yes"/>
-
-    <!-- MiscSettingsDlg -->
-    <Property Id="AUTOMATIC_NETWORK_CREATION"></Property>
 
     <!-- VIRTUAL_DIR_VAL property initialize -->
     <Property Id="VIRTUAL_DIR_VAL" Value="DeviceHive.Api" />
