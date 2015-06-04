@@ -6,7 +6,7 @@
     <Condition Message="[ProductName] requires IIS 7 or later. Please install the IIS and then run this installer again.">
         <![CDATA[Installed OR IISMAJORVERSION]]>
     </Condition>
-    <Condition Message="[ProductName] requires .NET Framework 4.5. Please install the .NET Framework then run this installer again.">
-        <![CDATA[Installed OR NETFRAMEWORK45]]>
+    <Condition Message="[ProductName] requires .NET Framework 4.5.2. Please install the .NET Framework then run this installer again.">
+        <![CDATA[Installed OR (NETFRAMEWORK45 >= "#379893")]]>
     </Condition>
 </Include>
