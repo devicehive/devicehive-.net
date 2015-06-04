@@ -30,8 +30,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DeviceHiveClientNet45DestinationFolder Condition=" '$(DeviceHiveClientDestinationFolder)'=='' ">$(OutDir)Client\net45</DeviceHiveClientNet45DestinationFolder>
-    <DeviceHiveClientPortableDestinationFolder Condition=" '$(DeviceHiveClientDestinationFolder)'=='' ">$(OutDir)Client\portable</DeviceHiveClientPortableDestinationFolder>
+    <DeviceHiveClientNet45DestinationFolder Condition=" '$(DeviceHiveClientNet45DestinationFolder)'=='' ">$(OutDir)Client\net45</DeviceHiveClientNet45DestinationFolder>
+    <DeviceHiveClientPortableDestinationFolder Condition=" '$(DeviceHiveClientPortableDestinationFolder)'=='' ">$(OutDir)Client\portable</DeviceHiveClientPortableDestinationFolder>
     <DeviceHiveDeviceDestinationFolder Condition=" '$(DeviceHiveDeviceDestinationFolder)'=='' ">$(OutDir)Device\</DeviceHiveDeviceDestinationFolder>
     <DeviceHiveManagerWin8DestinationFolder Condition=" '$(DeviceHiveManagerWin8DestinationFolder)'=='' ">$(OutDir)ManagerWin8\</DeviceHiveManagerWin8DestinationFolder>
     <DeviceHiveServerDestinationFolder Condition=" '$(DeviceHiveServerDestinationFolder)'=='' ">$(OutDir)Server\</DeviceHiveServerDestinationFolder>
