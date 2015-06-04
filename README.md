@@ -42,22 +42,10 @@ The following OS and applications are required for the DeviceHive .NET server to
 
 1. Windows Server 2008 (or higher) or Windows 7
 2. Microsoft IIS 7 (or higher)
-3. Microsoft .NET Framework 4.5.1 (or higher)
-4. MongoDB or Microsoft SQL Server 2008 (or higher)
+3. Microsoft .NET Framework 4.5.2 (or higher)
+4. MongoDB 2.6 (or higher) or Microsoft SQL Server 2008 (or higher)
 
-The following steps should be taken in order to deploy an instance of the DeviceHive .NET server:
-
-1. Build the server solution by running `/src/Server/build.cmd` script (Visual Studio 2013 is required) or download server binaries from the DeviceHive [downloads](http://devicehive.com/download) page.
-2. Launch the database migrator utility located at `/bin/Server/DBMigrator/DeviceHive.DBMigrator.exe` to create all necessary schema objects and indexes in the storage. Before running the executable, insert your database connection string into the `DeviceHive.DBMigrator.exe.config` file located in the same directory.
-  * MongoDB: set *RepositoryAssembly* to *DeviceHive.Data.MongoDB* and insert MongoDB connection string into the *MongoConnection* setting.
-  * SQL Server: set *RepositoryAssembly* to *DeviceHive.Data.EF* and insert SQL Server connection string into the *DeviceHiveContext* connection string element.
-3. Open IIS manager, create new website (if necessary) and add new application (e.g. /api), pointing to the `/bin/Server/Web` folder. Make sure the corresponding application pool is running .NET Framework v4.0 in the integrated pipeline mode.
-4. Open `Web.config` file in the application root folder and update the *RepositoryAssembly* setting and connection string to your storage (as described in the step 2).
-5. Check if you configured everything correctly by opening a root folder of the application in your browser. A message should be displayed that DeviceHive RESTful API is running.
-6. The distribution also includes optional web socket endpoint, which allows maintaining persistent connection to WebSocket enabled devices and clients. In order to deploy it, run Windows service installation utility pointing to the WebSocket executable, e.g. `C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe <DeviceHivePath>/bin/Server/WebSockets.API/DeviceHive.WebSockets.API.exe`. Make sure to update database connection string and the *restEndpoint* setting in the `DeviceHive.WebSockets.API.exe.config` file before starting the service. After that, enable WebSocket endpoint in the DeviceHive web application configuration file (see the *webSocketEndpoint* element).
-7. Schedule application maintenance task by running `/tools/Scheduler/schedule_tasks.cmd` script, passing API URL as a command argument. For example, `schedule_tasks.cmd http://localhost/api`.
-8. Now it’s time to deploy the administrative console. In order to do that, create another virtual directory on your website (e.g. /admin), pointing to the root folder of the [admin console repository](https://github.com/devicehive/devicehive-admin-console). Modify `Scripts/config.js` file to specify a valid relative path to the API and to the current console.
-9. Open console in your browser, specifying default administrator credentials (login: dhadmin, password: dhadmin_#911). Please refer to the [Administrative Console Documentation](http://devicehive.com/devicehive-administrative-console) to get more information about supported functions.
+The setup package could be built from the sources or downloaded from the DeviceHive [downloads](http://devicehive.com/download) page.
 
 ### Client library
 
@@ -69,7 +57,7 @@ The library supports the following actions:
 * Get real-time notifications from devices about various events
 * Send a command to a particular device
 
-Client library is available in two options: .NET Framework 4.5 library and .NET Portable Library which targets the following frameworks: .NET Framework 4.5, .NET for Windows Store Apps (Windows 8), Windows Phone 8.1, Windows Phone Silverlight 8.
+Client library is available in two options: .NET Framework 4.5 library and .NET Portable Library which targets the following frameworks: .NET for Windows Store Apps (Windows 8.1+) and Windows Phone 8.1+.
 
 #### Installation and Usage
 
@@ -77,7 +65,7 @@ The library is available via NuGet: http://www.nuget.org/packages/DeviceHive.Cli
 
 Please refer to the [VirtualLed Client Tutorial](http://devicehive.com/virtualled-client-tutorial) to see step-by-step instructions on how to configure and launch sample VirtualLed client based on the .NET DeviceHive client libraries.
 
-Client Portable Library usage in Windows 8 is described in the [DeviceHive Manager Windows 8 Application Tutorial](http://devicehive.com/devicehive-manager-windows-8-application-tutorial).
+Client Portable Library usage in Windows 8.1 is described in the [DeviceHive Manager Windows 8 Application Tutorial](http://devicehive.com/devicehive-manager-windows-8-application-tutorial).
 
 See [Library Reference](http://devicehive.com/reference-net-client) for more detailed information on library classes and methods.
 
@@ -102,8 +90,36 @@ Please refer to the [VirtualLed Device Tutorial](http://devicehive.com/virtualle
 
 See [Library Reference](http://devicehive.com/reference-net-device) for more detailed information on library classes and methods.
 
+Build instructions
+------------------
+
+In order to build all components, run the `/src/build.cmd` script. The build output will be placed into the `/bin` folder.
+The following tools are required for making the build:
+
+1. Microsoft Visual Studio 2013 Update 2 or later
+2. Microsoft .NET Framework 4.5.2 Developer Pack
+3. [WiX Toolset](http://wixtoolset.org/)
+4. [MSBuild Community Tasks](https://github.com/loresoft/msbuildtasks)
+
+Alternatively, individual components can be built using the `build.cmd` scripts in the corresponding component folders.
+
 Change history
 ------------------
+
+#### 2.0.0
+* API: Added ability for users to block devices (device.isBlocked field)
+* API: The user entity now includes 'data' field for storing arbitrary data
+* Server: Added server installer project
+* Server: Do not return HTTP 400 in pollMany calls if specified deviceGuid is invalid
+* Server: Performance optimizations for MongoDB database
+* Server: Performance optimizations for inter-server communications in cluster environment
+* Server: Support for reading client IP address from a HTTP header (for proxy server scenarios)
+* Client: Added support for Reconnecting state
+* Client: Added DeviceHiveClient.WaitCommandResultAsync method to get awaitable task for command result
+* Client: Allow to set custom HttpMessageHandler in the RestClient contructor
+* Client: Extracted IRestClient interface from the RestClient class for better portability
+* Client: Added OldPassword field to the User entity for password changing functionality
+* Client: Portable library now targets Windows 8.1 and Windows Phone 8.1 platforms
 
 #### 1.3.1
 * API: New access key permission actions to cover administrative API methods
