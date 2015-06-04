@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+    <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
+    <!-- DatabaseDlg -->
+    <Property Id="DATABASE_TYPE" Value="MS_SQL" />
+
+    <!-- SQLConnectionStringDlg -->
+    <Property Id="SQL_SERVER" Value="(local)"/>
+    <Property Id="SQL_DATABASE" Value="devicehive" />
+    <Property Id="SQL_USER_ID" Hidden="yes"/>
+    <Property Id="SQL_PASSWORD" Hidden="yes"/>
+
+    <!-- MongoConnectionStringDlg -->
+    <Property Id="MONGO_HOST" Value="localhost" />
+    <Property Id="MONGO_DATABASE" Value="devicehive" />
+    <Property Id="MONGO_LOGIN" Hidden="yes"/>
+    <Property Id="MONGO_PASSWORD" Hidden="yes"/>
+
+    <!-- HostingDlg -->
+    <Property Id="PORT_NUMBER" Value="80" />
+
+    <!-- WebSocketDlg -->
+    <Property Id="WEB_SOCKET_ENABLED" Value="false" />
+    <Property Id="WEB_SOCKET_PORT_NUMBER" Value="8010" />
+
+    <!-- SSLSetupDlg -->
+    <Property Id="SSL_ENABLED" Value="true" />
+    <Property Id="SSL_PORT_NUMBER" Value="443"></Property>
+    <Property Id="SSL_WEB_SOCKET_PORT_NUMBER" Value="8443"></Property>
+    <Property Id="SSL_CERTIFICATE_STORAGE_EMPTY" Value="false"/>
+
+    <!-- AuthenticationDlg -->
+
+    <Property Id="AUTH_GOOGLE_CLIENT_ID" Hidden="yes" />
+    <Property Id="AUTH_GOOGLE_CLIENT_SECRET" Hidden="yes" />
+
+    <Property Id="AUTH_FACEBOOK_CLIENT_ID" Hidden="yes" />
+    <Property Id="AUTH_FACEBOOK_CLIENT_SECRET" Hidden="yes" />
+
+    <Property Id="AUTH_GITHUB_CLIENT_ID" Hidden="yes" />
+    <Property Id="AUTH_GITHUB_CLIENT_SECRET" Hidden="yes" />
+
+    <Property Id="AUTH_ADMIN_LOGIN" Hidden="yes"/>
+    <Property Id="AUTH_ADMIN_PASSWORD" Hidden="yes"/>
+
+    <!-- VIRTUAL_DIR_VAL property initialize -->
+    <Property Id="VIRTUAL_DIR_VAL" Value="DeviceHive.Api" />
+
+    <!-- web app name properties initialize -->
+    <Property Id="SITE_ID" Value="1"/>
+    <Property Id="WEB_SITE_NAME" Value = "DeviceHive"/>
+    <Property Id="WEB_APP_NAME" Value="DeviceHive.Api" />
+    <Property Id="WEB_APPLICATION_POOL" Value="DeviceHiveAppPool" />
+
+    <!-- app pool identity properties initialize -->
+    <Property Id="WEB_APP_POOL_IDENTITY_DOMAIN" Value="POOL_DOMAIN" />
+    <Property Id="WEB_APP_POOL_IDENTITY_NAME" Value="account-name" />
+    <Property Id="WEB_APP_POOL_IDENTITY_PWD" Hidden="yes" />
+  
+    <Property Id="WEB_SOCKET_API_SERVICE_NAME" Value="DeviceHive.WebSockets"/>
+</Include>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <Dialog Id="SSLSetupDlg" Width="370" Height="270" Title="SSL Settings - [ProductName]" NoMinimize="yes">
+    <Control Type="Text" Id="SSLCertificateMessageHeader" Width="290" Height="30" X="45" Y="55" Text="SSL protocol could not be enabled, because the server does not have valid SSL certificates installed. If you would like to enable SSL for DeviceHive, please take one of the following approaches:">
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY <> "true"]]></Condition>
+    </Control>
+    <Control Type="Text" Id="SSLCertificateMessagePartOne" Width="290" Height="10" X="45" Y="100" Text="1) Install a valid SSL certificate on the server, then restart DeviceHive installer.">
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY <> "true"]]></Condition>
+    </Control>
+    <Control Type="Text" Id="SSLCertificateMessagePartTwo" Width="290" Height="24" X="45" Y="115" Text="2) Install DeviceHive without SSL support, then configure SSL settings manually in the IIS console.">
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY <> "true"]]></Condition>
+    </Control>
+    <Control Type="Text" Id="SSLCertificateMessageFooter" Width="290" Height="20" X="45" Y="215" Text="Please note using SSL protocol is strongly advised for production environments.">
+    </Control>
+    <Control Id="SSLEnabledCheckBox" Type="CheckBox" X="45" Y="55" Width="220" Height="18" Property="SSL_ENABLED" CheckBoxValue="true" Text="&amp;SSL Enabled">
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
+    </Control>
+    <Control Id="SSLRequiredCheckBox" Type="CheckBox" X="45" Y="70" Width="220" Height="18" Property="SSL_REQUIRED" CheckBoxValue="true" Text="&amp;SSL Required">
+      <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
+    </Control>
+    <Control Id="SSLWebPortNumberLabel" Type="Text" X="45" Y="95" Width="100" Height="15" TabSkip="no" Text="&amp;SSL Web Port Number:">
+      <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
+    </Control>
+    <Control Id="SSLWebPortNumberEdit" Type="Edit" X="45" Y="110" Width="220" Height="15" Property="SSL_PORT_NUMBER" Text="{200}">
+      <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
+    </Control>
+    <!--<Control Id="SSLWebSocketPortNumberLabel" Type="Text" X="45" Y="135" Width="214" Height="15" TabSkip="no" Text="&amp;SSL Web Socket Port Number:">
+      <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true" OR WEB_SOCKET_ENABLED <> "true"]]></Condition>
+    </Control>
+    <Control Id="SSLWebSocketPortNumberEdit" Type="Edit" X="45" Y="150" Width="220" Height="15" Property="SSL_WEB_SOCKET_PORT_NUMBER" Text="{200}">
+      <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true" OR WEB_SOCKET_ENABLED <> "true"]]></Condition>
+    </Control>-->
+    <Control Id="SSLCertificateLabel" Type="Text" X="45" Y="175" Width="100" Height="15" TabSkip="no" Text="&amp;SSL Certificate:">
+      <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
+    </Control>
+    <Control Id="ComboBoxMain" Type="ComboBox" ComboList="yes" X="45" Y="190" Width="220" Height="16" Property="SSL_CERTIFICATE" Sorted="yes">
+      <ComboBox Property="SSL_CERTIFICATE">
+        <ListItem Text="Not Selected" Value="Not Selected" />
+      </ComboBox>
+      <Publish Property="LOGON_VALID" Value="0">1</Publish>
+      <Condition Action="enable"><![CDATA[SSL_ENABLED = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[SSL_ENABLED <> "true"]]></Condition>
+      <Condition Action="hide"><![CDATA[SSL_CERTIFICATE_STORAGE_EMPTY = "true"]]></Condition>
+    </Control>
+    <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+      <!--<Publish Event="NewDialog" Value="WebSocketDlg">1</Publish>-->
+      <Publish Event="NewDialog" Value="HostingDlg">1</Publish>
+    </Control>
+    <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+      <Condition Action="disable"><![CDATA[(SSL_CERTIFICATE = "Not Selected") AND (SSL_ENABLED = "true")]]></Condition>
+      <Condition Action="enable"><![CDATA[(SSL_CERTIFICATE <> "Not Selected") OR (SSL_ENABLED <> "true") OR (SSL_CERTIFICATE_STORAGE_EMPTY = "true")]]></Condition>
+      <Publish Property="WEB_SITE_PORT_NUMBER" Order="1" Value="[SSL_PORT_NUMBER]"><![CDATA[(SSL_ENABLED = "true") AND (SSL_CERTIFICATE_STORAGE_EMPTY <> "true")]]></Publish>
+      <Publish Event="DoAction" Order="2" Value="CheckSiteBinding"><![CDATA[(SSL_ENABLED = "true") AND (SSL_CERTIFICATE_STORAGE_EMPTY <> "true")]]></Publish>
+      <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[(SITE_BINDING_IS_VALID = 0) AND (SSL_ENABLED = "true") AND (SSL_CERTIFICATE_STORAGE_EMPTY <> "true")]]></Publish>
+      <Publish Event="NewDialog" Order="4" Value="AuthenticationDlg"><![CDATA[(SITE_BINDING_IS_VALID = 1) OR (SSL_ENABLED <> "true") OR (SSL_CERTIFICATE_STORAGE_EMPTY = "true")]]></Publish>
+    </Control>
+    <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+      <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+    </Control>
+    <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+    <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+      <Text>Please enter SSL configuration</Text>
+    </Control>
+    <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+    <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+      <Text>{\WixUI_Font_Title}SSL Settings</Text>
+    </Control>
+    <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+  </Dialog>
+</Include>

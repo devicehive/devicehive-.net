@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <?include ..\variables.wxi ?>
+    <Fragment>
+        <DirectoryRef Id="INSTALL_WINSOCKET_FOLDER">
+            <Component Id="cmp857EB6DCCF39EB3A73F919AD8B0B552E" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil687A73BA1B77A7168899B639ADB5EF8B" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\DeviceHive.Core.dll" />
+            </Component>
+            <Component Id="cmpD1F11A8CFAE6949EE9FCD29B0A0EC68C" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil69944CFEEE0B8F22A959F4051036A48B" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\DeviceHive.Data.dll" />
+            </Component>
+            <Component Id="cmp00A41B0720D78A88105A2500BECD49B4" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil68E1BA7C0985A8F0216D73316CE9C96F" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\DeviceHive.Data.EF.dll" />
+            </Component>
+            <Component Id="cmpEE00355983CD245CF2CC55896E390DBB" Guid="*" Win64="$(var.Win64)">
+                <File Id="filF50CF485F2F7663C39FFEEE08BF1225D" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\DeviceHive.Data.MongoDB.dll" />
+            </Component>
+            <Component Id="cmp440BE561BA69BBB2EBB4F2DE40832EA2" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil2C4E375AB5F086E12AA505A2D3642DAB" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\DeviceHive.WebSockets.API.exe" />
+            </Component>
+            <Component Id="cmp4A5B9BC4AF2EBFA27A0422128FF47A97" Guid="*" Win64="$(var.Win64)">
+                <File Id="filA9F4D93A7A386CAEC8C15F83229C245A" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\DeviceHive.WebSockets.API.exe.config" />
+            </Component>
+            <Component Id="cmpA93B16A6A73621B156B52ECEA360C1AD" Guid="*" Win64="$(var.Win64)">
+                <File Id="filCE1FE2BABF544078139966E66C4151A4" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\DeviceHive.WebSockets.Core.dll" />
+            </Component>
+            <Component Id="cmp8FF960F1127837CA99517B4980138175" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil243EAF0758A5CE1F4FB96AD407A66D84" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\EntityFramework.dll" />
+            </Component>
+            <Component Id="cmp932AA946F32ED819C7AE45B2290D7C0B" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil0FF2706BF53EF34AD6B4420125D256BB" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\EntityFramework.SqlServer.dll" />
+            </Component>
+            <Component Id="cmpC8E75065808648CDF3CCDA1DBD487FEE" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil85F6EAF22FE9F10765612954D637D6BC" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\Fleck.dll" />
+            </Component>
+            <Component Id="cmp5B4D774D8C6623C5CBC433E79E0FAB43" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil4BAADCFB654B9548732D1A4B4E3DE542" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\log4net.dll" />
+            </Component>
+            <Component Id="cmp876816A792EA9E936A76A635DA08B748" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil1FDC447BE9EA0D7317549E4C84744EB7" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\MongoDB.Bson.dll" />
+            </Component>
+            <Component Id="cmpF53E07E7A7EFD22EBD63E59494132DC3" Guid="*" Win64="$(var.Win64)">
+                <File Id="filD48C3F5E21A51B0673DB7CC44BAC1133" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\MongoDB.Driver.dll" />
+            </Component>
+            <Component Id="cmpF96B042D8557A49D424A098D61EB6D42" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil94DB32C1030544E194C2FA3C9B513DF5" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\Newtonsoft.Json.dll" />
+            </Component>
+            <Component Id="cmpC9251315D9F2600F74A330EAA0FDD6A7" Guid="*" Win64="$(var.Win64)">
+                <File Id="filD1BEE8991263B2ECFA23322899B78911" KeyPath="yes" Source="$(var.DeviceHiveWebSocketsAPIDestinationFolder)\Ninject.dll" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="DeviceHive.WebSockets.API_Project">
+            <ComponentRef Id="cmp857EB6DCCF39EB3A73F919AD8B0B552E" />
+            <ComponentRef Id="cmpD1F11A8CFAE6949EE9FCD29B0A0EC68C" />
+            <ComponentRef Id="cmp00A41B0720D78A88105A2500BECD49B4" />
+            <ComponentRef Id="cmpEE00355983CD245CF2CC55896E390DBB" />
+            <ComponentRef Id="cmp440BE561BA69BBB2EBB4F2DE40832EA2" />
+            <ComponentRef Id="cmp4A5B9BC4AF2EBFA27A0422128FF47A97" />
+            <ComponentRef Id="cmpA93B16A6A73621B156B52ECEA360C1AD" />
+            <ComponentRef Id="cmp8FF960F1127837CA99517B4980138175" />
+            <ComponentRef Id="cmp932AA946F32ED819C7AE45B2290D7C0B" />
+            <ComponentRef Id="cmpC8E75065808648CDF3CCDA1DBD487FEE" />
+            <ComponentRef Id="cmp5B4D774D8C6623C5CBC433E79E0FAB43" />
+            <ComponentRef Id="cmp876816A792EA9E936A76A635DA08B748" />
+            <ComponentRef Id="cmpF53E07E7A7EFD22EBD63E59494132DC3" />
+            <ComponentRef Id="cmpF96B042D8557A49D424A098D61EB6D42" />
+            <ComponentRef Id="cmpC9251315D9F2600F74A330EAA0FDD6A7" />
+        </ComponentGroup>
+    </Fragment>
+</Wix>

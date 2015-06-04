@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <?include ..\variables.wxi ?>
+    <Fragment>
+        <DirectoryRef Id="INSTALL_DBMIGRATOR_FOLDER">
+            <Component Id="cmpFB2C56960F41116B66EC92E59AE6569F" Guid="*" Win64="$(var.Win64)">
+                <File Id="filA2D11ED86CBC591369CEB042D3FBC0A1" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\DeviceHive.Data.dll" />
+            </Component>
+            <Component Id="cmp034897F606692C8C3F91058E6204DA10" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil21CD20F0610D8A8B1556E408169DF881" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\DeviceHive.Data.EF.dll" />
+            </Component>
+            <Component Id="cmp3214682E2ACBF35092B8B76AEBA8C137" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil17C5535801E5C8E792AF014E6F9B6736" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\DeviceHive.Data.MongoDB.dll" />
+            </Component>
+            <Component Id="cmpB47FD71120BA1767E5AEDBEF995D6A10" Guid="*" Win64="$(var.Win64)">
+                <File Id="filE2A9D691D399EB85F7173C4BF23F9843" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\DeviceHive.DBMigrator.exe" />
+            </Component>
+            <Component Id="cmp2324ED15E89E0823C1F3F6EEC3B7D4BA" Guid="*" Win64="$(var.Win64)">
+                <File Id="filE68911B9FA0D4808184B6D5F92AE9861" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\DeviceHive.DBMigrator.exe.config" />
+            </Component>
+            <Component Id="cmpE344547B58D31AA256725C8382C457D9" Guid="*" Win64="$(var.Win64)">
+                <File Id="filC046ED750808418577B044D86AD5F36E" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\EntityFramework.dll" />
+            </Component>
+            <Component Id="cmp667406DD42A75220C76C01B3683FFEEA" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil0E3201E1BE70B5029B40A3E504B37805" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\EntityFramework.SqlServer.dll" />
+            </Component>
+            <Component Id="cmp41984731EBD1CC35425B256EB49EC172" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil6A956C34D4AF6208683007DDB212E97B" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\MongoDB.Bson.dll" />
+            </Component>
+            <Component Id="cmp9C5B286E7EA9514D7B93891EA4F0E832" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil06D52148B148B515B27353871E4EB1B8" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\MongoDB.Driver.dll" />
+            </Component>
+            <Component Id="cmpCDCB4CC3A10CD30B0C72F5F9B8CFADCA" Guid="*" Win64="$(var.Win64)">
+                <File Id="fil2B9254B040D9B7C36467B65E23E356DB" KeyPath="yes" Source="$(var.DeviceHiveDBMigratorDestinationFolder)\Newtonsoft.Json.dll" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="DeviceHive.DBMigrator_Project">
+            <ComponentRef Id="cmpFB2C56960F41116B66EC92E59AE6569F" />
+            <ComponentRef Id="cmp034897F606692C8C3F91058E6204DA10" />
+            <ComponentRef Id="cmp3214682E2ACBF35092B8B76AEBA8C137" />
+            <ComponentRef Id="cmpB47FD71120BA1767E5AEDBEF995D6A10" />
+            <ComponentRef Id="cmp2324ED15E89E0823C1F3F6EEC3B7D4BA" />
+            <ComponentRef Id="cmpE344547B58D31AA256725C8382C457D9" />
+            <ComponentRef Id="cmp667406DD42A75220C76C01B3683FFEEA" />
+            <ComponentRef Id="cmp41984731EBD1CC35425B256EB49EC172" />
+            <ComponentRef Id="cmp9C5B286E7EA9514D7B93891EA4F0E832" />
+            <ComponentRef Id="cmpCDCB4CC3A10CD30B0C72F5F9B8CFADCA" />
+        </ComponentGroup>
+    </Fragment>
+</Wix>

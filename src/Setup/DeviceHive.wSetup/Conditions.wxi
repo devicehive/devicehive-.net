@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+    <Condition Message='Windows Server 2008 (Windows 7) or higher'>
+        <![CDATA[(VersionNT >= 600 AND MsiNTProductType = 3) OR (VersionNT >= 601 AND MsiNTProductType = 1)]]>
+    </Condition>
+    <Condition Message="[ProductName] requires IIS 7 or later. Please install the IIS and then run this installer again.">
+        <![CDATA[Installed OR IISMAJORVERSION]]>
+    </Condition>
+    <Condition Message="[ProductName] requires .NET Framework 4.5.2. Please install the .NET Framework then run this installer again.">
+        <![CDATA[Installed OR (NETFRAMEWORK45 >= "#379893")]]>
+    </Condition>
+</Include>

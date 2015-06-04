@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+    <Dialog Id="MessageBoxDlg" Title="[ProductName]" NoMinimize="yes" Height="85" Width="260">
+        <Control Id="Yes" Height="17" Width="56" Y="58" X="100" Type="PushButton" Text="!(loc.WixUIOK)">
+            <Publish Value="Return" Event="EndDialog">1</Publish>
+        </Control>
+        <Control Id="ErrorIcon" Type="Icon" X="15" Y="15" Width="24" Height="24" FixedSize="yes" IconSize="32" Text="WixUI_Ico_Exclam">
+            <Condition Action="show"><![CDATA[MESSAGE_TYPE = 0]]></Condition>
+            <Condition Action="hide"><![CDATA[MESSAGE_TYPE <>0]]></Condition>
+        </Control>
+        <Control Id="InfoIcon" Type="Icon" X="15" Y="15" Width="24" Height="24" FixedSize="yes" IconSize="32" Text="WixUI_Ico_Info">
+            <Condition Action="show"><![CDATA[MESSAGE_TYPE = 1]]></Condition>
+            <Condition Action="hide"><![CDATA[MESSAGE_TYPE <>1]]></Condition>
+        </Control>
+        <Control Id="TextFailed" X="48" Y="15" Height="34" Width="200" Type="Text" Text="[MESSAGE_TEXT]">
+        </Control>
+    </Dialog>
+</Include>
