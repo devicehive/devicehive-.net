@@ -19,9 +19,9 @@ namespace DeviceHive.WebSockets.Host
                 },
                 new ServiceInstaller()
                 {
-                    ServiceName = "DeviceHive.WebSockets.Host 1.3.1",
-                    DisplayName = "DeviceHive WebSockets Host Service 1.3.1",
-                    Description = "DeviceHive WebSockets Host Service 1.3.1",
+                    ServiceName = "DeviceHive.WebSockets.Host 2.0.0",
+                    DisplayName = "DeviceHive WebSockets Host Service 2.0.0",
+                    Description = "DeviceHive WebSockets Host Service 2.0.0",
                     StartType = ServiceStartMode.Automatic
                 }
             });
