@@ -55,7 +55,7 @@
       <AdditionalProperties>Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
     </DeviceHiveSetupMsiProject>
     <DeviceHiveSetupProject Include="$(DeviceHiveSetupHome)Setup\*.vcxproj">
-      <AdditionalProperties>OutDir=$(OutDir);Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
+      <AdditionalProperties>OutDir=$(DestinationFolder);Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
     </DeviceHiveSetupProject>
   </ItemGroup>
 
