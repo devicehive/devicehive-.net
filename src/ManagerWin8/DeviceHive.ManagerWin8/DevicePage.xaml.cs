@@ -381,7 +381,7 @@ namespace DeviceHive.ManagerWin8
                 }
                 catch (Exception ex)
                 {
-                    Window.Current.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         new MessageDialog(ex.Message, "Error").ShowAsync();
                     });
@@ -433,7 +433,6 @@ namespace DeviceHive.ManagerWin8
         void LoadCommands()
         {
             StopPollCommands();
-            StopPollCommandResult();
             bool loaded = false;
             CommandFilter filter = new CommandFilter() 
             {
@@ -454,7 +453,7 @@ namespace DeviceHive.ManagerWin8
                 }
                 catch (Exception ex)
                 {
-                    Window.Current.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         new MessageDialog(ex.Message, "Error").ShowAsync();
                     });
@@ -700,7 +699,6 @@ namespace DeviceHive.ManagerWin8
                 try
                 {
                     var command = new Command(commandName.Text, commandParams.Text != "" ? JObject.Parse(commandParams.Text) : null);
-                    StopPollCommandResult();
                     Debug.WriteLine("CMD SEND START");
                     commandResultCancellatonSource = new CancellationTokenSource();
                     await ClientService.Current.SendCommandAsync(deviceId, command, CommandResultCallback, commandResultCancellatonSource.Token);
@@ -729,8 +727,8 @@ namespace DeviceHive.ManagerWin8
                     {
                         if (command.Id == command.Id)
                         {
-                            // Command class doesn't implement INotifyPropertyChanded,
-                            // so replace old command by command with result
+                            // Command class doesn't implement INotifyPropertyChanded to update its result,
+                            // so old command is replaced by command with result:
                             var index = commandsObservable.IndexOf(cmd);
                             commandsObservable.RemoveAt(index);
                             commandsObservable.Insert(index, command);
