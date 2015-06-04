@@ -6,7 +6,7 @@
 #define ERRMSG_WRITETEMP    _T("Failed to write to temporary file.")
 #define ERRMSG_RUNPARAMS    _T("Failed to define installation folder.")
 #define MSG_NEWLINE         _T("\r\n")
-#define COMMAND_LINE        _T("msiexec /i %s")
+#define COMMAND_LINE        _T("msiexec /i %s %s")
 
 void ShowMessage(LPCTSTR lpText, LPCTSTR lpCaption, DWORD error_code);
 
@@ -56,7 +56,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
     PROCESS_INFORMATION procInfo;
 
     TCHAR cmdLine[MAX_PATH] = { 0 };
-    swprintf_s(cmdLine, MAX_PATH, COMMAND_LINE, szDeviceHiveSetupMsi);
+    swprintf_s(cmdLine, MAX_PATH, COMMAND_LINE, szDeviceHiveSetupMsi, lpCmdLine);
 
     if (CreateProcess(NULL, cmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &startInfo, &procInfo) == FALSE)
     {
