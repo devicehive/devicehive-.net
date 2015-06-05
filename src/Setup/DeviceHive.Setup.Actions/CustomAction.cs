@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
+using System.Text;
 using DeviceHive.Setup.Actions.Credentials;
 using DeviceHive.Setup.Actions.Validation;
 using DeviceHive.Setup.Actions.Validation.AuthenticationProvider;
@@ -23,33 +25,22 @@ namespace DeviceHive.Setup.Actions
 
         #endregion
 
-        /// <summary>
-        /// Check that process is being run as an administrator
-        /// </summary>
-        /// <returns></returns>
-        [CustomAction]
-        public static ActionResult CheckRunAsAdministrator(Session session)
-        {
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
-            int value = Convert.ToInt32(principal.IsInRole(WindowsBuiltInRole.Administrator));
-            session["IS_ADMIN"] = value.ToString(CultureInfo.InvariantCulture);
-
-            return ActionResult.Success;
-        }
-
         [CustomAction]
         public static ActionResult ChangeConfigJs(Session session)
         {
             session.Log("Begin CustomAction ChangeConfigJs");
 
-            var configPath = session.GetTargetPath("INSTALLFOLDER") + "admin\\scripts\\config.js";
-
-            session.Log("Config.js on path {0} exists: {1} ", configPath, System.IO.File.Exists(configPath));
-
+            var configPath = session.GetTargetPath("INSTALL_ADMIN_FOLDER") + "scripts\\config.js";
             try
             {
-                //TODO: Implement changing config.js file
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("app.config = {");
+                sb.AppendLine("    restEndpoint: '/api',");
+                sb.AppendLine("    rootUrl: '/admin/',");
+                sb.AppendLine("    pushState: false");
+                sb.AppendLine("};");
+
+                File.WriteAllText(configPath, sb.ToString());
             }
             catch (Exception e)
             {

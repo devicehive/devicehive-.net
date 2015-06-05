@@ -22,7 +22,7 @@ namespace DeviceHive.Setup.Actions.Validation
 
                 foreach (var site in serverManager.Sites.Where(s => !string.Equals(s.Name, webSiteName, StringComparison.Ordinal) && s.State == ObjectState.Started))
                 {
-                    foreach (var binding in site.Bindings)
+                    foreach (var binding in site.Bindings.Where(i => i.Protocol.Equals("http") || i.Protocol.Equals("https")))
                     {
                         if (binding.EndPoint.Port != portNumberValue)
                             continue;
