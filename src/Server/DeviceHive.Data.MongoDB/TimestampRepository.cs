@@ -26,7 +26,7 @@ namespace DeviceHive.Data.MongoDB
 
         public DateTime GetCurrentTimestamp()
         {
-            return _mongo.Database.Eval(new EvalArgs { Code = "return new Date()", Lock = false }).ToUniversalTime();
+            return _mongo.GetCurrentTimestamp();
         }
         #endregion
     }

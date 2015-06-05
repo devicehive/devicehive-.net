@@ -32,9 +32,7 @@ namespace DeviceHive.API.Controllers
         [Route, AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public JToken Get(string deviceGuid)
         {
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var filter = MapObjectFromQuery<DeviceNotificationFilter>();
             return new JArray(DataContext.DeviceNotification.GetByDevice(device.ID, filter).Select(n => Mapper.Map(n)));
@@ -50,9 +48,7 @@ namespace DeviceHive.API.Controllers
         [Route("{id:int}"), AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public JObject Get(string deviceGuid, int id)
         {
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var notification = DataContext.DeviceNotification.Get(id);
             if (notification == null || notification.DeviceID != device.ID)
@@ -72,11 +68,7 @@ namespace DeviceHive.API.Controllers
         [Route, AuthorizeUserOrDevice(AccessKeyAction = "CreateDeviceNotification")]
         public JObject Post(string deviceGuid, JObject json)
         {
-            EnsureDeviceAccess(deviceGuid);
-
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var notification = Mapper.Map(json);
             notification.Device = device;

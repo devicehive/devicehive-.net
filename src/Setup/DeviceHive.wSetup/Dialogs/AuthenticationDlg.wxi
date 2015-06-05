@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <Dialog Id="AuthenticationDlg" Width="370" Height="270" Title="Authentication Settings - [ProductName]" NoMinimize="yes">
+    <Control Type="Text" Id="AuthHeader" Width="314" Height="15" X="45" Y="55" Text="Please select available identity providers for user authentication" />
+    <Control Id="AuthGoogleCheckBox" Type="CheckBox" X="45" Y="70" Width="220" Height="12" Property="AUTH_GOOGLE" CheckBoxValue="true" Text="&amp;Authentication Google" />
+    <Control Type="Text" Id="AuthGoogleClientIdLabel" Width="50" Height="10" X="60" Y="88" Text="Cleint Id:">
+      <Condition Action="enable"><![CDATA[AUTH_GOOGLE = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_GOOGLE <> "true"]]></Condition>
+    </Control>
+    <Control Type="Text" Id="AuthGoogleClientSecretLabel" Width="52" Height="10" X="60" Y="106" Text="Client Secret:">
+      <Condition Action="enable"><![CDATA[AUTH_GOOGLE = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_GOOGLE <> "true"]]></Condition>
+    </Control>
+    <Control Type="Edit" Id="AuthGoogleClientIdEdit" Width="195" Height="15" X="120" Y="84" Property="AUTH_GOOGLE_CLIENT_ID" Text="{200}">
+      <Condition Action="enable"><![CDATA[AUTH_GOOGLE = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_GOOGLE <> "true"]]></Condition>
+    </Control>
+    <Control Type="Edit" Id="AuthGoogleClientSecretEdit" Width="196" Height="15" X="120" Y="104" Property="AUTH_GOOGLE_CLIENT_SECRET" Text="{200}">
+      <Condition Action="enable"><![CDATA[AUTH_GOOGLE = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_GOOGLE <> "true"]]></Condition>
+    </Control>
+    <Control Id="AuthFacebookCheckBox" Type="CheckBox" X="45" Y="124" Width="220" Height="12" Property="AUTH_FACEBOOK" CheckBoxValue="true" Text="&amp;Authentication Facebook" />
+    <Control Type="Text" Id="AuthFacebookClientIdLabel" Width="50" Height="10" X="60" Y="142" Text="Cleint Id:">
+      <Condition Action="enable"><![CDATA[AUTH_FACEBOOK = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_FACEBOOK <> "true"]]></Condition>
+    </Control>
+    <Control Type="Text" Id="AuthFacebookClientSecretLabel" Width="52" Height="10" X="60" Y="160" Text="Client Secret:">
+      <Condition Action="enable"><![CDATA[AUTH_FACEBOOK = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_FACEBOOK <> "true"]]></Condition>
+    </Control>
+    <Control Type="Edit" Id="AuthFacebookClientIdEdit" Width="195" Height="15" X="120" Y="138" Property="AUTH_FACEBOOK_CLIENT_ID" Text="{200}">
+      <Condition Action="enable"><![CDATA[AUTH_FACEBOOK = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_FACEBOOK <> "true"]]></Condition>
+    </Control>
+    <Control Type="Edit" Id="AuthFacebookClientSecretEdit" Width="196" Height="15" X="120" Y="158" Property="AUTH_FACEBOOK_CLIENT_SECRET" Text="{200}">
+      <Condition Action="enable"><![CDATA[AUTH_FACEBOOK = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_FACEBOOK <> "true"]]></Condition>
+    </Control>
+    <Control Id="AuthGithubCheckBox" Type="CheckBox" X="45" Y="178" Width="220" Height="12" Property="AUTH_GITHUB" CheckBoxValue="true" Text="&amp;Authentication Github" />
+    <Control Type="Text" Id="AuthGithubClientIdLabel" Width="50" Height="10" X="60" Y="196" Text="Cleint Id:">
+      <Condition Action="enable"><![CDATA[AUTH_GITHUB = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_GITHUB <> "true"]]></Condition>
+    </Control>
+    <Control Type="Text" Id="AuthGithubClientSecretLabel" Width="52" Height="10" X="60" Y="214" Text="Client Secret:">
+      <Condition Action="enable"><![CDATA[AUTH_GITHUB = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_GITHUB <> "true"]]></Condition>
+    </Control>
+    <Control Type="Edit" Id="AuthGithubClientIdEdit" Width="195" Height="15" X="120" Y="192" Property="AUTH_GITHUB_CLIENT_ID" Text="{200}">
+      <Condition Action="enable"><![CDATA[AUTH_GITHUB = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_GITHUB <> "true"]]></Condition>
+    </Control>
+    <Control Type="Edit" Id="AuthGithubClientSecretEdit" Width="196" Height="15" X="120" Y="213" Property="AUTH_GITHUB_CLIENT_SECRET" Text="{200}">
+      <Condition Action="enable"><![CDATA[AUTH_GITHUB = "true"]]></Condition>
+      <Condition Action="disable"><![CDATA[AUTH_GITHUB <> "true"]]></Condition>
+    </Control>
+    <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+      <Publish Event="NewDialog" Value="SSLSetupDlg">1</Publish>
+    </Control>
+    <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+      <Publish Property="AUTHENTICATION_SETTINGS_IS_VALID" Order="1" Value="1"><![CDATA[(AUTH_GOOGLE = "true" OR AUTH_FACEBOOK = "true" OR AUTH_GITHUB = "true")]]></Publish>
+      <Publish Event="DoAction" Order="2" Value="CheckGoogleAuthenticationSettings"><![CDATA[(AUTH_GOOGLE = "true")]]></Publish>
+      <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[(AUTH_GOOGLE = "true") AND (AUTHENTICATION_SETTINGS_IS_VALID = 0)]]></Publish>
+      <Publish Event="DoAction" Order="4" Value="CheckFacebookAuthenticationSettings"><![CDATA[(AUTH_FACEBOOK = "true") AND (AUTHENTICATION_SETTINGS_IS_VALID = 1)]]></Publish>
+      <Publish Event="SpawnDialog" Order="5" Value="MessageBoxDlg"><![CDATA[(AUTH_FACEBOOK = "true") AND (AUTHENTICATION_SETTINGS_IS_VALID = 0)]]></Publish>
+      <Publish Event="DoAction" Order="6" Value="CheckGithubAuthenticationSettings"><![CDATA[(AUTH_GITHUB = "true") AND (AUTHENTICATION_SETTINGS_IS_VALID = 1)]]></Publish>
+      <Publish Event="SpawnDialog" Order="7" Value="MessageBoxDlg"><![CDATA[(AUTH_GITHUB = "true") AND (AUTHENTICATION_SETTINGS_IS_VALID = 0)]]></Publish>
+      <Publish Event="NewDialog" Order="8" Value="AdministratorCredentialsDlg"><![CDATA[(AUTH_GOOGLE <> "true" AND AUTH_FACEBOOK <> "true" AND AUTH_GITHUB <> "true") OR (AUTHENTICATION_SETTINGS_IS_VALID = 1)]]></Publish>
+    </Control>
+    <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+      <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+    </Control>
+    <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+    <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+      <Text>Please enter authentication configuration</Text>
+    </Control>
+    <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+    <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+      <Text>{\WixUI_Font_Title}Authentication Settings</Text>
+    </Control>
+    <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+  </Dialog>
+</Include>

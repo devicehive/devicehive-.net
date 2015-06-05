@@ -30,9 +30,7 @@ namespace DeviceHive.API.Controllers
         [Route, AuthorizeUser(AccessKeyAction = "GetDeviceState")]
         public JArray Get(string id)
         {
-            var device = DataContext.Device.Get(id);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(id);
 
             return new JArray(DataContext.DeviceEquipment.GetByDevice(device.ID).Select(n => Mapper.Map(n)));
         }
@@ -40,9 +38,7 @@ namespace DeviceHive.API.Controllers
         [Route("{code}"), AuthorizeUser(AccessKeyAction = "GetDeviceState")]
         public JObject Get(string id, string code)
         {
-            var device = DataContext.Device.Get(id);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(id);
 
             var equipment = DataContext.DeviceEquipment.GetByDeviceAndCode(device.ID, code);
             if (equipment == null)

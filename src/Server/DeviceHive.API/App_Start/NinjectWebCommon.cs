@@ -99,7 +99,7 @@ namespace DeviceHive.API
             kernel.Bind<JsonMapperManager>().ToSelf().InSingletonScope().OnActivation(JsonMapperConfig.ConfigureMapping);
 
             // bind message bus
-            kernel.Bind<MessageBus>().To<NamedPipeMessageBus>().InSingletonScope().OnActivation(MessageBusConfig.ConfigureSubscriptions);
+            kernel.Bind<MessageBus>().To<TcpSocketMessageBus>().InSingletonScope().OnActivation(MessageBusConfig.ConfigureSubscriptions);
 
             // bind object waiters
             kernel.Bind<ObjectWaiter>().ToSelf().InSingletonScope().Named("DeviceNotification.DeviceID");

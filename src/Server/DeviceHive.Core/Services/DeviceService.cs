@@ -73,7 +73,7 @@ namespace DeviceHive.Core.Services
             var notification = new DeviceNotification(notificationName, device);
             notification.Parameters = diff.ToString();
             DataContext.DeviceNotification.Save(notification);
-            _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
+            _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID, notification.Notification));
 
             return deviceMapper.Map(device);
         }

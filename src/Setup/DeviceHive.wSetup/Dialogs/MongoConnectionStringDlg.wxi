@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <Dialog Id="MongoConnectionStringDlg" Width="370" Height="270" Title="Mongo Settings - [ProductName]" NoMinimize="yes">
+    <Control Id="MongoHostLabel" Type="Text" X="45" Y="55" Width="100" Height="15" TabSkip="no" Text="&amp;Host name:" />
+    <Control Id="MongoHostEdit" Type="Edit" X="45" Y="70" Width="220" Height="15" Property="MONGO_HOST" Text="{200}" />
+    <Control Id="MongoDatabaseLabel" Type="Text" X="45" Y="95" Width="100" Height="15" TabSkip="no" Text="&amp;Database:" />
+    <Control Id="MongoDatabaseEdit" Type="Edit" X="45" Y="110" Width="220" Height="15" Property="MONGO_DATABASE" Text="{200}" />
+    <Control Id="MongoLoginLabel" Type="Text" X="45" Y="135" Width="100" Height="15" TabSkip="no" Text="&amp;User Login:" />
+    <Control Id="MongoLoginEdit" Type="Edit" X="45" Y="150" Width="220" Height="15" Property="MONGO_LOGIN" Text="{200}" />
+    <Control Id="MongoPasswordLabel" Type="Text" X="45" Y="175" Width="100" Height="15" TabSkip="no" Text="&amp;Password:" />
+    <Control Id="MongoPasswordEdit" Type="Edit" X="45" Y="190" Width="220" Height="15" Property="MONGO_PASSWORD" Text="{200}" Password="yes"/>
+    <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+      <Publish Event="NewDialog" Value="DatabaseDlg">1</Publish>
+    </Control>
+    <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+      <Publish Order="1" Property="DATABASE_CONNECTION_STRING" Value="mongodb://[MONGO_LOGIN]:[MONGO_PASSWORD]@[MONGO_HOST]/[MONGO_DATABASE]"><![CDATA[MONGO_LOGIN <> "" AND MONGO_PASSWORD <> ""]]></Publish>
+      <Publish Order="1" Property="DATABASE_CONNECTION_STRING" Value="mongodb://[MONGO_HOST]/[MONGO_DATABASE]"><![CDATA[MONGO_LOGIN = "" AND MONGO_PASSWORD = ""]]></Publish>
+      <Publish Event="DoAction" Order="2" Value="CheckMongoDbConnection">1</Publish>
+      <Publish Event="SpawnDialog" Order="3" Value="MessageBoxDlg"><![CDATA[MONGODB_CONNECTION_ESTABLISHED = 0]]></Publish>
+      <Publish Event="NewDialog" Order="4" Value="HostingDlg"><![CDATA[MONGODB_CONNECTION_ESTABLISHED = 1]]></Publish>
+    </Control>
+    <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+      <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+    </Control>
+    <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+    <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+      <Text>Please enter MongoDB connection information</Text>
+    </Control>
+    <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+    <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+      <Text>{\WixUI_Font_Title}Mongo Settings</Text>
+    </Control>
+    <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+  </Dialog>
+</Include>

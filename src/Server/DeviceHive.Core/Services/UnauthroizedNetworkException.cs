@@ -5,6 +5,7 @@ namespace DeviceHive.Core.Services
     /// <summary>
     /// Thrown if access to specific device network is forbidden
     /// </summary>
+    [Serializable]
     public class UnauthroizedNetworkException : ServiceException
     {
         /// <summary>

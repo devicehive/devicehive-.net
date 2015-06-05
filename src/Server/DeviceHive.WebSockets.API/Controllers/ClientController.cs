@@ -350,18 +350,21 @@ namespace DeviceHive.WebSockets.API.Controllers
         ///     <parameter name="deviceGuid" type="string">Device unique identifier.</parameter>
         ///     <parameter name="notification" cref="DeviceNotification">A <see cref="DeviceNotification"/> resource representing the notification.</parameter>
         /// </response>
-        public void HandleDeviceNotification(int deviceId, int notificationId)
+        public void HandleDeviceNotification(int deviceId, int notificationId, string name)
         {
             var subscriptions = _deviceSubscriptionManagerForNotifications.GetSubscriptions(deviceId);
             if (subscriptions.Any())
             {
                 Device device = null;
-                var notification = DataContext.DeviceNotification.Get(notificationId);
+                DeviceNotification notification = null;
                 foreach (var subscription in subscriptions)
                 {
                     var names = (string[])subscription.Data;
-                    if (names != null && !names.Contains(notification.Notification))
+                    if (names != null && !names.Contains(name))
                         continue;
+
+                    if (notification == null)
+                        notification = DataContext.DeviceNotification.Get(notificationId);
 
                     if (device == null)
                         device = DataContext.Device.Get(deviceId);
@@ -406,19 +409,21 @@ namespace DeviceHive.WebSockets.API.Controllers
         ///     <parameter name="deviceGuid" type="string">Device unique identifier.</parameter>
         ///     <parameter name="command" cref="DeviceCommand">A <see cref="DeviceCommand"/> resource representing the command.</parameter>
         /// </response>
-        public void HandleDeviceCommand(int deviceId, int commandId)
+        public void HandleDeviceCommand(int deviceId, int commandId, string name)
         {
             var subscriptions = _deviceSubscriptionManagerForCommands.GetSubscriptions(deviceId);
             if (subscriptions.Any())
             {
                 Device device = null;
-                var command = DataContext.DeviceCommand.Get(commandId);
-
+                DeviceCommand command = null;
                 foreach (var subscription in subscriptions)
                 {
                     var names = (string[])subscription.Data;
-                    if (names != null && !names.Contains(command.Command))
+                    if (names != null && !names.Contains(name))
                         continue;
+
+                    if (command == null)
+                        command = DataContext.DeviceCommand.Get(commandId);
 
                     if (device == null)
                         device = DataContext.Device.Get(deviceId);

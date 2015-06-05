@@ -110,7 +110,7 @@ namespace DeviceHive.Core.MessageLogic
             InvokeHandlers(handlers, context, handler => handler.NotificationInserted(context));
 
             // notify other nodes about new notification
-            _messageBus.Notify(new DeviceNotificationAddedMessage(context.Device.ID, context.Notification.ID));
+            _messageBus.Notify(new DeviceNotificationAddedMessage(context.Device.ID, context.Notification.ID, context.Notification.Notification));
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace DeviceHive.Core.MessageLogic
             InvokeHandlers(handlers, context, handler => handler.CommandInserted(context));
 
             // notify other nodes about new command
-            _messageBus.Notify(new DeviceCommandAddedMessage(context.Device.ID, context.Command.ID));
+            _messageBus.Notify(new DeviceCommandAddedMessage(context.Device.ID, context.Command.ID, context.Command.Command));
         }
 
         /// <summary>

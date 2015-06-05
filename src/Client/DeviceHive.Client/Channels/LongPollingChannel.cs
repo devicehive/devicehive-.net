@@ -11,7 +11,7 @@ namespace DeviceHive.Client
     /// </summary>
     public class LongPollingChannel : Channel
     {
-        private readonly RestClient _restClient;
+        private const int FAILED_POLL_RETRY_TIMEOUT = 1000; // milliseconds to wait before retrying a poll in case of a failure
         private readonly Dictionary<Guid, SubscriptionTask> _subscriptionTasks = new Dictionary<Guid, SubscriptionTask>();
 
         #region Constructor
@@ -21,10 +21,18 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="connectionInfo">DeviceHive connection information.</param>
         public LongPollingChannel(DeviceHiveConnectionInfo connectionInfo)
-            : base(connectionInfo)
+            : this(connectionInfo, null)
         {
-            _restClient = new RestClient(connectionInfo);
-
+        }
+        
+        /// <summary>
+        /// Constructor which allows to override <see cref="IRestClient" /> which makes HTTP requests to the DeviceHive server.
+        /// </summary>
+        /// <param name="connectionInfo">DeviceHive connection information.</param>
+        /// <param name="restClient">IRestClient implementation.</param>
+        public LongPollingChannel(DeviceHiveConnectionInfo connectionInfo, IRestClient restClient)
+            : base(connectionInfo, restClient)
+        {
             CommandUpdatePollTimeout = TimeSpan.FromSeconds(30);
         }
         #endregion
@@ -57,6 +65,9 @@ namespace DeviceHive.Client
         /// <returns></returns>
         public override Task OpenAsync()
         {
+            if (State != ChannelState.Disconnected)
+                throw new InvalidOperationException("The connection is already open, please call the CloseAsync method before opening it again!");
+
             SetChannelState(ChannelState.Connected);
             return Task.FromResult(true);
         }
@@ -67,8 +78,6 @@ namespace DeviceHive.Client
         /// <returns></returns>
         public override async Task CloseAsync()
         {
-            SetChannelState(ChannelState.Disconnected); // that clears all subscriptions
-
             SubscriptionTask[] subscriptionTasks;
             lock (_subscriptionTasks)
             {
@@ -80,8 +89,9 @@ namespace DeviceHive.Client
             {
                 subscriptionTask.CancellationTokenSource.Cancel();
             }
-
             await Task.WhenAll(subscriptionTasks.Select(t => t.Task));
+
+            SetChannelState(ChannelState.Disconnected); // that clears all subscriptions
         }
 
         /// <summary>
@@ -97,7 +107,7 @@ namespace DeviceHive.Client
             if (notification == null)
                 throw new ArgumentNullException("notification");
 
-            var result = await _restClient.PostAsync(string.Format("device/{0}/notification", deviceGuid), notification);
+            var result = await RestClient.PostAsync(string.Format("device/{0}/notification", deviceGuid), notification);
             notification.Id = result.Id;
             notification.Timestamp = result.Timestamp;
             return notification;
@@ -120,7 +130,7 @@ namespace DeviceHive.Client
             if (!token.HasValue)
                 token = new CancellationTokenSource(CommandUpdatePollTimeout).Token;
 
-            var result = await _restClient.PostAsync(string.Format("device/{0}/command", deviceGuid), command);
+            var result = await RestClient.PostAsync(string.Format("device/{0}/command", deviceGuid), command);
             command.Id = result.Id;
             command.Timestamp = result.Timestamp;
             command.UserId = result.UserId;
@@ -153,7 +163,22 @@ namespace DeviceHive.Client
                 throw new ArgumentException("Command ID is null!", "command");
 
             var update = new Command { Status = command.Status, Result = command.Result };
-            await _restClient.PutAsync(string.Format("device/{0}/command/{1}", deviceGuid, command.Id), update);
+            await RestClient.PutAsync(string.Format("device/{0}/command/{1}", deviceGuid, command.Id), update);
+        }
+
+        /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        public override async Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token = null)
+        {
+            if (string.IsNullOrEmpty(deviceGuid))
+                throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
+
+            return await PollCommandUpdateAsync(deviceGuid, commandId, token ?? CancellationToken.None);
         }
         #endregion
 
@@ -165,18 +190,16 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="subscription">A <see cref="ISubscription"/> object representing a subscription.</param>
         /// <returns></returns>
-        protected override Task SubscriptionAdded(ISubscription subscription)
+        protected override async Task SubscriptionAdded(ISubscription subscription)
         {
             var subscriptionTask = new SubscriptionTask(subscription);
-            var cancellationToken = subscriptionTask.CancellationTokenSource.Token;
-
             switch (subscription.Type)
             {
                 case SubscriptionType.Notification:
-                    subscriptionTask.Run(async () => await PollNotificationTaskMethodAsync(subscription, cancellationToken));
+                    subscriptionTask.Run(async () => await PollNotificationTaskMethodAsync(subscriptionTask));
                     break;
                 case SubscriptionType.Command:
-                    subscriptionTask.Run(async () => await PollCommandTaskMethodAsync(subscription, cancellationToken));
+                    subscriptionTask.Run(async () => await PollCommandTaskMethodAsync(subscriptionTask));
                     break;
             }
 
@@ -185,7 +208,7 @@ namespace DeviceHive.Client
                 _subscriptionTasks[subscription.Id] = subscriptionTask;
             }
 
-            return base.SubscriptionAdded(subscription);
+            await base.SubscriptionAdded(subscription);
         }
 
         /// <summary>
@@ -194,7 +217,7 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="subscription">A <see cref="ISubscription"/> object representing a subscription.</param>
         /// <returns></returns>
-        protected override Task SubscriptionRemoved(ISubscription subscription)
+        protected override async Task SubscriptionRemoved(ISubscription subscription)
         {
             SubscriptionTask subscriptionTask;
             lock (_subscriptionTasks)
@@ -210,29 +233,30 @@ namespace DeviceHive.Client
                 subscriptionTask.Task.Wait();
             }
 
-            return base.SubscriptionRemoved(subscription);
+            await base.SubscriptionRemoved(subscription);
         }
         #endregion
 
         #region Private Methods
 
-        private async Task PollNotificationTaskMethodAsync(ISubscription subscription, CancellationToken cancellationToken)
+        private async Task PollNotificationTaskMethodAsync(SubscriptionTask subscriptionTask)
         {
-            var apiInfo = await _restClient.GetAsync<ApiInfo>("info");
-            var timestamp = apiInfo.ServerTimestamp;
-
+            var subscription = subscriptionTask.Subscription;
+            var cancellationToken = subscriptionTask.CancellationTokenSource.Token;
+            
             while (true)
             {
                 try
                 {
-                    var notifications = await PollNotificationsAsync(subscription.DeviceGuids, subscription.EventNames, timestamp, cancellationToken);
+                    var notifications = await PollNotificationsAsync(subscription.DeviceGuids, subscription.EventNames,
+                        subscription.Timestamp, subscriptionTask.IsLastPollFailed ? (int?)0 : null, cancellationToken);
+                    NotifyPollResult(subscriptionTask, false);
+
                     foreach (var notification in notifications)
                     {
                         notification.SubscriptionId = subscription.Id;
-                        InvokeSubscriptionCallback(notification);
+                        InvokeSubscriptionCallback(subscription.Id, notification.Notification.Timestamp.Value, notification);
                     }
-
-                    timestamp = notifications.Max(n => n.Notification.Timestamp ?? timestamp);
                 }
                 catch (OperationCanceledException)
                 {
@@ -240,28 +264,31 @@ namespace DeviceHive.Client
                 }
                 catch (Exception)
                 {
-                    Task.Delay(1000).Wait(); // retry with small wait
+                    NotifyPollResult(subscriptionTask, true);
+                    if (cancellationToken.WaitHandle.WaitOne(FAILED_POLL_RETRY_TIMEOUT)) // retry with small wait
+                        return;
                 }
             }
         }
 
-        private async Task PollCommandTaskMethodAsync(ISubscription subscription, CancellationToken cancellationToken)
+        private async Task PollCommandTaskMethodAsync(SubscriptionTask subscriptionTask)
         {
-            var apiInfo = await _restClient.GetAsync<ApiInfo>("info", cancellationToken);
-            var timestamp = apiInfo.ServerTimestamp;
+            var subscription = subscriptionTask.Subscription;
+            var cancellationToken = subscriptionTask.CancellationTokenSource.Token;
 
             while (true)
             {
                 try
                 {
-                    var commands = await PollCommandsAsync(subscription.DeviceGuids, subscription.EventNames, timestamp, cancellationToken);
+                    var commands = await PollCommandsAsync(subscription.DeviceGuids, subscription.EventNames,
+                        subscription.Timestamp, subscriptionTask.IsLastPollFailed ? (int?)0 : null, cancellationToken);
+                    NotifyPollResult(subscriptionTask, false);
+
                     foreach (var command in commands)
                     {
                         command.SubscriptionId = subscription.Id;
-                        InvokeSubscriptionCallback(command);
+                        InvokeSubscriptionCallback(subscription.Id, command.Command.Timestamp.Value, command);
                     }
-
-                    timestamp = commands.Max(n => n.Command.Timestamp ?? timestamp);
                 }
                 catch (OperationCanceledException)
                 {
@@ -269,12 +296,32 @@ namespace DeviceHive.Client
                 }
                 catch (Exception)
                 {
-                    Task.Delay(1000).Wait(); // retry with small wait
+                    NotifyPollResult(subscriptionTask, true);
+                    if (cancellationToken.WaitHandle.WaitOne(FAILED_POLL_RETRY_TIMEOUT)) // retry with small wait
+                        return;
                 }
             }
         }
 
-        private async Task<List<DeviceNotification>> PollNotificationsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, CancellationToken token)
+        private void NotifyPollResult(SubscriptionTask subscriptionTask, bool isFailed)
+        {
+            lock (_subscriptionTasks)
+            {
+                subscriptionTask.IsLastPollFailed = isFailed;
+
+                if (State == ChannelState.Connected && isFailed)
+                {
+                    SetChannelState(ChannelState.Reconnecting);
+                }
+                else if (State == ChannelState.Reconnecting && !isFailed)
+                {
+                    if (!_subscriptionTasks.Values.Any(t => t.IsLastPollFailed))
+                        SetChannelState(ChannelState.Connected);
+                }
+            }
+        }
+
+        private async Task<List<DeviceNotification>> PollNotificationsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, int? waitTimeout, CancellationToken token)
         {
             var url = "device/notification/poll";
             var parameters = new[]
@@ -282,19 +329,15 @@ namespace DeviceHive.Client
                     timestamp == null ? null : "timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff"),
                     deviceGuids == null ? null : "deviceGuids=" + (string.Join(",", deviceGuids)),
                     names == null ? null : "names=" + (string.Join(",", names)),
+                    waitTimeout == null ? null : "waitTimeout=" + waitTimeout,
                 }.Where(p => p != null);
             if (parameters.Any())
                 url += "?" + string.Join("&", parameters);
 
-            while (true)
-            {
-                var notifications = await _restClient.GetAsync<List<DeviceNotification>>(url, token);
-                if (notifications != null && notifications.Any())
-                    return notifications;
-            }
+            return await RestClient.GetAsync<List<DeviceNotification>>(url, token);
         }
 
-        private async Task<List<DeviceCommand>> PollCommandsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, CancellationToken token)
+        private async Task<List<DeviceCommand>> PollCommandsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, int? waitTimeout, CancellationToken token)
         {
             var url = "device/command/poll";
             var parameters = new[]
@@ -302,23 +345,19 @@ namespace DeviceHive.Client
                     timestamp == null ? null : "timestamp=" + timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.ffffff"),
                     deviceGuids == null ? null : "deviceGuids=" + (string.Join(",", deviceGuids)),
                     names == null ? null : "names=" + (string.Join(",", names)),
+                    waitTimeout == null ? null : "waitTimeout=" + waitTimeout,
                 }.Where(p => p != null);
             if (parameters.Any())
                 url += "?" + string.Join("&", parameters);
 
-            while (true)
-            {
-                var commands = await _restClient.GetAsync<List<DeviceCommand>>(url, token);
-                if (commands != null && commands.Any())
-                    return commands;
-            }
+            return await RestClient.GetAsync<List<DeviceCommand>>(url, token);
         }
 
         private async Task<Command> PollCommandUpdateAsync(string deviceGuid, int commandId, CancellationToken token)
         {
             while (true)
             {
-                var command = await _restClient.GetAsync<Command>(string.Format("device/{0}/command/{1}/poll", deviceGuid, commandId), token);
+                var command = await RestClient.GetAsync<Command>(string.Format("device/{0}/command/{1}/poll", deviceGuid, commandId), token);
                 if (command != null)
                     return command;
             }
@@ -332,6 +371,7 @@ namespace DeviceHive.Client
             public ISubscription Subscription { get; private set; }
             public CancellationTokenSource CancellationTokenSource { get; private set; }
             public Task Task { get; private set; }
+            public bool IsLastPollFailed { get; set; }
 
             public SubscriptionTask(ISubscription subscription)
             {

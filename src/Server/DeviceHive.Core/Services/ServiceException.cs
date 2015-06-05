@@ -5,6 +5,7 @@ namespace DeviceHive.Core.Services
     /// <summary>
     /// Base class for DeviceHive services exceptions
     /// </summary>
+    [Serializable]
     public abstract class ServiceException : Exception
     {
         /// <summary>

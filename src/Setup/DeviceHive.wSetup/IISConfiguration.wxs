@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
+    <Fragment>
+        <!-- http://blog.bartdemeyer.be/2013/10/create-an-installer-for-website-with-wix-part-3/ -->
+        <?include ConfigurationInitialize.wxi ?>
+
+        <DirectoryRef Id="INSTALL_API_FOLDER">
+            <!-- Configuring app pool -->
+            <Component Id="DeviceHiveAppPoolCmp" Guid="{784ae9fd-66db-4671-9489-0aa167758c67}" KeyPath="yes">
+                <util:User Id="DeviceHiveAppPoolUser" CreateUser="no" Name="DeviceHiveUser" Domain="DeviceHiveAppPoolDomain" />
+                <iis:WebAppPool Id="DeviceHiveAppPool" Name="[WEB_APPLICATION_POOL]" ManagedPipelineMode="Integrated" />
+            </Component>
+
+            <Component Id="InstallDeviceHiveWebsite" Guid="{9CD7C833-C087-4CF9-8EF5-15A9EEDCC267}" KeyPath="yes">
+                <!-- Install to default web site -->
+                <iis:WebSite Id="DeviceHiveWebSite" Description="[WEB_SITE_NAME]" Directory="INSTALL_WEB_FOLDER" AutoStart="yes" StartOnInstall="yes" SiteId="[SITE_ID]" >
+                    <iis:WebAddress Id="AllUnassigned" Port="65355"/>
+                    <iis:WebApplication Id="DeviceHiveWebSiteApplication" Name="[WEB_SITE_NAME]" WebAppPool="DeviceHiveAppPool" />
+                </iis:WebSite>
+            </Component>
+            
+            <!-- Configure DeviceHive virtual dir -->
+            <Component Id="DeviceHiveVirtualDirCmp" Guid="{751DEB01-ECC1-48ff-869A-65BCEE9E0528}" KeyPath="yes" >
+                <iis:WebVirtualDir Id="DeviceHiveVirtualDir" Alias="api" Directory="INSTALL_API_FOLDER" WebSite="DeviceHiveWebSite">
+                    <iis:WebDirProperties Id="DeviceHiveApiVirtDirProperties" AnonymousAccess="yes"/>
+                    <iis:WebApplication Id="DeviceHiveWebApplication" Name="api" WebAppPool="DeviceHiveAppPool" />
+                </iis:WebVirtualDir>
+            </Component>
+
+            <!-- Configure admin panel -->
+            <Component Id="DeviceHiveAdminVirtualDirCmp" Guid="{7FECEF44-11BF-446C-88EC-9CCBACBA4B2E}" KeyPath="yes" >
+                <iis:WebVirtualDir Id="DeviceHiveAdminDir" Alias="admin" Directory="INSTALL_ADMIN_FOLDER" WebSite="DeviceHiveWebSite">
+                    <iis:WebDirProperties Id="DeviceHiveAdminVirtDirProperties" AnonymousAccess="yes" Read="yes" Write="no" Script="yes" Execute="yes"/>
+                </iis:WebVirtualDir>
+            </Component>
+        </DirectoryRef>
+
+        <ComponentGroup Id="IssConfiguration">
+            <ComponentRef Id="DeviceHiveVirtualDirCmp" />
+            <ComponentRef Id="DeviceHiveAdminVirtualDirCmp" />
+            <ComponentRef Id="DeviceHiveAppPoolCmp" />
+            <ComponentRef Id="InstallDeviceHiveWebsite" />
+        </ComponentGroup>
+    </Fragment>
+</Wix>

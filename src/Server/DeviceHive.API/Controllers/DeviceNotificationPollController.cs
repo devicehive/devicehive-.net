@@ -46,9 +46,7 @@ namespace DeviceHive.API.Controllers
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public async Task<JArray> Get(string deviceGuid, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             var notificationNames = names != null ? names.Split(',') : null;
@@ -61,7 +59,8 @@ namespace DeviceHive.API.Controllers
 
             var config = DeviceHiveConfiguration.RestEndpoint;
             var delayTask = Task.Delay(1000 * Math.Min(config.NotificationPollMaxInterval, waitTimeout ?? config.NotificationPollDefaultInterval));
-            using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(device.ID))
+            using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(new object[] { device.ID },
+                notificationNames == null ? null : notificationNames.Cast<object>().ToArray()))
             {
                 do
                 {
@@ -98,14 +97,7 @@ namespace DeviceHive.API.Controllers
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
         public async Task<JArray> GetMany(string deviceGuids = null, DateTime? timestamp = null, string names = null, int? waitTimeout = null)
         {
-            var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(deviceGuid =>
-                {
-                    var device = DataContext.Device.Get(deviceGuid);
-                    if (device == null || !IsDeviceAccessible(device))
-                        ThrowHttpResponse(HttpStatusCode.BadRequest, "Invalid deviceGuid: " + deviceGuid);
-
-                    return device.ID;
-                }).ToArray();
+            var deviceIds = deviceGuids == null ? null : ParseDeviceGuids(deviceGuids).Select(d => d.ID).ToArray();
 
             var start = timestamp ?? _timestampRepository.GetCurrentTimestamp();
             var notificationNames = names != null ? names.Split(',') : null;
@@ -119,7 +111,8 @@ namespace DeviceHive.API.Controllers
             var config = DeviceHiveConfiguration.RestEndpoint;
             var delayTask = Task.Delay(1000 * Math.Min(config.NotificationPollMaxInterval, waitTimeout ?? config.NotificationPollDefaultInterval));
             using (var waiterHandle = _notificationByDeviceIdWaiter.BeginWait(
-                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray()))
+                deviceIds == null ? new object[] { null } : deviceIds.Cast<object>().ToArray(),
+                notificationNames == null ? null : notificationNames.Cast<object>().ToArray()))
             {
                 do
                 {
@@ -145,9 +138,10 @@ namespace DeviceHive.API.Controllers
                 }));
         }
 
-        private string[] ParseDeviceGuids(string deviceGuids)
+        private Device[] ParseDeviceGuids(string deviceGuids)
         {
-            return deviceGuids.Split(',').ToArray();
+            return DataContext.Device.GetMany(deviceGuids.Split(','))
+                .Where(device => IsDeviceAccessible(device)).ToArray();
         }
 
         private IJsonMapper<DeviceNotification> Mapper

@@ -7,6 +7,7 @@ using DeviceHive.API.Filters;
 using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data.Model;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DeviceHive.API.Controllers
@@ -125,6 +126,13 @@ namespace DeviceHive.API.Controllers
                 Mapper.Apply(user, json);
                 Validate(user);
                 ValidateLoginUniqueness(user);
+            }
+            else
+            {
+                if (json == null)
+                    ThrowHttpResponse(HttpStatusCode.BadRequest, "Missing JSON object!");
+                if (json["data"] != null)
+                    user.Data = json["data"].Type == JTokenType.Null ? null : json["data"].ToString(Formatting.None);
             }
 
             // all users can change their password

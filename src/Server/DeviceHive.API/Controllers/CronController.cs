@@ -29,8 +29,8 @@ namespace DeviceHive.API.Controllers
         [HttpGet, Route("RefreshDeviceStatus")]
         public void RefreshDeviceStatus()
         {
-            var devices = DataContext.Device.GetOfflineDevices();
-            foreach (var device in devices.Where(d => d.Status != OFFLINE_STATUS))
+            var devices = DataContext.Device.GetDisconnectedDevices(OFFLINE_STATUS);
+            foreach (var device in devices)
             {
                 // update device status
                 device.Status = OFFLINE_STATUS;
@@ -40,7 +40,7 @@ namespace DeviceHive.API.Controllers
                 var notification = new DeviceNotification(SpecialNotifications.DEVICE_UPDATE, device);
                 notification.Parameters = new JObject(new JProperty("status", OFFLINE_STATUS)).ToString();
                 DataContext.DeviceNotification.Save(notification);
-                _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID));
+                _messageBus.Notify(new DeviceNotificationAddedMessage(device.ID, notification.ID, notification.Notification));
             }
         }
 

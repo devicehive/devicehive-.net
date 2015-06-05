@@ -24,6 +24,7 @@ namespace DeviceHive.Data.MongoDB
         private static ConcurrentDictionary<Type, Action<object, int>> _identitySetters = new ConcurrentDictionary<Type, Action<object, int>>();
         private static ConcurrentDictionary<Type, Func<object, DateTime>> _timestampGetters = new ConcurrentDictionary<Type, Func<object, DateTime>>();
         private static ConcurrentDictionary<Type, Action<object, DateTime>> _timestampSetters = new ConcurrentDictionary<Type, Action<object, DateTime>>();
+        private static Dictionary<string, IdentityBlockInfo> _identityBlocks = new Dictionary<string, IdentityBlockInfo>();
 
         #region Public Properties
 
@@ -115,20 +116,47 @@ namespace DeviceHive.Data.MongoDB
 
         #region Public Methods
 
-        public int GetIdentity(string collection)
+        public int GetIdentity(string collection, int increment = 1)
         {
-            if (collection == null)
-                throw new ArgumentNullException("collection");
+            if (string.IsNullOrEmpty(collection))
+                throw new ArgumentException("Collection is null or empty!", "collection");
 
             var counters = Database.GetCollection("counters");
-            var fmr = counters.FindAndModify(new FindAndModifyArgs { Query = Query.EQ("_id", collection), Update = Update.Inc("seq", 1) });
+            var fmr = counters.FindAndModify(new FindAndModifyArgs { Query = Query.EQ("_id", collection), Update = Update.Inc("seq", increment) });
             if (fmr.ModifiedDocument == null)
             {
-                counters.Insert(new { _id = collection, seq = 2 });
+                counters.Insert(new { _id = collection, seq = 1 + increment });
                 return 1;
             }
 
             return (int)fmr.ModifiedDocument["seq"];
+        }
+
+        public int GetIdentityFromBlock(string collection, int blockSize = 100)
+        {
+            if (string.IsNullOrEmpty(collection))
+                throw new ArgumentException("Collection is null or empty!", "collection");
+
+            lock (_identityBlocks)
+            {
+                IdentityBlockInfo block;
+                if (!_identityBlocks.TryGetValue(collection, out block) || block.Current == block.Maximum)
+                {
+                    var current = GetIdentity(collection, increment: blockSize);
+                    block = new IdentityBlockInfo { Current = current, Maximum = current + blockSize };
+                    _identityBlocks[collection] = block;
+                }
+
+                return block.Current++;
+            }
+        }
+
+        public void SetIdentity<T>(T entity, int identity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException("entity");
+
+            GetIdentitySetter(typeof(T))(entity, identity);
         }
 
         public void EnsureIdentity<T>(T entity)
@@ -139,10 +167,28 @@ namespace DeviceHive.Data.MongoDB
             var getter = GetIdentityGetter(typeof(T));
             if (getter(entity) == default(int))
             {
-                var identity = GetIdentity(typeof(T).Name);
-                var setter = GetIdentitySetter(typeof(T));
-                setter(entity, identity);
+                SetIdentity(entity, GetIdentity(typeof(T).Name));
             }
+        }
+
+        public DateTime GetCurrentTimestamp()
+        {
+            var result = Database.GetCollection("timestamp").FindAndModify(new FindAndModifyArgs
+            {
+                Query = Query.Null,
+                Update = Update.CurrentDate("timestamp"),
+                VersionReturned = FindAndModifyDocumentVersion.Modified,
+                Upsert = true,
+            });
+            return result.ModifiedDocument["timestamp"].ToUniversalTime();
+        }
+        
+        public void SetTimestamp<T>(T entity, DateTime timestamp)
+        {
+            if (entity == null)
+                throw new ArgumentNullException("entity");
+
+            GetTimestampSetter(typeof(T))(entity, timestamp);
         }
 
         public void EnsureTimestamp<T>(T entity)
@@ -153,9 +199,7 @@ namespace DeviceHive.Data.MongoDB
             var getter = GetTimestampGetter(typeof(T));
             if (getter(entity) == default(DateTime))
             {
-                var timestamp = Database.Eval(new EvalArgs { Code = "return new Date()", Lock = false }).ToUniversalTime();
-                var setter = GetTimestampSetter(typeof(T));
-                setter(entity, timestamp);
+                SetTimestamp(entity, GetCurrentTimestamp());
             }
         }
         #endregion
@@ -177,6 +221,7 @@ namespace DeviceHive.Data.MongoDB
                     {
                         cm.AutoMap();
                         cm.SetIdMember(cm.GetMemberMap(e => e.ID));
+                        cm.GetMemberMap(e => e.Data).SetSerializer(rawJsonSerializer);
                     });
 
                 BsonClassMap.RegisterClassMap<UserNetwork>(cm =>
@@ -325,6 +370,15 @@ namespace DeviceHive.Data.MongoDB
         }
         #endregion
 
+        #region IdentityBlockInfo class
+        
+        private class IdentityBlockInfo
+        {
+            public int Current;
+            public int Maximum;
+        }
+        #endregion
+
         #region RawJsonBsonSerializer class
 
         private class RawJsonBsonSerializer : IBsonSerializer
@@ -345,7 +399,7 @@ namespace DeviceHive.Data.MongoDB
                 }
 
                 var bsonValue = BsonSerializer.Deserialize<BsonValue>(bsonReader);
-                return bsonValue.ToJson();
+                return bsonValue.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict });
             }
 
             public IBsonSerializationOptions GetDefaultSerializationOptions()

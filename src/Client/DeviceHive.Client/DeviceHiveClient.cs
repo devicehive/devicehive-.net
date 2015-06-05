@@ -15,8 +15,7 @@ namespace DeviceHive.Client
     public class DeviceHiveClient : IDeviceHiveClient, IDisposable
     {
         private readonly AsyncLock _lock = new AsyncLock(); // synchronizes channel open/close operations
-        private readonly DeviceHiveConnectionInfo _connectionInfo;
-        private readonly RestClient _restClient;
+        private readonly IRestClient _restClient;
 
         private Channel[] _availableChannels;
         private Channel _channel;
@@ -26,21 +25,30 @@ namespace DeviceHive.Client
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="connectionInfo">An instance of the DeviceHiveConnectionInfo class providing DeviceHive connection information.</param>
+        /// <param name="connectionInfo">An instance of <see cref="DeviceHiveConnectionInfo" /> class which provides DeviceHive connection information.</param>
         public DeviceHiveClient(DeviceHiveConnectionInfo connectionInfo)
+            : this(connectionInfo, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructor which allows to override <see cref="IRestClient" /> which makes HTTP requests to the DeviceHive server.
+        /// </summary>
+        /// <param name="connectionInfo">An instance of <see cref="DeviceHiveConnectionInfo" /> class which provides DeviceHive connection information.</param>
+        /// <param name="restClient">An instance of <see cref="IRestClient" /> which makes HTTP requests to the DeviceHive server.</param>
+        public DeviceHiveClient(DeviceHiveConnectionInfo connectionInfo, IRestClient restClient)
         {
             if (connectionInfo == null)
                 throw new ArgumentNullException("connectionInfo");
 
-            _connectionInfo = connectionInfo;
-            _restClient = new RestClient(connectionInfo);
+            _restClient = restClient ?? new RestClient(connectionInfo);
             
             // default channels: WebSocket, LongPolling
             SetAvailableChannels(new Channel[] {
-#if !PORTABLE
-                new WebSocketChannel(connectionInfo),
+#if !EXCLUDE_WEB_SOCKET
+                new WebSocketChannel(connectionInfo, _restClient),
 #endif
-                new LongPollingChannel(connectionInfo)
+                new LongPollingChannel(connectionInfo, _restClient)
             });
 
 #if !PORTABLE
@@ -79,7 +87,7 @@ namespace DeviceHive.Client
         /// <returns>A list of <see cref="Network"/> objects that match specified filter criteria.</returns>
         public async Task<List<Network>> GetNetworksAsync(NetworkFilter filter = null)
         {
-            return await _restClient.GetAsync<List<Network>>("network" + _restClient.MakeQueryString(filter));
+            return await _restClient.GetAsync<List<Network>>("network" + RestClient.MakeQueryString(filter));
         }
 
         /// <summary>
@@ -89,7 +97,7 @@ namespace DeviceHive.Client
         /// <returns>A list of <see cref="Device"/> objects that match specified filter criteria.</returns>
         public async Task<List<Device>> GetDevicesAsync(DeviceFilter filter = null)
         {
-            return await _restClient.GetAsync<List<Device>>("device" + _restClient.MakeQueryString(filter));
+            return await _restClient.GetAsync<List<Device>>("device" + RestClient.MakeQueryString(filter));
         }
 
         /// <summary>
@@ -131,7 +139,7 @@ namespace DeviceHive.Client
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
 
             return await _restClient.GetAsync<List<Notification>>(
-                string.Format("device/{0}/notification", deviceGuid) + _restClient.MakeQueryString(filter));
+                string.Format("device/{0}/notification", deviceGuid) + RestClient.MakeQueryString(filter));
         }
 
         /// <summary>
@@ -146,14 +154,14 @@ namespace DeviceHive.Client
                 throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
 
             return await _restClient.GetAsync<List<Command>>(
-                string.Format("device/{0}/command", deviceGuid) + _restClient.MakeQueryString(filter));
+                string.Format("device/{0}/command", deviceGuid) + RestClient.MakeQueryString(filter));
         }
 
         /// <summary>
         /// Gets active subscriptions for DeviceHive commands and notifications.
         /// </summary>
         /// <returns>A list of <see cref="ISubscription"/> objects representing subsription information.</returns>
-        public IList<ISubscription> GetSubscriptionsAsync()
+        public IList<ISubscription> GetSubscriptions()
         {
             if (_channel == null)
                 return new List<ISubscription>();
@@ -250,7 +258,7 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object representing the command to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
-        /// <param name="token">Cancellation token to cancel polling command result.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
         /// <returns>Sent Command object.</returns>
         public async Task<Command> SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null)
         {
@@ -268,6 +276,19 @@ namespace DeviceHive.Client
             var channel = await OpenChannelAsync();
             await channel.UpdateCommandAsync(deviceGuid, command);
         }
+
+        /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        public async Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token = null)
+        {
+            var channel = await OpenChannelAsync();
+            return await channel.WaitCommandResultAsync(deviceGuid, commandId, token);
+        }
         #endregion
 
         #region Channel Functionality
@@ -275,7 +296,7 @@ namespace DeviceHive.Client
         /// <summary>
         /// Sets an array of available channels to use for maintaining a persistent connection with the DeviceHive server.
         /// The actual channel to be used will be selected as the first object which returns the true <see cref="DeviceHive.Client.Channel.CanConnectAsync()"/> value.
-        /// The default list of channels consists of the <see cref="WebSocketChannel"/> and <see cref="LongPollingChannel"/> objects.
+        /// The default list of channels consists of the WebSocketChannel and LongPollingChannel objects.
         /// </summary>
         /// <param name="channels">The array of <see cref="Channel"/> objects to be used.</param>
         public void SetAvailableChannels(Channel[] channels)
@@ -397,6 +418,19 @@ namespace DeviceHive.Client
             if (ChannelStateChanged != null)
                 ChannelStateChanged(sender, eventArgs);
         }
+
+        /// <summary>
+        /// Disposes current object
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                var task = CloseChannelAsync();
+                // does not need to wait
+            }
+        }
         #endregion
 
         #region IDisposable Members
@@ -406,8 +440,7 @@ namespace DeviceHive.Client
         /// </summary>
         public void Dispose()
         {
-            var task = CloseChannelAsync();
-            // does not need to wait
+            Dispose(true);
         }
         #endregion
     }

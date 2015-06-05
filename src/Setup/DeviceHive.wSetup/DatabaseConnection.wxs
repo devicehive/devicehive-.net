@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:DataSource="http://schemas.appsecinc.com/wix/DataSourceExtension">
+  <!--Fragment>
+    <DataSource:ODBCConnection Id="SQLServerConnection" ConnectionString="Server=[SQL_SERVER];Database=[SQL_DATABASE];User Id=[SQL_USERID];Pwd=[SQL_PASSWORD]" />
+
+    <Component Id="MSSQLDatabaseMsiComponent" Guid="0FEAF4B6-7065-47e2-A403-E94A4B176772" KeyPath="yes">
+      <CreateFolder/>
+      <DataSource:MSSQLDatabase Id="MSSQLDemoDatabase" Name="DemoDatabase" ConnectionId="SQLServerConnection" CreateOnInstall="no" DropOnUnInstall="no" CheckIfExists="yes" />
+    </Component>
+  </Fragment-->
+</Wix>

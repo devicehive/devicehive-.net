@@ -46,7 +46,18 @@ namespace DeviceHive.Data.MongoDB
 
         public Device Get(string guid)
         {
+            if (string.IsNullOrEmpty(guid))
+                throw new ArgumentException("Guid is null or empty!");
+            
             return _mongo.Devices.FindOne(Query<Device>.EQ(e => e.GUID, guid));
+        }
+
+        public List<Device> GetMany(string[] guids)
+        {
+            if (guids == null)
+                throw new ArgumentNullException("guids");
+
+            return _mongo.Devices.Find(Query<Device>.In(e => e.GUID, guids)).ToList();
         }
 
         public void Save(Device device)
@@ -92,17 +103,18 @@ namespace DeviceHive.Data.MongoDB
 
         public void SetLastOnline(int id)
         {
-            _mongo.Database.Eval(new EvalArgs { Code = string.Format("db.devices.update({{ _id: {0} }}, {{ $set: {{ LastOnline: new Date() }}}});", id) });
+            _mongo.Devices.Update(Query<Device>.EQ(e => e.ID, id), Update<Device>.CurrentDate(e => e.LastOnline));
         }
 
-        public List<Device> GetOfflineDevices()
+        public List<Device> GetDisconnectedDevices(string offlineStatus)
         {
             var devices = _mongo.Devices.AsQueryable()
+                .Where(d => d.Status != offlineStatus)
                 .Where(d => d.DeviceClass.OfflineTimeout != null)
                 .Select(d => new { ID = d.ID, LastOnline = d.LastOnline, OfflineTimeout = d.DeviceClass.OfflineTimeout }).ToList();
 
             var deviceIds = new List<int>();
-            var timestamp = _mongo.Database.Eval(new EvalArgs { Code = "return new Date()", Lock = false }).ToUniversalTime();
+            var timestamp = _mongo.GetCurrentTimestamp();
             foreach (var device in devices)
             {
                 if (device.LastOnline == null || device.LastOnline < timestamp.AddSeconds(-device.OfflineTimeout.Value))

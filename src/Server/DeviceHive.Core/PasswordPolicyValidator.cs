@@ -66,6 +66,7 @@ namespace DeviceHive.Core
     /// <summary>
     /// Represents password policy violation exception
     /// </summary>
+    [Serializable]
     public class PasswordPolicyViolationException : Exception
     {
         /// <summary>

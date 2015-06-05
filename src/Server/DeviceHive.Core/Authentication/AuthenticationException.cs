@@ -5,6 +5,7 @@ namespace DeviceHive.Core.Authentication
     /// <summary>
     /// Represents authentication exception.
     /// </summary>
+    [Serializable]
     public class AuthenticationException : Exception
     {
         #region Constructor

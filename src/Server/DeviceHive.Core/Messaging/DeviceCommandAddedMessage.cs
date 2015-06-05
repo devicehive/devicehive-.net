@@ -19,6 +19,11 @@ namespace DeviceHive.Core.Messaging
         /// </summary>
         public int CommandId { get; set; }
 
+        /// <summary>
+        /// Gets or sets command name
+        /// </summary>
+        public string Name { get; set; }
+
         #endregion
 
         #region Constructor
@@ -31,14 +36,16 @@ namespace DeviceHive.Core.Messaging
         }
 
         /// <summary>
-        /// Specifies device and command identifiers
+        /// Specifies device and command parameters
         /// </summary>
         /// <param name="deviceId">Device identifier</param>
         /// <param name="commandId">Command identifier</param>
-        public DeviceCommandAddedMessage(int deviceId, int commandId)
+        /// <param name="name">Command name</param>
+        public DeviceCommandAddedMessage(int deviceId, int commandId, string name)
         {
             DeviceId = deviceId;
             CommandId = commandId;
+            Name = name;
         }
         #endregion
     }

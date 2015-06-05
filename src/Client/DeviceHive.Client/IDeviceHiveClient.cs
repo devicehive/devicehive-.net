@@ -76,7 +76,7 @@ namespace DeviceHive.Client
         /// Gets active subscriptions for DeviceHive commands and notifications.
         /// </summary>
         /// <returns>A list of <see cref="ISubscription"/> objects representing subsription information.</returns>
-        IList<ISubscription> GetSubscriptionsAsync();
+        IList<ISubscription> GetSubscriptions();
 
         /// <summary>
         /// Adds a subscription to device notifications.
@@ -128,7 +128,7 @@ namespace DeviceHive.Client
         /// <param name="deviceGuid">Device unique identifier.</param>
         /// <param name="command">A <see cref="Command"/> object representing the command to be sent.</param>
         /// <param name="callback">A callback action to invoke when the command is completed by the device.</param>
-        /// <param name="token">Cancellation token to cancel polling command result.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
         /// <returns>Sent Command object.</returns>
         Task<Command> SendCommandAsync(string deviceGuid, Command command, Action<Command> callback = null, CancellationToken? token = null);
 
@@ -140,9 +140,18 @@ namespace DeviceHive.Client
         Task UpdateCommandAsync(string deviceGuid, Command command);
 
         /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token);
+
+        /// <summary>
         /// Sets an array of available channels to use for maintaining a persistent connection with the DeviceHive server.
         /// The actual channel to be used will be selected as the first object which returns the true <see cref="DeviceHive.Client.Channel.CanConnectAsync()"/> value.
-        /// The default list of channels consists of the <see cref="WebSocketChannel"/> and <see cref="LongPollingChannel"/> objects.
+        /// The default list of channels consists of the WebSocketChannel and LongPollingChannel objects.
         /// </summary>
         /// <param name="channels">The array of <see cref="Channel"/> objects to be used.</param>
         void SetAvailableChannels(Channel[] channels);

@@ -16,6 +16,7 @@ namespace DeviceHive.Client
         private ApiInfo _apiInfo;
         private readonly List<Subscription> _subscriptions = new List<Subscription>();
         private readonly Dictionary<int, CommandCallback> _commandCallbacks = new Dictionary<int, CommandCallback>();
+        private TaskCompletionSource<object> _reconnectTaskCompletionSource;
 
         #region Public Properties
 
@@ -42,6 +43,11 @@ namespace DeviceHive.Client
         /// </summary>
         protected DeviceHiveConnectionInfo ConnectionInfo { get; private set; }
 
+        /// <summary>
+        /// Gets <see cref="IRestClient" /> used for making HTTP requests to the DeviceHive server.
+        /// </summary>
+        protected IRestClient RestClient { get; private set; }
+
         #endregion
 
         #region Constructor
@@ -50,13 +56,15 @@ namespace DeviceHive.Client
         /// Default constructor.
         /// </summary>
         /// <param name="connectionInfo">DeviceHive connection information.</param>
-        protected Channel(DeviceHiveConnectionInfo connectionInfo)
+        /// <param name="restClient">IRestClient implementation.</param>
+        protected Channel(DeviceHiveConnectionInfo connectionInfo, IRestClient restClient)
         {
             if (connectionInfo == null)
                 throw new ArgumentNullException("connectionInfo");
 
             State = ChannelState.Disconnected;
             ConnectionInfo = connectionInfo;
+            RestClient = restClient ?? new RestClient(connectionInfo);
         }
         #endregion
 
@@ -99,22 +107,12 @@ namespace DeviceHive.Client
         /// <param name="deviceGuids">Array of device unique identifiers to subscribe to. Specify null to subscribe to all accessible devices.</param>
         /// <param name="notificationNames">Array of notification names to subsribe to. Specify null to subscribe to all notifications.</param>
         /// <param name="callback">A callback which will be invoken when a notification is retrieved.</param>
+        /// <param name="timestamp">A timestamp of last received notification (optional).</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        public async Task<ISubscription> AddNotificationSubscriptionAsync(string[] deviceGuids, string[] notificationNames, Action<DeviceNotification> callback)
+        public async Task<ISubscription> AddNotificationSubscriptionAsync(string[] deviceGuids, string[] notificationNames, Action<DeviceNotification> callback, DateTime? timestamp = null)
         {
-            CheckConnection();
-
-            Action<object> notificationCallback = obj => callback((DeviceNotification)obj);
-            var subscription = new Subscription(SubscriptionType.Notification, deviceGuids, notificationNames, notificationCallback);
-            
-            subscription.Id = await SubscriptionAdding(subscription);
-            lock (_subscriptions)
-            {
-                _subscriptions.Add(subscription);
-            }
-            await SubscriptionAdded(subscription);
-
-            return subscription;
+            return await AddSubscriptionAsync(SubscriptionType.Notification,
+                deviceGuids, notificationNames, obj => callback((DeviceNotification)obj), timestamp);
         }
 
         /// <summary>
@@ -124,22 +122,12 @@ namespace DeviceHive.Client
         /// <param name="deviceGuids">Array of device unique identifiers to subscribe to. Specify null to subscribe to all accessible devices.</param>
         /// <param name="commandNames">Array of command names to subsribe to. Specify null to subscribe to all commands.</param>
         /// <param name="callback">A callback which will be invoken when a command is retrieved.</param>
+        /// <param name="timestamp">A timestamp of last received command (optional).</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        public async Task<ISubscription> AddCommandSubscriptionAsync(string[] deviceGuids, string[] commandNames, Action<DeviceCommand> callback)
+        public async Task<ISubscription> AddCommandSubscriptionAsync(string[] deviceGuids, string[] commandNames, Action<DeviceCommand> callback, DateTime? timestamp = null)
         {
-            CheckConnection();
-
-            Action<object> commandCallback = obj => callback((DeviceCommand)obj);
-            var subscription = new Subscription(SubscriptionType.Command, deviceGuids, commandNames, commandCallback);
-
-            subscription.Id = await SubscriptionAdding(subscription);
-            lock (_subscriptions)
-            {
-                _subscriptions.Add(subscription);
-            }
-            await SubscriptionAdded(subscription);
-
-            return subscription;
+            return await AddSubscriptionAsync(SubscriptionType.Command,
+                deviceGuids, commandNames, obj => callback((DeviceCommand)obj), timestamp);
         }
 
         /// <summary>
@@ -148,12 +136,12 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="subscription">An <see cref="ISubscription"/> object representing the subscription to remove.</param>
         /// <returns></returns>
-        public async Task RemoveSubscriptionAsync(ISubscription subscription)
+        public async virtual Task RemoveSubscriptionAsync(ISubscription subscription)
         {
             if (subscription == null)
                 throw new ArgumentNullException("subscription");
 
-            CheckConnection();
+            await EnsureConnectedAsync();
 
             var subscriptionObject = _subscriptions.FirstOrDefault(s => object.ReferenceEquals(s, subscription));
             if (subscriptionObject == null)
@@ -192,6 +180,15 @@ namespace DeviceHive.Client
         /// <param name="command">A <see cref="Command"/> object to update.</param>
         public abstract Task UpdateCommandAsync(string deviceGuid, Command command);
 
+        /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        public abstract Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token = null);
+
         #endregion
 
         #region Protected Methods
@@ -203,21 +200,24 @@ namespace DeviceHive.Client
         protected async Task<ApiInfo> GetApiInfoAsync()
         {
             if (_apiInfo == null)
-            {
-                var restClient = new RestClient(ConnectionInfo);
-                _apiInfo = await restClient.GetAsync<ApiInfo>("info");
-            }
+                _apiInfo = await RestClient.GetAsync<ApiInfo>("info");
+
             return _apiInfo;
         }
 
         /// <summary>
-        /// Checks if connection is open.
+        /// Ensures the channel connection is open.
         /// Otherwise throws an InvalidOperationException exception.
+        /// If current state is Reconnecting, waits until the connection is restored.
         /// </summary>
-        protected void CheckConnection()
+        /// <returns></returns>
+        protected async Task EnsureConnectedAsync()
         {
+            if (State == ChannelState.Reconnecting)
+                await _reconnectTaskCompletionSource.Task;
+
             if (State != ChannelState.Connected)
-                throw new InvalidOperationException("The channel is not opened, please call the Open method and wait until it completes!");
+                throw new InvalidOperationException("The channel is not active, please call the Open method and wait until it completes!");
         }
 
         /// <summary>
@@ -227,6 +227,11 @@ namespace DeviceHive.Client
         /// <param name="state">The new <see cref="ChannelState"/> value.</param>
         protected void SetChannelState(ChannelState state)
         {
+            if (state == State)
+                return;
+
+            var eventArgs = new ChannelStateEventArgs(State, state);
+
             if (state == ChannelState.Disconnected)
             {
                 lock (_subscriptions)
@@ -234,11 +239,18 @@ namespace DeviceHive.Client
                     _subscriptions.Clear();
                 }
             }
+            else if (state == ChannelState.Reconnecting)
+            {
+                _reconnectTaskCompletionSource = new TaskCompletionSource<object>();
+            }
 
-            var eventArgs = new ChannelStateEventArgs(State, state);
             State = state;
-
             Task.Run(() => OnChannelStateChanged(eventArgs));
+
+            if (eventArgs.OldState == ChannelState.Reconnecting)
+            {
+                _reconnectTaskCompletionSource.TrySetResult(true);
+            }
         }
 
         /// <summary>
@@ -252,6 +264,38 @@ namespace DeviceHive.Client
 
             if (StateChanged != null)
                 StateChanged(this, eventArgs);
+        }
+
+        /// <summary>
+        /// Adds a subscription.
+        /// The method creates an <see cref="ISubscription" /> object and then invokes <see cref="SubscriptionAdding"/> and <see cref="SubscriptionAdded"/> methods.
+        /// </summary>
+        /// <param name="type">Subscription type</param>
+        /// <param name="deviceGuids">Array of device unique identifiers to include into subscription.</param>
+        /// <param name="eventNames">Array of event names to include into subscription.</param>
+        /// <param name="callback">A callback which will be invoken when a server message is retrieved.</param>
+        /// <param name="timestamp">A timestamp of last received message (optional).</param>
+        /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
+        protected virtual async Task<ISubscription> AddSubscriptionAsync(SubscriptionType type, string[] deviceGuids, string[] eventNames, Action<object> callback, DateTime? timestamp)
+        {
+            await EnsureConnectedAsync();
+
+            if (timestamp == null) // if timestamp was not passed - get current timestamp from the server
+                timestamp = (await RestClient.GetAsync<ApiInfo>("info")).ServerTimestamp;
+
+            // create a subscription object
+            var subscription = new Subscription(type, deviceGuids, eventNames, callback, timestamp.Value);
+
+            // call SubscriptionAdding and SubscriptionAdded methods
+            subscription.Id = await SubscriptionAdding(subscription);
+            lock (_subscriptions)
+            {
+                _subscriptions.Add(subscription);
+            }
+            await SubscriptionAdded(subscription);
+
+            // return subscription object
+            return subscription;
         }
 
         /// <summary>
@@ -299,48 +343,28 @@ namespace DeviceHive.Client
         }
 
         /// <summary>
-        /// The methods invokes a subscription callback for new notification received from the DeviceHive server.
+        /// The method invokes a subscription callback for a new message received from the DeviceHive server.
         /// </summary>
-        /// <param name="notification">A <see cref="DeviceNotification"/> object received from the DeviceHive server.</param>
-        protected void InvokeSubscriptionCallback(DeviceNotification notification)
+        /// <param name="subscriptionId">Subscription identifier.</param>
+        /// <param name="timestamp">Timestamp of the message.</param>
+        /// <param name="message">A message object received from the DeviceHive server.</param>
+        protected void InvokeSubscriptionCallback(Guid subscriptionId, DateTime timestamp, object message)
         {
-            if (notification == null)
-                throw new ArgumentNullException("notification");
+            if (message == null)
+                throw new ArgumentNullException("message");
 
             Subscription subscription;
             lock (_subscriptions)
             {
-                subscription = _subscriptions.FirstOrDefault(s => s.Id == notification.SubscriptionId);
+                subscription = _subscriptions.FirstOrDefault(s => s.Id == subscriptionId);
+                if (subscription != null && timestamp > subscription.Timestamp)
+                    subscription.Timestamp = timestamp;
             }
             if (subscription != null)
             {
                 Task.Run(() =>
                 {
-                    try { subscription.Callback(notification); }
-                    catch (Exception) { }
-                });
-            }
-        }
-
-        /// <summary>
-        /// The methods invokes a subscription callback for new command received from the DeviceHive server.
-        /// </summary>
-        /// <param name="command">A <see cref="DeviceCommand"/> object received from the DeviceHive server.</param>
-        protected void InvokeSubscriptionCallback(DeviceCommand command)
-        {
-            if (command == null)
-                throw new ArgumentNullException("command");
-
-            Subscription subscription;
-            lock (_subscriptions)
-            {
-                subscription = _subscriptions.FirstOrDefault(s => s.Id == command.SubscriptionId);
-            }
-            if (subscription != null)
-            {
-                Task.Run(() =>
-                {
-                    try { subscription.Callback(command); }
+                    try { subscription.Callback(message); }
                     catch (Exception) { }
                 });
             }
@@ -422,6 +446,19 @@ namespace DeviceHive.Client
         }
 
         /// <summary>
+        /// Disposes used resources.
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                var task = CloseAsync();
+                // does not need to wait
+            }
+        }
+
+        /// <summary>
         /// Serializes passed object to JSON.
         /// </summary>
         /// <typeparam name="T">Object type.</typeparam>
@@ -462,10 +499,10 @@ namespace DeviceHive.Client
         /// <summary>
         /// Disposes current object.
         /// </summary>
-        public virtual void Dispose()
+        public void Dispose()
         {
-            var task = CloseAsync();
-            // does not need to wait
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

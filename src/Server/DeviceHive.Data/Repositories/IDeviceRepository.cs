@@ -8,10 +8,11 @@ namespace DeviceHive.Data.Repositories
     public interface IDeviceRepository : ISimpleRepository<Device>
     {
         Device Get(string guid);
+        List<Device> GetMany(string[] guids);
         List<Device> GetAll(DeviceFilter filter = null);
         List<Device> GetByNetwork(int networkId, DeviceFilter filter = null);
         List<Device> GetByUser(int userId, DeviceFilter filter = null);
-        List<Device> GetOfflineDevices();
+        List<Device> GetDisconnectedDevices(string offlineStatus);
         void SetLastOnline(int id);
     }
 

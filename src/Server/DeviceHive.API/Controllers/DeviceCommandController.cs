@@ -32,11 +32,7 @@ namespace DeviceHive.API.Controllers
         [Route, AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
         public JToken Get(string deviceGuid)
         {
-            EnsureDeviceAccess(deviceGuid);
-
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var filter = MapObjectFromQuery<DeviceCommandFilter>();
             return new JArray(DataContext.DeviceCommand.GetByDevice(device.ID, filter).Select(n => Mapper.Map(n)));
@@ -52,11 +48,7 @@ namespace DeviceHive.API.Controllers
         [Route("{id:int}"), AuthorizeUserOrDevice(AccessKeyAction = "GetDeviceCommand")]
         public JObject Get(string deviceGuid, int id)
         {
-            EnsureDeviceAccess(deviceGuid);
-
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var command = DataContext.DeviceCommand.Get(id);
             if (command == null || command.DeviceID != device.ID)
@@ -80,9 +72,7 @@ namespace DeviceHive.API.Controllers
         [Route, AuthorizeUser(AccessKeyAction = "CreateDeviceCommand")]
         public JObject Post(string deviceGuid, JObject json)
         {
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var command = Mapper.Map(json);
             command.Device = device;
@@ -111,11 +101,7 @@ namespace DeviceHive.API.Controllers
         [Route("{id:int}"), AuthorizeUserOrDevice(AccessKeyAction = "UpdateDeviceCommand")]
         public void Put(string deviceGuid, int id, JObject json)
         {
-            EnsureDeviceAccess(deviceGuid);
-
-            var device = DataContext.Device.Get(deviceGuid);
-            if (device == null || !IsDeviceAccessible(device))
-                ThrowHttpResponse(HttpStatusCode.NotFound, "Device not found!");
+            var device = GetDeviceEnsureAccess(deviceGuid);
 
             var command = DataContext.DeviceCommand.Get(id);
             if (command == null || command.DeviceID != device.ID)

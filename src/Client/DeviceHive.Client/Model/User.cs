@@ -38,7 +38,12 @@ namespace DeviceHive.Client
         public string Login { get; set; }
 
         /// <summary>
-        /// Gets or sets user password.
+        /// Gets or sets old user password (required when setting a new password).
+        /// </summary>
+        public string OldPassword { get; set; }
+
+        /// <summary>
+        /// Gets or sets new user password.
         /// </summary>
         public string Password { get; set; }
 
@@ -46,6 +51,11 @@ namespace DeviceHive.Client
         /// Gets or sets user role.
         /// </summary>
         public UserRole Role { get; set; }
+
+        /// <summary>
+        /// Gets or sets associated user data.
+        /// </summary>
+        public JToken Data { get; set; }
 
         /// <summary>
         /// Gets or sets the list of associated networks.

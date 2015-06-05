@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Bundle Name="DeviceHive.Bootstrapper" Version="1.0.0.0" Manufacturer="DataArt" UpgradeCode="63fda12c-bb69-40e7-a026-2490c77278c8">
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense" />
+
+    <Chain>
+      <PackageGroupRef Id="NetFx45Web" />
+      <MsiPackage SourceFile="$(var.DeviceHive.Setup.TargetPath)"
+                  Compressed ="yes"
+                  DisplayName ="DeviceHive Setup"
+                  ForcePerMachine ="yes"
+                  DisplayInternalUI="yes"
+                  Vital="yes"/>
+    </Chain>
+  </Bundle>
+</Wix>

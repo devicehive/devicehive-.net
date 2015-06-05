@@ -62,12 +62,29 @@ namespace DeviceHive.Data.EF
 
         public Device Get(string guid)
         {
+            if (string.IsNullOrEmpty(guid))
+                throw new ArgumentException("Guid is null or empty!");
+
             using (var context = new DeviceHiveContext())
             {
                 return context.Devices
                     .Include(e => e.Network)
                     .Include(e => e.DeviceClass.Equipment)
                     .FirstOrDefault(e => e.GUID == guid);
+            }
+        }
+
+        public List<Device> GetMany(string[] guids)
+        {
+            if (guids == null)
+                throw new ArgumentNullException("guids");
+
+            using (var context = new DeviceHiveContext())
+            {
+                return context.Devices
+                    .Include(e => e.Network)
+                    .Include(e => e.DeviceClass.Equipment)
+                    .Where(e => guids.Contains(e.GUID)).ToList();
             }
         }
 
@@ -117,13 +134,14 @@ namespace DeviceHive.Data.EF
             }
         }
 
-        public List<Device> GetOfflineDevices()
+        public List<Device> GetDisconnectedDevices(string offlineStatus)
         {
             using (var context = new DeviceHiveContext())
             {
                 return context.Devices
                     .Include(e => e.Network)
                     .Include(e => e.DeviceClass.Equipment)
+                    .Where(d => d.Status != offlineStatus)
                     .Where(e => e.DeviceClass.OfflineTimeout != null)
                     .Where(d => d.LastOnline == null || DbFunctions.AddSeconds(d.LastOnline, d.DeviceClass.OfflineTimeout) < SqlFunctions.GetUtcDate())
                     .ToList();

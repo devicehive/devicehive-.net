@@ -19,6 +19,11 @@ namespace DeviceHive.Core.Messaging
         /// </summary>
         public int NotificationId { get; set; }
 
+        /// <summary>
+        /// Gets or sets notification name
+        /// </summary>
+        public string Name { get; set; }
+
         #endregion
 
         #region Constructor
@@ -31,14 +36,16 @@ namespace DeviceHive.Core.Messaging
         }
 
         /// <summary>
-        /// Specifies device and notification identifiers
+        /// Specifies device and notification parameters
         /// </summary>
         /// <param name="deviceId">Device identifier</param>
         /// <param name="notificationId">Notification identifier</param>
-        public DeviceNotificationAddedMessage(int deviceId, int notificationId)
+        /// <param name="name">Notification name</param>
+        public DeviceNotificationAddedMessage(int deviceId, int notificationId, string name)
         {
             DeviceId = deviceId;
             NotificationId = notificationId;
+            Name = name;
         }
         #endregion
     }

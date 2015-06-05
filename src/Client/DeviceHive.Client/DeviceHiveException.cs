@@ -5,6 +5,9 @@ namespace DeviceHive.Client
     /// <summary>
     /// Represents base exception class for DeviceHive client errors.
     /// </summary>
+#if !PORTABLE
+    [Serializable]
+#endif
     public class DeviceHiveException : Exception
     {
         #region Constructor
@@ -40,6 +43,9 @@ namespace DeviceHive.Client
     /// <summary>
     /// Represents an exception class for DeviceHive authorization errors.
     /// </summary>
+#if !PORTABLE
+    [Serializable]
+#endif
     public class DeviceHiveUnauthorizedException : DeviceHiveException
     {
         #region Constructor

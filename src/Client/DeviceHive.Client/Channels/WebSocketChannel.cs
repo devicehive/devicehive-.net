@@ -1,10 +1,13 @@
-﻿using Newtonsoft.Json.Linq;
+﻿#if !EXCLUDE_WEB_SOCKET
+
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WebSocket4Net;
+using Windows.Networking.Sockets;
+using Windows.Storage.Streams;
 
 namespace DeviceHive.Client
 {
@@ -13,9 +16,10 @@ namespace DeviceHive.Client
     /// </summary>
     public class WebSocketChannel : Channel
     {
-        private WebSocket _webSocket;
-        private TaskCompletionSource<object> _authTaskCompletionSource;
+        private MessageWebSocket _webSocket;
+        private DataWriter _socketWriter;
         private TaskCompletionSource<object> _closeTaskCompletionSource;
+        private bool _isClosedByClient;
 
         private readonly AsyncLock _lock = new AsyncLock(); // synchronizes WebSocket open/close operations
         private readonly Dictionary<string, RequestInfo> _requests = new Dictionary<string, RequestInfo>();
@@ -37,7 +41,17 @@ namespace DeviceHive.Client
         /// </summary>
         /// <param name="connectionInfo">DeviceHive connection information.</param>
         public WebSocketChannel(DeviceHiveConnectionInfo connectionInfo)
-            : base(connectionInfo)
+            : this(connectionInfo, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructor which allows to override <see cref="IRestClient" /> which makes HTTP requests to the DeviceHive server.
+        /// </summary>
+        /// <param name="connectionInfo">DeviceHive connection information.</param>
+        /// <param name="restClient">IRestClient implementation.</param>
+        public WebSocketChannel(DeviceHiveConnectionInfo connectionInfo, IRestClient restClient)
+            : base(connectionInfo, restClient)
         {
             Timeout = 30000;
         }
@@ -65,55 +79,16 @@ namespace DeviceHive.Client
             using (var releaser = await _lock.LockAsync())
             {
                 if (State != ChannelState.Disconnected)
-                    throw new InvalidOperationException("The WebSocket connection is already open, please call the Close method before opening it again!");
+                    throw new InvalidOperationException("The WebSocket connection is already open, please call the CloseAsync method before opening it again!");
 
                 if (!await CanConnectAsync())
                     throw new InvalidOperationException("The WebSocket connection cannot be used since the server does not support it!");
 
                 SetChannelState(ChannelState.Connecting);
 
-                var webSocketUrl = (await GetApiInfoAsync()).WebSocketServerUrl + "/client";
-                _webSocket = new WebSocket(webSocketUrl);
-                _webSocket.MessageReceived += (s, e) => Task.Run(() => HandleMessage(e.Message));
-                _webSocket.Opened += (s, e) => Task.Run(() => Authenticate());
-                _webSocket.Closed += (s, e) =>
-                    {
-                        var exception = new DeviceHiveException("WebSocket connection was closed!");
+                _isClosedByClient = false;
 
-                        if (_authTaskCompletionSource != null && !_authTaskCompletionSource.Task.IsCompleted)
-                            _authTaskCompletionSource.SetException(exception);
-
-                        lock (_requests)
-                        {
-                            foreach (var requestInfo in _requests.Where(r => !r.Value.Task.IsCompleted))
-                                requestInfo.Value.SetException(exception);
-                            _requests.Clear();
-                        }
-
-                        _webSocket = null;
-                        SetChannelState(ChannelState.Disconnected);
-                        _closeTaskCompletionSource.SetResult(true);
-                    };
-
-                _closeTaskCompletionSource = new TaskCompletionSource<object>();
-                _authTaskCompletionSource = new TaskCompletionSource<object>();
-
-                try
-                {
-                    _webSocket.Open();
-
-                    var resultTask = await Task.WhenAny(_authTaskCompletionSource.Task, Task.Delay(Timeout));
-                    if (resultTask != _authTaskCompletionSource.Task)
-                        throw new DeviceHiveException("Timeout while waiting for authentication response!");
-
-                    _authTaskCompletionSource.Task.Wait(); // throw exception if authentication failed
-                    SetChannelState(ChannelState.Connected);
-                }
-                catch (Exception)
-                {
-                    CloseAsync().Wait();
-                    throw;
-                }
+                await OpenWebSocketAsync();
             }
         }
 
@@ -125,10 +100,17 @@ namespace DeviceHive.Client
         {
             using (var releaser = await _lock.LockAsync())
             {
-                if (State != ChannelState.Disconnected)
+                _isClosedByClient = true;
+                if (State == ChannelState.Connected)
                 {
-                    _webSocket.Close();
+                    // close WebSocket, this will trigger HandleConnectionClose handler
+                    _webSocket.Close(1000, "Normal Closure");
                     await _closeTaskCompletionSource.Task;
+                }
+                else if (State == ChannelState.Reconnecting)
+                {
+                    // set channel state to Disconnected; the Reconnect wait will stop now
+                    SetChannelState(ChannelState.Disconnected);
                 }
             }
         }
@@ -146,9 +128,9 @@ namespace DeviceHive.Client
             if (notification == null)
                 throw new ArgumentNullException("notification");
 
-            CheckConnection();
+            await EnsureConnectedAsync();
 
-            var result = await SendRequest("notification/insert",
+            var result = await SendRequestAsync("notification/insert",
                 new JProperty("deviceGuid", deviceGuid),
                 new JProperty("notification", Serialize(notification)));
 
@@ -177,9 +159,9 @@ namespace DeviceHive.Client
             if (!token.HasValue)
                 token = CancellationToken.None;
 
-            CheckConnection();
+            await EnsureConnectedAsync();
 
-            var result = await SendRequest("command/insert",
+            var result = await SendRequestAsync("command/insert",
                 new JProperty("deviceGuid", deviceGuid),
                 new JProperty("command", Serialize(command)));
 
@@ -210,13 +192,33 @@ namespace DeviceHive.Client
             if (command.Id == null)
                 throw new ArgumentException("Command ID is null!", "command");
 
-            CheckConnection();
+            await EnsureConnectedAsync();
 
             var update = new Command { Status = command.Status, Result = command.Result };
-            await SendRequest("command/update",
+            await SendRequestAsync("command/update",
                 new JProperty("deviceGuid", deviceGuid),
                 new JProperty("commandId", command.Id),
                 new JProperty("command", Serialize(update)));
+        }
+
+        /// <summary>
+        /// Waits until the command is completed and returns a Command object with filled Status and Result properties.
+        /// </summary>
+        /// <param name="deviceGuid">Device unique identifier.</param>
+        /// <param name="commandId">Command identifier.</param>
+        /// <param name="token">Cancellation token to cancel waiting for command result.</param>
+        /// <returns>A <see cref="Command"/> object with filled Status and Result properties.</returns>
+        public override async Task<Command> WaitCommandResultAsync(string deviceGuid, int commandId, CancellationToken? token = null)
+        {
+            if (string.IsNullOrEmpty(deviceGuid))
+                throw new ArgumentException("DeviceGuid is null or empty!", "deviceGuid");
+
+            var taskSource = new TaskCompletionSource<Command>();
+            RegisterCommandCallback(commandId, command => taskSource.TrySetResult(command));
+            if (token != null)
+                token.Value.Register(() => taskSource.TrySetCanceled());
+
+            return await taskSource.Task;
         }
         #endregion
 
@@ -230,14 +232,15 @@ namespace DeviceHive.Client
         /// <returns></returns>
         protected override async Task<Guid> SubscriptionAdding(ISubscription subscription)
         {
-            var properties = new List<JProperty>(2);
+            var properties = new List<JProperty>(3);
+            properties.Add(new JProperty("timestamp", subscription.Timestamp));
             if (subscription.DeviceGuids != null)
                 properties.Add(new JProperty("deviceGuids", new JArray(subscription.DeviceGuids)));
             if (subscription.EventNames != null)
                 properties.Add(new JProperty("names", new JArray(subscription.EventNames)));
 
             var action = subscription.Type == SubscriptionType.Notification ? "notification/subscribe" : "command/subscribe";
-            var result = await SendRequest(action, properties.ToArray());
+            var result = await SendRequestAsync(action, properties.ToArray());
             return result["subscriptionId"] != null ? (Guid)result["subscriptionId"] : Guid.NewGuid();
         }
 
@@ -251,40 +254,65 @@ namespace DeviceHive.Client
         {
             var properties = new JProperty[] { new JProperty("subscriptionId", subscription.Id) };
             var action = subscription.Type == SubscriptionType.Notification ? "notification/unsubscribe" : "command/unsubscribe";
-            await SendRequest(action, properties);
+            await SendRequestAsync(action, properties);
         }
         #endregion
 
         #region Private Methods
 
-        private async Task Authenticate()
+        private async Task OpenWebSocketAsync()
         {
+            _closeTaskCompletionSource = new TaskCompletionSource<object>();
+
             try
             {
-                JProperty[] args;
-                if (ConnectionInfo.AccessKey != null)
-                {
-                    args = new[] { new JProperty("accessKey", ConnectionInfo.AccessKey) };
-                }
-                else
-                {
-                    args = new[] {
-                        new JProperty("login", ConnectionInfo.Login),
-                        new JProperty("password", ConnectionInfo.Password)
-                    };
-                }
+                var webSocketUrl = (await GetApiInfoAsync()).WebSocketServerUrl + "/client";
 
-                await SendRequest("authenticate", args);
+                _webSocket = new MessageWebSocket();
+                _webSocket.Control.MessageType = SocketMessageType.Utf8;
+                _webSocket.MessageReceived += (s, e) => Task.Run(() => HandleMessage(e));
+                _webSocket.Closed += (s, e) => Task.Run(() => HandleConnectionClose());
+                await _webSocket.ConnectAsync(new Uri(webSocketUrl));
 
-                _authTaskCompletionSource.SetResult(true);
+                _socketWriter = new DataWriter(_webSocket.OutputStream);
+
+                await AuthenticateAsync();
+
+                SetChannelState(ChannelState.Connected);
             }
-            catch (Exception ex)
+            catch
             {
-                _authTaskCompletionSource.SetException(ex);
+                try
+                {
+                    if (_webSocket != null)
+                    {
+                        _webSocket.Close(1000, "Abnormal Closure");
+                    }
+                }
+                catch { }
+                throw;
             }
         }
 
-        private async Task<JObject> SendRequest(string action, params JProperty[] args)
+        private async Task AuthenticateAsync()
+        {
+            JProperty[] args;
+            if (ConnectionInfo.AccessKey != null)
+            {
+                args = new[] { new JProperty("accessKey", ConnectionInfo.AccessKey) };
+            }
+            else
+            {
+                args = new[] {
+                    new JProperty("login", ConnectionInfo.Login),
+                    new JProperty("password", ConnectionInfo.Password)
+                };
+            }
+
+            await SendRequestAsync("authenticate", args);
+        }
+
+        private async Task<JObject> SendRequestAsync(string action, params JProperty[] args)
         {
             var requestId = Guid.NewGuid().ToString();
             var requestInfo = new RequestInfo();
@@ -300,7 +328,8 @@ namespace DeviceHive.Client
             };
 
             var requestJson = new JObject(commonProperties.Concat(args).Cast<object>().ToArray());
-            _webSocket.Send(requestJson.ToString());
+            _socketWriter.WriteString(requestJson.ToString());
+            await _socketWriter.StoreAsync();
 
             var resultTask = await Task.WhenAny(requestInfo.Task, Task.Delay(Timeout));
             if (resultTask != requestInfo.Task)
@@ -314,8 +343,40 @@ namespace DeviceHive.Client
             return result;
         }
 
-        private void HandleMessage(string message)
+        private void HandleMessage(MessageWebSocketMessageReceivedEventArgs args)
         {
+            string message;
+            DataReader reader = null;
+            try
+            {
+                try
+                {
+                    reader = args.GetDataReader();
+                }
+                catch
+                {
+                    try
+                    {
+                        _webSocket.Close(1001, "Abnormal Closure");
+                    }
+                    catch
+                    {
+                        HandleConnectionClose();
+                    }
+                    return;
+                }
+
+                reader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
+                message = reader.ReadString(reader.UnconsumedBufferLength);
+            }
+            finally
+            {
+                if (reader != null)
+                {
+                    reader.Dispose();
+                }
+            }
+
             var json = JObject.Parse(message);
             var requestId = (string)json["requestId"];
 
@@ -328,14 +389,14 @@ namespace DeviceHive.Client
                     case "notification/insert":
                         {
                             var notification = Deserialize<DeviceNotification>(json);
-                            InvokeSubscriptionCallback(notification);
+                            InvokeSubscriptionCallback(notification.SubscriptionId, notification.Notification.Timestamp.Value, notification);
                         }
                         return;
 
                     case "command/insert":
                         {
                             var command = Deserialize<DeviceCommand>(json);
-                            InvokeSubscriptionCallback(command);
+                            InvokeSubscriptionCallback(command.SubscriptionId, command.Command.Timestamp.Value, command);
                         }
                         return;
 
@@ -349,13 +410,78 @@ namespace DeviceHive.Client
             }
 
             // handle responses to client requests
+            RequestInfo requestInfo = null;
             lock (_requests)
             {
-                RequestInfo requestInfo;
                 if (_requests.TryGetValue(requestId, out requestInfo))
-                {
-                    requestInfo.SetResult(json);
                     _requests.Remove(requestId);
+            }
+            if (requestInfo != null)
+                requestInfo.SetResult(json);
+        }
+
+        private void HandleConnectionClose()
+        {
+            if (_webSocket != null)
+            {
+                _webSocket.Dispose();
+                _webSocket = null;
+            }
+
+            // change channel state
+            var tryReconnect = (State == ChannelState.Connected || State == ChannelState.Reconnecting) && !_isClosedByClient;
+            if (tryReconnect)
+            {
+                SetChannelState(ChannelState.Reconnecting);
+                Task.Run(async () => await Reconnect());
+            }
+            else
+            {
+                SetChannelState(ChannelState.Disconnected);
+            }
+
+            // fail pending requests
+            var exception = new DeviceHiveException(State == ChannelState.Connected ?
+                "WebSocket connection was closed!" : "Could not open a WebSocket connection!");
+            lock (_requests)
+            {
+                foreach (var requestInfo in _requests.Where(r => !r.Value.Task.IsCompleted))
+                    requestInfo.Value.SetException(exception);
+                _requests.Clear();
+            }
+
+            // unblock waiting tasks
+            _closeTaskCompletionSource.TrySetResult(true);
+        }
+
+        private async Task Reconnect()
+        {
+            while (State != ChannelState.Connected)
+            {
+                // wait for some time
+                await Task.Delay(1000);
+                if (_isClosedByClient)
+                    return;
+
+                using (var releaser = await _lock.LockAsync())
+                {
+                    try
+                    {
+                        // try opening a WebSocket connection
+                        await OpenWebSocketAsync();
+
+                        // restore subscriptions
+                        foreach (var subscription in GetSubscriptions().Cast<Subscription>())
+                        {
+                            subscription.Id = await SubscriptionAdding(subscription);
+                        }
+
+                        return; // reconnected
+                    }
+                    catch
+                    {
+                        // do nothing, continue reconnecting
+                    }
                 }
             }
         }
@@ -374,14 +500,16 @@ namespace DeviceHive.Client
 
             public void SetResult(JObject result)
             {
-                _taskCompletionSource.SetResult(result);
+                _taskCompletionSource.TrySetResult(result);
             }
 
             public void SetException(Exception exception)
             {
-                _taskCompletionSource.SetException(exception);
+                _taskCompletionSource.TrySetException(exception);
             }
         }
         #endregion
     }
 }
+
+#endif

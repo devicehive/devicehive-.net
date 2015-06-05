@@ -50,6 +50,10 @@ namespace DeviceHive.ManagerWin8.Common
             {
                 return hasMoreItems;
             }
+            protected set
+            {
+                hasMoreItems = value;
+            }
         }
 
         public uint MinItemsLoadCount
@@ -104,9 +108,10 @@ namespace DeviceHive.ManagerWin8.Common
                     {
                         list = await loadItems(count, offset);
                     }
-                    catch (Exception)
+                    catch
                     {
                         wasException = true;
+                        HasMoreItems = false;
                     }
 
                     if (!wasException || IsLoadingChanged != null)
@@ -117,11 +122,12 @@ namespace DeviceHive.ManagerWin8.Common
                             {
                                 if (list.Count == 0)
                                 {
-                                    hasMoreItems = false;
+                                    HasMoreItems = false;
                                     offset -= lastOffsetDelta;
                                 }
                                 else
                                 {
+                                    HasMoreItems = true;
                                     offset += count;
                                     lastOffsetDelta = (uint)(count - list.Count);
                                     foreach (EntityType item in list)
@@ -135,7 +141,7 @@ namespace DeviceHive.ManagerWin8.Common
                     }
 
                     isLoading = false;
-                    return new LoadMoreItemsResult() { Count = (uint)list.Count };
+                    return new LoadMoreItemsResult() { Count = !wasException ? (uint)list.Count : 0 };
                 }).AsAsyncOperation<LoadMoreItemsResult>();
         }
 
@@ -151,7 +157,7 @@ namespace DeviceHive.ManagerWin8.Common
             base.RemoveItem(index);
 
             offset--;
-            hasMoreItems = true;
+            HasMoreItems = true;
         }
 
         protected override void ClearItems()
@@ -160,7 +166,7 @@ namespace DeviceHive.ManagerWin8.Common
 
             offset = 0;
             lastOffsetDelta = 0;
-            hasMoreItems = true;
+            HasMoreItems = true;
         }
     }
 }

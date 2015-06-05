@@ -15,9 +15,9 @@ namespace DeviceHive.API
             var commandByDeviceIdWaiter = context.Kernel.Get<ObjectWaiter>("DeviceCommand.DeviceID");
             var commandByCommandIdWaiter = context.Kernel.Get<ObjectWaiter>("DeviceCommand.CommandID");
 
-            messageBus.Subscribe<DeviceNotificationAddedMessage>(message => notificationByDeviceIdWaiter.NotifyChanges(message.DeviceId));
-            messageBus.Subscribe<DeviceCommandAddedMessage>(message => commandByDeviceIdWaiter.NotifyChanges(message.DeviceId));
-            messageBus.Subscribe<DeviceCommandUpdatedMessage>(message => commandByCommandIdWaiter.NotifyChanges(message.CommandId));
+            messageBus.Subscribe<DeviceNotificationAddedMessage>(message => notificationByDeviceIdWaiter.NotifyChanges(message.DeviceId, message.Name));
+            messageBus.Subscribe<DeviceCommandAddedMessage>(message => commandByDeviceIdWaiter.NotifyChanges(message.DeviceId, message.Name));
+            messageBus.Subscribe<DeviceCommandUpdatedMessage>(message => commandByCommandIdWaiter.NotifyChanges(message.CommandId, null));
         }
     }
 }

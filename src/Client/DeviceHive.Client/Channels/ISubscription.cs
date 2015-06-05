@@ -28,5 +28,10 @@ namespace DeviceHive.Client
         /// If null, subscription was made to all available events.
         /// </summary>
         string[] EventNames { get; }
+
+        /// <summary>
+        /// Gets a timestamp of last received message.
+        /// </summary>
+        DateTime Timestamp { get; set; }
     }
 }

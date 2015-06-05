@@ -1,24 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
-  <Identity Name="AB310338-FACD-4CB3-A340-255633392638" Publisher="CN=DataArtApps" Version="1.0.0.0" />
+<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest" xmlns:m2="http://schemas.microsoft.com/appx/2013/manifest">
+  <Identity Name="AB310338-FACD-4CB3-A340-255633392638" Publisher="CN=DataArtApps" Version="1.1.0.0" />
   <Properties>
     <DisplayName>DeviceHive.ManagerWin8</DisplayName>
     <PublisherDisplayName>DataArt Apps</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Prerequisites>
-    <OSMinVersion>6.2.1</OSMinVersion>
-    <OSMaxVersionTested>6.2.1</OSMaxVersionTested>
+    <OSMinVersion>6.3.0</OSMinVersion>
+    <OSMaxVersionTested>6.3.0</OSMaxVersionTested>
   </Prerequisites>
   <Resources>
     <Resource Language="x-generate" />
   </Resources>
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="DeviceHive.ManagerWin8.App">
-      <VisualElements DisplayName="DeviceHive" Logo="Assets\Logo.png" SmallLogo="Assets\SmallLogo.png" Description="DeviceHive Client" ForegroundText="light" BackgroundColor="#253d47">
-        <DefaultTile ShowName="logoOnly" WideLogo="Assets\LogoWide.png" />
-        <SplashScreen Image="Assets\SplashScreen.png" />
-      </VisualElements>
+      <m2:VisualElements DisplayName="DeviceHive" Description="DeviceHive Client" BackgroundColor="#253d47" ForegroundText="light" Square150x150Logo="Assets\Logo.png" Square30x30Logo="Assets\SmallLogo.png">
+        <m2:DefaultTile Wide310x150Logo="Assets\LogoWide.png">
+          <m2:ShowNameOnTiles>
+            <m2:ShowOn Tile="square150x150Logo" />
+          </m2:ShowNameOnTiles>
+        </m2:DefaultTile>
+        <m2:SplashScreen Image="Assets\SplashScreen.png" />
+        <m2:ApplicationView MinWidth="width320" />
+      </m2:VisualElements>
     </Application>
   </Applications>
   <Capabilities>
