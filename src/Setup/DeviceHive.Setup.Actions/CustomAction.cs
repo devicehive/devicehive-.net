@@ -25,21 +25,6 @@ namespace DeviceHive.Setup.Actions
 
         #endregion
 
-        /// <summary>
-        /// Check that process is being run as an administrator
-        /// </summary>
-        /// <returns></returns>
-        [CustomAction]
-        public static ActionResult CheckRunAsAdministrator(Session session)
-        {
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
-            int value = Convert.ToInt32(principal.IsInRole(WindowsBuiltInRole.Administrator));
-            session["IS_ADMIN"] = value.ToString(CultureInfo.InvariantCulture);
-
-            return ActionResult.Success;
-        }
-
         [CustomAction]
         public static ActionResult ChangeConfigJs(Session session)
         {
