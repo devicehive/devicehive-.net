@@ -28,6 +28,7 @@
                 <TextBox Text="{Binding CloudUsername, Mode=TwoWay}"/>
                 <TextBlock Text="Password"/>
                 <PasswordBox Password="{Binding CloudPassword, Mode=TwoWay}" IsPasswordRevealButtonEnabled="True"/>
+                <TextBlock Text="Make sure that server supports WebSockets. It's required for the application." TextWrapping="WrapWholeWords" Margin="0,20"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

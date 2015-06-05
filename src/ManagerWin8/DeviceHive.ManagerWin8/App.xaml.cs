@@ -120,8 +120,8 @@ namespace DeviceHive.ManagerWin8
             settings.Title = "Cloud connection";
             settings.HeaderBackground = new SolidColorBrush(Color.FromArgb(255, 26, 160, 255));
             settings.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-
-            settings.Content = CloudConnectionSettings.Instance;
+            
+            settings.Content = new CloudConnectionSettings();
             settings.Show();
         }
 

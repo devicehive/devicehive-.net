@@ -40,6 +40,7 @@ namespace DeviceHive.ManagerWin8
         Tab currentTab;
 
         bool equipmentInited;
+        bool wasPollError;
         IncrementalLoadingCollection<Notification> notificationsObservable;
         IncrementalLoadingCollection<Command> commandsObservable;
         CancellationTokenSource commandResultCancellatonSource;
@@ -414,19 +415,30 @@ namespace DeviceHive.ManagerWin8
             await StopPollNotifications();
 
             Debug.WriteLine("NTF POLL START");
-            notificationsPollSubscription = await ClientService.Current.AddNotificationSubscriptionAsync(new[] { deviceId }, null, async (notificationPolled) =>
+            try
             {
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                notificationsPollSubscription = await ClientService.Current.AddNotificationSubscriptionAsync(new[] { deviceId }, null, async (notificationPolled) =>
                 {
-                    lock (NotificationsObservable)
+                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
-                        if (!NotificationsObservable.Any(c => c.Id == notificationPolled.Notification.Id))
+                        lock (NotificationsObservable)
                         {
-                            NotificationsObservable.Insert(0, notificationPolled.Notification);
+                            if (!NotificationsObservable.Any(c => c.Id == notificationPolled.Notification.Id))
+                            {
+                                NotificationsObservable.Insert(0, notificationPolled.Notification);
+                            }
                         }
-                    }
+                    });
                 });
-            });
+            }
+            catch (Exception ex)
+            {
+                if (!wasPollError)
+                {
+                    new MessageDialog(ex.Message, "Can't subscribe to notifications").ShowAsync();
+                    wasPollError = true;
+                }
+            }
             Debug.WriteLine("NTF POLL END");
         }
 
@@ -485,19 +497,30 @@ namespace DeviceHive.ManagerWin8
             await StopPollCommands();
             
             Debug.WriteLine("CMD POLL START");
-            commandsPollSubscription = await ClientService.Current.AddCommandSubscriptionAsync(new[] { deviceId }, null, async (commandPolled) =>
+            try
             {
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                commandsPollSubscription = await ClientService.Current.AddCommandSubscriptionAsync(new[] { deviceId }, null, async (commandPolled) =>
                 {
-                    lock (CommandsObservable)
+                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
-                        if (!CommandsObservable.Any(c => c.Id == commandPolled.Command.Id))
+                        lock (CommandsObservable)
                         {
-                            CommandsObservable.Insert(0, commandPolled.Command);
+                            if (!CommandsObservable.Any(c => c.Id == commandPolled.Command.Id))
+                            {
+                                CommandsObservable.Insert(0, commandPolled.Command);
+                            }
                         }
-                    }
+                    });
                 });
-            });
+            }
+            catch (Exception ex)
+            {
+                if (!wasPollError)
+                {
+                    new MessageDialog(ex.Message, "Can't subscribe to commands").ShowAsync();
+                    wasPollError = true;
+                }
+            }
             Debug.WriteLine("CMD POLL END");
         }
 

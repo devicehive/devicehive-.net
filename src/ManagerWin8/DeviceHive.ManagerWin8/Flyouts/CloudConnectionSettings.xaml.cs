@@ -19,25 +19,11 @@ namespace DeviceHive.ManagerWin8.Flyouts
 {
     public sealed partial class CloudConnectionSettings : UserControl
     {
-        static CloudConnectionSettings instance;
-
-        CloudConnectionSettings()
+        public CloudConnectionSettings()
         {
             this.InitializeComponent();
 
             this.DataContext = Settings.Instance;
-        }
-
-        public static CloudConnectionSettings Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = new CloudConnectionSettings();
-                }
-                return instance;
-            }
         }
     }
 }
