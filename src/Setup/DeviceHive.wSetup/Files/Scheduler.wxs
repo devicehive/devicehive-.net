@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?include ..\variables.wxi?>
+  <!--  "$(WIX)bin\heat.exe" dir "..\..\..\..\..\tools\Scheduler" -cg CmpScheduler -gg -scom -sreg -sfrag -dr INSTALL_SCHEDULRE_FOLDER -out "$(ProjectDir)Files\Scheduler.wxs" -var var.SchedulerSourcePath-->
+  <Fragment>
+    <DirectoryRef Id="INSTALLFOLDER">
+        <Directory Id="INSTALL_SCHEDULER_FOLDER" Name="Scheduler">
+          <Component Id="cmp7501453A495EE1BE7C7B43284E7CD8CA" Guid="{C4D2328B-1952-4716-82BE-1D0DD5A65459}">
+            <File Id="fil23738029DD2ADC4B6FF7D92D6B3BFC60" KeyPath="yes" Source="$(var.SchedulerSourcePath)\curl.exe" />
+          </Component>
+          <Component Id="cmpCFF248771DA5694E4EEC603749B9A7E8" Guid="{120089AA-3C76-4824-86C6-33E7A36FBA8D}">
+            <File Id="fil765AE85EBD2C6D69DF6C60C595877A3B" KeyPath="yes" Source="$(var.SchedulerSourcePath)\schedule_tasks.cmd" />
+          </Component>
+          <Component Id="cmpB1DC61F984A7D5B153F856433CD13E85" Guid="{82E84553-D65F-474F-AD95-E6DE12EC6182}">
+            <File Id="fil9EA4F66238AC051AB883BD3BC72BECE6" KeyPath="yes" Source="$(var.SchedulerSourcePath)\unschedule_tasks.cmd" />
+          </Component>
+        </Directory>
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <ComponentGroup Id="CmpScheduler">
+      <ComponentRef Id="cmp7501453A495EE1BE7C7B43284E7CD8CA" />
+      <ComponentRef Id="cmpCFF248771DA5694E4EEC603749B9A7E8" />
+      <ComponentRef Id="cmpB1DC61F984A7D5B153F856433CD13E85" />
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>

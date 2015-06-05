@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="$(MSBuildExtensionsPath)\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets" />
+
+  <PropertyGroup Condition=" '$(BUILD_NUMBER)' == '' ">
+    <Version>2.0.0.0</Version>
+    <FileVersion>2.0.0.0</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(BUILD_NUMBER)' != '' ">
+    <!-- Build Server Number -->
+    <Version>$(BUILD_NUMBER)</Version>
+    <FileVersion>$(BUILD_NUMBER)</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <OutDir Condition=" '$(OutDir)'=='' ">$(MSBuildThisFileDirectory)..\bin\</OutDir>
+    <Configuration Condition=" '$(Configuration)'=='' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)'=='' ">x64</Platform>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ClientHome Condition=" '$(ClientHome)'=='' ">$(MSBuildThisFileDirectory)Client\</ClientHome>
+    <DeviceHome Condition=" '$(DeviceHome)'=='' ">$(MSBuildThisFileDirectory)Device\</DeviceHome>
+    <ManagerWin8Home Condition=" '$(ManagerWin8Home)'=='' ">$(MSBuildThisFileDirectory)ManagerWin8\</ManagerWin8Home>
+    <DeviceHiveServerHome Condition=" '$(DeviceHiveServerHome)'=='' ">$(MSBuildThisFileDirectory)Server\</DeviceHiveServerHome>
+    <DeviceHiveSetupHome Condition=" '$(DeviceHiveSetupHome)'=='' ">$(MSBuildThisFileDirectory)Setup\</DeviceHiveSetupHome>
+    <ToolsHome Condition=" '$(ToolsHome)'=='' ">$(MSBuildThisFileDirectory)..\tools\</ToolsHome>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DeviceHiveClientNet45DestinationFolder Condition=" '$(DeviceHiveClientNet45DestinationFolder)'=='' ">$(OutDir)Client\net45</DeviceHiveClientNet45DestinationFolder>
+    <DeviceHiveClientPortableDestinationFolder Condition=" '$(DeviceHiveClientPortableDestinationFolder)'=='' ">$(OutDir)Client\portable</DeviceHiveClientPortableDestinationFolder>
+    <DeviceHiveDeviceDestinationFolder Condition=" '$(DeviceHiveDeviceDestinationFolder)'=='' ">$(OutDir)Device\</DeviceHiveDeviceDestinationFolder>
+    <DeviceHiveManagerWin8DestinationFolder Condition=" '$(DeviceHiveManagerWin8DestinationFolder)'=='' ">$(OutDir)ManagerWin8\</DeviceHiveManagerWin8DestinationFolder>
+    <DeviceHiveServerDestinationFolder Condition=" '$(DeviceHiveServerDestinationFolder)'=='' ">$(OutDir)Server\</DeviceHiveServerDestinationFolder>
+    <DeviceHiveApiDestinationFolder>$(DeviceHiveServerDestinationFolder)web</DeviceHiveApiDestinationFolder>
+    <DeviceHiveWebSocketsAPIDestinationFolder>$(DeviceHiveServerDestinationFolder)WebSockets.API</DeviceHiveWebSocketsAPIDestinationFolder>
+    <DeviceHiveWebSocketsHostDestinationFolder>$(DeviceHiveServerDestinationFolder)WebSockets.Host</DeviceHiveWebSocketsHostDestinationFolder>
+    <DeviceHiveDBMigratorDestinationFolder>$(DeviceHiveServerDestinationFolder)DBMigrator</DeviceHiveDBMigratorDestinationFolder>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>
+        DeviceHiveDBMigratorDestinationFolder=$(DeviceHiveDBMigratorDestinationFolder)%3b
+        DeviceHiveApiDestinationFolder=$(DeviceHiveApiDestinationFolder)%3b
+        DeviceHiveWebSocketsAPIDestinationFolder=$(DeviceHiveWebSocketsAPIDestinationFolder)
+    </DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ExcludedOutputFiles Include="$(MSBuildThisFileDirectory)**\*.pdb"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyInfoFilesToUpdate Include="$(MSBuildThisFileDirectory)**\AssemblyInfo.cs"/>
+    <DeviceHiveClientNet45OutputFolder Include="$(ClientHome)DeviceHive.Client\bin\net45\$(Configuration)\*.*" Exclude="@(ExcludedOutputFiles)"/>
+    <DeviceHiveClientPortableOutputFolder Include="$(ClientHome)DeviceHive.Client\bin\portable\$(Configuration)\*.*" Exclude="@(ExcludedOutputFiles)"/>
+    <DeviceHiveDeviceOutputFolder Include="$(DeviceHome)DeviceHive.Binary\bin\$(Configuration)\**\*.*;$(DeviceHome)DeviceHive.Device\bin\$(Configuration)\**\*.*" Exclude="@(ExcludedOutputFiles)"/>
+    <DeviceHiveManagerWin8OutputFolder Include="$(ManagerWin8Home)DeviceHive.ManagerWin8\bin\$(Configuration)\**\*.*" Exclude="@(ExcludedOutputFiles)"/>
+    <DeviceHiveWebSocketsAPIOutputFolder Include="$(DeviceHiveServerHome)DeviceHive.WebSockets.API\bin\$(Configuration)\*.*" Exclude="@(ExcludedOutputFiles)"/>
+    <DeviceHiveWebSocketsHostOutputFolder Include="$(DeviceHiveServerHome)DeviceHive.WebSockets.Host\bin\$(Configuration)\*.*" Exclude="@(ExcludedOutputFiles)"/>
+    <DBMigratorOutputFolder Include="$(DeviceHiveServerHome)DeviceHive.DBMigrator\bin\$(Configuration)\*.*" Exclude="@(ExcludedOutputFiles)"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClientSolution Include="$(ClientHome)*.sln">
+        <AdditionalProperties>Configuration=$(Configuration);</AdditionalProperties>
+    </ClientSolution>
+    <DeviceSolution Include="$(DeviceHome)*.sln">
+        <AdditionalProperties>Configuration=$(Configuration);</AdditionalProperties>
+    </DeviceSolution>
+    <ManagerWin8Solution Include="$(ManagerWin8Home)*.sln">
+        <AdditionalProperties>Configuration=$(Configuration);</AdditionalProperties>
+    </ManagerWin8Solution>
+    <DeviceHiveServerSolution Include="$(DeviceHiveServerHome)*.sln">
+      <AdditionalProperties>DeployOnBuild=true;_PackageTempDir=$(DeviceHiveApiDestinationFolder);Configuration=$(Configuration)</AdditionalProperties>
+    </DeviceHiveServerSolution>
+    <DeviceHiveSetupMsiSolution Include="$(DeviceHiveSetupHome)*.sln"/>	
+    <DeviceHiveSetupCustomActionProject Include="$(DeviceHiveSetupHome)DeviceHive.Setup.Actions\*.csproj">
+      <AdditionalProperties>Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
+    </DeviceHiveSetupCustomActionProject>
+    <DeviceHiveSetupMsiProject Include="$(DeviceHiveSetupHome)DeviceHive.wSetup\*.wixproj">
+      <AdditionalProperties>Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
+    </DeviceHiveSetupMsiProject>
+    <DeviceHiveSetupProject Include="$(DeviceHiveSetupHome)Setup\*.vcxproj">
+      <AdditionalProperties>OutDir=$(DeviceHiveServerDestinationFolder);Configuration=$(Configuration);Platform=$(Platform);</AdditionalProperties>
+    </DeviceHiveSetupProject>
+  </ItemGroup>
+
+  <Target Name="Build">
+    <CallTarget Targets="BuildDeviceHive"/>
+  </Target>
+
+  <Target Name="BuildDeviceHive" DependsOnTargets="Clean;RestorePackages">
+    <CallTarget Targets="BuildDeviceHiveClient;BuildDeviceHiveServer"/>
+    <CallTarget Targets="CopyOutputFilesToDestinationFolder"/>
+    <CallTarget Targets="BuildDeviceHiveServerSetup"/>
+  </Target>
+
+  <Target Name="BuildDeviceHiveClient">
+    <MSBuild Targets="Build" Projects="@(ClientSolution)" BuildInParallel="true"/>
+    <MSBuild Targets="Build" Projects="@(DeviceSolution)" BuildInParallel="true"/>
+    <MSBuild Targets="Build" Projects="@(ManagerWin8Solution)" BuildInParallel="true"/>
+  </Target>
+
+  <Target Name="BuildDeviceHiveServer">
+    <MSBuild Targets="Build" Projects="@(DeviceHiveServerSolution)" BuildInParallel="true"/>
+  </Target>
+
+  <Target Name="BuildDeviceHiveServerSetup" DependsOnTargets="BuildDeviceHiveSetupMsiProject">
+    <MSBuild Targets="Build" Projects="@(DeviceHiveSetupProject)"/>
+  </Target>
+
+  <Target Name="BuildDeviceHiveSetupMsiProject">
+    <MSBuild Targets="Build" Projects="@(DeviceHiveSetupCustomActionProject)"/>
+    <MSBuild Targets="Build" Projects="@(DeviceHiveSetupMsiProject)" Properties="DefineConstants=$(DefineConstants)" />
+  </Target>
+
+  <Target Name="CopyOutputFilesToDestinationFolder">
+    <Copy SourceFiles="@(DeviceHiveClientNet45OutputFolder)" DestinationFolder="$(DeviceHiveClientNet45DestinationFolder)"/>
+    <Copy SourceFiles="@(DeviceHiveClientPortableOutputFolder)" DestinationFolder="$(DeviceHiveClientPortableDestinationFolder)"/>
+    <Copy SourceFiles="@(DeviceHiveDeviceOutputFolder)" DestinationFolder="$(DeviceHiveDeviceDestinationFolder)"/>
+    <Copy SourceFiles="@(DeviceHiveManagerWin8OutputFolder)" DestinationFiles="@(DeviceHiveManagerWin8OutputFolder->'$(DeviceHiveManagerWin8DestinationFolder)%(RecursiveDir)%(Filename)%(Extension)')"/>
+
+    <Copy SourceFiles="@(DeviceHiveWebSocketsAPIOutputFolder)" DestinationFolder="$(DeviceHiveWebSocketsAPIDestinationFolder)"/>
+    <Copy SourceFiles="@(DeviceHiveWebSocketsHostOutputFolder)" DestinationFolder="$(DeviceHiveWebSocketsHostDestinationFolder)"/>
+    <Copy SourceFiles="@(DBMigratorOutputFolder)" DestinationFolder="$(DeviceHiveDBMigratorDestinationFolder)"/>  
+  </Target>
+<!--
+  <Target Name="UpdateAssemblyInfoFiles">
+    <Message Text="Modifying AssemblyInfo files..." />
+
+    <Attrib Files="@(AssemblyInfoFilesToUpdate)" Normal="true" />
+
+    <FileUpdate Files="@(AssemblyInfoFilesToUpdate)"
+            Regex="AssemblyVersion\(&quot;.*&quot;\)\]"
+            ReplacementText="AssemblyVersion(&quot;$(Version)&quot;)]" />
+    <FileUpdate Files="@(AssemblyInfoFilesToUpdate)"
+            Regex="AssemblyFileVersion\(&quot;.*&quot;\)\]"
+            ReplacementText="AssemblyFileVersion(&quot;$(FileVersion)&quot;)]" />
+  </Target>
+-->
+  <Target Name="RestorePackages">
+    <NuGetRestore ToolPath="$(ToolsHome)" Solution="%(ClientSolution.Identity)"/>
+    <NuGetRestore ToolPath="$(ToolsHome)" Solution="%(DeviceSolution.Identity)"/>
+    <NuGetRestore ToolPath="$(ToolsHome)" Solution="%(ManagerWin8Solution.Identity)"/>
+    <NuGetRestore ToolPath="$(ToolsHome)" Solution="%(DeviceHiveServerSolution.Identity)"/>
+    <NuGetRestore ToolPath="$(ToolsHome)" Solution="%(DeviceHiveSetupMsiSolution.Identity)"/>
+  </Target>
+
+  <Target Name="Clean">
+    <DeleteTree Directories="$(OutDir);**\obj\**;**\bin\**" />
+  </Target>
+
+</Project>

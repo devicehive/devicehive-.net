@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="INSTALL_WINSOCKET_FOLDER">
+      <Component Id="DeviceHive.WebSockets.API_Config" Guid="" KeyPath="yes">
+        
+      </Component>
+      <Component Id="DeviceHive.WebSockets.API_Firewall" Guid="" KeyPath="yes">
+
+      </Component>
+      <Component Id="DeviceHive.WebSockets.API_WindowsService" Guid="" KeyPath="yes">
+      </Component>
+    </DirectoryRef>
+
+    <ComponentGroup Id="DeviceHive.WebSockets.API_Configuration">
+      <ComponentRef Id="DeviceHive.WebSockets.API_Config" />
+      <ComponentRef Id="DeviceHive.WebSockets.API_Firewall" />
+      <ComponentRef Id="DeviceHive.WebSockets.API_WindowsService" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>
