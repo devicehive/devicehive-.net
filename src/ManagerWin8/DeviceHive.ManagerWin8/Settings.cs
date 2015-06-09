@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
@@ -10,10 +11,6 @@ namespace DeviceHive.ManagerWin8
 {
     public class Settings : INotifyPropertyChanged
     {
-        const string cloudServerUrlKey = "CloudServerUrl";
-        const string cloudUsernameKey = "CloudUsername";
-        const string cloudPasswordKey = "CloudPassword";
-
         static Settings instance;
         ApplicationDataContainer settings;
 
@@ -28,14 +25,11 @@ namespace DeviceHive.ManagerWin8
         {
             get
             {
-                return GetValueOrDefault<string>(cloudServerUrlKey, "http://pg.devicehive.com/api");
+                return GetValueOrDefault<string>(() => "http://pg.devicehive.com/api");
             }
             set
             {
-                if (AddOrUpdateValue(cloudServerUrlKey, value))
-                {
-                    OnPropertyChanged("CloudServerUrl");
-                }
+                AddOrUpdateValue(value);
             }
         }
 
@@ -43,14 +37,11 @@ namespace DeviceHive.ManagerWin8
         {
             get
             {
-                return GetValueOrDefault<string>(cloudUsernameKey, "admin");
+                return GetValueOrDefault<string>(() => "admin");
             }
             set
             {
-                if (AddOrUpdateValue(cloudUsernameKey, value))
-                {
-                    OnPropertyChanged("CloudUsername");
-                }
+                AddOrUpdateValue(value);
             }
         }
 
@@ -58,14 +49,11 @@ namespace DeviceHive.ManagerWin8
         {
             get
             {
-                return GetValueOrDefault<string>(cloudPasswordKey);
+                return GetValueOrDefault<string>();
             }
             set
             {
-                if (AddOrUpdateValue(cloudPasswordKey, value))
-                {
-                    OnPropertyChanged("CloudPassword");
-                }
+                AddOrUpdateValue(value);
             }
         }
 
@@ -78,7 +66,7 @@ namespace DeviceHive.ManagerWin8
         /// <param name="Key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        bool AddOrUpdateValue(string Key, Object value)
+        bool AddOrUpdateValue(Object value, [CallerMemberName]string Key = "")
         {
             bool valueChanged = false;
 
@@ -99,6 +87,10 @@ namespace DeviceHive.ManagerWin8
                 settings.Values.Add(Key, value);
                 valueChanged = true;
             }
+            if (valueChanged)
+            {
+                OnPropertyChanged(Key);
+            }
             return valueChanged;
         }
 
@@ -110,7 +102,7 @@ namespace DeviceHive.ManagerWin8
         /// <param name="Key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        T GetValueOrDefault<T>(string Key, T defaultValue)
+        T GetValueOrDefault<T>(Func<T> defaultValueCreator, [CallerMemberName]string Key = "")
         {
             T value;
 
@@ -122,14 +114,22 @@ namespace DeviceHive.ManagerWin8
             // Otherwise, use the default value.
             else
             {
-                value = defaultValue;
+                if (defaultValueCreator == null)
+                {
+                    value = default(T);
+                }
+                else
+                {
+                    value = defaultValueCreator();
+                }
+                settings.Values.Add(Key, value);
             }
             return value;
         }
 
-        T GetValueOrDefault<T>(string Key)
+        T GetValueOrDefault<T>([CallerMemberName]string Key = "")
         {
-            return GetValueOrDefault<T>(Key, default(T));
+            return GetValueOrDefault<T>(null, Key);
         }
 
         protected virtual void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -141,7 +141,7 @@ namespace DeviceHive.ManagerWin8
             }
         }
 
-        protected virtual void OnPropertyChanged(string propertyName)
+        protected virtual void OnPropertyChanged([CallerMemberName]string propertyName = "")
         {
             var tempEvent = PropertyChanged;
             if (tempEvent != null)
