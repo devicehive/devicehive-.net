@@ -1,0 +1,290 @@
+﻿<common:LayoutAwarePage
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DeviceHive.WindowsManager"
+    xmlns:common="using:DeviceHive.WindowsManager.Common"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="pageRoot"
+    x:Class="DeviceHive.WindowsManager.DevicePage"
+    DataContext="{Binding DefaultViewModel, RelativeSource={RelativeSource Mode=Self}}"
+    mc:Ignorable="d">
+
+    <common:LayoutAwarePage.Resources>
+        <CollectionViewSource x:Name="tabsViewSource" Source="{Binding Tabs}"/>
+        
+        <StackPanel x:Key="filterPanel" Orientation="Vertical">
+            <TextBlock Text="Start time"/>
+        </StackPanel>
+    </common:LayoutAwarePage.Resources>
+
+    <Page.BottomAppBar>
+        <AppBar Padding="10,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width=".3*"/>
+                    <ColumnDefinition Width=".7*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel x:Name="commandsAppBar" Visibility="Collapsed" Orientation="Horizontal">
+                    <Button AutomationProperties.Name="Send" Style="{StaticResource UploadAppBarButtonStyle}" Tapped="SendCommand_Tapped" Visibility="{Binding IsCommandSelected, Converter={StaticResource BooleanNegationToVisibilityConverter}}"/>
+                    <Button AutomationProperties.Name="Clone" Style="{StaticResource UploadAppBarButtonStyle}" Tapped="SendCommand_Tapped" Visibility="{Binding IsCommandSelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="refreshButton" Style="{StaticResource RefreshAppBarButtonStyle}" Tapped="Refresh_Tapped" IsEnabled="{Binding IsLoading, Converter={StaticResource BooleanNegationConverter}}"/>
+                    <Button x:Name="filterButton" Style="{StaticResource FilterAppBarButtonStyle}" Tapped="Filter_Tapped"/>
+                </StackPanel>
+            </Grid>
+        </AppBar>
+    </Page.BottomAppBar>
+    
+    <Grid Style="{StaticResource LayoutRootStyle}">
+
+        <Image x:Name="bgImage" Style="{StaticResource BgImageStyle}"/>
+
+        <!--
+            This grid acts as a root panel for the page that defines two rows:
+            * Row 0 contains the back button and page title
+            * Row 1 contains the rest of the page layout
+        -->
+        <Grid Style="{StaticResource LayoutSubRootStyle}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="140"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid x:Name="mainGrid" Grid.Row="1" Margin="120,0,120,40">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <ItemsControl
+                    x:Name="filtersItemsControl"
+                    ItemsSource="{Binding Source={StaticResource tabsViewSource}}"
+                    Margin="0,-3,120,7">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <RadioButton
+                                    GroupName="Tabs"
+                                    IsChecked="{Binding Active, Mode=TwoWay}"
+                                    Checked="Tabs_Checked"
+                                    Style="{StaticResource TextRadioButtonStyle}"
+                                    Template="{StaticResource FilterSubtitleRadioButton}">
+                            </RadioButton>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ComboBox
+                    x:Name="filtersSnappedComboBox"
+                    ItemsSource="{Binding Source={StaticResource tabsViewSource}}"
+                    Margin="20,0,20,15"
+                    Visibility="Collapsed"    
+                    SelectionChanged="Tab_SelectionChanged"
+                    HorizontalAlignment="Left"/>
+                
+                <Grid x:Name="notificationsGrid" Grid.Row="1" Visibility="Collapsed" Background="{StaticResource ListViewItemOverlayBackgroundThemeBrush}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <ContentControl x:Name="notificationsHeader" Template="{StaticResource NotificationsHeaderTemplate}"/>
+
+                    <ListView
+                        x:Name="notificationsListView"
+                        Grid.Row="1"
+                        ItemsSource="{Binding Notifications}"
+                        ItemTemplate="{StaticResource NotificationsItemTemplate}"
+                        ItemContainerStyle="{StaticResource FullWidthListViewItemStyle}"
+                        SelectionMode="None" IsSwipeEnabled="False" IsRightTapEnabled="False" IsHoldingEnabled="False" IsTapEnabled="False"/>
+                </Grid>
+
+                <Grid x:Name="commandsGrid" Grid.Row="1" Visibility="Collapsed" Background="{StaticResource ListViewItemOverlayBackgroundThemeBrush}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <ContentControl x:Name="commandsHeader" Template="{StaticResource CommandsHeaderTemplate}"/>
+
+                    <ListView
+                        x:Name="commandsListView"
+                        Grid.Row="1"
+                        ItemsSource="{Binding Commands}"
+                        ItemTemplate="{StaticResource CommandsItemTemplate}"
+                        ItemContainerStyle="{StaticResource FullWidthListViewItemStyle}"
+                        SelectionMode="Single" IsHoldingEnabled="False" IsTapEnabled="False" SelectionChanged="ListView_SelectionChanged_1"/>
+                </Grid>
+
+                <Grid x:Name="equipmentGrid" Grid.Row="1" Visibility="Collapsed" Background="{StaticResource ListViewItemOverlayBackgroundThemeBrush}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <ContentControl x:Name="equipmentHeader" Template="{StaticResource EquipmentHeaderTemplate}"/>
+
+                    <ListView
+                        x:Name="equipmentListView"
+                        Grid.Row="1"
+                        ItemsSource="{Binding Equipment}"
+                        ItemTemplate="{StaticResource EquipmentItemTemplate}"
+                        ItemContainerStyle="{StaticResource FullWidthListViewItemStyle}"
+                        SelectionMode="None" IsSwipeEnabled="False" IsRightTapEnabled="False" IsHoldingEnabled="False" IsTapEnabled="False"/>
+                </Grid>
+
+                <Grid x:Name="summaryGrid" Grid.Row="1" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Status" Style="{StaticResource BoldTextStyle}" FontSize="20" Margin="0,0,20,10"/>
+                    <TextBlock Grid.Row="1" Text="Network" Style="{StaticResource BoldTextStyle}" FontSize="20" Margin="0,0,20,10"/>
+                    <TextBlock Grid.Row="2" Text="Class" Style="{StaticResource BoldTextStyle}" FontSize="20" Margin="0,0,20,10"/>
+
+                    <TextBlock Grid.Column="1" Text="{Binding Device.Status}" Style="{StaticResource DefaultTextStyle}" FontSize="20" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Device.Network.Name}" Style="{StaticResource DefaultTextStyle}" FontSize="20" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding Device.DeviceClass.Name}" Style="{StaticResource DefaultTextStyle}" FontSize="20" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                </Grid>
+
+            </Grid>
+            
+            <!-- Back button and page title -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="backButton" Click="GoBack" IsEnabled="{Binding Frame.CanGoBack, ElementName=pageRoot}" Style="{StaticResource BackButtonStyle}"/>
+                <TextBlock x:Name="pageTitle" Text="{Binding Device.Name}" Style="{StaticResource PageHeaderTextStyle}" Grid.Column="1" IsHitTestVisible="false" />
+            </Grid>
+
+            <ProgressBar Height="6" Margin="0,2,0,0" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" IsIndeterminate="{Binding IsLoading}" />
+
+        </Grid>
+
+        <VisualStateManager.VisualStateGroups>
+
+            <!-- Visual states reflect the application's view state -->
+            <VisualStateGroup x:Name="ApplicationViewStates">
+                <VisualState x:Name="FullScreenLandscape"/>
+                <VisualState x:Name="Filled"/>
+
+                <!-- The entire page respects the narrower 100-pixel margin convention for portrait -->
+                <VisualState x:Name="FullScreenPortrait">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="backButton" Storyboard.TargetProperty="Style">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PortraitBackButtonStyle}"/>
+                        </ObjectAnimationUsingKeyFrames>
+
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="mainGrid" Storyboard.TargetProperty="Margin">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="100,0,120,40"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+
+                <!--
+                    The back button and title have different styles when snapped, and the list representation is substituted
+                    for the grid displayed in all other view states
+                -->
+                <VisualState x:Name="Snapped">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="backButton" Storyboard.TargetProperty="Style">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource SnappedBackButtonStyle}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="pageTitle" Storyboard.TargetProperty="Style">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource SnappedPageHeaderTextStyle}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="bgImage" Storyboard.TargetProperty="Style">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource SnappedBgImageStyle}"/>
+                        </ObjectAnimationUsingKeyFrames>
+
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="mainGrid" Storyboard.TargetProperty="Margin">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="0"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="filtersItemsControl" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="filtersSnappedComboBox" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Visible"/>
+                        </ObjectAnimationUsingKeyFrames>
+
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="summaryGrid" Storyboard.TargetProperty="Margin">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="20,0"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="notificationsHeader" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="commandsHeader" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="equipmentHeader" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="notificationsListView" Storyboard.TargetProperty="ItemTemplate">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource SnappedNotificationsItemTemplate}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="commandsListView" Storyboard.TargetProperty="ItemTemplate">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource SnappedCommandsItemTemplate}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="equipmentListView" Storyboard.TargetProperty="ItemTemplate">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource SnappedEquipmentItemTemplate}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="TabsStates">
+                <VisualState x:Name="NotificationsState">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="notificationsGrid" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Visible"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+
+                <VisualState x:Name="CommandsState">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="commandsGrid" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Visible"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="commandsAppBar" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Visible"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState> 
+
+                <VisualState x:Name="EquipmentState">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="equipmentGrid" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Visible"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+
+                <VisualState x:Name="SummaryState">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="summaryGrid" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Visible"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+    </Grid>
+</common:LayoutAwarePage>

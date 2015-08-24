@@ -1,0 +1,35 @@
+﻿<UserControl
+    x:Class="DeviceHive.WindowsManager.Flyouts.CloudConnectionSettings"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DeviceHive.WindowsManager.Flyouts"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+    
+    <UserControl.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="0,0,0,20"/>
+        </Style>
+    </UserControl.Resources>
+    
+    <Grid>
+        <ScrollViewer Style="{StaticResource VerticalScrollViewerStyle}">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="API URL"/>
+                <TextBox Text="{Binding CloudServerUrl, Mode=TwoWay}" InputScope="Url"/>
+                <TextBlock Text="Username"/>
+                <TextBox Text="{Binding CloudUsername, Mode=TwoWay}"/>
+                <TextBlock Text="Password"/>
+                <PasswordBox Password="{Binding CloudPassword, Mode=TwoWay}" IsPasswordRevealButtonEnabled="True"/>
+                <TextBlock Text="Make sure that server supports WebSockets. It's required for the application." TextWrapping="WrapWholeWords" Margin="0,20"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
