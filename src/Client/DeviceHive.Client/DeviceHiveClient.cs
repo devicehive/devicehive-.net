@@ -51,7 +51,7 @@ namespace DeviceHive.Client
                 new LongPollingChannel(connectionInfo, _restClient)
             });
 
-#if !PORTABLE
+#if !PORTABLE && !NETFX_CORE
             // allow at least 10 concurrent outbound connections
             if (ServicePointManager.DefaultConnectionLimit < 10)
                 ServicePointManager.DefaultConnectionLimit = 10;

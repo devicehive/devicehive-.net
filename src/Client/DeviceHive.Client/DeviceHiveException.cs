@@ -5,7 +5,7 @@ namespace DeviceHive.Client
     /// <summary>
     /// Represents base exception class for DeviceHive client errors.
     /// </summary>
-#if !PORTABLE
+#if !PORTABLE && !NETFX_CORE
     [Serializable]
 #endif
     public class DeviceHiveException : Exception
@@ -43,7 +43,7 @@ namespace DeviceHive.Client
     /// <summary>
     /// Represents an exception class for DeviceHive authorization errors.
     /// </summary>
-#if !PORTABLE
+#if !PORTABLE && !NETFX_CORE
     [Serializable]
 #endif
     public class DeviceHiveUnauthorizedException : DeviceHiveException

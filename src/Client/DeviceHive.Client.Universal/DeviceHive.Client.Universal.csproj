@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E58654F1-B31F-4235-AC57-74CFBBD635CE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DeviceHive.Client.Universal</RootNamespace>
+    <AssemblyName>DeviceHive.Client.Universal</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
+    <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
+    <PlatformTarget>ARM</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\ARM\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>ARM</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
+    <PlatformTarget>ARM</PlatformTarget>
+    <OutputPath>bin\ARM\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>ARM</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\DeviceHive.Client\Channels\Channel.cs">
+      <Link>Channels\Channel.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Channels\ChannelState.cs">
+      <Link>Channels\ChannelState.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Channels\ChannelStateEventArgs.cs">
+      <Link>Channels\ChannelStateEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Channels\ISubscription.cs">
+      <Link>Channels\ISubscription.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Channels\LongPollingChannel.cs">
+      <Link>Channels\LongPollingChannel.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Channels\SubscriptionType.cs">
+      <Link>Channels\SubscriptionType.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Channels\WebSocketChannel.cs">
+      <Link>Channels\WebSocketChannel.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\DeviceHiveClient.cs">
+      <Link>DeviceHiveClient.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\DeviceHiveConnectionInfo.cs">
+      <Link>DeviceHiveConnectionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\DeviceHiveException.cs">
+      <Link>DeviceHiveException.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\IDeviceHiveClient.cs">
+      <Link>IDeviceHiveClient.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Internal\AsyncLock.cs">
+      <Link>Internal\AsyncLock.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Internal\AsyncSemaphore.cs">
+      <Link>Internal\AsyncSemaphore.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Internal\CommandCallback.cs">
+      <Link>Internal\CommandCallback.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Internal\JsonContractResolver.cs">
+      <Link>Internal\JsonContractResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Internal\Subscription.cs">
+      <Link>Internal\Subscription.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\IRestClient.cs">
+      <Link>IRestClient.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\ApiInfo.cs">
+      <Link>Model\ApiInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\Command.cs">
+      <Link>Model\Command.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\CommandFilter.cs">
+      <Link>Model\CommandFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\Device.cs">
+      <Link>Model\Device.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\DeviceClass.cs">
+      <Link>Model\DeviceClass.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\DeviceCommand.cs">
+      <Link>Model\DeviceCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\DeviceEquipmentState.cs">
+      <Link>Model\DeviceEquipmentState.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\DeviceFilter.cs">
+      <Link>Model\DeviceFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\DeviceNotification.cs">
+      <Link>Model\DeviceNotification.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\Equipment.cs">
+      <Link>Model\Equipment.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\Network.cs">
+      <Link>Model\Network.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\NetworkFilter.cs">
+      <Link>Model\NetworkFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\Notification.cs">
+      <Link>Model\Notification.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\NotificationFilter.cs">
+      <Link>Model\NotificationFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\SortOrder.cs">
+      <Link>Model\SortOrder.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\User.cs">
+      <Link>Model\User.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\Model\UserNetwork.cs">
+      <Link>Model\UserNetwork.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\RestClient.cs">
+      <Link>RestClient.cs</Link>
+    </Compile>
+    <Compile Include="..\DeviceHive.Client\RestClientExtensions.cs">
+      <Link>RestClientExtensions.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Content Include="Properties\DeviceHive.Client.Universal.rd.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup />
+  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
+    <VisualStudioVersion>14.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

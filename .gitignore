@@ -8,3 +8,4 @@ AppPackages
 *.user
 log*.txt*
 _ReSharper.*
+project.lock.json
