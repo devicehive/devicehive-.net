@@ -174,7 +174,7 @@
                 <TextBlock x:Name="pageTitle" Text="{Binding Device.Name}" Style="{StaticResource PageHeaderTextStyle}" Grid.Column="1" IsHitTestVisible="false" />
             </Grid>
 
-            <ProgressBar Height="6" Margin="0,2,0,0" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" IsIndeterminate="{Binding IsLoading}" />
+            <ProgressBar Height="6" Margin="0,4,0,0" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" IsIndeterminate="{Binding IsLoading}" />
 
         </Grid>
 

@@ -17,8 +17,14 @@
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
-    <SolidColorBrush x:Name="AccentBrush" Color="#FF1AA0E1"/>
+    <Style TargetType="ProgressBar">
+        <Setter Property="Foreground" Value="#FF1AA0E1"/>
+    </Style>
 
+    <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FF1AA0E1" />
+
+    <SolidColorBrush x:Name="AccentBrush" Color="#FF1AA0E1"/>
+    
     <Style x:Name="DefaultTextStyle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="14.8"/>
     </Style>
@@ -293,7 +299,7 @@
     </ControlTemplate>
 
     <Style x:Key="LayoutRootStyle" TargetType="Panel">
-        <Setter Property="Background" Value="Black"/>
+        <Setter Property="Background" Value="#FF0A0A0A"/>
         <Setter Property="RequestedTheme" Value="Dark"/>
     </Style>
 

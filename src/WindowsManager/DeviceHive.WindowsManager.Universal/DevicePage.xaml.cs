@@ -1,5 +1,6 @@
 ﻿using DeviceHive.Client;
 using DeviceHive.WindowsManager.Common;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -67,14 +68,14 @@ namespace DeviceHive.WindowsManager
         /// session.  This will be null the first time a page is visited.</param>
         protected override async void LoadState(Object navigationParameter, Dictionary<String, Object> pageState)
         {
-            deviceId = (string)navigationParameter;
+            Device = JsonConvert.DeserializeObject<Device>((string)navigationParameter);
 
             filterNotificationsStart = DateTime.Now.AddDays(-7);
             filterCommandsStart = DateTime.Now.AddDays(-7);
 
             await LoadDevice();
 
-            if (device == null)
+            if (Device == null)
             {
                 return;
             }
@@ -218,6 +219,20 @@ namespace DeviceHive.WindowsManager
              
         }
 
+        public Device Device
+        {
+            protected set
+            {
+                device = value;
+                DefaultViewModel["Device"] = device;
+                if (device != null)
+                {
+                    deviceId = device.Id;
+                }
+            }
+            get { return device; }
+        }
+
         public IncrementalLoadingCollection<Notification> NotificationsObservable
         {
             get { return notificationsObservable; }
@@ -307,8 +322,7 @@ namespace DeviceHive.WindowsManager
             LoadingItems++;
             try
             {
-                device = await ClientService.Current.GetDeviceAsync(deviceId);
-                DefaultViewModel["Device"] = device;
+                Device = await ClientService.Current.GetDeviceAsync(deviceId);
             }
             catch (Exception ex)
             {
@@ -492,7 +506,7 @@ namespace DeviceHive.WindowsManager
             {
                 GC.Collect();
                 Debug.WriteLine("EQP LOAD START");
-                var equipment = device.DeviceClass.Equipment;
+                var equipment = Device.DeviceClass.Equipment;
                 var equipmentState = await ClientService.Current.GetEquipmentStateAsync(deviceId);
                 Debug.WriteLine("EQP LOAD END");
                 var equipmentInfo = new List<EquipmentStateInfo>();

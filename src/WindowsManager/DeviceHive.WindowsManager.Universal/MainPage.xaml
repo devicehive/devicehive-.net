@@ -131,7 +131,7 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Text="Welcome" Style="{StaticResource SubheaderTextStyle}" Margin="0,-10,3,19"/>
-                
+
                 <RichTextBlock Grid.Row="1" IsTextSelectionEnabled="False" FontSize="14.8">
                     <Paragraph>
                         Please setup
@@ -158,8 +158,8 @@
                 <!--TextBlock x:Name="snappedPageTitle" Text="{StaticResource AppName}" Grid.Column="1" IsHitTestVisible="false" Style="{StaticResource PageHeaderTextStyle}"/-->
             </Grid>
 
-            <ProgressBar Height="6" Margin="0,2,0,0" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" IsIndeterminate="{Binding IsLoading}" />
-        
+            <ProgressBar Height="6" Margin="0,4,0,0" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" IsIndeterminate="{Binding IsLoading}" />
+
         </Grid>
 
         <VisualStateManager.VisualStateGroups>

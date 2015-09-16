@@ -1,5 +1,6 @@
 ﻿using DeviceHive.Client;
 using DeviceHive.WindowsManager.ViewModels;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -88,7 +89,7 @@ namespace DeviceHive.WindowsManager
             var device = e.ClickedItem as Device;
             if (device != null)
             {
-                Frame.Navigate(typeof(DevicePage), device.Id);
+                Frame.Navigate(typeof(DevicePage), JsonConvert.SerializeObject(device));
             }
         }
 
