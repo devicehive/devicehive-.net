@@ -290,6 +290,15 @@ namespace DeviceHive.Client
                     }
                 }
                 catch { }
+                finally
+                {
+                    if (_webSocket != null)
+                    {
+                        _webSocket.Dispose();
+                        _webSocket = null;
+                    }
+                    SetChannelState(ChannelState.Disconnected);
+                }
                 throw;
             }
         }

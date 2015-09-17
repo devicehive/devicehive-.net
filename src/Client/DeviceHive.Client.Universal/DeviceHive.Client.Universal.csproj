@@ -7,8 +7,8 @@
     <ProjectGuid>{E58654F1-B31F-4235-AC57-74CFBBD635CE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DeviceHive.Client.Universal</RootNamespace>
-    <AssemblyName>DeviceHive.Client.Universal</AssemblyName>
+    <RootNamespace>DeviceHive.Client</RootNamespace>
+    <AssemblyName>DeviceHive.Client</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
