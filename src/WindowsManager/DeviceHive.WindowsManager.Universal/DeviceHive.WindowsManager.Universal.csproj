@@ -179,9 +179,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Client\DeviceHive.Client\DeviceHive.Client.Portable.csproj">
-      <Project>{1052c7bb-20f4-4bee-a6f8-75578f218cef}</Project>
-      <Name>DeviceHive.Client.Portable</Name>
+    <ProjectReference Include="..\..\Client\DeviceHive.Client.Universal\DeviceHive.Client.Universal.csproj">
+      <Project>{e58654f1-b31f-4235-ac57-74cfbbd635ce}</Project>
+      <Name>DeviceHive.Client.Universal</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
