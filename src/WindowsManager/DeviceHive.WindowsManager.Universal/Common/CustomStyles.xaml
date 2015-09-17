@@ -107,6 +107,36 @@
 
     <Style x:Key="FullWidthListViewItemStyle" TargetType="ListViewItem">
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListViewItem">
+                    <ListViewItemPresenter 
+                        PressedBackground="#FF1EB2F9" 
+                        SelectedPressedBackground="#FF1EB2F9" 
+                        SelectedPointerOverBackground="#FF1AA0E1" 
+                        SelectedBackground="#FF178AC1" 
+                        CheckBrush="{ThemeResource SystemControlForegroundBaseMediumHighBrush}" 
+                        ContentMargin="{TemplateBinding Padding}" 
+                        CheckMode="Inline" 
+                        ContentTransitions="{TemplateBinding ContentTransitions}" 
+                        CheckBoxBrush="{ThemeResource SystemControlForegroundBaseMediumHighBrush}" 
+                        DragForeground="{ThemeResource ListViewItemDragForegroundThemeBrush}" 
+                        DragOpacity="{ThemeResource ListViewItemDragThemeOpacity}" 
+                        DragBackground="{ThemeResource ListViewItemDragBackgroundThemeBrush}" 
+                        DisabledOpacity="{ThemeResource ListViewItemDisabledThemeOpacity}" 
+                        FocusBorderBrush="{ThemeResource SystemControlForegroundAltHighBrush}" 
+                        FocusSecondaryBorderBrush="{ThemeResource SystemControlForegroundBaseHighBrush}" 
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                        PointerOverForeground="{ThemeResource SystemControlHighlightAltBaseHighBrush}" 
+                        PlaceholderBackground="{ThemeResource ListViewItemPlaceholderBackgroundThemeBrush}" 
+                        PointerOverBackground="{ThemeResource SystemControlHighlightListLowBrush}" 
+                        ReorderHintOffset="{ThemeResource ListViewItemReorderHintThemeOffset}" 
+                        SelectionCheckMarkVisualEnabled="True" 
+                        SelectedForeground="{ThemeResource SystemControlHighlightAltBaseHighBrush}" 
+                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <ControlTemplate x:Key="NotificationsHeaderTemplate">
