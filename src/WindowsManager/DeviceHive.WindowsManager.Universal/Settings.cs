@@ -57,6 +57,18 @@ namespace DeviceHive.WindowsManager
             }
         }
 
+        public string CloudAccessKey
+        {
+            get
+            {
+                return GetValueOrDefault<string>();
+            }
+            set
+            {
+                AddOrUpdateValue(value);
+            }
+        }
+
         #region Settings utils
 
         /// <summary>

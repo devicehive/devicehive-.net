@@ -66,7 +66,7 @@ namespace DeviceHive.WindowsManager
                 var networkList = (await ClientService.Current.GetNetworksAsync()).FindAll(n => n.Id != null);
                 foreach (Network network in networkList)
                 {
-                    var devices = deviceList.FindAll(d => d.Network.Id == network.Id);
+                    var devices = deviceList.FindAll(d => d.Network?.Id == network.Id);
                     if (devices.Count > 0)
                     {
                         networkWithDevicesList.Add(new NetworkViewModel(network) { Devices = devices });

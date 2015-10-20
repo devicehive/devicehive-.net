@@ -24,6 +24,9 @@
             <StackPanel Orientation="Vertical">
                 <TextBlock Text="API URL"/>
                 <TextBox Text="{Binding CloudServerUrl, Mode=TwoWay}" InputScope="Url"/>
+                <TextBlock Text="Access Key"/>
+                <TextBox Text="{Binding CloudAccessKey, Mode=TwoWay}" Margin="0"/>
+                <TextBlock Text="Leave empty if using username and password" TextWrapping="WrapWholeWords" Margin="0,0,0,20" FontSize="12"/>
                 <TextBlock Text="Username"/>
                 <TextBox Text="{Binding CloudUsername, Mode=TwoWay}"/>
                 <TextBlock Text="Password"/>

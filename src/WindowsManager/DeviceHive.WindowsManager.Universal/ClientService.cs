@@ -32,7 +32,8 @@ namespace DeviceHive.WindowsManager
             {
                 if (e.PropertyName == "CloudServerUrl"
                     || e.PropertyName == "CloudUsername"
-                    || e.PropertyName == "CloudPassword")
+                    || e.PropertyName == "CloudPassword"
+                    || e.PropertyName == "CloudAccessKey")
                 {
                     current = null;
                 }
@@ -45,11 +46,22 @@ namespace DeviceHive.WindowsManager
             {
                 if (current == null)
                 {
-                    if (String.IsNullOrEmpty(Settings.Instance.CloudServerUrl) || String.IsNullOrEmpty(Settings.Instance.CloudUsername) || String.IsNullOrEmpty(Settings.Instance.CloudPassword))
+                    if (String.IsNullOrEmpty(Settings.Instance.CloudServerUrl) 
+                        || String.IsNullOrEmpty(Settings.Instance.CloudAccessKey)
+                            && (String.IsNullOrEmpty(Settings.Instance.CloudUsername) 
+                            || String.IsNullOrEmpty(Settings.Instance.CloudPassword)))
                     {
                         throw new EmptyCloudSettingsException();
                     }
-                    var connInfo = new DeviceHiveConnectionInfo(Settings.Instance.CloudServerUrl, Settings.Instance.CloudUsername, Settings.Instance.CloudPassword);
+                    DeviceHiveConnectionInfo connInfo;
+                    if (!String.IsNullOrEmpty(Settings.Instance.CloudAccessKey))
+                    {
+                        connInfo = new DeviceHiveConnectionInfo(Settings.Instance.CloudServerUrl, Settings.Instance.CloudAccessKey);
+                    }
+                    else
+                    {
+                        connInfo = new DeviceHiveConnectionInfo(Settings.Instance.CloudServerUrl, Settings.Instance.CloudUsername, Settings.Instance.CloudPassword);
+                    }
                     current = new ClientService(connInfo, new RestClient(connInfo));
                 }
                 return current;
