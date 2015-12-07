@@ -18,6 +18,8 @@ namespace VirtualLed
                 {
                     // create a DeviceHive network where our device will reside
                     var network = new Network("VirtualLed Sample Network", "A DeviceHive network for VirtualLed sample");
+                    // or use network with network key
+                    //var network = new Network("Network WPNBEP", "Playground Network", "%NETWORK_KEY%");
 
                     // create a DeviceHost used to run our device
                     var deviceHost = new DeviceHost(service, network);

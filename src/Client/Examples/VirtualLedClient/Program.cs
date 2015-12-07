@@ -31,6 +31,8 @@ namespace VirtualLedClient
             // create a DeviceHiveConnectionInfo object
             // insert your assigned DeviceHive service URL, username and password here
             var connectionInfo = new DeviceHiveConnectionInfo("http://localhost/DeviceHive.API", "dhadmin", "dhadmin_#911");
+            // or use access key instead of login and password
+            //var connectionInfo = new DeviceHiveConnectionInfo("http://playground.devicehive.com/api/rest", "%ACCESS_KEY%");
 
             // create a DeviceHiveClient object used to communicate with the DeviceHive service
             var client = new DeviceHiveClient(connectionInfo);
