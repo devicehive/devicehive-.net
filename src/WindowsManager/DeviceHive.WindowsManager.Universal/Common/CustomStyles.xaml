@@ -329,7 +329,7 @@
     </ControlTemplate>
 
     <Style x:Key="LayoutRootStyle" TargetType="Panel">
-        <Setter Property="Background" Value="#FF0A0A0A"/>
+        <Setter Property="Background" Value="#FF1D1D1D"/>
         <Setter Property="RequestedTheme" Value="Dark"/>
     </Style>
 
