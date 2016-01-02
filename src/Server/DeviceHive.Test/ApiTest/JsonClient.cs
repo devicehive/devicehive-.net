@@ -47,6 +47,7 @@ namespace DeviceHive.Test
 
             // prepare request
             var request = (HttpWebRequest)HttpWebRequest.Create(BaseUrl + url);
+            request.Headers.Add("ClientVersion", DeviceHive.Core.Version.ApiVersion);
             request.Method = method;
             request.Accept = "application/json";
             if (auth != null)

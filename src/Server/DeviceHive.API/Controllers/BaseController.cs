@@ -47,6 +47,19 @@ namespace DeviceHive.API.Controllers
 
         #region Protected Methods
 
+        protected System.Version GetClientVersion()
+        {
+            IEnumerable<string> versionHeader;
+            if (!Request.Headers.TryGetValues("ClientVersion", out versionHeader))
+                return new System.Version(2, 0);
+
+            System.Version version;
+            if (!System.Version.TryParse(versionHeader.First(), out version))
+                return new System.Version(2, 0);
+
+            return version;
+        }
+
         protected Device GetDeviceEnsureAccess(string deviceGuid)
         {
             if (CallContext.CurrentDevice != null)
