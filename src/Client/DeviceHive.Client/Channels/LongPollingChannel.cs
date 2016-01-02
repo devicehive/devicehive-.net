@@ -254,8 +254,7 @@ namespace DeviceHive.Client
 
                     foreach (var notification in notifications)
                     {
-                        notification.SubscriptionId = subscription.Id;
-                        InvokeSubscriptionCallback(subscription.Id, notification.Notification.Timestamp.Value, notification);
+                        InvokeSubscriptionCallback(subscription.Id, notification.Timestamp.Value, notification);
                     }
                 }
                 catch (OperationCanceledException)
@@ -286,8 +285,7 @@ namespace DeviceHive.Client
 
                     foreach (var command in commands)
                     {
-                        command.SubscriptionId = subscription.Id;
-                        InvokeSubscriptionCallback(subscription.Id, command.Command.Timestamp.Value, command);
+                        InvokeSubscriptionCallback(subscription.Id, command.Timestamp.Value, command);
                     }
                 }
                 catch (OperationCanceledException)
@@ -321,7 +319,7 @@ namespace DeviceHive.Client
             }
         }
 
-        private async Task<List<DeviceNotification>> PollNotificationsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, int? waitTimeout, CancellationToken token)
+        private async Task<List<Notification>> PollNotificationsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, int? waitTimeout, CancellationToken token)
         {
             var url = "device/notification/poll";
             var parameters = new[]
@@ -334,10 +332,10 @@ namespace DeviceHive.Client
             if (parameters.Any())
                 url += "?" + string.Join("&", parameters);
 
-            return await RestClient.GetAsync<List<DeviceNotification>>(url, token);
+            return await RestClient.GetAsync<List<Notification>>(url, token);
         }
 
-        private async Task<List<DeviceCommand>> PollCommandsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, int? waitTimeout, CancellationToken token)
+        private async Task<List<Command>> PollCommandsAsync(string[] deviceGuids, string[] names, DateTime? timestamp, int? waitTimeout, CancellationToken token)
         {
             var url = "device/command/poll";
             var parameters = new[]
@@ -350,7 +348,7 @@ namespace DeviceHive.Client
             if (parameters.Any())
                 url += "?" + string.Join("&", parameters);
 
-            return await RestClient.GetAsync<List<DeviceCommand>>(url, token);
+            return await RestClient.GetAsync<List<Command>>(url, token);
         }
 
         private async Task<Command> PollCommandUpdateAsync(string deviceGuid, int commandId, CancellationToken token)

@@ -471,6 +471,26 @@ namespace DeviceHive.Client
             }
         }
         #endregion
+
+        #region DeviceNotification class
+
+        private class DeviceNotification
+        {
+            public Guid SubscriptionId { get; set; }
+            public string DeviceGuid { get; set; }
+            public Notification Notification { get; set; }
+        }
+        #endregion
+
+        #region DeviceCommand class
+
+        private class DeviceCommand
+        {
+            public Guid SubscriptionId { get; set; }
+            public string DeviceGuid { get; set; }
+            public Command Command { get; set; }
+        }
+        #endregion
     }
 }
 

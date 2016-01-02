@@ -35,7 +35,7 @@ namespace DeviceHive.API.Controllers
             var device = GetDeviceEnsureAccess(deviceGuid);
 
             var filter = MapObjectFromQuery<DeviceCommandFilter>();
-            return new JArray(DataContext.DeviceCommand.GetByDevice(device.ID, filter).Select(n => Mapper.Map(n)));
+            return new JArray(DataContext.DeviceCommand.GetByDevice(device.ID, filter).Select(c => MapDeviceCommand(c, device)));
         }
 
         /// <name>get</name>
@@ -54,7 +54,7 @@ namespace DeviceHive.API.Controllers
             if (command == null || command.DeviceID != device.ID)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device command not found!");
 
-            return Mapper.Map(command);
+            return MapDeviceCommand(command, device);
         }
 
         /// <name>insert</name>

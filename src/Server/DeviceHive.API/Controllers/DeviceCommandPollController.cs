@@ -57,7 +57,7 @@ namespace DeviceHive.API.Controllers
             {
                 var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
                 var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
-                return new JArray(commands.Select(n => Mapper.Map(n)));
+                return new JArray(commands.Select(c => MapDeviceCommand(c, device)));
             }
 
             var config = DeviceHiveConfiguration.RestEndpoint;
@@ -70,7 +70,7 @@ namespace DeviceHive.API.Controllers
                     var filter = new DeviceCommandFilter { Start = start, IsDateInclusive = false, Commands = commandNames };
                     var commands = DataContext.DeviceCommand.GetByDevice(device.ID, filter);
                     if (commands != null && commands.Any())
-                        return new JArray(commands.Select(n => Mapper.Map(n)));
+                        return new JArray(commands.Select(c => MapDeviceCommand(c, device)));
                 }
                 while (await Task.WhenAny(waiterHandle.Wait(), delayTask) != delayTask);
             }
@@ -91,10 +91,9 @@ namespace DeviceHive.API.Controllers
         /// <param name="timestamp">Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.</param>
         /// <param name="names">Comma-separated list of commands names.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
-        /// <returns>If successful, this method returns array of the following resources in the response body.</returns>
+        /// <returns cref="DeviceCommand">If successful, this method returns array of <see cref="DeviceCommand"/> resources in the response body.</returns>
         /// <response>
         ///     <parameter name="deviceGuid" type="guid">Associated device unique identifier.</parameter>
-        ///     <parameter name="command" cref="DeviceCommand"><see cref="DeviceCommand"/> resource.</parameter>
         /// </response>
         [Route("device/command/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceCommand")]
@@ -155,7 +154,7 @@ namespace DeviceHive.API.Controllers
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device command not found!");
 
             if (command.Status != null)
-                return Mapper.Map(command);
+                return MapDeviceCommand(command, device);
 
             if (waitTimeout <= 0)
                 return null;
@@ -168,7 +167,7 @@ namespace DeviceHive.API.Controllers
                 {
                     command = DataContext.DeviceCommand.Get(id);
                     if (command != null && command.Status != null)
-                        return Mapper.Map(command);
+                        return MapDeviceCommand(command, device);
                 }
                 while (await Task.WhenAny(waiterHandle.Wait(), delayTask) != delayTask);
             }
@@ -178,23 +177,18 @@ namespace DeviceHive.API.Controllers
 
         private JArray MapDeviceCommands(IEnumerable<DeviceCommand> commands)
         {
-            return new JArray(commands.Select(n =>
-                {
-                    return new JObject(
-                        new JProperty("deviceGuid", n.Device.GUID),
-                        new JProperty("command", Mapper.Map(n)));
-                }));
+            bool is21Format = GetClientVersion() > new System.Version(2, 0);
+            return new JArray(commands.Select(c => is21Format ?
+                MapDeviceCommand(c) :
+                new JObject(
+                    new JProperty("deviceGuid", c.Device.GUID),
+                    new JProperty("command", MapDeviceCommand(c)))));
         }
 
         private Device[] ParseDeviceGuids(string deviceGuids)
         {
             return DataContext.Device.GetMany(deviceGuids.Split(','))
                 .Where(device => IsDeviceAccessible(device)).ToArray();
-        }
-
-        private IJsonMapper<DeviceCommand> Mapper
-        {
-            get { return GetMapper<DeviceCommand>(); }
         }
     }
 }

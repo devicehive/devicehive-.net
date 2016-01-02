@@ -578,9 +578,17 @@ namespace DeviceHive.Device
                 {
                     property.PropertyName = "notification";
                 }
+                if (property.DeclaringType == typeof(Notification) && property.PropertyName == "deviceId")
+                {
+                    property.PropertyName = "deviceGuid";
+                }
                 if (property.DeclaringType == typeof(Command) && property.PropertyName == "name")
                 {
                     property.PropertyName = "command";
+                }
+                if (property.DeclaringType == typeof(Command) && property.PropertyName == "deviceId")
+                {
+                    property.PropertyName = "deviceGuid";
                 }
                 if (property.DeclaringType == typeof(Device) && property.PropertyName == "network")
                 {

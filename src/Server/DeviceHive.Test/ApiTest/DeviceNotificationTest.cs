@@ -116,7 +116,7 @@ namespace DeviceHive.Test.ApiTest
 
                     var result =  (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { notification = "_ut1" }));
+                    Expect(result[0], Matches(new { notification = "_ut1", deviceGuid = DeviceGUID }));
                 });
 
             // start poll, wait, then create resources
@@ -162,7 +162,7 @@ namespace DeviceHive.Test.ApiTest
 
                     var result = (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, notification = new { notification = "_ut1" }}));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, notification = "_ut1" }));
                 });
 
             // create resource, start poll, wait, then create resources
@@ -201,7 +201,7 @@ namespace DeviceHive.Test.ApiTest
 
                     var result = (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, notification = new { notification = "_ut2" } }));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, notification = "_ut2" }));
                 });
 
             // start poll, wait, create other response, wait, then create matching resource
@@ -239,7 +239,7 @@ namespace DeviceHive.Test.ApiTest
         {
             // device authorization
             var resource = Create(new { notification = "_ut" }, auth: Device(DeviceGUID, "key"));
-            Expect(Get(resource, auth: Admin), Matches(new { notification = "_ut", parameters = (string)null, timestamp = ResponseMatchesContraint.Timestamp }));
+            Expect(Get(resource, auth: Admin), Matches(new { notification = "_ut", deviceGuid = DeviceGUID, parameters = (string)null, timestamp = ResponseMatchesContraint.Timestamp }));
 
             // user authorization
             var user1 = CreateUser(1);

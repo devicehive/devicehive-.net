@@ -175,17 +175,11 @@
     <Compile Include="..\DeviceHive.Client\Model\DeviceClass.cs">
       <Link>Model\DeviceClass.cs</Link>
     </Compile>
-    <Compile Include="..\DeviceHive.Client\Model\DeviceCommand.cs">
-      <Link>Model\DeviceCommand.cs</Link>
-    </Compile>
     <Compile Include="..\DeviceHive.Client\Model\DeviceEquipmentState.cs">
       <Link>Model\DeviceEquipmentState.cs</Link>
     </Compile>
     <Compile Include="..\DeviceHive.Client\Model\DeviceFilter.cs">
       <Link>Model\DeviceFilter.cs</Link>
-    </Compile>
-    <Compile Include="..\DeviceHive.Client\Model\DeviceNotification.cs">
-      <Link>Model\DeviceNotification.cs</Link>
     </Compile>
     <Compile Include="..\DeviceHive.Client\Model\Equipment.cs">
       <Link>Model\Equipment.cs</Link>

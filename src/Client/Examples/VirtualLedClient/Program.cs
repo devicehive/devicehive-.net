@@ -80,11 +80,8 @@ namespace VirtualLedClient
             client.Dispose();
         }
 
-        private static void HandleNotification(DeviceNotification deviceNotification)
+        private static void HandleNotification(Notification notification)
         {
-            // get the notification object
-            var notification = deviceNotification.Notification;
-
             if (notification.Name == "equipment" && notification.GetParameter<string>("equipment") == LED_CODE)
             {
                 // output the current LED state

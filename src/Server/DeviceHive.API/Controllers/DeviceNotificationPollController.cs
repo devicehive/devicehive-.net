@@ -54,7 +54,7 @@ namespace DeviceHive.API.Controllers
             {
                 var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false, Notifications = notificationNames };
                 var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, filter);
-                return new JArray(notifications.Select(n => Mapper.Map(n)));
+                return new JArray(notifications.Select(n => MapDeviceNotification(n, device)));
             }
 
             var config = DeviceHiveConfiguration.RestEndpoint;
@@ -67,7 +67,7 @@ namespace DeviceHive.API.Controllers
                     var filter = new DeviceNotificationFilter { Start = start, IsDateInclusive = false, Notifications = notificationNames };
                     var notifications = DataContext.DeviceNotification.GetByDevice(device.ID, filter);
                     if (notifications != null && notifications.Any())
-                        return new JArray(notifications.Select(n => Mapper.Map(n)));
+                        return new JArray(notifications.Select(n => MapDeviceNotification(n, device)));
                 }
                 while (await Task.WhenAny(waiterHandle.Wait(), delayTask) != delayTask);
             }
@@ -88,10 +88,9 @@ namespace DeviceHive.API.Controllers
         /// <param name="timestamp">Timestamp of the last received notification (UTC). If not specified, the server's timestamp is taken instead.</param>
         /// <param name="names">Comma-separated list of notification names.</param>
         /// <param name="waitTimeout">Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.</param>
-        /// <returns>If successful, this method returns array of the following resources in the response body.</returns>
+        /// <returns cref="DeviceNotification">If successful, this method returns array of <see cref="DeviceNotification"/> resources in the response body.</returns>
         /// <response>
         ///     <parameter name="deviceGuid" type="guid">Associated device unique identifier.</parameter>
-        ///     <parameter name="notification" cref="DeviceNotification"><see cref="DeviceNotification"/> resource.</parameter>
         /// </response>
         [Route("device/notification/poll")]
         [AuthorizeUser(AccessKeyAction = "GetDeviceNotification")]
@@ -130,23 +129,18 @@ namespace DeviceHive.API.Controllers
 
         private JArray MapDeviceNotifications(IEnumerable<DeviceNotification> notifications)
         {
-            return new JArray(notifications.Select(n =>
-                {
-                    return new JObject(
-                        new JProperty("deviceGuid", n.Device.GUID),
-                        new JProperty("notification", Mapper.Map(n)));
-                }));
+            bool is21Format = GetClientVersion() > new System.Version(2, 0);
+            return new JArray(notifications.Select(n => is21Format ?
+                MapDeviceNotification(n) :
+                new JObject(
+                    new JProperty("deviceGuid", n.Device.GUID),
+                    new JProperty("notification", MapDeviceNotification(n)))));
         }
 
         private Device[] ParseDeviceGuids(string deviceGuids)
         {
             return DataContext.Device.GetMany(deviceGuids.Split(','))
                 .Where(device => IsDeviceAccessible(device)).ToArray();
-        }
-
-        private IJsonMapper<DeviceNotification> Mapper
-        {
-            get { return GetMapper<DeviceNotification>(); }
         }
     }
 }
