@@ -436,7 +436,10 @@ namespace DeviceHive.Core.Mapping
 
                         try
                         {
-                            return jToken.ToObject(basePropertyType);
+                            var value = jToken.ToObject(basePropertyType);
+                            if (value is DateTime)
+                                value = DateTime.SpecifyKind((DateTime)value, DateTimeKind.Utc);
+                            return value;
                         }
                         catch (ArgumentException)
                         {

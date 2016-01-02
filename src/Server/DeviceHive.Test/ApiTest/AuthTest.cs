@@ -22,7 +22,7 @@ namespace DeviceHive.Test.ApiTest
             var userResponse = Client.Post("/user", new { login = "_ut", password = NewUserPassword, role = 1, status = 0 }, auth: Admin);
             Assert.That(userResponse.Status, Is.EqualTo(ExpectedCreatedStatus));
             var userId = (int)userResponse.Json["id"];
-            User = new Authorization("User", "_ut", NewUserPassword, userId.ToString());
+            User = new Authorization("User", "_ut", NewUserPassword, userId);
             RegisterForDeletion("/user/" + userId);
         }
 

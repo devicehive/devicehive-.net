@@ -24,7 +24,7 @@ namespace DeviceHive.Test.ApiTest
             var userId = (int)userResponse.Json["id"];
             RegisterForDeletion("/user/" + userId);
             ResourceUri = "/user/" + userId + "/oauth/grant";
-            User = new Authorization("User", "_ut", NewUserPassword, userId.ToString());
+            User = new Authorization("User", "_ut", NewUserPassword, userId);
 
             var clientResponse = Client.Post("/oauth/client", new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com", subnet = "127.0.0.0/24" }, auth: Admin);
             Assert.That(clientResponse.Status, Is.EqualTo(ExpectedCreatedStatus));
@@ -125,7 +125,7 @@ namespace DeviceHive.Test.ApiTest
 
             // check the grant and associated access key were updated
             var resource2 = Get(resource, auth: User);
-            Expect(resource2, Matches(new { timestamp = ResponseMatchesContraint.Timestamp, scope = "GetNetwork", networkIds = new[] { 2, 3 } }));
+            Expect(resource2, Matches(new { timestamp = ResponseMatchesContraint.Timestamp, scope = "GetDevice", networkIds = new[] { 2, 3 } }));
             Expect(resource2["timestamp"].Parent.ToString(), Is.Not.EqualTo(resource["timestamp"].Parent.ToString())); // timestamp must change
             Expect((string)resource2["authCode"], Is.Not.EqualTo((string)resource["authCode"])); // auth code must change
             Expect((string)resource2["accessKey"]["key"], Is.Not.EqualTo((string)resource["accessKey"]["key"])); // access key must change
