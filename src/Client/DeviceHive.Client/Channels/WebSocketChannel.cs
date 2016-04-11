@@ -398,14 +398,14 @@ namespace DeviceHive.Client
                     case "notification/insert":
                         {
                             var notification = Deserialize<DeviceNotification>(json);
-                            InvokeSubscriptionCallback(notification.SubscriptionId, notification.Notification.Timestamp.Value, notification);
+                            InvokeSubscriptionCallback(notification.SubscriptionId, notification.Notification.Timestamp.Value, notification.Notification);
                         }
                         return;
 
                     case "command/insert":
                         {
                             var command = Deserialize<DeviceCommand>(json);
-                            InvokeSubscriptionCallback(command.SubscriptionId, command.Command.Timestamp.Value, command);
+                            InvokeSubscriptionCallback(command.SubscriptionId, command.Command.Timestamp.Value, command.Command);
                         }
                         return;
 
