@@ -29,7 +29,7 @@ namespace DeviceHive.Test.ApiTest
             var userResponse = Client.Post("/user", new { login = "_ut", password = NewUserPassword, role = 1, status = 0 }, auth: Admin);
             Assert.That(userResponse.Status, Is.EqualTo(ExpectedCreatedStatus));
             var userId = (int)userResponse.Json["id"];
-            User = new Authorization("User", "_ut", NewUserPassword, userId.ToString());
+            User = new Authorization("User", "_ut", NewUserPassword, userId);
             RegisterForDeletion("/user/" + userId);
 
             // create a client
@@ -90,7 +90,7 @@ namespace DeviceHive.Test.ApiTest
             // verify access key properties
             Expect(grantResponse, Matches(new { timestamp = ResponseMatchesContraint.Timestamp,
                 client = new { name = "_ut", oauthId = "_ut_", domain = "_ut.com", redirectUri = "_ut.com" },
-                accessKey = new { label = "OAuth token for: _ut" }, type = "Password", accessType = "Online", redirectUri = "_ut.com", scope = "GetNetwork" }));
+                accessKey = new { label = "OAuth token for: _ut" }, type = "Password", accessType = "Online", scope = "GetNetwork" }));
             Expect((string)grantResponse["accessKey"]["key"], Is.EqualTo((string)response.Json["access_token"]));
             Expect((string)grantResponse["accessKey"]["expirationDate"], Is.Not.Null);
             Expect(grantResponse["accessKey"]["permissions"][0], Matches(new { domains = new[] { "_ut.com" },

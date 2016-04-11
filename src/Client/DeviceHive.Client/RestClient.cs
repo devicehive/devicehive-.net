@@ -44,6 +44,7 @@ namespace DeviceHive.Client
 
             _httpClient = httpMessageHandler != null ? new HttpClient(httpMessageHandler) : new HttpClient();
             _httpClient.BaseAddress = new Uri(connectionInfo.ServiceUrl.TrimEnd('/') + "/");
+            _httpClient.DefaultRequestHeaders.Add("ClientVersion", "2.1");
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (connectionInfo.AccessKey != null)

@@ -47,6 +47,7 @@ namespace DeviceHive.Test
 
             // prepare request
             var request = (HttpWebRequest)HttpWebRequest.Create(BaseUrl + url);
+            request.Headers.Add("ClientVersion", DeviceHive.Core.Version.ApiVersion);
             request.Method = method;
             request.Accept = "application/json";
             if (auth != null)
@@ -115,9 +116,9 @@ namespace DeviceHive.Test
         public string Type { get; private set; }
         public string Login { get; private set; }
         public string Password { get; private set; }
-        public string ID { get; private set; }
+        public int? ID { get; private set; }
 
-        public Authorization(string type, string login, string password = null, string id = null)
+        public Authorization(string type, string login, string password = null, int? id = null)
         {
             Type = type;
             Login = login;

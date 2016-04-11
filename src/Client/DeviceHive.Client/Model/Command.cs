@@ -22,6 +22,11 @@ namespace DeviceHive.Client
         public DateTime? Timestamp { get; set; }
 
         /// <summary>
+        /// Gets or sets device unique identifier (server-assigned).
+        /// </summary>
+        public string DeviceGuid { get; set; }
+
+        /// <summary>
         /// Gets or sets creator user identifier (server-assigned).
         /// </summary>
         public int UserId { get; set; }

@@ -325,7 +325,7 @@ namespace DeviceHive.WebSockets.API.Controllers
 
             connection.SendResponse("command/insert",
                 new JProperty("deviceGuid", device.GUID),
-                new JProperty("command", GetMapper<DeviceCommand>().Map(command)));
+                new JProperty("command", MapDeviceCommand(command)));
         }
 
         #endregion

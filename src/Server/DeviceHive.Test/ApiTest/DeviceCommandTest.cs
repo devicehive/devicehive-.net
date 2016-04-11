@@ -114,7 +114,7 @@ namespace DeviceHive.Test.ApiTest
 
                     var result = (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { command = "_ut1" }));
+                    Expect(result[0], Matches(new { command = "_ut1", deviceGuid = DeviceGUID }));
                 });
 
             // start poll, wait, then create resources
@@ -160,7 +160,7 @@ namespace DeviceHive.Test.ApiTest
 
                     var result = (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = new { command = "_ut1" } }));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = "_ut1" }));
                 });
 
             // create resource, start poll, wait, then create resources
@@ -199,7 +199,7 @@ namespace DeviceHive.Test.ApiTest
 
                     var result = (JArray)response.Json;
                     Expect(result.Count, Is.EqualTo(1));
-                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = new { command = "_ut2" } }));
+                    Expect(result[0], Matches(new { deviceGuid = DeviceGUID, command = "_ut2" }));
                 });
 
             // start poll, wait, create other response, wait, then create matching resource
@@ -248,7 +248,7 @@ namespace DeviceHive.Test.ApiTest
                 Expect(response.Json, Is.InstanceOf<JObject>());
 
                 var result = (JObject)response.Json;
-                Expect(result, Matches(new { command = "_ut1", status = "Done", result = "OK" }));
+                Expect(result, Matches(new { command = "_ut1", deviceGuid = DeviceGUID, status = "Done", result = "OK" }));
             });
 
             // start poll, wait, then update resource
@@ -267,7 +267,7 @@ namespace DeviceHive.Test.ApiTest
             var user2 = CreateUser(1, NetworkID);
             Expect(() => Create(new { command = "_ut" }, auth: user1), FailsWith(404)); // should fail
             var resource = Create(new { command = "_ut" }, auth: user2); // should succeed
-            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = user2.ID }));
+            Expect(Get(resource, auth: Admin), Matches(new { command = "_ut", deviceGuid = DeviceGUID, parameters = (string)null, status = (string)null, result = (string)null, timestamp = ResponseMatchesContraint.Timestamp, userId = user2.ID }));
 
             // access keys authorization
             var accessKey1 = CreateAccessKey(user1, "CreateDeviceCommand");

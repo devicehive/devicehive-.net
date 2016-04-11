@@ -109,10 +109,10 @@ namespace DeviceHive.Client
         /// <param name="callback">A callback which will be invoken when a notification is retrieved.</param>
         /// <param name="timestamp">A timestamp of last received notification (optional).</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        public async Task<ISubscription> AddNotificationSubscriptionAsync(string[] deviceGuids, string[] notificationNames, Action<DeviceNotification> callback, DateTime? timestamp = null)
+        public async Task<ISubscription> AddNotificationSubscriptionAsync(string[] deviceGuids, string[] notificationNames, Action<Notification> callback, DateTime? timestamp = null)
         {
             return await AddSubscriptionAsync(SubscriptionType.Notification,
-                deviceGuids, notificationNames, obj => callback((DeviceNotification)obj), timestamp);
+                deviceGuids, notificationNames, obj => callback((Notification)obj), timestamp);
         }
 
         /// <summary>
@@ -124,10 +124,10 @@ namespace DeviceHive.Client
         /// <param name="callback">A callback which will be invoken when a command is retrieved.</param>
         /// <param name="timestamp">A timestamp of last received command (optional).</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        public async Task<ISubscription> AddCommandSubscriptionAsync(string[] deviceGuids, string[] commandNames, Action<DeviceCommand> callback, DateTime? timestamp = null)
+        public async Task<ISubscription> AddCommandSubscriptionAsync(string[] deviceGuids, string[] commandNames, Action<Command> callback, DateTime? timestamp = null)
         {
             return await AddSubscriptionAsync(SubscriptionType.Command,
-                deviceGuids, commandNames, obj => callback((DeviceCommand)obj), timestamp);
+                deviceGuids, commandNames, obj => callback((Command)obj), timestamp);
         }
 
         /// <summary>

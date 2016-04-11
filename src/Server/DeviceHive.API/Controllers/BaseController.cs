@@ -47,6 +47,19 @@ namespace DeviceHive.API.Controllers
 
         #region Protected Methods
 
+        protected System.Version GetClientVersion()
+        {
+            IEnumerable<string> versionHeader;
+            if (!Request.Headers.TryGetValues("ClientVersion", out versionHeader))
+                return new System.Version(2, 0);
+
+            System.Version version;
+            if (!System.Version.TryParse(versionHeader.First(), out version))
+                return new System.Version(2, 0);
+
+            return version;
+        }
+
         protected Device GetDeviceEnsureAccess(string deviceGuid)
         {
             if (CallContext.CurrentDevice != null)
@@ -116,6 +129,26 @@ namespace DeviceHive.API.Controllers
         {
             var json = new JObject(Request.GetQueryNameValuePairs().Select(p => new JProperty(p.Key, p.Value)));
             return GetMapper<T>().Map(json);
+        }
+
+        public JObject MapDeviceNotification(DeviceNotification notification, Device device = null)
+        {
+            var json = GetMapper<DeviceNotification>().Map(notification);
+            if (notification.Device != null)
+                json["deviceGuid"] = notification.Device.GUID;
+            else if (device != null)
+                json["deviceGuid"] = device.GUID;
+            return json;
+        }
+
+        public JObject MapDeviceCommand(DeviceCommand command, Device device = null)
+        {
+            var json = GetMapper<DeviceCommand>().Map(command);
+            if (command.Device != null)
+                json["deviceGuid"] = command.Device.GUID;
+            else if (device != null)
+                json["deviceGuid"] = device.GUID;
+            return json;
         }
 
         protected void Validate(object entity)

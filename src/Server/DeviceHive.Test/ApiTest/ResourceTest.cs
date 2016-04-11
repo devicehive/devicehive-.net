@@ -263,7 +263,7 @@ namespace DeviceHive.Test
             // create user
             var userResource = Client.Post("/user", new { login = login, password = NewUserPassword, role = role, status = 0 }, auth: Admin);
             Expect(userResource.Status, Is.EqualTo(ExpectedCreatedStatus));
-            var userId = GetResourceId(userResource.Json);
+            var userId = int.Parse(GetResourceId(userResource.Json));
             RegisterForDeletion("/user/" + userId);
 
             // create user/network association
@@ -307,7 +307,7 @@ namespace DeviceHive.Test
                 new[] { new { actions = actions, networkIds = networkIds, deviceGuids = deviceGuids } } }, auth: user);
             Expect(accessKeyResource.Status, Is.EqualTo(ExpectedCreatedStatus));
             var accessKeyId = GetResourceId(accessKeyResource.Json);
-            RegisterForDeletion("/user/" + (user.ID != null ? user.ID : "current") + "/accesskey/" + accessKeyId);
+            RegisterForDeletion("/user/" + (user.ID != null ? user.ID.ToString() : "current") + "/accesskey/" + accessKeyId);
 
             return AccessKey((string)accessKeyResource.Json["key"]);
         }
@@ -335,7 +335,7 @@ namespace DeviceHive.Test
         /// <param name="login">User login</param>
         /// <param name="password">User password</param>
         /// <param name="id">User identifier (optional)</param>
-        protected Authorization User(string login, string password, string id = null)
+        protected Authorization User(string login, string password, int? id = null)
         {
             return new Authorization("User", login, password, id);
         }
@@ -470,7 +470,8 @@ namespace DeviceHive.Test
 
                 if (actualProperty is JValue)
                 {
-                    return IsMatches(actualProperty, expectedProperty);
+                    if (!IsMatches(actualProperty, expectedProperty))
+                        return false;
                 }
                 else if (actualProperty is JObject)
                 {

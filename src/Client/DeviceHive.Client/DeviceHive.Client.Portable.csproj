@@ -70,10 +70,8 @@
     <Compile Include="Model\CommandFilter.cs" />
     <Compile Include="Model\Device.cs" />
     <Compile Include="Model\DeviceClass.cs" />
-    <Compile Include="Model\DeviceCommand.cs" />
     <Compile Include="Model\DeviceEquipmentState.cs" />
     <Compile Include="Model\DeviceFilter.cs" />
-    <Compile Include="Model\DeviceNotification.cs" />
     <Compile Include="Model\Equipment.cs" />
     <Compile Include="Model\Network.cs" />
     <Compile Include="Model\NetworkFilter.cs" />

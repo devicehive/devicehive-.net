@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using DeviceHive.Core;
 using DeviceHive.Core.Mapping;
 using DeviceHive.Data;
@@ -57,6 +58,26 @@ namespace DeviceHive.WebSockets.API.Controllers
         protected IJsonMapper<T> GetMapper<T>()
         {
             return _jsonMapperManager.GetMapper<T>();
+        }
+
+        public JObject MapDeviceNotification(DeviceNotification notification, Device device = null)
+        {
+            var json = GetMapper<DeviceNotification>().Map(notification);
+            if (notification.Device != null)
+                json["deviceGuid"] = notification.Device.GUID;
+            else if (device != null)
+                json["deviceGuid"] = device.GUID;
+            return json;
+        }
+
+        public JObject MapDeviceCommand(DeviceCommand command, Device device = null)
+        {
+            var json = GetMapper<DeviceCommand>().Map(command);
+            if (command.Device != null)
+                json["deviceGuid"] = command.Device.GUID;
+            else if (device != null)
+                json["deviceGuid"] = device.GUID;
+            return json;
         }
 
         #endregion

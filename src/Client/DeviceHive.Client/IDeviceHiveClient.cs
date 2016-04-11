@@ -86,7 +86,7 @@ namespace DeviceHive.Client
         /// <param name="notificationNames">Array of notification names to subsribe to. Specify null to subscribe to all notifications.</param>
         /// <param name="callback">A callback which will be invoken when a notification is retrieved.</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        Task<ISubscription> AddNotificationSubscriptionAsync(string[] deviceGuids, string[] notificationNames, Action<DeviceNotification> callback);
+        Task<ISubscription> AddNotificationSubscriptionAsync(string[] deviceGuids, string[] notificationNames, Action<Notification> callback);
 
         /// <summary>
         /// Adds a subscription to device commands.
@@ -96,7 +96,7 @@ namespace DeviceHive.Client
         /// <param name="commandNames">Array of command names to subsribe to. Specify null to subscribe to all commands.</param>
         /// <param name="callback">A callback which will be invoken when a command is retrieved.</param>
         /// <returns>An <see cref="ISubscription"/> object representing the subscription created.</returns>
-        Task<ISubscription> AddCommandSubscriptionAsync(string[] deviceGuids, string[] commandNames, Action<DeviceCommand> callback);
+        Task<ISubscription> AddCommandSubscriptionAsync(string[] deviceGuids, string[] commandNames, Action<Command> callback);
 
         /// <summary>
         /// Removes an existing subcription.

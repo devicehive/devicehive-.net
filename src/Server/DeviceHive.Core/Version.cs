@@ -8,7 +8,7 @@
         /// <summary>
         /// API version
         /// </summary>
-        public const string ApiVersion = "2.0.0";
+        public const string ApiVersion = "2.1.0";
 
     }
 }

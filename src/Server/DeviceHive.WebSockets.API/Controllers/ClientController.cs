@@ -393,7 +393,7 @@ namespace DeviceHive.WebSockets.API.Controllers
             connection.SendResponse("notification/insert",
                 new JProperty("subscriptionId", subscriptionId),
                 new JProperty("deviceGuid", device.GUID),
-                new JProperty("notification", GetMapper<DeviceNotification>().Map(notification)));
+                new JProperty("notification", MapDeviceNotification(notification, device)));
         }
 
         #endregion
@@ -452,7 +452,7 @@ namespace DeviceHive.WebSockets.API.Controllers
             connection.SendResponse("command/insert",
                 new JProperty("subscriptionId", subscriptionId),
                 new JProperty("deviceGuid", device.GUID),
-                new JProperty("command", GetMapper<DeviceCommand>().Map(command)));
+                new JProperty("command", MapDeviceCommand(command, device)));
         }
 
         #endregion
@@ -476,7 +476,7 @@ namespace DeviceHive.WebSockets.API.Controllers
                 foreach (var subscription in subscriptions)
                 {
                     subscription.Connection.SendResponse("command/update",
-                        new JProperty("command", GetMapper<DeviceCommand>().Map(command)));
+                        new JProperty("command", MapDeviceCommand(command)));
                 }
             }
         }

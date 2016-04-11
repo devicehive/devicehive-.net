@@ -35,7 +35,7 @@ namespace DeviceHive.API.Controllers
             var device = GetDeviceEnsureAccess(deviceGuid);
 
             var filter = MapObjectFromQuery<DeviceNotificationFilter>();
-            return new JArray(DataContext.DeviceNotification.GetByDevice(device.ID, filter).Select(n => Mapper.Map(n)));
+            return new JArray(DataContext.DeviceNotification.GetByDevice(device.ID, filter).Select(n => MapDeviceNotification(n, device)));
         }
 
         /// <name>get</name>
@@ -54,7 +54,7 @@ namespace DeviceHive.API.Controllers
             if (notification == null || notification.DeviceID != device.ID)
                 ThrowHttpResponse(HttpStatusCode.NotFound, "Device notification not found!");
 
-            return Mapper.Map(notification);
+            return MapDeviceNotification(notification, device);
         }
 
         /// <name>insert</name>
