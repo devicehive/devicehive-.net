@@ -396,9 +396,9 @@ namespace DeviceHive.WindowsManager
                     {
                         lock (NotificationsObservable)
                         {
-                            if (!NotificationsObservable.Any(c => c.Id == notificationReceived.Notification.Id))
+                            if (!NotificationsObservable.Any(c => c.Id == notificationReceived.Id))
                             {
-                                NotificationsObservable.Insert(0, notificationReceived.Notification);
+                                NotificationsObservable.Insert(0, notificationReceived);
                             }
                         }
                     });
@@ -480,9 +480,9 @@ namespace DeviceHive.WindowsManager
                     {
                         lock (CommandsObservable)
                         {
-                            if (!CommandsObservable.Any(c => c.Id == commandReceived.Command.Id))
+                            if (!CommandsObservable.Any(c => c.Id == commandReceived.Id))
                             {
-                                CommandsObservable.Insert(0, commandReceived.Command);
+                                CommandsObservable.Insert(0, commandReceived);
                             }
                         }
                     });
