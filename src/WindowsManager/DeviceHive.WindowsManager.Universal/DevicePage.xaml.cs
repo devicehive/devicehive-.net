@@ -722,7 +722,7 @@ namespace DeviceHive.WindowsManager
                 {
                     foreach (Command cmd in CommandsObservable)
                     {
-                        if (command.Id == command.Id)
+                        if (command.Id == cmd.Id)
                         {
                             // Command class doesn't implement INotifyPropertyChanded to update its result,
                             // so old command is replaced by command with result:
